@@ -8,6 +8,23 @@
 #   with-sources: false
 
 -e file:.
+aiohttp==3.9.5
+    # via textual-dev
+aiosignal==1.3.1
+    # via aiohttp
+attrs==23.2.0
+    # via aiohttp
+click==8.1.7
+    # via click-default-group
+    # via postling
+    # via textual-dev
+click-default-group==1.2.4
+    # via postling
+frozenlist==1.4.1
+    # via aiohttp
+    # via aiosignal
+idna==3.7
+    # via yarl
 linkify-it-py==2.0.3
     # via markdown-it-py
 markdown-it-py==3.0.0
@@ -18,12 +35,19 @@ mdit-py-plugins==0.4.1
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
+msgpack==1.0.8
+    # via textual-dev
+multidict==6.0.5
+    # via aiohttp
+    # via yarl
 pygments==2.18.0
     # via rich
 rich==13.7.1
     # via textual
 textual==0.63.4
     # via postling
+    # via textual-dev
+textual-dev==1.5.1
 tree-sitter==0.20.4
     # via textual
     # via tree-sitter-languages
@@ -31,5 +55,10 @@ tree-sitter-languages==1.10.2
     # via textual
 typing-extensions==4.12.0
     # via textual
+    # via textual-dev
 uc-micro-py==1.0.3
     # via linkify-it-py
+xdg-base-dirs==6.0.1
+    # via postling
+yarl==1.9.4
+    # via aiohttp

@@ -7,17 +7,25 @@ authors = [
 ]
 dependencies = [
     "textual[syntax]>=0.63.4",
+    "click>=8.1.7",
+    "xdg-base-dirs>=6.0.1",
+    "click-default-group>=1.2.4",
 ]
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.11"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[project.scripts]
+postling = "postling.__main__:cli"
+
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = [
+    "textual-dev>=1.5.1",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true

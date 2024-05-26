@@ -8,6 +8,11 @@
 #   with-sources: false
 
 -e file:.
+click==8.1.7
+    # via click-default-group
+    # via postling
+click-default-group==1.2.4
+    # via postling
 linkify-it-py==2.0.3
     # via markdown-it-py
 markdown-it-py==3.0.0
@@ -33,3 +38,5 @@ typing-extensions==4.12.0
     # via textual
 uc-micro-py==1.0.3
     # via linkify-it-py
+xdg-base-dirs==6.0.1
+    # via postling
