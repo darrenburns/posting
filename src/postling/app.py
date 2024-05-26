@@ -1,5 +1,7 @@
 from importlib.metadata import version
 from pathlib import Path
+import httpx
+from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal
@@ -86,7 +88,10 @@ class UrlBar(Horizontal):
     def compose(self) -> ComposeResult:
         with Horizontal():
             yield MethodSelection("GET")
-            yield UrlInput(placeholder="http://jsonplaceholder.typicode.com/posts")
+            yield UrlInput(
+                "http://jsonplaceholder.typicode.com/posts",
+                placeholder="http://jsonplaceholder.typicode.com/posts",
+            )
             yield SendRequestButton("Send")
 
 
@@ -105,6 +110,21 @@ class RequestBodyTextArea(TextArea):
     """
 
 
+class ResponseTextArea(TextArea):
+    """
+    For displaying responses.
+    """
+
+    DEFAULT_CSS = """\
+    ResponseTextArea {
+        border: round $primary 80%;
+        &:focus {
+            border: round $primary-lighten-2;
+        }
+    }
+    """
+
+
 class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("escape", "app.quit", "Quit"),
@@ -114,7 +134,26 @@ class MainScreen(Screen[None]):
         yield AppHeader(f"[b]Postling[/] {version('postling')}")
         yield UrlBar()
         yield RequestBodyTextArea(language="json")
+        yield ResponseTextArea(language="json")
         yield Footer()
+
+    @on(SendRequestButton.Pressed)
+    @on(UrlInput.Submitted)
+    def send_request(self) -> None:
+        try:
+            response = httpx.get(self.url_input.value)
+        except Exception:
+            pass
+        else:
+            self.response_text_area.text = response.text
+
+    @property
+    def url_input(self) -> UrlInput:
+        return self.query_one(UrlInput)
+
+    @property
+    def response_text_area(self) -> ResponseTextArea:
+        return self.query_one(ResponseTextArea)
 
 
 class Postling(App[None]):

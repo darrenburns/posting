@@ -20,6 +20,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
+pl = "postling.__main__:cli"
 postling = "postling.__main__:cli"
 
 [tool.rye]
