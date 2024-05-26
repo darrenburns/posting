@@ -3,6 +3,8 @@ from textual.widgets import Footer, Label
 
 
 class Postling(App[None]):
+    ENABLE_COMMAND_PALETTE = False
+
     def compose(self) -> ComposeResult:
         yield Label("Postling")
         yield Footer()
