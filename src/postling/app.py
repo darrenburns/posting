@@ -134,7 +134,7 @@ class MainScreen(Screen[None]):
         yield AppHeader(f"[b]Postling[/] {version('postling')}")
         yield UrlBar()
         yield RequestBodyTextArea(language="json")
-        yield ResponseTextArea(language="json")
+        yield ResponseTextArea(language="json", read_only=True)
         yield Footer()
 
     @on(SendRequestButton.Pressed)
