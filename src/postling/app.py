@@ -233,7 +233,7 @@ class ResponseTextArea(TextArea):
     """
 
     def on_mount(self):
-        self.border_title = "Response body"
+        self.border_title = "Response"
         self.add_class("section")
 
 
