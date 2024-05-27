@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 import httpx
-from rich.console import RenderableType
 from textual import events, on
 from textual.reactive import reactive
 from textual.events import Message
@@ -92,10 +91,12 @@ class MethodSelectionPopup(ModalScreen[str]):
 
     def compose(self) -> ComposeResult:
         with Vertical():
-            yield OptionList(
-                *["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
-            )
+            yield OptionList("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
         yield Footer()
+
+    def on_click(self, event: events.Click) -> None:
+        if self.get_widget_at(event.screen_x, event.screen_y)[0] is self:
+            self.dismiss()
 
     @on(OptionList.OptionSelected)
     def return_selected_method(self, event: OptionList.OptionSelected) -> None:
@@ -107,7 +108,7 @@ class MethodSelectionPopup(ModalScreen[str]):
 
 class UrlInput(Input):
     """
-    The URL bar.
+    The URL input.
     """
 
     DEFAULT_CSS = """\
@@ -133,10 +134,13 @@ class SendRequestButton(Button, can_focus=False):
     SendRequestButton {
         padding: 0 1;
         height: 1;
+        min-width: 10;
         background: $success;
         color: $text;
         border: none;
+        text-style: none;
         &:hover {
+            text-style: b;
             padding: 0 1;
             border: none;
             background: $success-darken-1;
