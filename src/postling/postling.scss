@@ -1,7 +1,11 @@
 .section {
-    border: round $accent 80%;
+    border: round $accent 60%;
     border-title-color: $text;
     border-title-style: b;
+    
+    &:focus-within {
+        border: round $accent 100%;
+    }
 }
 
 Footer {

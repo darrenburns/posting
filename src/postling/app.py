@@ -1,12 +1,12 @@
 from importlib.metadata import version
 from pathlib import Path
 import httpx
-from textual import on
+from textual import events, on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.screen import Screen
-from textual.widgets import Button, Footer, Input, Label, TextArea
+from textual.screen import ModalScreen, Screen
+from textual.widgets import Button, Footer, Input, Label, OptionList, TextArea
 
 
 class AppHeader(Label):
@@ -42,6 +42,19 @@ class MethodSelection(Label):
         color: $text;
     }
     """
+
+    @on(events.Click)
+    def open_method_selection_popup(self, event: events.Click) -> None:
+        self.app.push_screen(MethodSelectionPopup())
+
+
+class MethodSelectionPopup(ModalScreen[str]):
+    def compose(self) -> ComposeResult:
+        yield OptionList(*["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
+
+    @on(OptionList.OptionSelected)
+    def return_selected_method(self, event: OptionList.OptionSelected) -> None:
+        self.dismiss(event.option.prompt)
 
 
 class UrlInput(Input):
@@ -113,10 +126,6 @@ class RequestBodyTextArea(TextArea):
 
     DEFAULT_CSS = """\
     RequestBodyTextArea {
-        border: round $accent 80%;
-        &:focus {
-            border: round $accent;
-        }
     }
     """
 
@@ -133,9 +142,6 @@ class ResponseTextArea(TextArea):
 
     DEFAULT_CSS = """\
     ResponseTextArea {
-        &:focus {
-            border: round $accent;
-        }
     }
     """
 
@@ -149,6 +155,7 @@ class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("escape", "app.quit", "Quit"),
         Binding("ctrl+j", "send_request", "Send request"),
+        Binding("ctrl+t", "change_method", "Change method"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -171,6 +178,9 @@ class MainScreen(Screen[None]):
 
     def action_send_request(self) -> None:
         self.send_request()
+
+    def action_change_method(self) -> None:
+        self.app.push_screen(MethodSelectionPopup())
 
     @property
     def url_input(self) -> UrlInput:
