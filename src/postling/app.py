@@ -11,6 +11,8 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen, Screen
 from textual.widgets import Button, Footer, Input, Label, OptionList, TextArea
 
+from postling.highlight_url import URLHighlighter
+
 
 class AppHeader(Label):
     """The header of the app."""
@@ -123,6 +125,9 @@ class UrlInput(Input):
         }
     }
     """
+
+    def on_mount(self):
+        self.highlighter = URLHighlighter()
 
 
 class SendRequestButton(Button, can_focus=False):
