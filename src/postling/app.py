@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 import httpx
+from rich.console import RenderableType
 from textual import events, on
 from textual.reactive import reactive
 from textual.events import Message
@@ -43,6 +44,9 @@ class MethodSelection(Label):
         padding: 0 1;
         background: $accent-darken-1;
         color: $text;
+        &:hover {
+            background: $accent-darken-2;
+        }
     }
     """
 
@@ -54,19 +58,51 @@ class MethodSelection(Label):
     def open_method_selection_popup(self, event: events.Click) -> None:
         self.post_message(MethodSelection.Clicked())
 
+    def set_method(self, method: str) -> None:
+        self.renderable = f"{method}"
+        self.refresh(layout=True)
+
 
 class MethodSelectionPopup(ModalScreen[str]):
+    CSS = """\
+    MethodSelectionPopup {
+        & > Vertical {
+            height: auto;
+            width: auto;
+            margin: 4 3;
+            border-left: outer $primary-lighten-1;
+            & > OptionList {
+                background: transparent;
+                width: auto;
+                border: none;
+            }
+        }
+    }"""
+
     BINDINGS = [
         Binding("escape", "app.pop_screen", "Dismiss"),
+        Binding("g", "dismiss_with_http_method('GET')", "GET"),
+        Binding("p", "dismiss_with_http_method('POST')", "POST"),
+        Binding("a", "dismiss_with_http_method('PATCH')", "PATCH"),
+        Binding("u", "dismiss_with_http_method('PUT')", "PUT"),
+        Binding("d", "dismiss_with_http_method('DELETE')", "DELETE"),
+        Binding("o", "dismiss_with_http_method('OPTIONS')", "OPTIONS"),
+        Binding("h", "dismiss_with_http_method('HEAD')", "HEAD"),
     ]
 
     def compose(self) -> ComposeResult:
-        yield OptionList(*["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
+        with Vertical():
+            yield OptionList(
+                *["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+            )
+        yield Footer()
 
     @on(OptionList.OptionSelected)
     def return_selected_method(self, event: OptionList.OptionSelected) -> None:
-        print(event.option.prompt)
-        self.dismiss(event.option.prompt)
+        self.action_dismiss_with_http_method(event.option.prompt)
+
+    def action_dismiss_with_http_method(self, method: str) -> None:
+        self.dismiss(method)
 
 
 class UrlInput(Input):
@@ -227,7 +263,7 @@ class MainScreen(Screen[None]):
         return self.query_one(RequestBodyTextArea)
 
     def watch_selected_method(self, value: str) -> None:
-        self.query_one(MethodSelection).update(value)
+        self.query_one(MethodSelection).set_method(value)
 
 
 class Postling(App[None]):
