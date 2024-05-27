@@ -176,6 +176,7 @@ class MainScreen(Screen[None]):
         try:
             with httpx.Client() as client:
                 # TODO - update the request object here.
+                # TODO - think about whether we store a single request instance or create a new one each time.
                 request = self.build_httpx_request()
                 response = client.send(request=request)
         except Exception:
