@@ -237,6 +237,27 @@ class ResponseTextArea(TextArea):
         self.add_class("section")
 
 
+class HeadersTable(DataTable[str]):
+    """
+    The headers table.
+    """
+
+    DEFAULT_CSS = """\
+    HeadersTable {
+        height: auto;
+        min-height: 5;
+    }
+    """
+
+    def on_mount(self):
+        self.show_header = False
+        self.zebra_stripes = True
+        self.add_columns(*["Key", "Value"])
+        self.add_row("Content-Type", "application/json")
+        self.add_row("Content-Type", "application/json")
+        self.add_row("Content-Type", "application/json")
+
+
 class RequestEditor(Vertical):
     """
     The request editor.
@@ -250,7 +271,7 @@ class RequestEditor(Vertical):
             vertical.border_title = "Request"
             with TabbedContent():
                 with TabPane("Headers"):
-                    yield DataTable()
+                    yield HeadersTable()
                 with TabPane("Body"):
                     yield RequestBodyTextArea(language="json")
                 with TabPane("Parameters"):
@@ -272,7 +293,7 @@ class MainScreen(Screen[None]):
     selected_method = reactive("GET")
 
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"[b]Postling[/] [white]{version('postling')}[/]")
+        yield AppHeader(f"[b]Postling[/] [white dim]{version('postling')}[/]")
         yield UrlBar()
         with AppBody():
             yield RequestEditor()

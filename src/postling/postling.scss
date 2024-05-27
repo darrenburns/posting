@@ -19,7 +19,8 @@ Footer {
     & FooterKey {
         background: transparent;
         .footer-key--key {
-          background: transparent;
+            color: $accent-lighten-1;
+            background: transparent;
         }
     }
 }
@@ -27,6 +28,10 @@ Footer {
 ContentTab {
     padding: 0 1;
     height: 1;
+    text-style: none;
+    &.-active {
+        text-style: b;
+    }
 }
 
 Tabs {
@@ -34,10 +39,37 @@ Tabs {
 }
 
 Tabs #tabs-list {
-    width: auto;
     min-height: 1;
  }
 
 TabPane {
     padding: 0;
+    height: 1fr;
+}
+
+DataTable {
+    & .datatable--header {
+        background: $boost;
+        color: $text;
+    }
+
+    & .datatable--cursor {
+        background: $accent-lighten-2 0%;
+        color: $text;
+    }
+
+    &:focus .datatable--cursor {
+        background: $accent-lighten-2;
+        color: $text;
+    }
+
+    & .datatable--hover {
+        background: $accent-lighten-2 50%;
+        color: $text;
+    }
+
+    & .datatable--header-hover {
+        background: $accent-lighten-2 50%;
+        color: $text;
+    }
 }
