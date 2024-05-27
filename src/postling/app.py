@@ -9,7 +9,17 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen, Screen
-from textual.widgets import Button, Footer, Input, Label, OptionList, TextArea
+from textual.widgets import (
+    Button,
+    DataTable,
+    Footer,
+    Input,
+    Label,
+    OptionList,
+    TabPane,
+    TabbedContent,
+    TextArea,
+)
 
 from postling.highlight_url import URLHighlighter
 
@@ -183,13 +193,33 @@ class RequestBodyTextArea(TextArea):
 
     DEFAULT_CSS = """\
     RequestBodyTextArea {
+        border: none;
+
+        &:focus {
+            border: none;
+        }
+
+        &.empty {
+            & .text-area--cursor-line {
+                background: transparent;
+            }
+            & .text-area--cursor-gutter {
+                background: transparent;
+            }
+        }
+
     }
     """
 
     def on_mount(self):
-        self.border_title = "Request body"
-        self.add_class("section")
+        self.show_line_numbers = True
+        self.tab_behavior = "indent"
+        self.set_class(len(self.text) == 0, "empty")
         return super().on_mount()
+
+    @on(TextArea.Changed)
+    def on_change(self, event: TextArea.Changed) -> None:
+        self.set_class(len(self.text) == 0, "empty")
 
 
 class ResponseTextArea(TextArea):
@@ -205,7 +235,30 @@ class ResponseTextArea(TextArea):
     def on_mount(self):
         self.border_title = "Response body"
         self.add_class("section")
-        return super().on_mount()
+
+
+class RequestEditor(Vertical):
+    """
+    The request editor.
+    """
+
+    DEFAULT_CSS = """\
+    """
+
+    def compose(self) -> ComposeResult:
+        with Vertical() as vertical:
+            vertical.border_title = "Request"
+            with TabbedContent():
+                with TabPane("Headers"):
+                    yield DataTable()
+                with TabPane("Body"):
+                    yield RequestBodyTextArea(language="json")
+                with TabPane("Parameters"):
+                    yield DataTable()
+
+    def on_mount(self):
+        self.border_title = "Request"
+        self.add_class("section")
 
 
 class MainScreen(Screen[None]):
@@ -213,6 +266,7 @@ class MainScreen(Screen[None]):
         Binding("escape", "app.quit", "Quit"),
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
+        Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
     selected_method = reactive("GET")
@@ -221,7 +275,7 @@ class MainScreen(Screen[None]):
         yield AppHeader(f"[b]Postling[/] [white]{version('postling')}[/]")
         yield UrlBar()
         with AppBody():
-            yield RequestBodyTextArea(language="json")
+            yield RequestEditor()
             yield ResponseTextArea(language="json", read_only=True)
         yield Footer()
 
@@ -244,6 +298,11 @@ class MainScreen(Screen[None]):
 
     def action_change_method(self) -> None:
         self.method_selection()
+
+    def action_tree(self) -> None:
+        from textual import log
+
+        log.info(self.app.tree)
 
     @on(MethodSelection.Clicked)
     def method_selection(self) -> None:

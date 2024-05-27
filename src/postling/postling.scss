@@ -1,9 +1,13 @@
 .section {
-    border: round $accent 60%;
+    border: heavy $accent 60%;
     border-title-color: $text;
+    border-title-background: $accent 60%;
+    border-title-align: right;
     
     &:focus-within {
-        border: round $accent 100%;
+        border: heavy $accent 100%;
+        border-title-color: $text;
+        border-title-background: $accent 60%;
         border-title-style: b;
     }
 }
@@ -18,4 +22,40 @@ Footer {
           background: transparent;
         }
     }
+}
+
+ContentTab {
+    padding: 0 1;
+    margin: 0;
+    height: 1;
+}
+
+ContentTabs {
+    padding: 0;
+    margin: 0;
+}
+
+TabbedContent {
+    padding: 0;
+    margin: 0;
+}
+
+Underline {
+    height: 1;
+    margin: 0;
+    padding: 0;
+}
+
+Tabs {
+    height: 2;
+    margin: 0 1;
+}
+
+Tabs #tabs-list {
+    width: auto;
+    min-height: 1;
+ }
+
+TabPane {
+    padding: 0;
 }
