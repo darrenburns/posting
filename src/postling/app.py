@@ -128,6 +128,7 @@ class ResponseTextArea(TextArea):
 class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("escape", "app.quit", "Quit"),
+        Binding("ctrl+j", "send_request", "Send request"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -146,6 +147,9 @@ class MainScreen(Screen[None]):
             pass
         else:
             self.response_text_area.text = response.text
+
+    def action_send_request(self) -> None:
+        self.send_request()
 
     @property
     def url_input(self) -> UrlInput:
