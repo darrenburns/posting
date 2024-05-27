@@ -158,6 +158,12 @@ class MainScreen(Screen[None]):
         Binding("ctrl+t", "change_method", "Change method"),
     ]
 
+    def on_mount(self) -> None:
+        # TODO - investigate this
+        self.request = httpx.Request(
+            method="GET", url="http://jsonplaceholder.typicode.com/posts"
+        )
+
     def compose(self) -> ComposeResult:
         yield AppHeader(f"[b]Postling[/] {version('postling')}")
         yield UrlBar()
