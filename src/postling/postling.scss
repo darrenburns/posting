@@ -1,0 +1,17 @@
+.section {
+    border: round $accent 80%;
+    border-title-color: $text;
+    border-title-style: b;
+}
+
+Footer {
+    border: none;
+    margin: 0 2 1 2;
+    background: transparent;
+    & FooterKey {
+        background: transparent;
+        .footer-key--key {
+          background: transparent;
+        }
+    }
+}

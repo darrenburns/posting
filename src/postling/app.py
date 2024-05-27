@@ -4,7 +4,7 @@ import httpx
 from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Input, Label, TextArea
 
@@ -16,6 +16,16 @@ class AppHeader(Label):
     AppHeader {
         color: $accent-lighten-2;
         padding: 1 3;
+    }
+    """
+
+
+class AppBody(Vertical):
+    """The body of the app."""
+
+    DEFAULT_CSS = """\
+    AppBody {
+        padding: 1 2;
     }
     """
 
@@ -53,7 +63,7 @@ class UrlInput(Input):
     """
 
 
-class SendRequestButton(Button):
+class SendRequestButton(Button, can_focus=False):
     """
     The button for sending the request.
     """
@@ -82,6 +92,7 @@ class UrlBar(Horizontal):
     DEFAULT_CSS = """\
     UrlBar {
         height: 1;
+        padding: 0 3;
     }
     """
 
@@ -102,12 +113,17 @@ class RequestBodyTextArea(TextArea):
 
     DEFAULT_CSS = """\
     RequestBodyTextArea {
-        border: round $primary 80%;
+        border: round $accent 80%;
         &:focus {
-            border: round $primary-lighten-2;
+            border: round $accent;
         }
     }
     """
+
+    def on_mount(self):
+        self.border_title = "Request body"
+        self.add_class("section")
+        return super().on_mount()
 
 
 class ResponseTextArea(TextArea):
@@ -117,12 +133,16 @@ class ResponseTextArea(TextArea):
 
     DEFAULT_CSS = """\
     ResponseTextArea {
-        border: round $primary 80%;
         &:focus {
-            border: round $primary-lighten-2;
+            border: round $accent;
         }
     }
     """
+
+    def on_mount(self):
+        self.border_title = "Response body"
+        self.add_class("section")
+        return super().on_mount()
 
 
 class MainScreen(Screen[None]):
@@ -134,8 +154,9 @@ class MainScreen(Screen[None]):
     def compose(self) -> ComposeResult:
         yield AppHeader(f"[b]Postling[/] {version('postling')}")
         yield UrlBar()
-        yield RequestBodyTextArea(language="json")
-        yield ResponseTextArea(language="json", read_only=True)
+        with AppBody():
+            yield RequestBodyTextArea(language="json")
+            yield ResponseTextArea(language="json", read_only=True)
         yield Footer()
 
     @on(SendRequestButton.Pressed)
