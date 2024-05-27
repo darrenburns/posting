@@ -40,7 +40,7 @@ class AppBody(Vertical):
 
     DEFAULT_CSS = """\
     AppBody {
-        padding: 1 2;
+        padding: 1 2 0 2;
     }
     """
 
@@ -199,15 +199,6 @@ class RequestBodyTextArea(TextArea):
             border: none;
         }
 
-        &.empty {
-            & .text-area--cursor-line {
-                background: transparent;
-            }
-            & .text-area--cursor-gutter {
-                background: transparent;
-            }
-        }
-
     }
     """
 
@@ -234,7 +225,16 @@ class ResponseTextArea(TextArea):
 
     def on_mount(self):
         self.border_title = "Response"
+        empty = len(self.text) == 0
+        self.set_class(empty, "empty")
+        self.show_line_numbers = not empty
         self.add_class("section")
+
+    @on(TextArea.Changed)
+    def on_change(self, event: TextArea.Changed) -> None:
+        empty = len(self.text) == 0
+        self.set_class(empty, "empty")
+        self.show_line_numbers = not empty
 
 
 class HeadersTable(DataTable[str]):

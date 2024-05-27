@@ -1,13 +1,11 @@
 .section {
-    border: heavy $accent 60%;
+    border: round $accent 60%;
     border-title-color: $text;
-    border-title-background: $accent 60%;
     border-title-align: right;
     
     &:focus-within {
-        border: heavy $accent 100%;
+        border: round $accent 100%;
         border-title-color: $text;
-        border-title-background: $accent 60%;
         border-title-style: b;
     }
 }
@@ -71,5 +69,14 @@ DataTable {
     & .datatable--header-hover {
         background: $accent-lighten-2 50%;
         color: $text;
+    }
+}
+
+TextArea.empty {
+    & .text-area--cursor-line {
+        background: transparent;
+    }
+    & .text-area--cursor-gutter {
+        background: transparent;
     }
 }
