@@ -251,11 +251,43 @@ class HeadersTable(DataTable[str]):
 
     def on_mount(self):
         self.show_header = False
-        self.zebra_stripes = True
         self.add_columns(*["Key", "Value"])
         self.add_row("Content-Type", "application/json")
-        self.add_row("Content-Type", "application/json")
-        self.add_row("Content-Type", "application/json")
+        self.add_row("Some-Header", "Some value")
+        self.add_row("X-Request-ID", "1234")
+        self.add_row("X-Request-Date", "2021-01-01")
+        self.add_row("X-Request-User", "Darren")
+        self.add_row("X-Request-Role", "Admin")
+        self.add_row("Expires", "0")
+
+    def as_dict(self) -> dict[str, str]:
+        headers: dict[str, str] = {}
+        for row_index in range(self.row_count):
+            row = self.get_row_at(row_index)
+            headers[row[0]] = row[1]
+        return headers
+
+
+class HeadersTableFooter(Horizontal):
+    """
+    The footer for the headers table.
+    """
+
+    DEFAULT_CSS = """\
+    HeadersTableFooter {
+        height: 1;
+        padding: 0 1;
+        dock: bottom;
+
+        & > Label {
+            color: $text-muted;
+            dock: right;
+        }
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Label("Blah")
 
 
 class RequestEditor(Vertical):
@@ -300,14 +332,17 @@ class MainScreen(Screen[None]):
             yield ResponseTextArea(language="json", read_only=True)
         yield Footer()
 
-    @on(SendRequestButton.Pressed)
-    @on(UrlInput.Submitted)
+    @on(Button.Pressed, selector="SendRequestButton")
+    @on(Input.Submitted, selector="UrlInput")
     def send_request(self) -> None:
         try:
             with httpx.Client() as client:
                 # TODO - update the request object here.
                 # TODO - think about whether we store a single request instance or create a new one each time.
                 request = self.build_httpx_request()
+                print("-- sending request --")
+                print(request)
+                print(request.headers)
                 response = client.send(request=request)
         except Exception:
             pass
@@ -334,9 +369,10 @@ class MainScreen(Screen[None]):
 
     def build_httpx_request(self) -> httpx.Request:
         return httpx.Request(
-            method="GET",
+            method=self.selected_method,
             url=self.url_input.value,
             content=self.request_body_text_area.text,
+            headers=self.headers_table.as_dict(),
         )
 
     @property
@@ -350,6 +386,10 @@ class MainScreen(Screen[None]):
     @property
     def request_body_text_area(self) -> RequestBodyTextArea:
         return self.query_one(RequestBodyTextArea)
+
+    @property
+    def headers_table(self) -> HeadersTable:
+        return self.query_one(HeadersTable)
 
     def watch_selected_method(self, value: str) -> None:
         self.query_one(MethodSelection).set_method(value)
