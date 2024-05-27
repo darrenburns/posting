@@ -1,7 +1,10 @@
+from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 import httpx
 from textual import events, on
+from textual.reactive import reactive
+from textual.events import Message
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
@@ -43,9 +46,13 @@ class MethodSelection(Label):
     }
     """
 
+    @dataclass
+    class Clicked(Message):
+        """Posted when the method selection label is clicked."""
+
     @on(events.Click)
     def open_method_selection_popup(self, event: events.Click) -> None:
-        self.app.push_screen(MethodSelectionPopup())
+        self.post_message(MethodSelection.Clicked())
 
 
 class MethodSelectionPopup(ModalScreen[str]):
@@ -58,6 +65,7 @@ class MethodSelectionPopup(ModalScreen[str]):
 
     @on(OptionList.OptionSelected)
     def return_selected_method(self, event: OptionList.OptionSelected) -> None:
+        print(event.option.prompt)
         self.dismiss(event.option.prompt)
 
 
@@ -162,8 +170,10 @@ class MainScreen(Screen[None]):
         Binding("ctrl+t", "change_method", "Change method"),
     ]
 
+    selected_method = reactive("GET")
+
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"[b]Postling[/] {version('postling')}")
+        yield AppHeader(f"[b]Postling[/] [white]{version('postling')}[/]")
         yield UrlBar()
         with AppBody():
             yield RequestBodyTextArea(language="json")
@@ -188,14 +198,20 @@ class MainScreen(Screen[None]):
         self.send_request()
 
     def action_change_method(self) -> None:
-        self.app.push_screen(MethodSelectionPopup())
+        self.method_selection()
+
+    @on(MethodSelection.Clicked)
+    def method_selection(self) -> None:
+        def set_method(method: str) -> None:
+            self.selected_method = method
+
+        self.app.push_screen(MethodSelectionPopup(), callback=set_method)
 
     def build_httpx_request(self) -> httpx.Request:
-        # TODO - broken - complete this method.
         return httpx.Request(
-            method=self.method_selection.text,
-            url=self.url_input.text,
-            content=self.request_body.text,
+            method="GET",
+            url=self.url_input.value,
+            content=self.request_body_text_area.text,
         )
 
     @property
@@ -205,6 +221,13 @@ class MainScreen(Screen[None]):
     @property
     def response_text_area(self) -> ResponseTextArea:
         return self.query_one(ResponseTextArea)
+
+    @property
+    def request_body_text_area(self) -> RequestBodyTextArea:
+        return self.query_one(RequestBodyTextArea)
+
+    def watch_selected_method(self, value: str) -> None:
+        self.query_one(MethodSelection).update(value)
 
 
 class Postling(App[None]):
