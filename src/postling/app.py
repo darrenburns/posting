@@ -49,6 +49,10 @@ class MethodSelection(Label):
 
 
 class MethodSelectionPopup(ModalScreen[str]):
+    BINDINGS = [
+        Binding("escape", "app.pop_screen", "Dismiss"),
+    ]
+
     def compose(self) -> ComposeResult:
         yield OptionList(*["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
 
