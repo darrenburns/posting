@@ -159,7 +159,6 @@ class MainScreen(Screen[None]):
     ]
 
     def on_mount(self) -> None:
-        # TODO - investigate this
         self.request = httpx.Request(
             method="GET", url="http://jsonplaceholder.typicode.com/posts"
         )
@@ -176,7 +175,8 @@ class MainScreen(Screen[None]):
     @on(UrlInput.Submitted)
     def send_request(self) -> None:
         try:
-            response = httpx.get(self.url_input.value)
+            with httpx.Client() as client:
+                response = client.send(self.request)
         except Exception:
             pass
         else:
