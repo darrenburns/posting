@@ -158,11 +158,6 @@ class MainScreen(Screen[None]):
         Binding("ctrl+t", "change_method", "Change method"),
     ]
 
-    def on_mount(self) -> None:
-        self.request = httpx.Request(
-            method="GET", url="http://jsonplaceholder.typicode.com/posts"
-        )
-
     def compose(self) -> ComposeResult:
         yield AppHeader(f"[b]Postling[/] {version('postling')}")
         yield UrlBar()
@@ -176,7 +171,9 @@ class MainScreen(Screen[None]):
     def send_request(self) -> None:
         try:
             with httpx.Client() as client:
-                response = client.send(self.request)
+                # TODO - update the request object here.
+                request = self.build_httpx_request()
+                response = client.send(request=request)
         except Exception:
             pass
         else:
@@ -187,6 +184,14 @@ class MainScreen(Screen[None]):
 
     def action_change_method(self) -> None:
         self.app.push_screen(MethodSelectionPopup())
+
+    def build_httpx_request(self) -> httpx.Request:
+        # TODO - broken - complete this method.
+        return httpx.Request(
+            method=self.method_selection.text,
+            url=self.url_input.text,
+            content=self.request_body.text,
+        )
 
     @property
     def url_input(self) -> UrlInput:
