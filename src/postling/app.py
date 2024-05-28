@@ -181,7 +181,7 @@ class UrlBar(Horizontal):
             yield MethodSelection("GET")
             yield UrlInput(
                 "http://jsonplaceholder.typicode.com/posts",
-                placeholder="http://jsonplaceholder.typicode.com/posts",
+                placeholder="Enter a URL...",
             )
             yield SendRequestButton("Send")
 
@@ -334,23 +334,23 @@ class MainScreen(Screen[None]):
 
     @on(Button.Pressed, selector="SendRequestButton")
     @on(Input.Submitted, selector="UrlInput")
-    def send_request(self) -> None:
+    async def send_request(self) -> None:
         try:
-            with httpx.Client() as client:
+            async with httpx.AsyncClient() as client:
                 # TODO - update the request object here.
                 # TODO - think about whether we store a single request instance or create a new one each time.
                 request = self.build_httpx_request()
                 print("-- sending request --")
                 print(request)
                 print(request.headers)
-                response = client.send(request=request)
+                response = await client.send(request=request)
         except Exception:
             pass
         else:
             self.response_text_area.text = response.text
 
-    def action_send_request(self) -> None:
-        self.send_request()
+    async def action_send_request(self) -> None:
+        await self.send_request()
 
     def action_change_method(self) -> None:
         self.method_selection()
