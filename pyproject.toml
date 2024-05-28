@@ -1,6 +1,6 @@
 [project]
 name = "postling"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Add your description here"
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }

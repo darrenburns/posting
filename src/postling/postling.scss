@@ -15,10 +15,14 @@ Footer {
     margin: 0 2 1 2;
     background: transparent;
     & FooterKey {
+        color: $text 85%;
         background: transparent;
         .footer-key--key {
             color: $accent-lighten-1;
             background: transparent;
+        }
+        &:hover {
+            color: $text 100%;
         }
     }
 }
