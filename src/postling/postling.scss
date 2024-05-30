@@ -61,19 +61,15 @@ DataTable {
     }
 
     &:focus .datatable--cursor {
-        background: $accent-lighten-2;
+        background: $primary-lighten-1 50%;
         color: $text;
     }
 
     & .datatable--hover {
-        background: $accent-lighten-2 50%;
+        background: $primary-lighten-1 20%;
         color: $text;
     }
 
-    & .datatable--header-hover {
-        background: $accent-lighten-2 50%;
-        color: $text;
-    }
 }
 
 TextArea.empty {
@@ -87,10 +83,14 @@ TextArea.empty {
 
 Input {
     padding: 0 1;
-    border: none;
     height: 1;
-    width: 1fr;
     &:focus {
         background: $boost;
     }
+}
+
+Button {
+    padding: 0 1;
+    height: 1;
+    border: none;
 }

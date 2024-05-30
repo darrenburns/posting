@@ -128,6 +128,8 @@ class UrlInput(Input):
 
     DEFAULT_CSS = """\
     UrlInput {
+        border: none;
+        width: 1fr;
         &:focus {
             border: none;
             padding: 0 1;
@@ -149,7 +151,7 @@ class SendRequestButton(Button, can_focus=False):
         padding: 0 1;
         height: 1;
         min-width: 10;
-        background: $success;
+        background: $success 50%;
         color: $text;
         border: none;
         text-style: none;
@@ -157,7 +159,7 @@ class SendRequestButton(Button, can_focus=False):
             text-style: b;
             padding: 0 1;
             border: none;
-            background: $success-darken-1;
+            background: $success-darken-1 50%;
         }
     }
     """
@@ -244,15 +246,20 @@ class HeadersTable(DataTable[str]):
     DEFAULT_CSS = """\
     HeadersTable {
         height: auto;
-        min-height: 5;
+        padding: 0 1;
     }
     """
 
     def on_mount(self):
         self.show_header = False
+        self.cursor_type = "row"
         self.add_columns(*["Header", "Value"])
         self.add_row("Content-Type", "application/json")
         self.add_row("Some-Header", "Some value")
+
+    def watch_has_focus(self, value: bool) -> None:
+        self._scroll_cursor_into_view()
+        return super().watch_has_focus(value)
 
     def as_dict(self) -> dict[str, str]:
         headers: dict[str, str] = {}
@@ -263,24 +270,81 @@ class HeadersTable(DataTable[str]):
 
 
 class HeaderEditor(Vertical):
+    DEFAULT_CSS = """\
+    #header-inputs {
+        height: 1;
+        dock: bottom;
+        & > Input {
+            border: none;
+            width: 1fr;
+            margin-left: 1;
+        }
+
+        #add-header-button {
+            background: $success 50%;
+            color: $text;
+            text-style: none;
+            width: 10;
+            margin: 0 1;
+            &:hover {
+                text-style: b;
+                padding: 0 1;
+                border: none;
+                background: $success-darken-1 50%;
+            }
+        
+        }
+    }
+    """
+
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield HeadersTable()
-            yield Horizontal(
-                Input(placeholder="Header", id="header-key-input"),
-                Input(placeholder="Value", id="header-value-input"),
-            )
+        with Horizontal(id="header-inputs"):
+            yield Input(placeholder="Header name", id="header-key-input")
+            yield Input(placeholder="Header value", id="header-value-input")
+            add_header_button = Button("Add header", id="add-header-button")
+            add_header_button.can_focus = False
+            yield add_header_button
+        yield HeadersTable()
 
     def on_mount(self):
         header_input = self.query_one("#header-key-input", Input)
         items: list[DropdownItem] = []
         for header in REQUEST_HEADERS:
-            style = "yellow" if header["experimental"] else ""
+            style = "red" if header["experimental"] else ""
             items.append(DropdownItem(main=Text(header["name"], style=style)))
 
         self.screen.mount(
-            AutoComplete(header_input, items=items, prevent_default_tab=False)
+            AutoComplete(
+                header_input,
+                items=items,
+                prevent_default_tab=False,
+                prevent_default_enter=False,
+            )
         )
+
+    @on(Input.Submitted, selector="#header-key-input")
+    @on(Input.Submitted, selector="#header-value-input")
+    def add_header(self, event: Input.Submitted) -> None:
+        key_input = self.query_one("#header-key-input", Input)
+        value_input = self.query_one("#header-value-input", Input)
+
+        key = key_input.value
+        value = value_input.value
+
+        table = self.query_one(HeadersTable)
+        if key and value:
+            table.add_row(key, value)
+            key_input.clear()
+            value_input.clear()
+            key_input.focus()
+            table.move_cursor(row=table.row_count - 1)
+        elif key and not value:
+            value_input.focus()
+        elif value and not key:
+            key_input.focus()
+        else:
+            # Case where both are empty - do nothing.
+            pass
 
 
 class RequestEditor(Vertical):
