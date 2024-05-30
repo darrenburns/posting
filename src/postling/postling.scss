@@ -84,3 +84,13 @@ TextArea.empty {
         background: transparent;
     }
 }
+
+Input {
+    padding: 0 1;
+    border: none;
+    height: 1;
+    width: 1fr;
+    &:focus {
+        background: $boost;
+    }
+}

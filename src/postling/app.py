@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 import httpx
+from rich.text import Text
 from textual import events, on
 from textual.reactive import reactive
 from textual.events import Message
@@ -20,8 +21,10 @@ from textual.widgets import (
     TabbedContent,
     TextArea,
 )
+from textual_autocomplete import AutoComplete, DropdownItem
 
 from postling.highlight_url import URLHighlighter
+from postling.request_headers import REQUEST_HEADERS
 
 
 class AppHeader(Label):
@@ -125,10 +128,6 @@ class UrlInput(Input):
 
     DEFAULT_CSS = """\
     UrlInput {
-        padding: 0 1;
-        border: none;
-        height: 1;
-        width: 1fr;
         &:focus {
             border: none;
             padding: 0 1;
@@ -251,14 +250,9 @@ class HeadersTable(DataTable[str]):
 
     def on_mount(self):
         self.show_header = False
-        self.add_columns(*["Key", "Value"])
+        self.add_columns(*["Header", "Value"])
         self.add_row("Content-Type", "application/json")
         self.add_row("Some-Header", "Some value")
-        self.add_row("X-Request-ID", "1234")
-        self.add_row("X-Request-Date", "2021-01-01")
-        self.add_row("X-Request-User", "Darren")
-        self.add_row("X-Request-Role", "Admin")
-        self.add_row("Expires", "0")
 
     def as_dict(self) -> dict[str, str]:
         headers: dict[str, str] = {}
@@ -268,26 +262,25 @@ class HeadersTable(DataTable[str]):
         return headers
 
 
-class HeadersTableFooter(Horizontal):
-    """
-    The footer for the headers table.
-    """
-
-    DEFAULT_CSS = """\
-    HeadersTableFooter {
-        height: 1;
-        padding: 0 1;
-        dock: bottom;
-
-        & > Label {
-            color: $text-muted;
-            dock: right;
-        }
-    }
-    """
-
+class HeaderEditor(Vertical):
     def compose(self) -> ComposeResult:
-        yield Label("Blah")
+        with Vertical():
+            yield HeadersTable()
+            yield Horizontal(
+                Input(placeholder="Header", id="header-key-input"),
+                Input(placeholder="Value", id="header-value-input"),
+            )
+
+    def on_mount(self):
+        header_input = self.query_one("#header-key-input", Input)
+        items: list[DropdownItem] = []
+        for header in REQUEST_HEADERS:
+            style = "yellow" if header["experimental"] else ""
+            items.append(DropdownItem(main=Text(header["name"], style=style)))
+
+        self.screen.mount(
+            AutoComplete(header_input, items=items, prevent_default_tab=False)
+        )
 
 
 class RequestEditor(Vertical):
@@ -303,7 +296,7 @@ class RequestEditor(Vertical):
             vertical.border_title = "Request"
             with TabbedContent():
                 with TabPane("Headers"):
-                    yield HeadersTable()
+                    yield HeaderEditor()
                 with TabPane("Body"):
                     yield RequestBodyTextArea(language="json")
                 with TabPane("Parameters"):
@@ -316,7 +309,6 @@ class RequestEditor(Vertical):
 
 class MainScreen(Screen[None]):
     BINDINGS = [
-        Binding("escape", "app.quit", "Quit"),
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
         Binding("ctrl+n", "tree", "DEBUG Show tree"),
