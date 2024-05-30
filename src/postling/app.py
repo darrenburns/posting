@@ -415,6 +415,7 @@ class MainScreen(Screen[None]):
                 print(request)
                 print(request.headers)
                 response = await client.send(request=request)
+                self.response_text_area.focus()
         except Exception:
             pass
         else:
