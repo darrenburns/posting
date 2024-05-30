@@ -55,20 +55,31 @@ DataTable {
         color: $text;
     }
 
-    & .datatable--cursor {
-        background: $accent-lighten-2 0%;
-        color: $text;
+    &:focus {
+        .datatable--cursor {
+            background: $accent 50%;
+            color: $text;
+        }
+        .datatable--hover {
+            background: $primary-lighten-1 20%;
+            color: $text;
+        }
+
     }
 
-    &:focus .datatable--cursor {
-        background: $primary-lighten-1 50%;
-        color: $text;
+    &:blur {
+        .datatable--cursor {
+            background: $primary-lighten-1 10%;
+            color: $text;
+        }
+        .datatable--hover {
+            background: $primary-lighten-1 40%;
+            color: $text;
+        }
     }
 
-    & .datatable--hover {
-        background: $primary-lighten-1 20%;
-        color: $text;
-    }
+    
+
 
 }
 

@@ -4,6 +4,7 @@ from pathlib import Path
 import httpx
 from rich.text import Text
 from textual import events, on
+from textual.coordinate import Coordinate
 from textual.reactive import reactive
 from textual.events import Message
 from textual.app import App, ComposeResult
@@ -21,6 +22,8 @@ from textual.widgets import (
     TabbedContent,
     TextArea,
 )
+from textual.widgets._data_table import ColumnKey, RowKey
+from textual.widgets._tabbed_content import ContentTab
 from textual_autocomplete import AutoComplete, DropdownItem
 
 from postling.highlight_url import URLHighlighter
@@ -250,9 +253,14 @@ class HeadersTable(DataTable[str]):
     }
     """
 
+    @dataclass
+    class Changed(Message):
+        data_table: DataTable[str]
+
     def on_mount(self):
         self.show_header = False
         self.cursor_type = "row"
+        self.zebra_stripes = True
         self.add_columns(*["Header", "Value"])
         self.add_row("Content-Type", "application/json")
         self.add_row("Some-Header", "Some value")
@@ -267,6 +275,20 @@ class HeadersTable(DataTable[str]):
             row = self.get_row_at(row_index)
             headers[row[0]] = row[1]
         return headers
+
+    def add_row(
+        self,
+        *cells: str,
+        height: int | None = 1,
+        key: str | None = None,
+        label: str | Text | None = None,
+    ) -> RowKey:
+        self.screen.post_message(HeadersTable.Changed(self))
+        return super().add_row(*cells, height=height, key=key, label=label)
+
+    def remove_row(self, row_key: RowKey | str) -> None:
+        self.screen.post_message(HeadersTable.Changed(self))
+        return super().remove_row(row_key)
 
 
 class HeaderEditor(Vertical):
@@ -339,22 +361,31 @@ class HeaderEditor(Vertical):
     @on(Input.Submitted, selector="#header-key-input")
     @on(Input.Submitted, selector="#header-value-input")
     @on(Button.Pressed, selector="#add-header-button")
-    def add_header(self) -> None:
+    def add_header(self, event: Input.Submitted | Button.Pressed) -> None:
         key_input = self.query_one("#header-key-input", Input)
         value_input = self.query_one("#header-value-input", Input)
 
         key = key_input.value
         value = value_input.value
-
         table = self.query_one(HeadersTable)
-        if key and value:
+
+        def add_header() -> None:
             table.add_row(key, value)
             key_input.clear()
             value_input.clear()
             key_input.focus()
             table.move_cursor(row=table.row_count - 1)
+
+        if key and value:
+            add_header()
         elif key and not value:
-            value_input.focus()
+            # This is a technically valid, but unlikely.
+            if isinstance(event, Input.Submitted):
+                input_id = event.input.id
+                if input_id == "header-key-input":
+                    value_input.focus()
+                elif input_id == "header-value-input":
+                    add_header()
         elif value and not key:
             key_input.focus()
         else:
@@ -374,11 +405,11 @@ class RequestEditor(Vertical):
         with Vertical() as vertical:
             vertical.border_title = "Request"
             with TabbedContent():
-                with TabPane("Headers"):
+                with TabPane("Headers", id="headers-pane"):
                     yield HeaderEditor()
-                with TabPane("Body"):
+                with TabPane("Body", id="body-pane"):
                     yield RequestBodyTextArea(language="json")
-                with TabPane("Parameters"):
+                with TabPane("Parameters", id="parameters-pane"):
                     yield DataTable()
 
     def on_mount(self):
@@ -431,6 +462,24 @@ class MainScreen(Screen[None]):
         from textual import log
 
         log.info(self.app.tree)
+
+    @on(TextArea.Changed, selector="RequestBodyTextArea")
+    def on_request_body_change(self, event: TextArea.Changed) -> None:
+        body_tab = self.query_one("#--content-tab-body-pane", ContentTab)
+        if event.text_area.text:
+            body_tab.update("Body[cyan]•[/]")
+        else:
+            body_tab.update("Body")
+
+    @on(HeadersTable.Changed)
+    def on_content_changed(self, event: HeadersTable.Changed) -> None:
+        print("on_content_changed")
+        headers_tab = self.query_one("#--content-tab-headers-pane", ContentTab)
+        print("event.data_table.row_count", event.data_table.row_count)
+        if event.data_table.row_count:
+            headers_tab.update("Headers[cyan]•[/]")
+        else:
+            headers_tab.update("Headers")
 
     @on(MethodSelection.Clicked)
     def method_selection(self) -> None:
