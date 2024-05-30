@@ -338,7 +338,7 @@ class HeaderEditor(Vertical):
         header_input = self.query_one("#header-key-input", Input)
         items: list[DropdownItem] = []
         for header in REQUEST_HEADERS:
-            style = "red" if header["experimental"] else ""
+            style = "yellow" if header["experimental"] else ""
             items.append(DropdownItem(main=Text(header["name"], style=style)))
 
         self.screen.mount(
@@ -386,6 +386,8 @@ class HeaderEditor(Vertical):
                     value_input.focus()
                 elif input_id == "header-value-input":
                     add_header()
+            else:
+                add_header()
         elif value and not key:
             key_input.focus()
         else:
