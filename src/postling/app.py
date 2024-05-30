@@ -278,6 +278,10 @@ class HeaderEditor(Vertical):
             border: none;
             width: 1fr;
             margin-left: 1;
+
+            &:focus {
+                background: $surface-lighten-1;
+            }
         }
 
         #add-header-button {
@@ -301,7 +305,9 @@ class HeaderEditor(Vertical):
         with Horizontal(id="header-inputs"):
             yield Input(placeholder="Header name", id="header-key-input")
             yield Input(placeholder="Header value", id="header-value-input")
-            add_header_button = Button("Add header", id="add-header-button")
+            add_header_button = Button(
+                "Add header", disabled=True, id="add-header-button"
+            )
             add_header_button.can_focus = False
             yield add_header_button
         yield HeadersTable()
@@ -322,9 +328,18 @@ class HeaderEditor(Vertical):
             )
         )
 
+    @on(Input.Changed, selector="#header-key-input")
+    @on(Input.Changed, selector="#header-value-input")
+    def determine_button_enabled(self) -> None:
+        # An HTTP header must have a key, but not necessarily a value.
+        key_input = self.query_one("#header-key-input", Input)
+        button = self.query_one("#add-header-button", Button)
+        button.disabled = not key_input.value
+
     @on(Input.Submitted, selector="#header-key-input")
     @on(Input.Submitted, selector="#header-value-input")
-    def add_header(self, event: Input.Submitted) -> None:
+    @on(Button.Pressed, selector="#add-header-button")
+    def add_header(self) -> None:
         key_input = self.query_one("#header-key-input", Input)
         value_input = self.query_one("#header-value-input", Input)
 

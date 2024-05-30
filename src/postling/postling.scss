@@ -84,13 +84,14 @@ TextArea.empty {
 Input {
     padding: 0 1;
     height: 1;
-    &:focus {
-        background: $boost;
-    }
 }
 
 Button {
     padding: 0 1;
     height: 1;
     border: none;
+
+    &:disabled {
+        opacity: 50%;
+    }
 }
