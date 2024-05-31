@@ -274,12 +274,13 @@ class RequestBodyTextArea(TextArea):
                         width_to_indent = max(
                             width + self.indent_width, self.indent_width
                         )
-                        result = self.insert(
-                            "\n" + " " * width_to_indent,
-                        )
-                        target_location = result.end_location
+
+                        target_location = row + 1, column + width_to_indent
                         self.insert(
-                            "\n" + " " * content_start_col,
+                            "\n"
+                            + " " * width_to_indent
+                            + "\n"
+                            + " " * content_start_col,
                         )
                         self.cursor_location = target_location
                         event.prevent_default()
