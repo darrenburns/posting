@@ -6,7 +6,7 @@ import httpx
 from rich.text import Text
 from textual import events, on
 from textual.coordinate import Coordinate
-from textual.reactive import reactive
+from textual.reactive import Reactive, reactive
 from textual.events import Message
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -371,6 +371,11 @@ class HeadersTable(DataTable[str]):
     HeadersTable {
         height: auto;
         padding: 0 1;
+
+        &:focus {
+            padding-left: 0;
+            border-left: inner $accent;
+        }
     }
     """
 
@@ -555,6 +560,23 @@ class RequestEditor(Vertical):
         self.add_class("section")
 
 
+class ResponseArea(Vertical):
+    """
+    The response area.
+    """
+
+    response: Reactive[httpx.Response | None] = reactive(None)
+
+    def compose(self) -> ComposeResult:
+        with Vertical():
+            yield ResponseTextArea(language="json")
+
+    def watch_response(self, response: httpx.Response | None) -> None:
+        if response is None:
+            return
+        self.query_one(ResponseTextArea).text = response.text
+
+
 class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send request"),
@@ -644,8 +666,8 @@ class MainScreen(Screen[None]):
         return self.query_one(UrlInput)
 
     @property
-    def response_text_area(self) -> ResponseTextArea:
-        return self.query_one(ResponseTextArea)
+    def response_area(self) -> ResponseArea:
+        return self.query_one(ResponseArea)
 
     @property
     def request_body_text_area(self) -> RequestBodyTextArea:
