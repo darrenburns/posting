@@ -30,6 +30,7 @@ from textual.widgets.text_area import Location
 from textual_autocomplete import AutoComplete, DropdownItem
 
 from postling.highlight_url import URLHighlighter
+from postling.messages import HttpResponseReceived
 from postling.request_headers import REQUEST_HEADERS
 from postling.text_area_theme import POSTLING_THEME
 
@@ -254,7 +255,6 @@ class RequestBodyTextArea(TextArea):
             row, column = self.cursor_location
             line = self.document.get_line(row)
             if not line:
-                print("no line")
                 return
 
             column = min(column, len(line) - 1)
@@ -307,11 +307,9 @@ class RequestBodyTextArea(TextArea):
                 # same level as the previous line.
 
             except IndexError:
-                print("index error")
-                raise
                 return
 
-        print(self._highlights)
+        self._restart_blink()
 
     def get_content_start_column(self, line: str) -> int:
         content_start_col = 0
@@ -410,6 +408,9 @@ class HeadersTable(DataTable[str]):
         key: str | None = None,
         label: str | Text | None = None,
     ) -> RowKey:
+        # TODO - this event was not bubbling up to the screen,
+        # and I have no clue why. So I'll just post it directly
+        # to the screen for now.
         self.screen.post_message(HeadersTable.Changed(self))
         return super().add_row(*cells, height=height, key=key, label=label)
 
@@ -583,11 +584,16 @@ class MainScreen(Screen[None]):
                 print(request)
                 print(request.headers)
                 response = await client.send(request=request)
-                self.response_text_area.focus()
+                self.post_message(HttpResponseReceived(response))
+
         except Exception:
             pass
-        else:
-            self.response_text_area.text = response.text
+
+    @on(HttpResponseReceived)
+    def on_response_received(self, event: HttpResponseReceived) -> None:
+        response_text_area = self.response_text_area
+        response_text_area.focus()
+        response_text_area.text = event.response.text
 
     async def action_send_request(self) -> None:
         await self.send_request()
