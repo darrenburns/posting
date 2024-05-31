@@ -217,6 +217,7 @@ class RequestBodyTextArea(TextArea):
     def on_mount(self):
         self.show_line_numbers = True
         self.tab_behavior = "indent"
+        self.indent_width = 2
         self.set_class(len(self.text) == 0, "empty")
         return super().on_mount()
 
@@ -242,6 +243,49 @@ class RequestBodyTextArea(TextArea):
                 if character == line[col]:
                     event.prevent_default()
                     self.move_cursor_relative(columns=1)
+        elif event.key == "enter":
+            row, column = self.cursor_location
+            line = self.document.get_line(row)
+            if not line:
+                return
+
+            column = min(column, len(line) - 1)
+            character = line[column]
+            character_locations = self._yield_character_locations_reverse(
+                self.cursor_location
+            )
+            try:
+                for character, location in character_locations:
+                    # Ignore whitespace
+                    if character.isspace():
+                        continue
+                    elif character in self.OPENING_BRACKETS:
+                        # We found an opening bracket on this line,
+                        # so check the indentation of the line.
+                        # The newly created line should have increased
+                        # indentation.
+                        content_start_col = 0
+                        for index, char in enumerate(line):
+                            if not char.isspace() or index == column:
+                                content_start_col = index
+                                break
+
+                        width = self.get_column_width(row, content_start_col)
+                        width_to_indent = max(
+                            width + self.indent_width, self.indent_width
+                        )
+                        result = self.insert(
+                            "\n" + " " * width_to_indent,
+                        )
+                        target_location = result.end_location
+                        self.insert(
+                            "\n" + " " * content_start_col,
+                        )
+                        self.cursor_location = target_location
+                        event.prevent_default()
+                        break
+            except IndexError:
+                return
 
 
 class ResponseTextArea(TextArea):
