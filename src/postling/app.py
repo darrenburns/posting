@@ -24,6 +24,7 @@ from textual.widgets import (
 )
 from textual.widgets._data_table import ColumnKey, RowKey
 from textual.widgets._tabbed_content import ContentTab
+from textual.widgets.data_table import CellDoesNotExist
 from textual_autocomplete import AutoComplete, DropdownItem
 
 from postling.highlight_url import URLHighlighter
@@ -325,6 +326,10 @@ class HeadersTable(DataTable[str]):
     }
     """
 
+    BINDINGS = [
+        Binding("backspace", action="remove_header", description="Remove header"),
+    ]
+
     @dataclass
     class Changed(Message):
         data_table: DataTable[str]
@@ -361,6 +366,14 @@ class HeadersTable(DataTable[str]):
     def remove_row(self, row_key: RowKey | str) -> None:
         self.screen.post_message(HeadersTable.Changed(self))
         return super().remove_row(row_key)
+
+    def action_remove_header(self) -> None:
+        try:
+            cursor_cell_key = self.coordinate_to_cell_key(self.cursor_coordinate)
+            cursor_row_key, _ = cursor_cell_key
+            self.remove_row(cursor_row_key)
+        except CellDoesNotExist:
+            pass
 
 
 class HeaderEditor(Vertical):
