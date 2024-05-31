@@ -604,7 +604,7 @@ class MainScreen(Screen[None]):
     def on_request_body_change(self, event: TextArea.Changed) -> None:
         body_tab = self.query_one("#--content-tab-body-pane", ContentTab)
         if event.text_area.text:
-            body_tab.update("Body[cyan]•[/]")
+            body_tab.update("Body[cyan b]•[/]")
         else:
             body_tab.update("Body")
 
@@ -614,7 +614,7 @@ class MainScreen(Screen[None]):
         headers_tab = self.query_one("#--content-tab-headers-pane", ContentTab)
         print("event.data_table.row_count", event.data_table.row_count)
         if event.data_table.row_count:
-            headers_tab.update("Headers[cyan]•[/]")
+            headers_tab.update("Headers[cyan b]•[/]")
         else:
             headers_tab.update("Headers")
 
