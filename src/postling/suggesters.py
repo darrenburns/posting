@@ -7,5 +7,9 @@ HEADER_SUGGESTION_LISTS = {
         "application/json",
         "application/xml",
         "application/x-www-form-urlencoded",
+        "multipart/form-data",
+        "image/",
+        "image/png",
+        "image/jpeg",
     ],
 }

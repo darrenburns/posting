@@ -206,6 +206,14 @@ class RequestBodyTextArea(TextArea):
     }
     """
 
+    AUTO_CLOSERS = {
+        "(": ")",
+        "[": "]",
+        "{": "}",
+    }
+
+    CLOSING_BRACKETS = set(AUTO_CLOSERS.values())
+
     def on_mount(self):
         self.show_line_numbers = True
         self.tab_behavior = "indent"
@@ -215,6 +223,19 @@ class RequestBodyTextArea(TextArea):
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
         self.set_class(len(self.text) == 0, "empty")
+
+    def _on_key(self, event: events.Key) -> None:
+        character = event.character
+        if character in self.AUTO_CLOSERS:
+            opener = character
+            closer = self.AUTO_CLOSERS[opener]
+            self.insert(f"{opener}{closer}")
+            self.move_cursor_relative(columns=-1)
+            event.prevent_default()
+        elif character in self.CLOSING_BRACKETS:
+            if self._matching_bracket_location:
+                event.prevent_default()
+                self.move_cursor_relative(columns=1)
 
 
 class ResponseTextArea(TextArea):
