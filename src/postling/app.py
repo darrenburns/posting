@@ -508,7 +508,7 @@ class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
-        Binding("ctrl+n", "tree", "DEBUG Show tree"),
+        # Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
     selected_method = reactive("GET")
