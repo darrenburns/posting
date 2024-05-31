@@ -206,13 +206,13 @@ class RequestBodyTextArea(TextArea):
     }
     """
 
-    AUTO_CLOSERS = {
+    OPENING_BRACKETS = {
         "(": ")",
         "[": "]",
         "{": "}",
     }
 
-    CLOSING_BRACKETS = set(AUTO_CLOSERS.values())
+    CLOSING_BRACKETS = {v: k for k, v in OPENING_BRACKETS.items()}
 
     def on_mount(self):
         self.show_line_numbers = True
@@ -226,16 +226,22 @@ class RequestBodyTextArea(TextArea):
 
     def _on_key(self, event: events.Key) -> None:
         character = event.character
-        if character in self.AUTO_CLOSERS:
+        if character in self.OPENING_BRACKETS:
             opener = character
-            closer = self.AUTO_CLOSERS[opener]
+            closer = self.OPENING_BRACKETS[opener]
             self.insert(f"{opener}{closer}")
             self.move_cursor_relative(columns=-1)
             event.prevent_default()
         elif character in self.CLOSING_BRACKETS:
+            # If we're currently at a closing bracket and
+            # we type the same closing bracket, move the cursor
+            # instead of inserting a character.
             if self._matching_bracket_location:
-                event.prevent_default()
-                self.move_cursor_relative(columns=1)
+                row, col = self.cursor_location
+                line = self.document.get_line(row)
+                if character == line[col]:
+                    event.prevent_default()
+                    self.move_cursor_relative(columns=1)
 
 
 class ResponseTextArea(TextArea):
