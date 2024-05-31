@@ -347,13 +347,11 @@ class ResponseTextArea(TextArea):
     """
 
     def on_mount(self):
-        self.border_title = "Response"
         self.register_theme(POSTLING_THEME)
         self.theme = "postling"
         empty = len(self.text) == 0
         self.set_class(empty, "empty")
         self.show_line_numbers = not empty
-        self.add_class("section")
 
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
@@ -569,14 +567,28 @@ class ResponseArea(Vertical):
 
     response: Reactive[httpx.Response | None] = reactive(None)
 
+    def on_mount(self) -> None:
+        self.border_title = "Response"
+        self.add_class("section")
+
     def compose(self) -> ComposeResult:
         with Vertical():
-            yield ResponseTextArea(language="json")
+            yield ResponseTextArea(language="json", read_only=True)
 
     def watch_response(self, response: httpx.Response | None) -> None:
         if response is None:
             return
-        self.query_one(ResponseTextArea).text = response.text
+
+        response_text_area = self.response_text_area
+        response_text_area.text = response.text
+        response_text_area.focus()
+        self.border_title = (
+            f"Response ({response.status_code} {response.reason_phrase})"
+        )
+
+    @property
+    def response_text_area(self) -> ResponseTextArea:
+        return self.query_one(ResponseTextArea)
 
 
 class MainScreen(Screen[None]):
@@ -593,7 +605,7 @@ class MainScreen(Screen[None]):
         yield UrlBar()
         with AppBody():
             yield RequestEditor()
-            yield ResponseTextArea(language="json", read_only=True)
+            yield ResponseArea()
         yield Footer()
 
     @on(Button.Pressed, selector="SendRequestButton")
@@ -615,9 +627,8 @@ class MainScreen(Screen[None]):
 
     @on(HttpResponseReceived)
     def on_response_received(self, event: HttpResponseReceived) -> None:
-        response_text_area = self.response_text_area
-        response_text_area.focus()
-        response_text_area.text = event.response.text
+        # TODO - call method on the response section
+        self.response_area.response = event.response
 
     async def action_send_request(self) -> None:
         await self.send_request()
