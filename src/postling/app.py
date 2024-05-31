@@ -370,10 +370,12 @@ class HeadersTable(DataTable[str]):
     DEFAULT_CSS = """\
     HeadersTable {
         height: auto;
-        padding: 0 1;
+        width: 1fr;
+        border-left: inner $accent 0%;
+        margin-right: 1;
 
         &:focus {
-            padding-left: 0;
+            width: 1fr;
             border-left: inner $accent;
         }
     }
