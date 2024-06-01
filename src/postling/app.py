@@ -449,10 +449,6 @@ class HeaderEditor(Vertical):
             border: none;
             width: 1fr;
             margin-left: 1;
-
-            &:focus {
-                background: $surface-lighten-1;
-            }
         }
 
         #add-header-button {

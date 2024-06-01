@@ -90,6 +90,10 @@ TextArea.empty {
 Input {
     padding: 0 1;
     height: 1;
+
+    &:focus {
+        background: $surface-lighten-1;
+    }
 }
 
 Button {
