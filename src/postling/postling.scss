@@ -1,3 +1,7 @@
+* {
+    transition: background 0.3s, color 0.3s;
+}
+
 .section {
     border: round $accent 35%;
     border-title-color: $text;
@@ -76,10 +80,6 @@ DataTable {
             color: $text;
         }
     }
-
-    
-
-
 }
 
 TextArea.empty {
@@ -102,6 +102,6 @@ Button {
     border: none;
 
     &:disabled {
-        opacity: 50%;
+        opacity: 60%;
     }
 }

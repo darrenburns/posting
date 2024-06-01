@@ -13,6 +13,6 @@ class URLHighlighter(Highlighter):
             base_start, base_end = match.span("base")
             separator_start, separator_end = protocol_end, protocol_end + 3
 
-            text.stylize("blue", protocol_start, protocol_end)
+            text.stylize("#818cf8", protocol_start, protocol_end)
             text.stylize("dim", separator_start, separator_end)
-            text.stylize("green", base_start, base_end)
+            text.stylize("#00C168", base_start, base_end)

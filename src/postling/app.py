@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from importlib.metadata import version
+from itertools import cycle
 from pathlib import Path
 from typing import Iterable
 import httpx
 from rich.text import Text
 from textual import events, on
 from textual.coordinate import Coordinate
+from textual.design import ColorSystem
 from textual.reactive import Reactive, reactive
 from textual.events import Message
 from textual.app import App, ComposeResult
@@ -23,7 +25,7 @@ from textual.widgets import (
     TabbedContent,
     TextArea,
 )
-from textual.widgets._data_table import ColumnKey, RowKey
+from textual.widgets._data_table import RowKey
 from textual.widgets._tabbed_content import ContentTab
 from textual.widgets.data_table import CellDoesNotExist
 from textual.widgets.text_area import Location
@@ -159,7 +161,7 @@ class SendRequestButton(Button, can_focus=False):
         padding: 0 1;
         height: 1;
         min-width: 10;
-        background: $success 50%;
+        background: $success;
         color: $text;
         border: none;
         text-style: none;
@@ -167,7 +169,7 @@ class SendRequestButton(Button, can_focus=False):
             text-style: b;
             padding: 0 1;
             border: none;
-            background: $success-darken-1 50%;
+            background: $success;
         }
     }
     """
@@ -455,7 +457,7 @@ class HeaderEditor(Vertical):
         }
 
         #add-header-button {
-            background: $success 50%;
+            background: $success;
             color: $text;
             text-style: none;
             width: 10;
@@ -464,7 +466,7 @@ class HeaderEditor(Vertical):
                 text-style: b;
                 padding: 0 1;
                 border: none;
-                background: $success-darken-1 50%;
+                background: $success-darken-1;
             }
         
         }
@@ -590,7 +592,7 @@ class ResponseArea(Vertical):
         response_text_area.focus()
 
         if response.status_code < 300:
-            style = "black on green"
+            style = "#ecfccb on #4d7c0f"
         elif response.status_code < 400:
             style = "black on yellow"
         else:
@@ -654,7 +656,8 @@ class MainScreen(Screen[None]):
         from textual import log
 
         log.info(self.app.tree)
-        log(self.query_one(ResponseTextArea).css_tree)
+        log(self.app.get_css_variables())
+        self.app.next_theme()
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:
@@ -713,8 +716,108 @@ class Postling(App[None]):
     ENABLE_COMMAND_PALETTE = False
     CSS_PATH = Path(__file__).parent / "postling.scss"
 
+    themes: dict[str, ColorSystem] = {
+        "textual": ColorSystem(
+            primary="#004578",
+            secondary="#ffa62b",
+            warning="#ffa62b",
+            error="#ba3c5b",
+            success="#4EBF71",
+            accent="#0178D4",
+            dark=True,
+        ),
+        "tailwind": ColorSystem(
+            primary="#1a202c",
+            secondary="#f7fafc",
+            warning="#f6ad55",
+            error="#f56565",
+            success="#48bb78",
+            accent="#4299e1",
+            dark=True,
+        ),
+        "test": ColorSystem(
+            primary="#1a202c",
+            secondary="#f7fafc",
+            warning="#f6ad55",
+            error="#f56565",
+            success="#48bb78",
+            accent="#4299e1",
+            dark=True,
+        ),
+        "alpine": ColorSystem(
+            primary="#285e61",
+            background="#e6fffa",
+            surface="#319795",
+            warning="#dd6b20",
+            error="#e53e3e",
+            success="#38a169",
+            accent="#2c7a7b",
+            dark=False,
+        ),
+        "sunset": ColorSystem(
+            primary="#ff4500",
+            secondary="#ff8c00",
+            warning="#ff6347",
+            error="#b22222",
+            success="#32cd32",
+            accent="#ffd700",
+            dark=True,
+        ),
+        "forest": ColorSystem(
+            primary="#228b22",
+            secondary="#6b8e23",
+            warning="#deb887",
+            error="#8b0000",
+            success="#556b2f",
+            accent="#2e8b57",
+            dark=False,
+        ),
+        "ocean": ColorSystem(
+            primary="#1e90ff",
+            secondary="#00ced1",
+            warning="#ffa07a",
+            error="#ff4500",
+            success="#20b2aa",
+            accent="#4682b4",
+            dark=True,
+        ),
+        "desert": ColorSystem(
+            primary="#edc9af",
+            secondary="#e3ab57",
+            warning="#ffdead",
+            error="#a0522d",
+            success="#cd853f",
+            accent="#8b4513",
+            dark=False,
+        ),
+    }
+
+    theme: Reactive[str | None] = reactive(None)
+
+    def __init__(self):
+        super().__init__()
+        self.theme = "textual"
+        self.themes_cycle = cycle(self.themes.items())
+
     def get_default_screen(self) -> MainScreen:
         return MainScreen()
+
+    def next_theme(self) -> None:
+        new_theme = next(self.themes_cycle)
+        self.theme = new_theme[0]
+        self.refresh_css()
+        self.notify(f"Theme is now {new_theme[0]}", title="Theme update", timeout=1)
+
+    def get_css_variables(self) -> dict[str, str]:
+        if self.theme:
+            system = self.themes.get(self.theme)
+            if system:
+                theme = system.generate()
+            else:
+                theme = {}
+        else:
+            theme = {}
+        return {**super().get_css_variables(), **theme}
 
 
 app = Postling()
