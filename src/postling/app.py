@@ -226,7 +226,6 @@ class RequestBodyTextArea(TextArea):
         self.tab_behavior = "indent"
         self.indent_width = 2
         self.set_class(len(self.text) == 0, "empty")
-        return super().on_mount()
 
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
@@ -343,6 +342,14 @@ class ResponseTextArea(TextArea):
 
     DEFAULT_CSS = """\
     ResponseTextArea {
+        border: none;
+        padding: 0;
+        &:focus {
+            border: none;
+            padding: 0;
+        }
+        &.empty {
+        }
     }
     """
 
@@ -572,8 +579,7 @@ class ResponseArea(Vertical):
         self.add_class("section")
 
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield ResponseTextArea(language="json", read_only=True)
+        yield ResponseTextArea(language="json", read_only=True)
 
     def watch_response(self, response: httpx.Response | None) -> None:
         if response is None:
@@ -582,8 +588,16 @@ class ResponseArea(Vertical):
         response_text_area = self.response_text_area
         response_text_area.text = response.text
         response_text_area.focus()
+
+        if response.status_code < 300:
+            style = "black on green"
+        elif response.status_code < 400:
+            style = "black on yellow"
+        else:
+            style = "black on red"
+
         self.border_title = (
-            f"Response ({response.status_code} {response.reason_phrase})"
+            f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
         )
 
     @property
@@ -595,7 +609,7 @@ class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
-        # Binding("ctrl+n", "tree", "DEBUG Show tree"),
+        Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
     selected_method = reactive("GET")
@@ -640,6 +654,7 @@ class MainScreen(Screen[None]):
         from textual import log
 
         log.info(self.app.tree)
+        log(self.query_one(ResponseTextArea).css_tree)
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:
