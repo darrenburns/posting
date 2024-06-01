@@ -726,34 +726,6 @@ class Postling(App[None]):
             accent="#0178D4",
             dark=True,
         ),
-        "tailwind": ColorSystem(
-            primary="#1a202c",
-            secondary="#f7fafc",
-            warning="#f6ad55",
-            error="#f56565",
-            success="#48bb78",
-            accent="#4299e1",
-            dark=True,
-        ),
-        "test": ColorSystem(
-            primary="#1a202c",
-            secondary="#f7fafc",
-            warning="#f6ad55",
-            error="#f56565",
-            success="#48bb78",
-            accent="#4299e1",
-            dark=True,
-        ),
-        "alpine": ColorSystem(
-            primary="#285e61",
-            background="#e6fffa",
-            surface="#319795",
-            warning="#dd6b20",
-            error="#e53e3e",
-            success="#38a169",
-            accent="#2c7a7b",
-            dark=False,
-        ),
         "sunset": ColorSystem(
             primary="#ff4500",
             secondary="#ff8c00",
@@ -806,7 +778,9 @@ class Postling(App[None]):
         new_theme = next(self.themes_cycle)
         self.theme = new_theme[0]
         self.refresh_css()
-        self.notify(f"Theme is now {new_theme[0]}", title="Theme update", timeout=1)
+        self.notify(
+            f"Theme is now [b]{new_theme[0]}[/]", title="Theme updated", timeout=2.5
+        )
 
     def get_css_variables(self) -> dict[str, str]:
         if self.theme:
