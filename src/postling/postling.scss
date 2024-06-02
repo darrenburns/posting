@@ -106,3 +106,28 @@ Button {
         opacity: 60%;
     }
 }
+
+CommandPalette {
+    background: black 60%;
+    & #--input {
+        border: none;
+        border-left: wide $accent;
+        & CommandInput {
+            height: auto;
+            border: none;
+            padding: 1 2;
+        }
+        & SearchIcon {
+            display: none;
+            height: 1;
+        }
+    }
+    & #--results {
+        padding: 0;
+    }
+    & CommandList {
+        border: none;
+        border-left: wide $accent;
+        padding: 0;
+    }
+}

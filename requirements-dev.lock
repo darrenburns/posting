@@ -62,7 +62,7 @@ rich==13.7.1
 sniffio==1.3.1
     # via anyio
     # via httpx
-textual==0.63.4
+textual==0.63.6
     # via postling
     # via textual-autocomplete
     # via textual-dev

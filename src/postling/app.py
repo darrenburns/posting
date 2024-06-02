@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from importlib.metadata import version
 from itertools import cycle
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Literal
 import httpx
 from rich.text import Text
 from textual import events, on
-from textual.coordinate import Coordinate
+from textual.css.query import NoMatches
 from textual.design import ColorSystem
 from textual.reactive import Reactive, reactive
 from textual.events import Message
@@ -31,6 +31,7 @@ from textual.widgets.data_table import CellDoesNotExist
 from textual.widgets.text_area import Location
 from textual_autocomplete import AutoComplete, DropdownItem
 
+from postling.commands import PostlingProvider
 from postling.crosshatch import Crosshatch
 from postling.highlight_url import URLHighlighter
 from postling.messages import HttpResponseReceived
@@ -764,11 +765,11 @@ class MainScreen(Screen[None]):
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
         Binding("ctrl+i", "focus_headers", "Headers"),
-        Binding("ctrl+o", "change_layout", "Change layout"),
         Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
     selected_method = reactive("GET")
+    layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
     def compose(self) -> ComposeResult:
         yield AppHeader(f"[i]Postling[/] [white dim]{version('postling')}[/]")
@@ -809,12 +810,9 @@ class MainScreen(Screen[None]):
     def action_focus_headers(self) -> None:
         self.headers_table.focus()
 
-    def action_change_layout(self) -> None:
+    def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
         app_body = self.app_body
-        layout = app_body.styles.layout
-        app_body.styles.layout = (
-            "vertical" if layout and layout.name == "horizontal" else "horizontal"
-        )
+        app_body.styles.layout = layout
 
     def action_tree(self) -> None:
         from textual import log
@@ -894,8 +892,16 @@ class MainScreen(Screen[None]):
 
 
 class Postling(App[None]):
-    ENABLE_COMMAND_PALETTE = False
+    COMMANDS = {PostlingProvider}
     CSS_PATH = Path(__file__).parent / "postling.scss"
+    BINDINGS = [
+        Binding(
+            "ctrl+p",
+            "command_palette",
+            description="Commands",
+            show=True,
+        ),
+    ]
 
     themes: dict[str, ColorSystem] = {
         "textual": ColorSystem(
@@ -953,7 +959,8 @@ class Postling(App[None]):
         self.themes_cycle = cycle(self.themes.items())
 
     def get_default_screen(self) -> MainScreen:
-        return MainScreen()
+        self.main_screen = MainScreen()
+        return self.main_screen
 
     def next_theme(self) -> None:
         new_theme = next(self.themes_cycle)
@@ -973,6 +980,14 @@ class Postling(App[None]):
         else:
             theme = {}
         return {**super().get_css_variables(), **theme}
+
+    def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
+        self.main_screen.layout = layout
+
+    def command_theme(self, theme: str) -> None:
+        self.theme = theme
+        self.refresh_css()
+        self.notify(f"Theme is now [b]{theme}[/].", title="Theme updated", timeout=2.5)
 
 
 app = Postling()

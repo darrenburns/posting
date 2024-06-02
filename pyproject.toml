@@ -6,7 +6,7 @@ authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }
 ]
 dependencies = [
-    "textual[syntax]>=0.63.4",
+    "textual[syntax]>=0.63.6",
     "click>=8.1.7",
     "xdg-base-dirs>=6.0.1",
     "click-default-group>=1.2.4",
