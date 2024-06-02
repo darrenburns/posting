@@ -944,14 +944,6 @@ class Postling(App[None]):
         self.main_screen = MainScreen()
         return self.main_screen
 
-    def next_theme(self) -> None:
-        new_theme = next(self.themes_cycle)
-        self.theme = new_theme[0]
-        self.refresh_css()
-        self.notify(
-            f"Theme is now [b]{new_theme[0]}[/]", title="Theme updated", timeout=2.5
-        )
-
     def get_css_variables(self) -> dict[str, str]:
         if self.theme:
             system = self.themes.get(self.theme)

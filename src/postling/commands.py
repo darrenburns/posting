@@ -71,7 +71,7 @@ class PostlingProvider(Provider):
         return (
             f"theme: {theme_name}",
             partial(self.postling.command_theme, theme_name),
-            f"Set the theme to {theme_name}.",
+            f"Set the theme to {theme_name}",
         )
 
     @property
