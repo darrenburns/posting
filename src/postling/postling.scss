@@ -50,6 +50,7 @@ TabPane {
 }
 
 DataTable {
+    scrollbar-gutter: stable;
     & .datatable--header {
         background: $boost;
         color: $text;
