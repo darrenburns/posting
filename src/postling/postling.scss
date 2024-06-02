@@ -10,6 +10,21 @@
     }
 }
 
+AppBody {
+    &.layout-horizontal {
+        layout: horizontal;
+        & #header-inputs {
+            layout: vertical;
+        }
+    }
+    &.layout-vertical {
+        layout: vertical;
+        & #header-inputs {
+            layout: horizontal;
+        }
+    }
+}
+
 Footer {
     border: none;
     margin: 0 2 1 2;

@@ -21,8 +21,10 @@ from textual.widgets import (
     Input,
     Label,
     OptionList,
+    Static,
     TabPane,
     TabbedContent,
+    Tabs,
     TextArea,
 )
 from textual.widgets._data_table import RowKey
@@ -33,6 +35,7 @@ from textual_autocomplete import AutoComplete, DropdownItem
 
 from postling.commands import PostlingProvider
 from postling.crosshatch import Crosshatch
+from postling.datatable import PostlingDataTable
 from postling.highlight_url import URLHighlighter
 from postling.messages import HttpResponseReceived
 from postling.request_headers import REQUEST_HEADERS
@@ -369,7 +372,7 @@ class ResponseTextArea(TextArea):
         self.show_line_numbers = not empty
 
 
-class HeadersTable(DataTable[str]):
+class HeadersTable(PostlingDataTable):
     """
     The headers table.
     """
@@ -444,7 +447,7 @@ class HeadersTable(DataTable[str]):
 class HeaderEditor(Vertical):
     DEFAULT_CSS = """\
     #header-inputs {
-        height: 1;
+        height: auto;
         dock: bottom;
         & > Input {
             border: none;
@@ -464,15 +467,14 @@ class HeaderEditor(Vertical):
                 border: none;
                 background: $success-darken-1;
             }
-        
         }
     }
     """
 
     def compose(self) -> ComposeResult:
         with Horizontal(id="header-inputs"):
-            yield Input(placeholder="Header name", id="header-key-input")
-            yield Input(placeholder="Header value", id="header-value-input")
+            yield Input(placeholder="Name", id="header-key-input")
+            yield Input(placeholder="Value", id="header-value-input")
             add_header_button = Button(
                 "Add header", disabled=True, id="add-header-button"
             )
@@ -541,7 +543,7 @@ class HeaderEditor(Vertical):
             pass
 
 
-class ParamsTable(DataTable[str]):
+class ParamsTable(PostlingDataTable):
     """
     The parameters table.
     """
@@ -698,6 +700,29 @@ class QueryStringEditor(Vertical):
             pass
 
 
+class RequestEditorTabbedContent(TabbedContent):
+    BINDINGS = [
+        Binding("down,j", "app.focus_next", "Focus next", show=False),
+        Binding("up,k", "app.focus_previous", "Focus previous", show=False),
+    ]
+
+    @on(events.DescendantFocus)
+    def focus_within(self, event: events.DescendantFocus) -> None:
+        print("focused")
+        tabs = self.query_one(Tabs)
+        if tabs.has_focus:
+            self.refresh_bindings()
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        """Check if an action may run."""
+        print(action)
+        if action == "next":
+            return None
+        if action == "previous":
+            return None
+        return True
+
+
 class RequestEditor(Vertical):
     """
     The request editor.
@@ -709,7 +734,7 @@ class RequestEditor(Vertical):
     def compose(self) -> ComposeResult:
         with Vertical() as vertical:
             vertical.border_title = "Request"
-            with TabbedContent():
+            with RequestEditorTabbedContent():
                 with TabPane("Headers", id="headers-pane"):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
@@ -730,6 +755,14 @@ class ResponseArea(Vertical):
     DEFAULT_CSS = """\
     ResponseArea {
         border-subtitle-color: $text-muted;
+        & ResponseTextArea.empty {
+            display: none;
+        }
+        &.response-ready{
+            & Crosshatch {
+                display: none;
+            }
+        }
     }
     """
     response: Reactive[httpx.Response | None] = reactive(None)
@@ -740,10 +773,13 @@ class ResponseArea(Vertical):
 
     def compose(self) -> ComposeResult:
         yield ResponseTextArea(language="json", read_only=True)
+        yield Crosshatch()
 
     def watch_response(self, response: httpx.Response | None) -> None:
         if response is None:
             return
+
+        self.add_class("response-ready")
 
         response_text_area = self.response_text_area
         response_text_area.text = response.text
@@ -818,8 +854,10 @@ class MainScreen(Screen[None]):
         self.headers_table.focus()
 
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
-        app_body = self.app_body
-        app_body.styles.layout = layout
+        classes = {"horizontal", "vertical"}
+        other_class = classes.difference({layout}).pop()
+        self.app_body.add_class(f"layout-{layout}")
+        self.app_body.remove_class(f"layout-{other_class}")
 
     # def action_tree(self) -> None:
     #     from textual import log
