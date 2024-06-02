@@ -727,6 +727,11 @@ class ResponseArea(Vertical):
     The response area.
     """
 
+    DEFAULT_CSS = """\
+    ResponseArea {
+        border-subtitle-color: $text-muted;
+    }
+    """
     response: Reactive[httpx.Response | None] = reactive(None)
 
     def on_mount(self) -> None:
@@ -754,6 +759,8 @@ class ResponseArea(Vertical):
         self.border_title = (
             f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
         )
+
+        self.border_subtitle = f"{response.elapsed.total_seconds() * 1000:.2f} ms"
 
     @property
     def response_text_area(self) -> ResponseTextArea:
