@@ -109,6 +109,9 @@ Button {
 
 CommandPalette {
     background: black 60%;
+    & > Vertical {
+        width: 50;
+    }
     & #--input {
         border: none;
         border-left: wide $accent;
@@ -116,6 +119,7 @@ CommandPalette {
             height: auto;
             border: none;
             padding: 1 2;
+            background: $panel;
         }
         & SearchIcon {
             display: none;
@@ -129,5 +133,12 @@ CommandPalette {
         border: none;
         border-left: wide $accent;
         padding: 0;
+        padding-bottom: 1;
+        text-style: bold;
+    }
+    & > .command-palette--help-text {
+        background: transparent;
+        color: $text;
+        text-style: not b;
     }
 }

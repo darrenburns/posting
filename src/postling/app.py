@@ -765,7 +765,7 @@ class MainScreen(Screen[None]):
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
         Binding("ctrl+i", "focus_headers", "Headers"),
-        Binding("ctrl+n", "tree", "DEBUG Show tree"),
+        # Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
     selected_method = reactive("GET")
@@ -814,12 +814,12 @@ class MainScreen(Screen[None]):
         app_body = self.app_body
         app_body.styles.layout = layout
 
-    def action_tree(self) -> None:
-        from textual import log
+    # def action_tree(self) -> None:
+    #     from textual import log
 
-        log.info(self.app.tree)
-        log(self.app.get_css_variables())
-        self.app.next_theme()
+    #     log.info(self.app.tree)
+    #     log(self.app.get_css_variables())
+    #     self.app.next_theme()
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:
@@ -922,15 +922,6 @@ class Postling(App[None]):
             accent="#ffd700",
             dark=True,
         ),
-        "forest": ColorSystem(
-            primary="#228b22",
-            secondary="#6b8e23",
-            warning="#deb887",
-            error="#8b0000",
-            success="#556b2f",
-            accent="#2e8b57",
-            dark=False,
-        ),
         "ocean": ColorSystem(
             primary="#1e90ff",
             secondary="#00ced1",
@@ -939,15 +930,6 @@ class Postling(App[None]):
             success="#20b2aa",
             accent="#4682b4",
             dark=True,
-        ),
-        "desert": ColorSystem(
-            primary="#edc9af",
-            secondary="#e3ab57",
-            warning="#ffdead",
-            error="#a0522d",
-            success="#cd853f",
-            accent="#8b4513",
-            dark=False,
         ),
     }
 
