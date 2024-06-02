@@ -763,6 +763,8 @@ class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
+        Binding("ctrl+i", "focus_headers", "Headers"),
+        Binding("ctrl+o", "change_layout", "Change layout"),
         Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
@@ -803,6 +805,16 @@ class MainScreen(Screen[None]):
 
     def action_change_method(self) -> None:
         self.method_selection()
+
+    def action_focus_headers(self) -> None:
+        self.headers_table.focus()
+
+    def action_change_layout(self) -> None:
+        app_body = self.app_body
+        layout = app_body.styles.layout
+        app_body.styles.layout = (
+            "vertical" if layout and layout.name == "horizontal" else "horizontal"
+        )
 
     def action_tree(self) -> None:
         from textual import log
@@ -872,6 +884,10 @@ class MainScreen(Screen[None]):
     @property
     def params_table(self) -> ParamsTable:
         return self.query_one(ParamsTable)
+
+    @property
+    def app_body(self) -> AppBody:
+        return self.query_one(AppBody)
 
     def watch_selected_method(self, value: str) -> None:
         self.query_one(MethodSelection).set_method(value)
