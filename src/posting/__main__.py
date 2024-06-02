@@ -4,8 +4,8 @@ import click
 
 from click_default_group import DefaultGroup
 
-from postling.app import Postling
-from postling.locations import config_file
+from posting.app import Posting
+from posting.locations import config_file
 
 
 def load_or_create_config_file() -> dict[str, Any]:
@@ -30,5 +30,5 @@ def cli() -> None:
 
 @cli.command()
 def default() -> None:
-    app = Postling()
+    app = Posting()
     app.run()

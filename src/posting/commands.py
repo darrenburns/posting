@@ -4,15 +4,15 @@ from textual.command import DiscoveryHit, Hit, Hits, Provider
 from textual.types import IgnoreReturnCallbackType
 
 if TYPE_CHECKING:
-    from postling.app import Postling
+    from posting.app import Posting
 
 
-class PostlingProvider(Provider):
+class PostingProvider(Provider):
     @property
     def commands(
         self,
     ) -> tuple[tuple[str, IgnoreReturnCallbackType, str], ...]:
-        app = self.postling
+        app = self.posting
         return (
             (
                 "layout: horizontal",
@@ -62,21 +62,21 @@ class PostlingProvider(Provider):
     def get_theme_commands(
         self,
     ) -> tuple[tuple[str, IgnoreReturnCallbackType, str], ...]:
-        postling = self.postling
-        return tuple(self.get_theme_command(theme) for theme in postling.themes)
+        posting = self.posting
+        return tuple(self.get_theme_command(theme) for theme in posting.themes)
 
     def get_theme_command(
         self, theme_name: str
     ) -> tuple[str, IgnoreReturnCallbackType, str]:
         return (
             f"theme: {theme_name}",
-            partial(self.postling.command_theme, theme_name),
+            partial(self.posting.command_theme, theme_name),
             f"Set the theme to {theme_name}",
         )
 
     @property
-    def postling(self) -> "Postling":
-        return cast("Postling", self.screen.app)
+    def posting(self) -> "Posting":
+        return cast("Posting", self.screen.app)
 
 
 # """A command palette command provider for Textual system commands.

@@ -6,7 +6,6 @@ from typing import Iterable, Literal
 import httpx
 from rich.text import Text
 from textual import events, on
-from textual.css.query import NoMatches
 from textual.design import ColorSystem
 from textual.reactive import Reactive, reactive
 from textual.events import Message
@@ -33,13 +32,13 @@ from textual.widgets.data_table import CellDoesNotExist
 from textual.widgets.text_area import Location
 from textual_autocomplete import AutoComplete, DropdownItem
 
-from postling.commands import PostlingProvider
-from postling.crosshatch import Crosshatch
-from postling.datatable import PostlingDataTable
-from postling.highlight_url import URLHighlighter
-from postling.messages import HttpResponseReceived
-from postling.request_headers import REQUEST_HEADERS
-from postling.text_area_theme import POSTLING_THEME
+from posting.commands import PostingProvider
+from posting.crosshatch import Crosshatch
+from posting.datatable import PostingDataTable
+from posting.highlight_url import URLHighlighter
+from posting.messages import HttpResponseReceived
+from posting.request_headers import REQUEST_HEADERS
+from posting.text_area_theme import POSTLING_THEME
 
 
 class AppHeader(Label):
@@ -228,7 +227,7 @@ class RequestBodyTextArea(TextArea):
 
     def on_mount(self):
         self.register_theme(POSTLING_THEME)
-        self.theme = "postling"
+        self.theme = "posting"
         self.show_line_numbers = True
         self.tab_behavior = "indent"
         self.indent_width = 2
@@ -360,7 +359,7 @@ class ResponseTextArea(TextArea):
 
     def on_mount(self):
         self.register_theme(POSTLING_THEME)
-        self.theme = "postling"
+        self.theme = "posting"
         empty = len(self.text) == 0
         self.set_class(empty, "empty")
         self.show_line_numbers = not empty
@@ -372,7 +371,7 @@ class ResponseTextArea(TextArea):
         self.show_line_numbers = not empty
 
 
-class HeadersTable(PostlingDataTable):
+class HeadersTable(PostingDataTable):
     """
     The headers table.
     """
@@ -543,7 +542,7 @@ class HeaderEditor(Vertical):
             pass
 
 
-class ParamsTable(PostlingDataTable):
+class ParamsTable(PostingDataTable):
     """
     The parameters table.
     """
@@ -815,7 +814,7 @@ class MainScreen(Screen[None]):
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"[i]Postling[/] [white dim]{version('postling')}[/]")
+        yield AppHeader(f"[i]Posting[/] [white dim]{version('posting')}[/]")
         yield UrlBar()
         with AppBody():
             yield RequestEditor()
@@ -936,9 +935,9 @@ class MainScreen(Screen[None]):
         self.query_one(MethodSelection).set_method(value)
 
 
-class Postling(App[None]):
-    COMMANDS = {PostlingProvider}
-    CSS_PATH = Path(__file__).parent / "postling.scss"
+class Posting(App[None]):
+    COMMANDS = {PostingProvider}
+    CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
         Binding(
             "ctrl+p",
@@ -1009,6 +1008,6 @@ class Postling(App[None]):
         self.notify(f"Theme is now [b]{theme}[/].", title="Theme updated", timeout=2.5)
 
 
-app = Postling()
+app = Posting()
 if __name__ == "__main__":
     app.run()

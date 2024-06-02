@@ -3,7 +3,7 @@ from textual.widgets.text_area import TextAreaTheme
 
 
 POSTLING_THEME = TextAreaTheme(
-    name="postling",
+    name="posting",
     syntax_styles={
         "json.error": Style.parse("on #dc2626"),
         "json.null": Style(color="#7DAF9C"),

@@ -21,10 +21,10 @@ certifi==2024.2.2
     # via httpx
 click==8.1.7
     # via click-default-group
-    # via postling
+    # via posting
     # via textual-dev
 click-default-group==1.2.4
-    # via postling
+    # via posting
 frozenlist==1.4.1
     # via aiohttp
     # via aiosignal
@@ -33,7 +33,7 @@ h11==0.14.0
 httpcore==1.0.5
     # via httpx
 httpx==0.27.0
-    # via postling
+    # via posting
 idna==3.7
     # via anyio
     # via httpx
@@ -56,18 +56,18 @@ multidict==6.0.5
 pygments==2.18.0
     # via rich
 pyperclip==1.8.2
-    # via postling
+    # via posting
 rich==13.7.1
     # via textual
 sniffio==1.3.1
     # via anyio
     # via httpx
 textual==0.63.6
-    # via postling
+    # via posting
     # via textual-autocomplete
     # via textual-dev
-textual-autocomplete @ file:///Users/darrenburns/Code/postling/../textual-autocomplete
-    # via postling
+textual-autocomplete==3.0.0a2
+    # via posting
 textual-dev==1.5.1
 tree-sitter==0.20.4
     # via textual
@@ -81,6 +81,6 @@ typing-extensions==4.12.0
 uc-micro-py==1.0.3
     # via linkify-it-py
 xdg-base-dirs==6.0.1
-    # via postling
+    # via posting
 yarl==1.9.4
     # via aiohttp

@@ -2,7 +2,7 @@ from textual.binding import Binding
 from textual.widgets import DataTable
 
 
-class PostlingDataTable(DataTable[str]):
+class PostingDataTable(DataTable[str]):
     BINDINGS = [
         Binding("up,k", "cursor_up", "Cursor Up", show=False),
         Binding("down,j", "cursor_down", "Cursor Down", show=False),

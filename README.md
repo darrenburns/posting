@@ -1,6 +1,6 @@
-# Postling
+# Posting
 
-Postling brings Postman-like functionality to your terminal.
+Posting brings Postman-like functionality to your terminal.
 
 It's designed for those who prefer working in a terminal environment and want a fast, keyboard-driven interface for making API requests, testing endpoints, and debugging applications.
 
