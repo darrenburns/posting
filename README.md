@@ -2,6 +2,8 @@
 
 Posting brings Postman-like functionality to your terminal.
 
+https://github.com/darrenburns/posting/assets/5740731/96b86450-bf42-422d-8787-b004f95357c4
+
 It's designed for those who prefer working in a terminal environment and want a fast, keyboard-driven interface for making API requests, testing endpoints, and debugging applications.
 
 It's still a work in progress and far from feature complete. Please don't open any bug reports yet - although I'm happy to hear ideas/suggestions!
