@@ -4,7 +4,7 @@ Posting brings Postman-like functionality to your terminal.
 
 It's designed for those who prefer working in a terminal environment and want a fast, keyboard-driven interface for making API requests, testing endpoints, and debugging applications.
 
-It's still a work in progress and far from feature complete, but in a usable state. Please don't open any bug reports yet - although I'm happy to hear ideas/suggestions!
+It's still a work in progress and far from feature complete. Please don't open any bug reports yet - although I'm happy to hear ideas/suggestions!
 
 ## Planned Features
 
@@ -14,3 +14,4 @@ It's still a work in progress and far from feature complete, but in a usable sta
 - **Template Variables**: Define variables and substitute them into your requests.
 - **Powerful Text and JSON Editor**: Offers tree-sitter powered syntax highlighting, undo/redo, copy/paste, and more.
 - **Runs Over SSH**: Send requests from a remote host via SSH.
+- **Your Idea Here**: Please let me know if you have opinions on the features above, or any other ideas!
