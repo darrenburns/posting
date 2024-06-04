@@ -55,7 +55,8 @@ class ResponseBodyHeaderBar(Horizontal):
     def compose(self) -> ComposeResult:
         with Horizontal(classes="dock-left w-auto"):
             yield Select(prompt="Content type", value="json", allow_blank=False,
-                         options=[("JSON", "json"), ("HTML", "html"), ("XML", "xml")])
+                         options=[("JSON", "json"), ("HTML", "html")],
+                         id="response-content-type-select")
             yield Checkbox(label="Wrap", value=True, button_first=False, id="response-wrap-checkbox")
 
 
@@ -133,8 +134,11 @@ class ResponseArea(Vertical):
 
     @on(Checkbox.Changed, selector="#response-wrap-checkbox")
     def wrap_toggled(self, event: Checkbox.Changed) -> None:
-        print("changing wrap")
         self.body_text_area.soft_wrap = event.value
+
+    @on(Select.Changed, selector="#response-content-type-select")
+    def content_type_changed(self, event: Select.Changed) -> None:
+        self.body_text_area.language = event.value
 
     @property
     def body_text_area(self) -> ResponseTextArea:
