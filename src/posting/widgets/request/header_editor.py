@@ -147,7 +147,6 @@ class HeadersTable(PostingDataTable):
         self.fixed_columns = 1
         self.add_columns(*["Header", "Value"])
         self.add_row("Content-Type", "application/json")
-        self.add_row("Some-Header", "Some value")
 
     def watch_has_focus(self, value: bool) -> None:
         self._scroll_cursor_into_view()
