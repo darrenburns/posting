@@ -3,7 +3,10 @@ from itertools import cycle
 from pathlib import Path
 from typing import Literal
 import httpx
+from rich.console import Group
+from rich.text import Text
 from textual import on
+from textual.command import CommandPalette, CommandList
 from textual.design import ColorSystem
 from textual.reactive import Reactive, reactive
 from textual.app import App, ComposeResult
@@ -251,12 +254,10 @@ class Posting(App[None]):
         ),
     }
 
-    theme: Reactive[str | None] = reactive(None)
+    theme: Reactive[str | None] = reactive("textual", init=False)
 
     def __init__(self):
         super().__init__()
-        self.theme = "textual"
-        self.themes_cycle = cycle(self.themes.items())
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen()
@@ -280,6 +281,41 @@ class Posting(App[None]):
         self.theme = theme
         self.refresh_css()
         self.notify(f"Theme is now [b]{theme}[/].", title="Theme updated", timeout=2.5)
+
+    @on(CommandPalette.Opened)
+    def palette_opened(self) -> None:
+        # Record the theme being used before the palette is opened.
+        self._original_theme = self.theme
+
+    @on(CommandPalette.OptionHighlighted)
+    def palette_option_highlighted(self, event: CommandPalette.OptionHighlighted) -> None:
+        prompt: Group = event.highlighted_event.option.prompt
+        # This is making quite a lot of assumptions. Fragile, but the only
+        # way I can think of doing it given the current Textual APIs.
+        command_name = prompt.renderables[0]
+        if isinstance(command_name, Text):
+            command_name = command_name.plain
+        command_name = command_name.strip()
+        if ":" in command_name:
+            name, value = command_name.split(":", maxsplit=1)
+            name = name.strip()
+            value = value.strip()
+            if name == "theme":
+                print(f"theme={value!r}")
+                if value in self.themes:
+                    self.theme = value
+
+    @on(CommandPalette.Closed)
+    def palette_closed(self, event: CommandPalette.Closed) -> None:
+        # If we closed with a result, that will be handled by the command
+        # being triggered. However, if we closed the palette with no result
+        # then make sure we revert the theme back.
+        if event.result is None:
+            self.theme = self._original_theme
+
+    def watch_theme(self) -> None:
+        self.refresh_css(animate=False)
+        self.screen._update_styles()
 
 
 app = Posting()
