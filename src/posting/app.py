@@ -57,7 +57,6 @@ class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
-        Binding("ctrl+i", "focus_headers", "Headers"),
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
@@ -99,9 +98,6 @@ class MainScreen(Screen[None]):
 
     def action_change_method(self) -> None:
         self.method_selection()
-
-    def action_focus_headers(self) -> None:
-        self.headers_table.focus()
 
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
         classes = {"horizontal", "vertical"}
