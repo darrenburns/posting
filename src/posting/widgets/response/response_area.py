@@ -5,6 +5,7 @@ from textual.containers import Vertical
 from textual.reactive import Reactive, reactive
 from textual.widgets import TabbedContent, TabPane
 
+from posting.widgets.response.cookies_table import CookiesTable
 from posting.widgets.response.response_body import ResponseTextArea
 from posting.widgets.response.response_headers import ResponseHeadersTable
 
@@ -46,6 +47,8 @@ class ResponseArea(Vertical):
                 yield ResponseTextArea(language="json", read_only=True)
             with TabPane("Headers", id="response-headers-pane"):
                 yield ResponseHeadersTable()
+            with TabPane("Cookies", id="response-cookies-pane"):
+                yield CookiesTable()
 
     def watch_response(self, response: httpx.Response | None) -> None:
         if response is None:
@@ -53,17 +56,23 @@ class ResponseArea(Vertical):
         else:
             self.query_one(ResponseTabbedContent).disabled = False
 
-
         self.add_class("response-ready")
 
         # Update the body text area with the body content.
-        response_text_area = self.response_text_area
+        response_text_area = self.body_text_area
         response_text_area.text = response.text
         response_text_area.focus()
 
         # Update the response headers table with the response headers.
-        response_headers_table = self.response_headers_table
+        response_headers_table = self.headers_table
+        response_headers_table.clear()
         response_headers_table.add_rows([(name, value) for name, value in response.headers.items()])
+
+        # Update the response cookies table with the cookies from the response.
+        cookies_table = self.cookies_table
+        cookies_table.clear()
+        cookies_table.add_rows([(name, value) for name, value in response.cookies.items()])
+        print(response.cookies)
 
         if response.status_code < 300:
             style = "#ecfccb on #4d7c0f"
@@ -79,9 +88,13 @@ class ResponseArea(Vertical):
         self.border_subtitle = f"{response.elapsed.total_seconds() * 1000:.2f} ms"
 
     @property
-    def response_text_area(self) -> ResponseTextArea:
+    def body_text_area(self) -> ResponseTextArea:
         return self.query_one(ResponseTextArea)
 
     @property
-    def response_headers_table(self) -> ResponseHeadersTable:
+    def headers_table(self) -> ResponseHeadersTable:
         return self.query_one(ResponseHeadersTable)
+
+    @property
+    def cookies_table(self) -> CookiesTable:
+        return self.query_one(CookiesTable)

@@ -6,5 +6,6 @@ class CookiesTable(PostingDataTable):
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
-        self.add_columns(*["Header", "Value"])
+        self.fixed_columns = 1
+        self.add_columns(*["Name", "Value"])
 
