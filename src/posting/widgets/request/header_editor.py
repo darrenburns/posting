@@ -144,6 +144,7 @@ class HeadersTable(PostingDataTable):
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
+        self.fixed_columns = 1
         self.add_columns(*["Header", "Value"])
         self.add_row("Content-Type", "application/json")
         self.add_row("Some-Header", "Some value")
@@ -158,6 +159,18 @@ class HeadersTable(PostingDataTable):
             row = self.get_row_at(row_index)
             headers[row[0]] = row[1]
         return headers
+
+    def action_cursor_down(self) -> None:
+        if self.cursor_coordinate.row == self.row_count - 1:
+            self.screen.focus_next()
+        else:
+            super().action_cursor_down()
+
+    def action_cursor_up(self) -> None:
+        if self.cursor_coordinate.row == 0:
+            self.screen.focus_previous()
+        else:
+            super().action_cursor_up()
 
     def add_row(
         self,

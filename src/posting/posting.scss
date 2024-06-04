@@ -1,158 +1,196 @@
 .section {
-    border: round $accent 35%;
+  border: round $accent 35%;
+  border-title-color: $text;
+  border-title-align: right;
+
+  &:focus-within {
+    border: round $accent 100%;
     border-title-color: $text;
-    border-title-align: right;
-    
-    &:focus-within {
-        border: round $accent 100%;
-        border-title-color: $text;
-        border-title-style: b;
-    }
+    border-title-style: b;
+  }
 }
 
 AppBody {
-    &.layout-horizontal {
-        layout: horizontal;
-        & #header-inputs {
-            layout: vertical;
-        }
+  &.layout-horizontal {
+    layout: horizontal;
+
+    & #header-inputs {
+      layout: vertical;
     }
-    &.layout-vertical {
-        layout: vertical;
-        & #header-inputs {
-            layout: horizontal;
-        }
+  }
+
+  &.layout-vertical {
+    layout: vertical;
+
+    & #header-inputs {
+      layout: horizontal;
     }
+  }
 }
 
 Footer {
-    border: none;
-    margin: 0 2 1 2;
+  border: none;
+  margin: 0 2 1 2;
+  background: transparent;
+
+  & FooterKey {
+    color: $text 85%;
     background: transparent;
-    & FooterKey {
-        color: $text 85%;
-        background: transparent;
-        .footer-key--key {
-            color: $accent-lighten-1;
-            background: transparent;
-        }
-        &:hover {
-            color: $text 100%;
-        }
+
+    .footer-key--key {
+      color: $accent-lighten-1;
+      background: transparent;
     }
+
+    &:hover {
+      color: $text 100%;
+    }
+  }
 }
 
 ContentTab {
-    padding: 0 1;
-    height: 1;
-    text-style: none;
-    &.-active {
-        text-style: b;
-    }
+  padding: 0 1;
+  height: 1;
+  text-style: none;
+
+  &.-active {
+    text-style: b;
+  }
 }
 
 Tabs {
-    height: 2;
+  height: 2;
 }
 
 Tabs #tabs-list {
-    min-height: 1;
- }
+  min-height: 1;
+}
 
 TabPane {
-    padding: 0;
-    height: 1fr;
+  padding: 0;
+  height: 1fr;
 }
 
 DataTable {
-    scrollbar-gutter: stable;
-    & .datatable--header {
-        background: $boost;
-        color: $text;
+  scrollbar-gutter: stable;
+
+  & .datatable--header {
+    background: $boost;
+    color: $text;
+  }
+
+  &:focus {
+    .datatable--cursor {
+      background: $accent 50%;
+      color: $text;
     }
 
-    &:focus {
-        .datatable--cursor {
-            background: $accent 50%;
-            color: $text;
-        }
-        .datatable--hover {
-            background: $primary-lighten-1 20%;
-            color: $text;
-        }
+    .datatable--fixed {
+      background: $primary 50%;
+      color: $text;
     }
 
-    &:blur {
-        .datatable--cursor {
-            background: $primary-lighten-1 10%;
-            color: $text;
-        }
-        .datatable--hover {
-            background: $primary-lighten-1 40%;
-            color: $text;
-        }
+    .datatable--fixed-cursor {
+      background: $accent 50%;
+      color: $text;
     }
+
+    .datatable--hover {
+      background: $primary-lighten-1 20%;
+      color: $text;
+    }
+  }
+
+  &:blur {
+    .datatable--cursor {
+      background: $primary-lighten-1 10%;
+      color: $text;
+    }
+
+    .datatable--fixed {
+      background: $primary 60%;
+      color: $text;
+    }
+
+    .datatable--fixed-cursor {
+      background: $primary 85%;
+      color: $text;
+    }
+
+    .datatable--hover {
+      background: $primary-lighten-1 40%;
+      color: $text;
+    }
+  }
 }
 
 TextArea.empty {
-    & .text-area--cursor-line {
-        background: transparent;
-    }
-    & .text-area--cursor-gutter {
-        background: transparent;
-    }
+  & .text-area--cursor-line {
+    background: transparent;
+  }
+
+  & .text-area--cursor-gutter {
+    background: transparent;
+  }
 }
 
 Input {
-    padding: 0 1;
-    height: 1;
+  padding: 0 1;
+  height: 1;
 
-    &:focus {
-        background: $surface-lighten-1;
-    }
+  &:focus {
+    background: $surface-lighten-1;
+  }
 }
 
 Button {
-    padding: 0 1;
-    height: 1;
-    border: none;
+  padding: 0 1;
+  height: 1;
+  border: none;
 
-    &:disabled {
-        opacity: 60%;
-    }
+  &:disabled {
+    opacity: 60%;
+  }
 }
 
 CommandPalette {
-    background: black 60%;
-    & > Vertical {
-        width: 50;
+  background: black 60%;
+
+  & > Vertical {
+    width: 50;
+  }
+
+  & #--input {
+    border: none;
+    border-left: wide $accent;
+
+    & CommandInput {
+      height: auto;
+      border: none;
+      padding: 1 2;
+      background: $panel;
     }
-    & #--input {
-        border: none;
-        border-left: wide $accent;
-        & CommandInput {
-            height: auto;
-            border: none;
-            padding: 1 2;
-            background: $panel;
-        }
-        & SearchIcon {
-            display: none;
-            height: 1;
-        }
+
+    & SearchIcon {
+      display: none;
+      height: 1;
     }
-    & #--results {
-        padding: 0;
-    }
-    & CommandList {
-        border: none;
-        border-left: wide $accent;
-        padding: 0;
-        padding-bottom: 1;
-        text-style: bold;
-    }
-    & > .command-palette--help-text {
-        background: transparent;
-        text-style: not b;
-    }
+  }
+
+  & #--results {
+    padding: 0;
+  }
+
+  & CommandList {
+    border: none;
+    border-left: wide $accent;
+    padding: 0;
+    padding-bottom: 1;
+    text-style: bold;
+  }
+
+  & > .command-palette--help-text {
+    background: transparent;
+    text-style: not b;
+  }
 }
