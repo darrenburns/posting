@@ -237,7 +237,7 @@ class Posting(App[None]):
             warning="#ff9900",
             error="#d00000",
             success="#4cc9f0",
-            accent="#72147e",
+            accent="#9d4edd",
             dark=True,
         ),
         "catpuccin": ColorSystem(
