@@ -10,6 +10,17 @@
   }
 }
 
+.w-auto {
+  width: auto;
+}
+
+.dock-right {
+  dock: right;
+}
+.dock-left {
+  dock: left;
+}
+
 AppBody {
   &.layout-horizontal {
     layout: horizontal;
@@ -192,5 +203,34 @@ CommandPalette {
   & > .command-palette--help-text {
     background: transparent;
     text-style: not b;
+  }
+}
+
+Select {
+  height: 1;
+  border: none;
+  padding: 0;
+  width: auto;
+  &:focus {
+    background: $accent-lighten-1;
+    color: $text;
+  }
+
+  & > SelectCurrent {
+    height: 1;
+    border: none;
+    padding: 0 1
+  }
+}
+
+Checkbox {
+  height: 1;
+  padding: 0 1;
+  border: none;
+  color: $text;
+
+  &:focus {
+    background: $accent-lighten-1;
+    color: $text;
   }
 }
