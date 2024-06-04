@@ -77,7 +77,6 @@ class RequestBodyTextArea(TextArea):
             get_content_start_column = self.get_content_start_column
             get_column_width = self.get_column_width
             try:
-                #
                 for character, location in character_locations:
                     # Ignore whitespace
                     if character.isspace():
@@ -95,7 +94,6 @@ class RequestBodyTextArea(TextArea):
 
                         target_location = row + 1, column + width_to_indent
                         insert_text = "\n" + " " * width_to_indent
-                        print("Anchor char", anchor_char)
                         if anchor_char in self.CLOSING_BRACKETS:
                             # If there's a bracket under the cursor, we should
                             # ensure that gets indented too.
@@ -108,15 +106,9 @@ class RequestBodyTextArea(TextArea):
                     else:
                         content_start_col = get_content_start_column(line)
                         width = get_column_width(row, content_start_col)
-                        print("width", width)
                         self.insert("\n" + " " * width)
                         event.prevent_default()
                         break
-
-                # If we make it to here, we didn't find an opening bracket
-                # on the line, so just insert a newline and indent to the
-                # same level as the previous line.
-
             except IndexError:
                 return
 
