@@ -19,18 +19,18 @@ class ResponseTabbedContent(TabbedContent):
     ]
 
 
-class ResponseBodyHeaderBar(Horizontal):
+class ResponseBodyConfig(Horizontal):
     """The bar that appears above the response body, allowing
     you to customise the syntax highlighting, wrapping, line numbers,
     etc.
     """
 
     DEFAULT_CSS = """\
-    ResponseBodyHeaderBar {
+    ResponseBodyConfig {
         dock: bottom;
         height: 1;
         width: 1fr;
-        background: $accent;
+        background: $primary;
         
         &:disabled {
             background: transparent;
@@ -60,6 +60,14 @@ class ResponseBodyHeaderBar(Horizontal):
             yield Checkbox(label="Wrap", value=True, button_first=False, id="response-wrap-checkbox")
 
 
+def content_type_to_language(content_type: str) -> str:
+    """Given the value of an HTTP content-type header, return the name
+    of the language to use in the response body text area."""
+    if content_type.startswith("text/html") or content_type.startswith("text/xml"):
+        return "html"
+    return "json"
+
+
 class ResponseArea(Vertical):
     """
     The response area.
@@ -87,7 +95,7 @@ class ResponseArea(Vertical):
     def compose(self) -> ComposeResult:
         with ResponseTabbedContent(disabled=self.response is None):
             with TabPane("Body", id="response-body-pane"):
-                yield ResponseBodyHeaderBar()
+                yield ResponseBodyConfig()
                 yield ResponseTextArea(language="json", read_only=True)
             with TabPane("Headers", id="response-headers-pane"):
                 yield ResponseHeadersTable()
@@ -105,6 +113,9 @@ class ResponseArea(Vertical):
         # Update the body text area with the body content.
         response_text_area = self.body_text_area
         response_text_area.text = response.text
+        content_type = response.headers.get("content-type")
+        if content_type:
+            self.body_config.value = content_type_to_language(content_type)
         response_text_area.focus()
 
         # Update the response headers table with the response headers.
@@ -143,6 +154,10 @@ class ResponseArea(Vertical):
     @property
     def body_text_area(self) -> ResponseTextArea:
         return self.query_one(ResponseTextArea)
+
+    @property
+    def body_config(self) -> ResponseBodyConfig:
+        return self.query_one(ResponseBodyConfig)
 
     @property
     def headers_table(self) -> ResponseHeadersTable:
