@@ -17,6 +17,7 @@
 .dock-right {
   dock: right;
 }
+
 .dock-left {
   dock: left;
 }
@@ -135,14 +136,23 @@ DataTable {
   }
 }
 
-TextArea.empty {
-  & .text-area--cursor-line {
-    background: transparent;
+
+TextArea {
+  & .text-area--cursor {
+    color: $text;
+    background: $accent-lighten-2;
   }
 
-  & .text-area--cursor-gutter {
-    background: transparent;
+  &.empty {
+    & .text-area--cursor-line {
+      background: transparent;
+    }
+
+    & .text-area--cursor-gutter {
+      background: transparent;
+    }
   }
+
 }
 
 Input {
@@ -151,6 +161,13 @@ Input {
 
   &:focus {
     background: $surface-lighten-1;
+
+    & .input--cursor {
+      color: $text;
+      background: $accent-lighten-2;
+      text-style: not reverse;
+    }
+
   }
 }
 
@@ -211,6 +228,7 @@ Select {
   border: none;
   padding: 0;
   width: auto;
+
   &:focus {
     background: $accent-lighten-1;
     color: $text;

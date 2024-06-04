@@ -18,6 +18,10 @@ class UrlInput(Input):
         &:focus {
             border: none;
             padding: 0 1;
+            & .input--cursor {
+              color: $text;
+              background: $accent-lighten-2;
+            }
         }
     }
     """

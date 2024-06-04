@@ -222,6 +222,33 @@ class Posting(App[None]):
             accent="#4682b4",
             dark=True,
         ),
+        "forest": ColorSystem(
+            primary="#228B22",
+            secondary="#32CD32",
+            warning="#FFD700",
+            error="#8B0000",
+            success="#006400",
+            accent="#8FBC8F",
+            dark=True,
+        ),
+        "galaxy": ColorSystem(
+            primary="#2e003e",
+            secondary="#3a0ca3",
+            warning="#ff9900",
+            error="#d00000",
+            success="#4cc9f0",
+            accent="#72147e",
+            dark=True,
+        ),
+        "catpuccin": ColorSystem(
+            primary="#d08770",
+            secondary="#ebcb8b",
+            warning="#ebcb8b",
+            error="#bf616a",
+            success="#a3be8c",
+            accent="#b48ead",
+            dark=True,
+        ),
     }
 
     theme: Reactive[str | None] = reactive(None)
