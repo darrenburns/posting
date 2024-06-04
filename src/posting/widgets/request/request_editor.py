@@ -15,22 +15,6 @@ class RequestEditorTabbedContent(TabbedContent):
         Binding("up,k", "app.focus_previous", "Focus previous", show=False),
     ]
 
-    @on(events.DescendantFocus)
-    def focus_within(self, event: events.DescendantFocus) -> None:
-        print("focused")
-        tabs = self.query_one(Tabs)
-        if tabs.has_focus:
-            self.refresh_bindings()
-
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        """Check if an action may run."""
-        print(action)
-        if action == "next":
-            return None
-        if action == "previous":
-            return None
-        return True
-
 
 class RequestEditor(Vertical):
     """
