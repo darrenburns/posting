@@ -25,7 +25,10 @@ from textual.widgets._tabbed_content import ContentTab
 from posting.commands import PostingProvider
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
-from posting.widgets.request.method_selection import MethodSelectionPopup, MethodSelection
+from posting.widgets.request.method_selection import (
+    MethodSelectionPopup,
+    MethodSelection,
+)
 
 from posting.widgets.request.query_editor import ParamsTable
 
@@ -67,7 +70,7 @@ class MainScreen(Screen[None]):
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"[i]Posting[/] [white dim]{version('posting')}[/]")
+        yield AppHeader(f"Posting. [white dim]{version('posting')}[/]")
         yield UrlBar()
         with AppBody():
             yield RequestEditor()
@@ -288,7 +291,9 @@ class Posting(App[None]):
         self._original_theme = self.theme
 
     @on(CommandPalette.OptionHighlighted)
-    def palette_option_highlighted(self, event: CommandPalette.OptionHighlighted) -> None:
+    def palette_option_highlighted(
+        self, event: CommandPalette.OptionHighlighted
+    ) -> None:
         prompt: Group = event.highlighted_event.option.prompt
         # This is making quite a lot of assumptions. Fragile, but the only
         # way I can think of doing it given the current Textual APIs.
@@ -310,7 +315,7 @@ class Posting(App[None]):
         # If we closed with a result, that will be handled by the command
         # being triggered. However, if we closed the palette with no result
         # then make sure we revert the theme back.
-        if event.result is None:
+        if not event.option_selected:
             self.theme = self._original_theme
 
     def watch_theme(self) -> None:
