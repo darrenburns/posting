@@ -214,12 +214,22 @@ Select {
   &:focus {
     background: $accent-lighten-1;
     color: $text;
+
+    & > SelectCurrent {
+      background: $accent-lighten-1;
+      color: $text;
+    }
   }
 
   & > SelectCurrent {
     height: 1;
     border: none;
     padding: 0 1;
+  }
+
+  & > SelectOverlay {
+    padding: 0;
+    border: none;
   }
 }
 
