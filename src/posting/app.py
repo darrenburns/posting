@@ -15,16 +15,13 @@ from textual.widgets import (
     Footer,
     Input,
     Label,
-    TabbedContent,
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
 
 from posting.commands import PostingProvider
-from posting.crosshatch import Crosshatch
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
-from posting.text_area_theme import POSTLING_THEME
 from posting.widgets.request.method_selection import MethodSelectionPopup, MethodSelection
 
 from posting.widgets.request.query_editor import ParamsTable
@@ -32,6 +29,7 @@ from posting.widgets.request.query_editor import ParamsTable
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_editor import RequestEditor
 from posting.widgets.request.url_bar import UrlInput, UrlBar
+from posting.widgets.response.response_area import ResponseArea
 
 
 class AppHeader(Label):
@@ -53,102 +51,6 @@ class AppBody(Vertical):
         padding: 1 2 0 2;
     }
     """
-
-
-class ResponseTextArea(TextArea):
-    """
-    For displaying responses.
-    """
-
-    DEFAULT_CSS = """\
-    ResponseTextArea {
-        border: none;
-        padding: 0;
-        &:focus {
-            border: none;
-            padding: 0;
-        }
-    }
-    """
-
-    def on_mount(self):
-        self.register_theme(POSTLING_THEME)
-        self.theme = "posting"
-        empty = len(self.text) == 0
-        self.set_class(empty, "empty")
-        self.show_line_numbers = not empty
-
-    @on(TextArea.Changed)
-    def on_change(self, event: TextArea.Changed) -> None:
-        empty = len(self.text) == 0
-        self.set_class(empty, "empty")
-        self.show_line_numbers = not empty
-
-
-class ResponseTabbedContent(TabbedContent):
-    BINDINGS = [
-        Binding("down,j", "app.focus_next", "Focus next", show=False),
-        Binding("up,k", "app.focus_previous", "Focus previous", show=False),
-    ]
-
-    
-
-
-class ResponseArea(Vertical):
-    """
-    The response area.
-    """
-
-    DEFAULT_CSS = """\
-    ResponseArea {
-        border-subtitle-color: $text-muted;
-        & ResponseTextArea.empty {
-            display: none;
-        }
-        &.response-ready{
-            & Crosshatch {
-                display: none;
-            }
-        }
-    }
-    """
-    response: Reactive[httpx.Response | None] = reactive(None)
-
-    def on_mount(self) -> None:
-        self.border_title = "Response"
-        self.add_class("section")
-
-    def compose(self) -> ComposeResult:
-        with ResponseTabbedContent():
-            yield ResponseTextArea(language="json", read_only=True)
-            yield Crosshatch()
-
-    def watch_response(self, response: httpx.Response | None) -> None:
-        if response is None:
-            return
-
-        self.add_class("response-ready")
-
-        response_text_area = self.response_text_area
-        response_text_area.text = response.text
-        response_text_area.focus()
-
-        if response.status_code < 300:
-            style = "#ecfccb on #4d7c0f"
-        elif response.status_code < 400:
-            style = "black on yellow"
-        else:
-            style = "black on red"
-
-        self.border_title = (
-            f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
-        )
-
-        self.border_subtitle = f"{response.elapsed.total_seconds() * 1000:.2f} ms"
-
-    @property
-    def response_text_area(self) -> ResponseTextArea:
-        return self.query_one(ResponseTextArea)
 
 
 class MainScreen(Screen[None]):
