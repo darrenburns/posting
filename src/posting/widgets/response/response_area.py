@@ -52,19 +52,31 @@ class ResponseBodyConfig(Horizontal):
     }
     """
 
+    language = reactive("json", init=False)
+
+    def watch_language(self, language: str) -> None:
+        print("chose language = {language}".format(language=language))
+        self.query_one(Select).value = language
+
     def compose(self) -> ComposeResult:
         with Horizontal(classes="dock-left w-auto"):
-            yield Select(prompt="Content type", value="json", allow_blank=False,
+            yield Select(prompt="Content type", value=self.language, allow_blank=False,
                          options=[("JSON", "json"), ("HTML", "html")],
                          id="response-content-type-select")
             yield Checkbox(label="Wrap", value=True, button_first=False, id="response-wrap-checkbox")
 
 
-def content_type_to_language(content_type: str) -> str:
+def content_type_to_language(content_type: str) -> str | None:
     """Given the value of an HTTP content-type header, return the name
     of the language to use in the response body text area."""
-    if content_type.startswith("text/html") or content_type.startswith("text/xml"):
+    if content_type.startswith("application/json"):
+        return "json"
+    elif content_type.startswith("text/html") or content_type.startswith("application/xml"):
         return "html"
+    elif content_type.startswith("text/css"):
+        return "css"
+    elif content_type.startswith("plain"):
+        return None
     return "json"
 
 
@@ -115,7 +127,9 @@ class ResponseArea(Vertical):
         response_text_area.text = response.text
         content_type = response.headers.get("content-type")
         if content_type:
-            self.body_config.value = content_type_to_language(content_type)
+            language = content_type_to_language(content_type)
+            self.body_text_area.language = language
+            self.body_config.language = language
         response_text_area.focus()
 
         # Update the response headers table with the response headers.
@@ -149,6 +163,7 @@ class ResponseArea(Vertical):
 
     @on(Select.Changed, selector="#response-content-type-select")
     def content_type_changed(self, event: Select.Changed) -> None:
+        self.body_config.language = event.value
         self.body_text_area.language = event.value
 
     @property
