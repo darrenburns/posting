@@ -14,6 +14,7 @@ from textual.widgets import (
     TextArea,
 )
 
+from posting.text_area import ReadOnlyTextArea
 from posting.widgets.response.cookies_table import CookiesTable
 from posting.widgets.response.response_body import ResponseBodyConfig, ResponseTextArea
 from posting.widgets.response.response_headers import ResponseHeadersTable
@@ -120,6 +121,10 @@ class ResponseArea(Vertical):
     @on(TextArea.SelectionChanged, selector="ResponseTextArea")
     def update_selection(self, event: TextArea.SelectionChanged) -> None:
         self.body_config.selection = event.selection
+
+    @on(ReadOnlyTextArea.VisualModeToggled, selector="ResponseTextArea")
+    def update_visual_mode(self, event: ReadOnlyTextArea.VisualModeToggled) -> None:
+        self.body_config.visual_mode = event.value
 
     @property
     def body_text_area(self) -> ResponseTextArea:

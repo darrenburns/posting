@@ -31,7 +31,7 @@ class ResponseBodyConfig(Horizontal):
         
         & Select {
             width: 8;
-            margin-left: 1;
+            margin-right: 1;
             & SelectCurrent {
                 width: 8;
             }
@@ -41,25 +41,40 @@ class ResponseBodyConfig(Horizontal):
         }
         
         & Checkbox {
-            margin-left: 1;
+            margin-right: 1;
         }
 
         #response-cursor-location-label {
             padding: 0 1;
             color: $text 50%;
         }
+
+        #response-mode-label {
+            dock: left;
+            padding: 0 1;
+            color: $text-muted;
+            &.visual-mode {
+            }
+        }
     }
     """
 
     language: Reactive[str | None] = reactive("json", init=False)
     soft_wrap: Reactive[bool] = reactive(True, init=False)
+    visual_mode: Reactive[bool] = reactive(False, init=False)
     selection: Reactive[Selection] = reactive(Selection.cursor((0, 0)), init=False)
 
     def watch_selection(self, selection: Selection) -> None:
         row, column = selection.end
         self.cursor_location_label.update(f"{row+1}:{column+1}")
 
+    def watch_visual_mode(self, value: bool) -> None:
+        label = self.query_one("#response-mode-label", Label)
+        label.set_class(value, "visual-mode")
+        label.update("Visual" if value else "")
+
     def compose(self) -> ComposeResult:
+        yield Label("", id="response-mode-label")
         with Horizontal(classes="dock-right w-auto"):
             yield Label("1:1", id="response-cursor-location-label")
             yield Select(

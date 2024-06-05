@@ -1,7 +1,10 @@
+from dataclasses import dataclass
 from rich.style import Style
 from textual.binding import Binding
+from textual.message import Message
+from textual.reactive import reactive
 from textual.widgets import TextArea
-from textual.widgets.text_area import TextAreaTheme
+from textual.widgets.text_area import Selection, TextAreaTheme
 
 
 class ReadOnlyTextArea(TextArea):
@@ -41,11 +44,80 @@ class ReadOnlyTextArea(TextArea):
             show=False,
         ),
         Binding("f6,V", "select_line", "select line", show=False),
-        Binding("v", "toggle_visual_mode", "Visual Mode", show=False),
+        Binding(
+            "v",
+            "toggle_visual_mode",
+            description="Select mode",
+            key_display="v",
+        ),
+        Binding(
+            "y,c", "copy_to_clipboard", description="Copy selection", key_display="y"
+        ),
     ]
+
+    @dataclass
+    class VisualModeToggled(Message):
+        value: bool
+        text_area: TextArea
+
+        @property
+        def control(self) -> TextArea:
+            return self.text_area
+
+    visual_mode = reactive(False, init=False)
 
     def on_mount(self):
         self.read_only = True
+
+    def action_toggle_visual_mode(self):
+        self.visual_mode = not self.visual_mode
+
+    def watch_visual_mode(self, value: bool) -> None:
+        self.cursor_blink = not value
+        if not value:
+            self.selection = Selection.cursor(self.selection.end)
+
+        self.set_class(value, "visual-mode")
+        self.post_message(self.VisualModeToggled(value, self))
+
+    def action_cursor_up(self, select: bool = False) -> None:
+        return super().action_cursor_up(self.visual_mode or select)
+
+    def action_cursor_right(self, select: bool = False) -> None:
+        return super().action_cursor_right(self.visual_mode or select)
+
+    def action_cursor_down(self, select: bool = False) -> None:
+        return super().action_cursor_down(self.visual_mode or select)
+
+    def action_cursor_left(self, select: bool = False) -> None:
+        return super().action_cursor_left(self.visual_mode or select)
+
+    def action_cursor_line_end(self, select: bool = False) -> None:
+        return super().action_cursor_line_end(self.visual_mode or select)
+
+    def action_cursor_line_start(self, select: bool = False) -> None:
+        return super().action_cursor_line_start(self.visual_mode or select)
+
+    def action_cursor_word_left(self, select: bool = False) -> None:
+        return super().action_cursor_word_left(self.visual_mode or select)
+
+    def action_cursor_word_right(self, select: bool = False) -> None:
+        return super().action_cursor_word_right(self.visual_mode or select)
+
+    def action_copy_to_clipboard(self) -> None:
+        text_to_copy = self.selected_text
+        if text_to_copy:
+            message = f"Copied {len(text_to_copy)} characters."
+            self.notify(message, title="Selection copied")
+        else:
+            text_to_copy = self.text
+            message = f"Copied message ({len(text_to_copy)} characters)."
+            self.notify(message, title="Message copied")
+
+        import pyperclip
+
+        pyperclip.copy(text_to_copy)
+        self.visual_mode = False
 
 
 POSTLING_THEME = TextAreaTheme(
