@@ -18,6 +18,7 @@ class HeaderEditor(Vertical):
     DEFAULT_CSS = """\
     #header-inputs {
         height: auto;
+        width: 1fr;
         dock: bottom;
         & > Input {
             border: none;

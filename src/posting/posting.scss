@@ -28,6 +28,9 @@ AppBody {
 
     & #header-inputs {
       layout: vertical;
+      & Button {
+        width: 1fr;
+      }
     }
   }
 
@@ -260,6 +263,10 @@ Checkbox {
   &:focus {
     background: $accent-lighten-1;
     color: $text;
+
+    & .toggle--label {
+      text-style: not underline;
+    }
   }
 }
 

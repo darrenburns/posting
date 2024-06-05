@@ -31,6 +31,7 @@ class ResponseBodyConfig(Horizontal):
         
         & Select {
             width: 8;
+            margin-left: 1;
             & SelectCurrent {
                 width: 8;
             }
