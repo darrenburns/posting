@@ -109,7 +109,7 @@ class ResponseArea(Vertical):
             f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
         )
 
-        self.border_subtitle = f"{response.elapsed.total_seconds() * 1000:.2f} ms"
+        self.border_subtitle = f"{human_readable_size(len(response.content))} in {response.elapsed.total_seconds() * 1000:.2f}[dim]ms[/]"
 
     @property
     def body_text_area(self) -> ResponseTextArea:
@@ -142,3 +142,10 @@ def content_type_to_language(content_type: str) -> str | None:
     elif content_type.startswith("plain"):
         return None
     return "json"
+
+
+def human_readable_size(size: float, decimal_places: int = 2) -> str:  # type: ignore
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if size < 1024:
+            return f"{size:.{decimal_places}f}[dim]{unit}[/]"
+        size /= 1024

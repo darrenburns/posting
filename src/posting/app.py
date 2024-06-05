@@ -66,6 +66,7 @@ class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send request"),
         Binding("ctrl+t", "change_method", "Change method"),
+        Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 

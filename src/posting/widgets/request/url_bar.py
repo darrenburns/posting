@@ -72,5 +72,6 @@ class UrlBar(Horizontal):
             yield UrlInput(
                 "http://jsonplaceholder.typicode.com/posts",
                 placeholder="Enter a URL...",
+                id="url-input",
             )
             yield SendRequestButton("Send")
