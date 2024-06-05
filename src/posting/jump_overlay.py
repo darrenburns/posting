@@ -49,7 +49,6 @@ class JumpOverlay(ModalScreen[str | Widget]):
 
     async def _on_resize(self) -> None:
         self._sync()
-        print("recomposing")
         self._resize_counter += 1
         if self._resize_counter == 1:
             return
