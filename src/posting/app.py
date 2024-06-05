@@ -71,7 +71,7 @@ class MainScreen(Screen[None]):
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
-    selected_method = reactive("GET")
+    selected_method = reactive("GET", init=False)
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
     def compose(self) -> ComposeResult:
@@ -368,6 +368,7 @@ class Posting(App[None]):
             elif isinstance(target, Widget):
                 target.focus()
 
+        self.clear_notifications()
         await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
 
 
