@@ -1,8 +1,7 @@
-from textual import on, events
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
-from textual.widgets import TabbedContent, Tabs, TabPane
+from textual.widgets import TabbedContent, TabPane
 
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor

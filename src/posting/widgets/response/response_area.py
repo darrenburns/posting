@@ -4,7 +4,15 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, Horizontal
 from textual.reactive import Reactive, reactive
-from textual.widgets import TabbedContent, TabPane, Select, Checkbox, Switch, Label
+from textual.widgets import (
+    TabbedContent,
+    TabPane,
+    Select,
+    Checkbox,
+    Switch,
+    Label,
+    TextArea,
+)
 
 from posting.widgets.response.cookies_table import CookiesTable
 from posting.widgets.response.response_body import ResponseBodyConfig, ResponseTextArea
@@ -96,8 +104,6 @@ class ResponseArea(Vertical):
             [(name, value) for name, value in response.cookies.items()]
         )
 
-        print(response.cookies)
-
         if response.status_code < 300:
             style = "#ecfccb on #4d7c0f"
         elif response.status_code < 400:
@@ -110,6 +116,10 @@ class ResponseArea(Vertical):
         )
 
         self.border_subtitle = f"{human_readable_size(len(response.content))} in {response.elapsed.total_seconds() * 1000:.2f}[dim]ms[/]"
+
+    @on(TextArea.SelectionChanged, selector="ResponseTextArea")
+    def update_selection(self, event: TextArea.SelectionChanged) -> None:
+        self.body_config.selection = event.selection
 
     @property
     def body_text_area(self) -> ResponseTextArea:

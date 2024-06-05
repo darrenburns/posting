@@ -91,7 +91,7 @@ class QueryStringEditor(Vertical):
     DEFAULT_CSS = """\
     QueryStringEditor {
         & #param-inputs {
-            height: 1;
+            height: auto;
             dock: bottom;
             & > Input {
                 border: none;

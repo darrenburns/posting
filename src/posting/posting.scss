@@ -32,6 +32,13 @@ AppBody {
         width: 1fr;
       }
     }
+
+    & #param-inputs {
+      layout: vertical;
+      & Button {
+        width: 1fr;
+      }
+    }
   }
 
   &.layout-vertical {
@@ -40,13 +47,19 @@ AppBody {
     & #header-inputs {
       layout: horizontal;
     }
+
+    & #param-inputs {
+      layout: horizontal;
+    }
   }
 }
 
 Footer {
   border: none;
-  margin: 0 2 1 2;
+  height: 2;
+  padding: 0 2 1 2;
   background: transparent;
+  margin: 0;
 
   & FooterKey {
     color: $text 85%;

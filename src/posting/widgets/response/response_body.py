@@ -3,7 +3,8 @@ from textual import on
 from textual.reactive import Reactive, reactive
 from textual.app import ComposeResult
 from textual.containers import Horizontal
-from textual.widgets import Checkbox, Select, TextArea
+from textual.widgets import Checkbox, Label, Select, TextArea
+from textual.widgets.text_area import Selection
 
 from posting.text_area_theme import POSTLING_THEME
 
@@ -43,11 +44,22 @@ class ResponseBodyConfig(Horizontal):
         & Checkbox {
             margin-left: 1;
         }
+
+        #response-cursor-location-label {
+            dock: right;
+            padding-right: 2;
+            color: $text 50%;
+        }
     }
     """
 
     language: Reactive[str] = reactive("json", init=False)
     soft_wrap: Reactive[bool] = reactive(True, init=False)
+    selection: Reactive[Selection] = reactive(Selection.cursor((0, 0)), init=False)
+
+    def watch_selection(self, selection: Selection) -> None:
+        row, column = selection.end
+        self.cursor_location_label.update(f"Ln {row+1}, Col {column+1}")
 
     def compose(self) -> ComposeResult:
         with Horizontal(classes="dock-left w-auto"):
@@ -64,6 +76,7 @@ class ResponseBodyConfig(Horizontal):
                 button_first=False,
                 id="response-wrap-checkbox",
             ).data_bind(value=ResponseBodyConfig.soft_wrap)
+        yield Label("Ln 1, Col 1", id="response-cursor-location-label")
 
     @on(Select.Changed, selector="#response-content-type-select")
     def update_language(self, event: Select.Changed) -> None:
@@ -74,6 +87,10 @@ class ResponseBodyConfig(Horizontal):
     def update_soft_wrap(self, event: Checkbox.Changed) -> None:
         event.stop()
         self.soft_wrap = event.value
+
+    @property
+    def cursor_location_label(self) -> Label:
+        return self.query_one("#response-cursor-location-label", Label)
 
 
 class ResponseTextArea(TextArea):
