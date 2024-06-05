@@ -73,7 +73,7 @@ class MainScreen(Screen[None]):
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"Posting. [white dim]{version('posting')}[/]")
+        yield AppHeader(f"Posting [white dim]{version('posting')}[/]")
         yield UrlBar()
         with AppBody():
             yield RequestEditor()
@@ -346,11 +346,7 @@ class Posting(App[None]):
         self._jumping = not self._jumping
 
     async def watch__jumping(self, jumping: bool) -> None:
-        print(f"jumping = {jumping!r}")
-
         def handle_jump_target(target: str | Widget | None) -> None:
-            print(target)
-            print(self.screen)
             if isinstance(target, str):
                 try:
                     target_widget = self.screen.query_one(f"#{target}")

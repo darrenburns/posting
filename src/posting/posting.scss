@@ -270,3 +270,13 @@ Checkbox {
   background: $secondary-lighten-2;
   color: $text;
 }
+
+#textual-jump-info {
+  text-align: center;
+  margin-bottom: 1;
+  dock: bottom;
+  height: 1;
+  width: 1fr;
+  background: $secondary-lighten-2;
+  color: $text;
+}

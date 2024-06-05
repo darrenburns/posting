@@ -14,6 +14,12 @@ class JumpOverlay(ModalScreen[str | Widget]):
     """Overlay showing the jump targets.
     Returns the ID of the widget the jump was requested for on closing."""
 
+    DEFAULT_CSS = """\
+    JumpOverlay {
+        background: black 25%;
+    }
+    """
+
     def __init__(
         self,
         overlays: dict[Offset, "JumpInfo"],
@@ -27,15 +33,12 @@ class JumpOverlay(ModalScreen[str | Widget]):
 
     def on_key(self, key: events.Key) -> None:
         # Close the overlay if the user presses escape
-        if key.key == "escape":
+        if key.key == "escape" or key.key == "ctrl+o":
             self.dismiss()
             return
 
         # If they press a key corresponding to a jump target,
         # then we jump to it.
-
-        print("key", key.key)
-        print("self.keys_to_widgets", self.keys_to_widgets)
         target = self.keys_to_widgets.get(key.key)
         if target is not None:
             self.dismiss(target)
@@ -48,3 +51,4 @@ class JumpOverlay(ModalScreen[str | Widget]):
             label = Label(key, classes="textual-jump-label")
             label.styles.offset = offset
             yield label
+        yield Label("Press a key to jump", id="textual-jump-info")
