@@ -47,7 +47,7 @@ class ResponseBodyConfig(Horizontal):
 
         #response-cursor-location-label {
             dock: right;
-            padding-right: 2;
+            padding: 0 1;
             color: $text 50%;
         }
     }
@@ -59,7 +59,7 @@ class ResponseBodyConfig(Horizontal):
 
     def watch_selection(self, selection: Selection) -> None:
         row, column = selection.end
-        self.cursor_location_label.update(f"Ln {row+1}, Col {column+1}")
+        self.cursor_location_label.update(f"{row+1}:{column+1}")
 
     def compose(self) -> ComposeResult:
         with Horizontal(classes="dock-left w-auto"):
@@ -76,7 +76,7 @@ class ResponseBodyConfig(Horizontal):
                 button_first=False,
                 id="response-wrap-checkbox",
             ).data_bind(value=ResponseBodyConfig.soft_wrap)
-        yield Label("Ln 1, Col 1", id="response-cursor-location-label")
+        yield Label("1:1", id="response-cursor-location-label")
 
     @on(Select.Changed, selector="#response-content-type-select")
     def update_language(self, event: Select.Changed) -> None:
