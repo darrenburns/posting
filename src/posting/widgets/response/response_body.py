@@ -51,7 +51,7 @@ class ResponseBodyConfig(Horizontal):
     }
     """
 
-    language: Reactive[str] = reactive("json", init=False)
+    language: Reactive[str | None] = reactive("json", init=False)
     soft_wrap: Reactive[bool] = reactive(True, init=False)
     selection: Reactive[Selection] = reactive(Selection.cursor((0, 0)), init=False)
 
@@ -66,7 +66,7 @@ class ResponseBodyConfig(Horizontal):
                 prompt="Content type",
                 value=self.language,
                 allow_blank=False,
-                options=[("JSON", "json"), ("HTML", "html")],
+                options=[("JSON", "json"), ("HTML", "html"), ("Text", None)],
                 id="response-content-type-select",
             ).data_bind(value=ResponseBodyConfig.language)
             yield Checkbox(

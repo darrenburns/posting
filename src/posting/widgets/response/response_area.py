@@ -149,7 +149,7 @@ def content_type_to_language(content_type: str) -> str | None:
         return "html"
     elif content_type.startswith("text/css"):
         return "css"
-    elif content_type.startswith("plain"):
+    elif content_type.startswith("text/plain"):
         return None
     return "json"
 

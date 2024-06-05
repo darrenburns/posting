@@ -159,7 +159,7 @@ class MainScreen(Screen[None]):
     def build_httpx_request(self) -> httpx.Request:
         return httpx.Request(
             method=self.selected_method,
-            url=self.url_input.value,
+            url=self.url_input.value.strip(),
             params=self.params_table.as_dict(),
             content=self.request_body_text_area.text,
             headers=self.headers_table.as_dict(),
