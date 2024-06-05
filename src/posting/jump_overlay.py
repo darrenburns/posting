@@ -1,13 +1,12 @@
 from typing import TYPE_CHECKING
 from textual import events
 from textual.app import ComposeResult
-from textual.geometry import Offset
 from textual.screen import ModalScreen
 from textual.widget import Widget
 from textual.widgets import Label
 
 if TYPE_CHECKING:
-    from posting.jumper import JumpInfo
+    from posting.jumper import Jumper
 
 
 class JumpOverlay(ModalScreen[str | Widget]):
@@ -22,14 +21,17 @@ class JumpOverlay(ModalScreen[str | Widget]):
 
     def __init__(
         self,
-        overlays: dict[Offset, "JumpInfo"],
+        jumper: "Jumper",
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes)
-        self.overlays = overlays
-        self.keys_to_widgets = {v.key: v.widget for v in overlays.values()}
+        self.jumper: Jumper = jumper
+        self.keys_to_widgets: dict[str, Widget | str] = {}
+
+    def on_mount(self) -> None:
+        self._sync()
 
     def on_key(self, key: events.Key) -> None:
         # Close the overlay if the user presses escape
@@ -44,8 +46,17 @@ class JumpOverlay(ModalScreen[str | Widget]):
             self.dismiss(target)
             return
 
+    async def _on_resize(self) -> None:
+        self._sync()
+        await self.recompose()
+
+    def _sync(self) -> None:
+        self.overlays = self.jumper.get_overlays()
+        self.keys_to_widgets = {v.key: v.widget for v in self.overlays.values()}
+
     def compose(self) -> ComposeResult:
-        overlays = self.overlays
+        print("coposing")
+        overlays = self.jumper.get_overlays()
         for offset, jump_info in overlays.items():
             key, _widget = jump_info
             label = Label(key, classes="textual-jump-label")

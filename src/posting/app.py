@@ -25,6 +25,7 @@ from textual.widgets import (
 from textual.widgets._tabbed_content import ContentTab
 
 from posting.commands import PostingProvider
+from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
@@ -280,7 +281,7 @@ class Posting(App[None]):
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
             },
-            app=self,
+            screen=self.screen,
         )
 
     def get_default_screen(self) -> MainScreen:
@@ -329,6 +330,8 @@ class Posting(App[None]):
             if name == "theme":
                 if value in self.themes:
                     self.theme = value
+            else:
+                self.theme = self._original_theme
 
     @on(CommandPalette.Closed)
     def palette_closed(self, event: CommandPalette.Closed) -> None:
@@ -365,7 +368,7 @@ class Posting(App[None]):
             elif isinstance(target, Widget):
                 target.focus()
 
-        await self.push_screen(self.jumper.make_overlay(), callback=handle_jump_target)
+        await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
 
 
 app = Posting()
