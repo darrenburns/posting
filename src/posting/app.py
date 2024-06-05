@@ -326,7 +326,6 @@ class Posting(App[None]):
             name = name.strip()
             value = value.strip()
             if name == "theme":
-                print(f"theme={value!r}")
                 if value in self.themes:
                     self.theme = value
 

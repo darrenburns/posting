@@ -7,7 +7,7 @@ from textual.reactive import Reactive, reactive
 from textual.widgets import TabbedContent, TabPane, Select, Checkbox, Switch, Label
 
 from posting.widgets.response.cookies_table import CookiesTable
-from posting.widgets.response.response_body import ResponseTextArea
+from posting.widgets.response.response_body import ResponseBodyConfig, ResponseTextArea
 from posting.widgets.response.response_headers import ResponseHeadersTable
 
 
@@ -16,79 +16,6 @@ class ResponseTabbedContent(TabbedContent):
         Binding("down,j", "app.focus_next", "Focus next", show=False),
         Binding("up,k", "app.focus_previous", "Focus previous", show=False),
     ]
-
-
-class ResponseBodyConfig(Horizontal):
-    """The bar that appears above the response body, allowing
-    you to customise the syntax highlighting, wrapping, line numbers,
-    etc.
-    """
-
-    DEFAULT_CSS = """\
-    ResponseBodyConfig {
-        dock: bottom;
-        height: 1;
-        width: 1fr;
-        background: $primary 10%;
-        
-        &:focus-within {
-            background: $primary 55%;
-        }
-
-        &:disabled {
-            background: transparent;
-        }
-        
-        & Select {
-            width: 8;
-            & SelectCurrent {
-                width: 8;
-            }
-            & SelectOverlay {
-                width: 16;
-            }
-        }
-        
-        & Checkbox {
-            margin-left: 1;
-        }
-    }
-    """
-
-    language = reactive("json", init=False)
-    soft_wrap = reactive(True, init=False)
-
-    def compose(self) -> ComposeResult:
-        with Horizontal(classes="dock-left w-auto"):
-            yield Select(
-                prompt="Content type",
-                value=self.language,
-                allow_blank=False,
-                options=[("JSON", "json"), ("HTML", "html")],
-                id="response-content-type-select",
-            )
-            yield Checkbox(
-                label="Wrap",
-                value=self.soft_wrap,
-                button_first=False,
-                id="response-wrap-checkbox",
-            )
-
-
-def content_type_to_language(content_type: str) -> str | None:
-    """Given the value of an HTTP content-type header, return the name
-    of the language to use in the response body text area."""
-    if content_type.startswith("application/json"):
-        return "json"
-    elif content_type.startswith("text/html") or content_type.startswith(
-        "application/xml"
-    ):
-        return "html"
-    elif content_type.startswith("text/css"):
-        return "css"
-    elif content_type.startswith("plain"):
-        return None
-    return "json"
 
 
 class ResponseArea(Vertical):
@@ -115,6 +42,19 @@ class ResponseArea(Vertical):
         self.border_title = "Response"
         self.add_class("section")
 
+        # Watch for changes from the configuration bar.
+        body_config = self.body_config
+        body_text_area = self.body_text_area
+
+        def update_language(language: str):
+            body_text_area.language = language
+
+        def update_soft_wrap(soft_wrap: bool):
+            body_text_area.soft_wrap = soft_wrap
+
+        self.watch(body_config, "language", update_language)
+        self.watch(body_config, "soft_wrap", update_soft_wrap)
+
     def compose(self) -> ComposeResult:
         with ResponseTabbedContent(disabled=self.response is None):
             with TabPane("Body", id="response-body-pane"):
@@ -139,7 +79,6 @@ class ResponseArea(Vertical):
         content_type = response.headers.get("content-type")
         if content_type:
             language = content_type_to_language(content_type)
-            self.body_text_area.language = language
             self.body_config.language = language
         response_text_area.focus()
 
@@ -172,14 +111,6 @@ class ResponseArea(Vertical):
 
         self.border_subtitle = f"{response.elapsed.total_seconds() * 1000:.2f} ms"
 
-    @on(Checkbox.Changed, selector="#response-wrap-checkbox")
-    def wrap_toggled(self, event: Checkbox.Changed) -> None:
-        self.soft_wrap = event.value
-
-    @on(Select.Changed, selector="#response-content-type-select")
-    def content_type_changed(self, event: Select.Changed) -> None:
-        self.language = event.value
-
     @property
     def body_text_area(self) -> ResponseTextArea:
         return self.query_one(ResponseTextArea)
@@ -195,3 +126,19 @@ class ResponseArea(Vertical):
     @property
     def cookies_table(self) -> CookiesTable:
         return self.query_one(CookiesTable)
+
+
+def content_type_to_language(content_type: str) -> str | None:
+    """Given the value of an HTTP content-type header, return the name
+    of the language to use in the response body text area."""
+    if content_type.startswith("application/json"):
+        return "json"
+    elif content_type.startswith("text/html") or content_type.startswith(
+        "application/xml"
+    ):
+        return "html"
+    elif content_type.startswith("text/css"):
+        return "css"
+    elif content_type.startswith("plain"):
+        return None
+    return "json"
