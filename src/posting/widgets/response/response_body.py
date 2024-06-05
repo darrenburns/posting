@@ -45,7 +45,6 @@ class ResponseBodyConfig(Horizontal):
         }
 
         #response-cursor-location-label {
-            dock: right;
             padding: 0 1;
             color: $text 50%;
         }
@@ -61,7 +60,8 @@ class ResponseBodyConfig(Horizontal):
         self.cursor_location_label.update(f"{row+1}:{column+1}")
 
     def compose(self) -> ComposeResult:
-        with Horizontal(classes="dock-left w-auto"):
+        with Horizontal(classes="dock-right w-auto"):
+            yield Label("1:1", id="response-cursor-location-label")
             yield Select(
                 prompt="Content type",
                 value=self.language,
@@ -75,7 +75,6 @@ class ResponseBodyConfig(Horizontal):
                 button_first=False,
                 id="response-wrap-checkbox",
             ).data_bind(value=ResponseBodyConfig.soft_wrap)
-        yield Label("1:1", id="response-cursor-location-label")
 
     @on(Select.Changed, selector="#response-content-type-select")
     def update_language(self, event: Select.Changed) -> None:
