@@ -4,7 +4,7 @@ from textual import on, events
 from textual.widgets.text_area import Location
 from textual.widgets import TextArea
 
-from posting.text_area_theme import POSTLING_THEME
+from posting.text_area import POSTLING_THEME
 
 
 class RequestBodyTextArea(TextArea):

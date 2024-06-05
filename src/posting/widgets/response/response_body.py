@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from textual import on
 from textual.reactive import Reactive, reactive
 from textual.app import ComposeResult
@@ -6,7 +5,7 @@ from textual.containers import Horizontal
 from textual.widgets import Checkbox, Label, Select, TextArea
 from textual.widgets.text_area import Selection
 
-from posting.text_area_theme import POSTLING_THEME
+from posting.text_area import POSTLING_THEME, ReadOnlyTextArea
 
 
 class ResponseBodyConfig(Horizontal):
@@ -93,7 +92,7 @@ class ResponseBodyConfig(Horizontal):
         return self.query_one("#response-cursor-location-label", Label)
 
 
-class ResponseTextArea(TextArea):
+class ResponseTextArea(ReadOnlyTextArea):
     """
     For displaying responses.
     """

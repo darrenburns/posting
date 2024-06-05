@@ -67,7 +67,7 @@ class ResponseArea(Vertical):
         with ResponseTabbedContent(disabled=self.response is None):
             with TabPane("Body", id="response-body-pane"):
                 yield ResponseBodyConfig()
-                yield ResponseTextArea(language="json", read_only=True)
+                yield ResponseTextArea(language="json")
             with TabPane("Headers", id="response-headers-pane"):
                 yield ResponseHeadersTable()
             with TabPane("Cookies", id="response-cookies-pane"):
