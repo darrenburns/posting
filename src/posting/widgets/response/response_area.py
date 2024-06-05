@@ -5,7 +5,6 @@ from textual.binding import Binding
 from textual.containers import Vertical, Horizontal
 from textual.reactive import Reactive, reactive
 from textual.widgets import TabbedContent, TabPane, Select, Checkbox, Switch, Label
-from textual.widgets._toggle_button import ToggleButton
 
 from posting.widgets.response.cookies_table import CookiesTable
 from posting.widgets.response.response_body import ResponseTextArea
@@ -30,8 +29,12 @@ class ResponseBodyConfig(Horizontal):
         dock: bottom;
         height: 1;
         width: 1fr;
-        background: $primary;
+        background: $primary 10%;
         
+        &:focus-within {
+            background: $primary 55%;
+        }
+
         &:disabled {
             background: transparent;
         }
@@ -53,17 +56,23 @@ class ResponseBodyConfig(Horizontal):
     """
 
     language = reactive("json", init=False)
-
-    def watch_language(self, language: str) -> None:
-        print("chose language = {language}".format(language=language))
-        self.query_one(Select).value = language
+    soft_wrap = reactive(True, init=False)
 
     def compose(self) -> ComposeResult:
         with Horizontal(classes="dock-left w-auto"):
-            yield Select(prompt="Content type", value=self.language, allow_blank=False,
-                         options=[("JSON", "json"), ("HTML", "html")],
-                         id="response-content-type-select")
-            yield Checkbox(label="Wrap", value=True, button_first=False, id="response-wrap-checkbox")
+            yield Select(
+                prompt="Content type",
+                value=self.language,
+                allow_blank=False,
+                options=[("JSON", "json"), ("HTML", "html")],
+                id="response-content-type-select",
+            )
+            yield Checkbox(
+                label="Wrap",
+                value=self.soft_wrap,
+                button_first=False,
+                id="response-wrap-checkbox",
+            )
 
 
 def content_type_to_language(content_type: str) -> str | None:
@@ -71,7 +80,9 @@ def content_type_to_language(content_type: str) -> str | None:
     of the language to use in the response body text area."""
     if content_type.startswith("application/json"):
         return "json"
-    elif content_type.startswith("text/html") or content_type.startswith("application/xml"):
+    elif content_type.startswith("text/html") or content_type.startswith(
+        "application/xml"
+    ):
         return "html"
     elif content_type.startswith("text/css"):
         return "css"
@@ -135,12 +146,16 @@ class ResponseArea(Vertical):
         # Update the response headers table with the response headers.
         response_headers_table = self.headers_table
         response_headers_table.clear()
-        response_headers_table.add_rows([(name, value) for name, value in response.headers.items()])
+        response_headers_table.add_rows(
+            [(name, value) for name, value in response.headers.items()]
+        )
 
         # Update the response cookies table with the cookies from the response.
         cookies_table = self.cookies_table
         cookies_table.clear()
-        cookies_table.add_rows([(name, value) for name, value in response.cookies.items()])
+        cookies_table.add_rows(
+            [(name, value) for name, value in response.cookies.items()]
+        )
 
         print(response.cookies)
 
@@ -159,12 +174,11 @@ class ResponseArea(Vertical):
 
     @on(Checkbox.Changed, selector="#response-wrap-checkbox")
     def wrap_toggled(self, event: Checkbox.Changed) -> None:
-        self.body_text_area.soft_wrap = event.value
+        self.soft_wrap = event.value
 
     @on(Select.Changed, selector="#response-content-type-select")
     def content_type_changed(self, event: Select.Changed) -> None:
-        self.body_config.language = event.value
-        self.body_text_area.language = event.value
+        self.language = event.value
 
     @property
     def body_text_area(self) -> ResponseTextArea:

@@ -262,3 +262,11 @@ Checkbox {
     color: $text;
   }
 }
+
+.textual-jump-label {
+  layer: textual-jump;
+  dock: top;
+  text-style: b;
+  background: $secondary-lighten-2;
+  color: $text;
+}

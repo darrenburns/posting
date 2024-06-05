@@ -1,18 +1,20 @@
 from importlib.metadata import version
-from itertools import cycle
 from pathlib import Path
 from typing import Literal
 import httpx
 from rich.console import Group
 from rich.text import Text
-from textual import on
-from textual.command import CommandPalette, CommandList
+from textual import on, log
+from textual.command import CommandPalette
+from textual.css.query import NoMatches
 from textual.design import ColorSystem
+from textual.events import Click
 from textual.reactive import Reactive, reactive
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.screen import Screen
+from textual.widget import Widget
 from textual.widgets import (
     Button,
     Footer,
@@ -23,6 +25,7 @@ from textual.widgets import (
 from textual.widgets._tabbed_content import ContentTab
 
 from posting.commands import PostingProvider
+from posting.jumper import Jumper
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import (
@@ -198,6 +201,12 @@ class Posting(App[None]):
             description="Commands",
             show=True,
         ),
+        Binding(
+            "ctrl+o",
+            "toggle_jump_mode",
+            description="Jump",
+            show=True,
+        ),
     ]
 
     themes: dict[str, ColorSystem] = {
@@ -258,9 +267,20 @@ class Posting(App[None]):
     }
 
     theme: Reactive[str | None] = reactive("textual", init=False)
+    _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
 
-    def __init__(self):
-        super().__init__()
+    def on_mount(self) -> None:
+        self.jumper = Jumper(
+            {
+                "--content-tab-headers-pane": "q",
+                "--content-tab-body-pane": "w",
+                "--content-tab-parameters-pane": "e",
+                "--content-tab-response-body-pane": "a",
+                "--content-tab-response-headers-pane": "s",
+                "--content-tab-response-cookies-pane": "d",
+            },
+            app=self,
+        )
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen()
@@ -321,6 +341,35 @@ class Posting(App[None]):
     def watch_theme(self) -> None:
         self.refresh_css(animate=False)
         self.screen._update_styles()
+
+    def action_toggle_jump_mode(self) -> None:
+        self._jumping = not self._jumping
+
+    async def watch__jumping(self, jumping: bool) -> None:
+        print(f"jumping = {jumping!r}")
+
+        def handle_jump_target(target: str | Widget | None) -> None:
+            print(target)
+            print(self.screen)
+            if isinstance(target, str):
+                try:
+                    target_widget = self.screen.query_one(f"#{target}")
+                except NoMatches:
+                    log.warning(
+                        f"Attempted to jump to target #{target}, but it couldn't be found on {self.screen!r}"
+                    )
+                else:
+                    if target_widget.focusable:
+                        target_widget.focus()
+                    else:
+                        target_widget.post_message(
+                            Click(0, 0, 0, 0, 0, False, False, False)
+                        )
+
+            elif isinstance(target, Widget):
+                target.focus()
+
+        await self.push_screen(self.jumper.make_overlay(), callback=handle_jump_target)
 
 
 app = Posting()
