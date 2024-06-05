@@ -59,7 +59,6 @@ class JumpOverlay(ModalScreen[str | Widget]):
         self.keys_to_widgets = {v.key: v.widget for v in self.overlays.values()}
 
     def compose(self) -> ComposeResult:
-        print("coposing")
         overlays = self.jumper.get_overlays()
         for offset, jump_info in overlays.items():
             key, _widget = jump_info
