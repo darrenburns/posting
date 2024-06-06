@@ -9,7 +9,7 @@ from textual.message import Message
 from textual.widgets import DataTable, Input, Button
 from textual.widgets.data_table import RowKey, CellDoesNotExist
 
-from posting.datatable import PostingDataTable
+from posting.widgets.datatable import PostingDataTable
 
 
 class ParamsTable(PostingDataTable):

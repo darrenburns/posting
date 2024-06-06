@@ -1,4 +1,5 @@
 from textual.binding import Binding
+from textual.screen import ModalScreen
 from textual.widgets import DataTable
 
 

@@ -10,7 +10,7 @@ from textual.widgets import Input, Button, DataTable
 from textual.widgets.data_table import RowKey, CellDoesNotExist
 from textual_autocomplete import DropdownItem, AutoComplete
 
-from posting.datatable import PostingDataTable
+from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
 
 

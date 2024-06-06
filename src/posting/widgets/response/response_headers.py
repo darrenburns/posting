@@ -1,8 +1,7 @@
-from posting.datatable import PostingDataTable
+from posting.widgets.datatable import PostingDataTable
 
 
 class ResponseHeadersTable(PostingDataTable):
-
     def on_mount(self) -> None:
         self.show_header = False
         self.cursor_type = "row"

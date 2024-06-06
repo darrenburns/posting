@@ -1,4 +1,4 @@
-from posting.datatable import PostingDataTable
+from posting.widgets.datatable import PostingDataTable
 
 
 class CookiesTable(PostingDataTable):
@@ -8,4 +8,3 @@ class CookiesTable(PostingDataTable):
         self.zebra_stripes = True
         self.fixed_columns = 1
         self.add_columns(*["Name", "Value"])
-
