@@ -27,6 +27,7 @@ from textual.widgets._tabbed_content import ContentTab
 from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import (
@@ -140,8 +141,8 @@ class MainScreen(Screen[None]):
         else:
             body_tab.update("Body")
 
-    @on(HeadersTable.Changed)
-    def on_content_changed(self, event: HeadersTable.Changed) -> None:
+    @on(PostingDataTable.Changed, selector="HeadersTable")
+    def on_content_changed(self, event: PostingDataTable.Changed) -> None:
         print("on_content_changed")
         headers_tab = self.query_one("#--content-tab-headers-pane", ContentTab)
         print("event.data_table.row_count", event.data_table.row_count)
@@ -150,8 +151,8 @@ class MainScreen(Screen[None]):
         else:
             headers_tab.update("Headers")
 
-    @on(ParamsTable.Changed)
-    def on_params_changed(self, event: ParamsTable.Changed) -> None:
+    @on(PostingDataTable.Changed, selector="ParamsTable")
+    def on_params_changed(self, event: PostingDataTable.Changed) -> None:
         params_tab = self.query_one("#--content-tab-parameters-pane", ContentTab)
         if event.data_table.row_count:
             params_tab.update("Parameters[cyan b]•[/]")

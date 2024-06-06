@@ -35,10 +35,6 @@ class ParamsTable(PostingDataTable):
         Binding("backspace", action="remove_row", description="Remove row"),
     ]
 
-    @dataclass
-    class Changed(Message):
-        data_table: DataTable[str]
-
     def on_mount(self):
         self.show_header = False
         self.cursor_type = "row"
@@ -48,23 +44,6 @@ class ParamsTable(PostingDataTable):
     def watch_has_focus(self, value: bool) -> None:
         self._scroll_cursor_into_view()
         return super().watch_has_focus(value)
-
-    def add_row(
-        self,
-        *cells: str,
-        height: int | None = 1,
-        key: str | None = None,
-        label: str | Text | None = None,
-    ) -> RowKey:
-        # TODO - this event was not bubbling up to the screen,
-        # and I have no clue why. So I'll just post it directly
-        # to the screen for now.
-        self.screen.post_message(ParamsTable.Changed(self))
-        return super().add_row(*cells, height=height, key=key, label=label)
-
-    def remove_row(self, row_key: RowKey | str) -> None:
-        self.screen.post_message(ParamsTable.Changed(self))
-        return super().remove_row(row_key)
 
     def action_remove_row(self) -> None:
         try:
