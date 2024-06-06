@@ -1,3 +1,11 @@
+Screen {
+  background: $background;
+}
+
+ModalScreen {
+  background: black 30%;
+}
+
 .section {
   border: round $accent 35%;
   border-title-color: $text;
