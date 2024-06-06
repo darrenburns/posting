@@ -1,4 +1,3 @@
-from textual.await_remove import AwaitRemove
 from textual.binding import Binding
 from textual.widgets import DataTable
 from textual.widgets.data_table import CellKey, RowKey

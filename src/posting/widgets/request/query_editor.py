@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 
 from rich.text import Text
-from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Horizontal
+from textual.containers import Vertical
 from textual.message import Message
-from textual.widgets import DataTable, Input, Button
+from textual.widgets import DataTable, Input
 from textual.widgets.data_table import RowKey, CellDoesNotExist
 
 from posting.widgets.datatable import PostingDataTable
