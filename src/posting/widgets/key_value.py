@@ -70,20 +70,25 @@ class KeyValue(Horizontal):
 
     def compose(self) -> ComposeResult:
         self.key_input.add_class("key-input")
-        self.value_input.add_class("key-input")
+        self.value_input.add_class("value-input")
         yield self.key_input
         yield self.value_input
         add_button = Button(self.button_label, disabled=True, id="add-button")
         add_button.can_focus = False
         yield add_button
 
+    @property
+    def submit_allowed(self) -> bool:
+        has_key = bool(self.key_input.value)
+        has_value = bool(self.value_input.value)
+        return (has_key and not self.value_required) or (
+            self.value_required and has_key and has_value
+        )
+
     @on(Input.Changed)
     def determine_button_enabled(self) -> None:
-        key_input = self.key_input
-        value_input = self.value_input
         button = self.query_one("#add-button", Button)
-        enabled = key_input.value and (not self.value_required or value_input.value)
-        button.disabled = not enabled
+        button.disabled = not self.submit_allowed
 
     @on(Input.Submitted)
     @on(Button.Pressed)
@@ -106,7 +111,7 @@ class KeyValue(Horizontal):
                 input_widget = event.input
                 if input_widget.has_class("key-input"):
                     value_input.focus()
-                elif input_widget.has_class("value-input") and not self.value_required:
+                elif input_widget.has_class("value-input") and self.submit_allowed:
                     add()
             else:
                 add()
