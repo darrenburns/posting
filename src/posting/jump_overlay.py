@@ -47,7 +47,7 @@ class JumpOverlay(ModalScreen[str | Widget]):
             self.dismiss(target)
             return
 
-    async def _on_resize(self) -> None:
+    async def on_resize(self) -> None:
         self._sync()
         self._resize_counter += 1
         if self._resize_counter == 1:

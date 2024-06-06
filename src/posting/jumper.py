@@ -1,11 +1,8 @@
 from typing import Any, Mapping, NamedTuple, Protocol, runtime_checkable
 
-from textual.app import App
 from textual.geometry import Offset
 from textual.screen import Screen
 from textual.widget import Widget
-
-from posting.jump_overlay import JumpOverlay
 
 
 @runtime_checkable
