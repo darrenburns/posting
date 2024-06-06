@@ -21,9 +21,6 @@ class RequestEditor(Vertical):
     The request editor.
     """
 
-    DEFAULT_CSS = """\
-    """
-
     def compose(self) -> ComposeResult:
         with Vertical() as vertical:
             vertical.border_title = "Request"

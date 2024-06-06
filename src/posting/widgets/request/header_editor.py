@@ -4,53 +4,32 @@ from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Horizontal
+from textual.containers import Vertical
 from textual.message import Message
-from textual.widgets import Input, Button, DataTable
+from textual.widgets import Input, DataTable
 from textual.widgets.data_table import RowKey, CellDoesNotExist
 from textual_autocomplete import DropdownItem, AutoComplete
 
 from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
+from posting.widgets.key_value import KeyValue
 
 
 class HeaderEditor(Vertical):
     DEFAULT_CSS = """\
-    #header-inputs {
-        height: auto;
-        width: 1fr;
-        dock: bottom;
-        & > Input {
-            border: none;
-            width: 1fr;
-            margin-left: 1;
-        }
-
-        #add-header-button {
-            background: $success;
-            color: $text;
-            text-style: none;
-            width: 10;
-            margin: 0 1;
-            &:hover {
-                text-style: b;
-                padding: 0 1;
-                border: none;
-                background: $success-darken-1;
-            }
+    HeaderEditor {
+        & KeyValue {
+            dock: bottom;
         }
     }
     """
 
     def compose(self) -> ComposeResult:
-        with Horizontal(id="header-inputs"):
-            yield Input(placeholder="Name", id="header-key-input")
-            yield Input(placeholder="Value", id="header-value-input")
-            add_header_button = Button(
-                "Add header", disabled=True, id="add-header-button"
-            )
-            add_header_button.can_focus = False
-            yield add_header_button
+        yield KeyValue(
+            Input(placeholder="Name", id="header-key-input"),
+            Input(placeholder="Value", id="header-value-input"),
+            button_label="Add header",
+        )
         yield HeadersTable()
 
     def on_mount(self):
@@ -69,49 +48,13 @@ class HeaderEditor(Vertical):
             )
         )
 
-    @on(Input.Changed, selector="#header-key-input")
-    @on(Input.Changed, selector="#header-value-input")
-    def determine_button_enabled(self) -> None:
-        # An HTTP header must have a key, but not necessarily a value.
-        key_input = self.query_one("#header-key-input", Input)
-        button = self.query_one("#add-header-button", Button)
-        button.disabled = not key_input.value
-
-    @on(Input.Submitted, selector="#header-key-input")
-    @on(Input.Submitted, selector="#header-value-input")
-    @on(Button.Pressed, selector="#add-header-button")
-    def add_header(self, event: Input.Submitted | Button.Pressed) -> None:
-        key_input = self.query_one("#header-key-input", Input)
-        value_input = self.query_one("#header-value-input", Input)
-
-        key = key_input.value
-        value = value_input.value
+    @on(KeyValue.New)
+    def add_header(self, event: KeyValue.New) -> None:
+        key = event.key
+        value = event.value
         table = self.query_one(HeadersTable)
-
-        def add_header() -> None:
-            table.add_row(key, value)
-            key_input.clear()
-            value_input.clear()
-            key_input.focus()
-            table.move_cursor(row=table.row_count - 1)
-
-        if key and value:
-            add_header()
-        elif key and not value:
-            # This is a technically valid, but unlikely.
-            if isinstance(event, Input.Submitted):
-                input_id = event.input.id
-                if input_id == "header-key-input":
-                    value_input.focus()
-                elif input_id == "header-value-input":
-                    add_header()
-            else:
-                add_header()
-        elif value and not key:
-            key_input.focus()
-        else:
-            # Case where both are empty - do nothing.
-            pass
+        table.add_row(key, value)
+        table.move_cursor(row=table.row_count - 1)
 
 
 class HeadersTable(PostingDataTable):
