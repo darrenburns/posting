@@ -6,6 +6,7 @@ from textual.widgets import TabbedContent, TabPane
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor
 from posting.widgets.request.request_body import RequestBodyTextArea
+from posting.widgets.text_area import TextAreaFooter, TextEditor
 
 
 class RequestEditorTabbedContent(TabbedContent):
@@ -30,7 +31,10 @@ class RequestEditor(Vertical):
                 with TabPane("Headers", id="headers-pane"):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
-                    yield RequestBodyTextArea(language="json")
+                    yield TextEditor(
+                        text_area=RequestBodyTextArea(language="json"),
+                        footer=TextAreaFooter(),
+                    )
                 with TabPane("Parameters", id="parameters-pane"):
                     yield QueryStringEditor()
 

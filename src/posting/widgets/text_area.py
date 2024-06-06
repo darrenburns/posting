@@ -281,11 +281,11 @@ class TextEditor(Vertical):
         yield self.text_area.data_bind(TextEditor.soft_wrap, TextEditor.language)
         yield self.footer.data_bind(TextEditor.soft_wrap, TextEditor.language)
 
-    @on(TextArea.SelectionChanged, selector="ResponseTextArea")
+    @on(TextArea.SelectionChanged)
     def update_selection(self, event: TextArea.SelectionChanged) -> None:
         self.footer.selection = event.selection
 
-    @on(ReadOnlyTextArea.VisualModeToggled, selector="ResponseTextArea")
+    @on(ReadOnlyTextArea.VisualModeToggled)
     def update_visual_mode(self, event: ReadOnlyTextArea.VisualModeToggled) -> None:
         self.footer.visual_mode = event.value
 
