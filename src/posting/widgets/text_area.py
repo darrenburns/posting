@@ -3,11 +3,133 @@ from rich.style import Style
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.reactive import reactive, Reactive
+from textual.widget import Widget
 from textual.widgets import TextArea, Label, Select, Checkbox
 from textual.widgets.text_area import Selection, TextAreaTheme
+
+
+class TextAreaFooter(Horizontal):
+    """The bar that appears above the response body, allowing
+    you to customise the syntax highlighting, wrapping, line numbers,
+    etc.
+    """
+
+    DEFAULT_CSS = """\
+    TextAreaFooter {
+        dock: bottom;
+        height: 1;
+        width: 1fr;
+        background: $primary 10%;
+        
+        &:focus-within {
+            background: $primary 55%;
+        }
+
+        &:disabled {
+            background: transparent;
+        }
+        
+        & Select {
+            width: 8;
+            margin-right: 1;
+            & SelectCurrent {
+                width: 8;
+            }
+            & SelectOverlay {
+                width: 16;
+            }
+        }
+        
+        & Checkbox {
+            margin-right: 1;
+        }
+
+        #location-label {
+            padding: 0 1;
+            color: $text 50%;
+        }
+
+        #mode-label {
+            dock: left;
+            padding: 0 1;
+            color: $text-muted;
+            &.visual-mode {
+            }
+        }
+    }
+    """
+
+    @dataclass
+    class LanguageChanged(Message):
+        language: str | None
+        footer: "TextAreaFooter"
+
+        @property
+        def control(self) -> "TextAreaFooter":
+            return self.footer
+
+    @dataclass
+    class SoftWrapChanged(Message):
+        value: bool
+        footer: "TextAreaFooter"
+
+        @property
+        def control(self) -> "TextAreaFooter":
+            return self.footer
+
+    language: Reactive[str | None] = reactive("json", init=False)
+    soft_wrap: Reactive[bool] = reactive(True, init=False)
+    visual_mode: Reactive[bool] = reactive(False, init=False)
+    selection: Reactive[Selection] = reactive(Selection.cursor((0, 0)), init=False)
+
+    def watch_selection(self, selection: Selection) -> None:
+        row, column = selection.end
+        self.cursor_location_label.update(f"{row+1}:{column+1}")
+
+    def watch_visual_mode(self, value: bool) -> None:
+        label = self.query_one("#mode-label", Label)
+        label.set_class(value, "visual-mode")
+        label.update("Visual" if value else "")
+
+    def compose(self) -> ComposeResult:
+        yield Label("", id="mode-label")
+        with Horizontal(classes="dock-right w-auto"):
+            yield Label("1:1", id="location-label")
+            yield Select(
+                prompt="Content type",
+                value=self.language,
+                allow_blank=False,
+                options=[("JSON", "json"), ("HTML", "html"), ("Text", None)],
+                id="content-type-select",
+            ).data_bind(value=TextAreaFooter.language)
+            yield Checkbox(
+                label="Wrap",
+                value=self.soft_wrap,
+                button_first=False,
+                id="wrap-checkbox",
+            ).data_bind(value=TextAreaFooter.soft_wrap)
+
+    @on(Select.Changed, selector="#content-type-select")
+    def update_language(self, event: Select.Changed) -> None:
+        # The footer updates itself when the language changes,
+        # but then broadcasts this change up to anyone who cares.
+        event.stop()
+        self.language = event.value
+        print(self.language)
+        self.post_message(self.LanguageChanged(self.language, self))
+
+    @on(Checkbox.Changed, selector="#wrap-checkbox")
+    def update_soft_wrap(self, event: Checkbox.Changed) -> None:
+        event.stop()
+        self.soft_wrap = event.value
+        self.post_message(self.SoftWrapChanged(self.soft_wrap, self))
+
+    @property
+    def cursor_location_label(self) -> Label:
+        return self.query_one("#location-label", Label)
 
 
 class ReadOnlyTextArea(TextArea):
@@ -123,6 +245,59 @@ class ReadOnlyTextArea(TextArea):
         self.visual_mode = False
 
 
+class TextEditor(Vertical):
+    DEFAULT_CSS = """\
+    TextEditor {
+        TextAreaFooter {
+            dock: bottom;
+            height: 1;
+        }
+
+        TextArea {
+        }
+    }
+    """
+
+    soft_wrap: Reactive[bool] = reactive(True, init=False)
+    language: Reactive[str | None] = reactive("json", init=False)
+
+    def __init__(
+        self,
+        *children: Widget,
+        text_area: TextArea,
+        footer: TextAreaFooter,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        super().__init__(
+            *children, name=name, id=id, classes=classes, disabled=disabled
+        )
+        self.text_area = text_area
+        self.footer = footer
+
+    def compose(self) -> ComposeResult:
+        yield self.text_area.data_bind(TextEditor.soft_wrap, TextEditor.language)
+        yield self.footer.data_bind(TextEditor.soft_wrap, TextEditor.language)
+
+    @on(TextArea.SelectionChanged, selector="ResponseTextArea")
+    def update_selection(self, event: TextArea.SelectionChanged) -> None:
+        self.footer.selection = event.selection
+
+    @on(ReadOnlyTextArea.VisualModeToggled, selector="ResponseTextArea")
+    def update_visual_mode(self, event: ReadOnlyTextArea.VisualModeToggled) -> None:
+        self.footer.visual_mode = event.value
+
+    @on(TextAreaFooter.LanguageChanged, selector="TextAreaFooter")
+    def update_language(self, event: TextAreaFooter.LanguageChanged) -> None:
+        self.language = event.language
+
+    @on(TextAreaFooter.SoftWrapChanged, selector="TextAreaFooter")
+    def update_soft_wrap(self, event: TextAreaFooter.SoftWrapChanged) -> None:
+        self.soft_wrap = event.value
+
+
 POSTLING_THEME = TextAreaTheme(
     name="posting",
     syntax_styles={
@@ -163,101 +338,3 @@ POSTLING_THEME = TextAreaTheme(
         "info_string": Style(color="#ce9178", bold=True, italic=True),
     },
 )
-
-
-class TextAreaFooter(Horizontal):
-    """The bar that appears above the response body, allowing
-    you to customise the syntax highlighting, wrapping, line numbers,
-    etc.
-    """
-
-    DEFAULT_CSS = """\
-    TextAreaFooter {
-        dock: bottom;
-        height: 1;
-        width: 1fr;
-        background: $primary 10%;
-        
-        &:focus-within {
-            background: $primary 55%;
-        }
-
-        &:disabled {
-            background: transparent;
-        }
-        
-        & Select {
-            width: 8;
-            margin-right: 1;
-            & SelectCurrent {
-                width: 8;
-            }
-            & SelectOverlay {
-                width: 16;
-            }
-        }
-        
-        & Checkbox {
-            margin-right: 1;
-        }
-
-        #response-cursor-location-label {
-            padding: 0 1;
-            color: $text 50%;
-        }
-
-        #response-mode-label {
-            dock: left;
-            padding: 0 1;
-            color: $text-muted;
-            &.visual-mode {
-            }
-        }
-    }
-    """
-
-    language: Reactive[str | None] = reactive("json", init=False)
-    soft_wrap: Reactive[bool] = reactive(True, init=False)
-    visual_mode: Reactive[bool] = reactive(False, init=False)
-    selection: Reactive[Selection] = reactive(Selection.cursor((0, 0)), init=False)
-
-    def watch_selection(self, selection: Selection) -> None:
-        row, column = selection.end
-        self.cursor_location_label.update(f"{row+1}:{column+1}")
-
-    def watch_visual_mode(self, value: bool) -> None:
-        label = self.query_one("#response-mode-label", Label)
-        label.set_class(value, "visual-mode")
-        label.update("Visual" if value else "")
-
-    def compose(self) -> ComposeResult:
-        yield Label("", id="response-mode-label")
-        with Horizontal(classes="dock-right w-auto"):
-            yield Label("1:1", id="response-cursor-location-label")
-            yield Select(
-                prompt="Content type",
-                value=self.language,
-                allow_blank=False,
-                options=[("JSON", "json"), ("HTML", "html"), ("Text", None)],
-                id="response-content-type-select",
-            ).data_bind(value=TextAreaFooter.language)
-            yield Checkbox(
-                label="Wrap",
-                value=self.soft_wrap,
-                button_first=False,
-                id="response-wrap-checkbox",
-            ).data_bind(value=TextAreaFooter.soft_wrap)
-
-    @on(Select.Changed, selector="#response-content-type-select")
-    def update_language(self, event: Select.Changed) -> None:
-        event.stop()
-        self.language = event.value
-
-    @on(Checkbox.Changed, selector="#response-wrap-checkbox")
-    def update_soft_wrap(self, event: Checkbox.Changed) -> None:
-        event.stop()
-        self.soft_wrap = event.value
-
-    @property
-    def cursor_location_label(self) -> Label:
-        return self.query_one("#response-cursor-location-label", Label)

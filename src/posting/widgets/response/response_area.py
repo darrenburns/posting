@@ -1,5 +1,5 @@
 import httpx
-from posting.widgets.text_area import ReadOnlyTextArea, TextAreaFooter
+from posting.widgets.text_area import ReadOnlyTextArea, TextAreaFooter, TextEditor
 from posting.widgets.response.cookies_table import CookiesTable
 from posting.widgets.response.response_body import ResponseTextArea
 from posting.widgets.response.response_headers import ResponseHeadersTable
@@ -47,24 +47,15 @@ class ResponseArea(Vertical):
         self.border_title = "Response"
         self.add_class("section")
 
-        # Watch for changes from the configuration bar.
-        body_config = self.body_config
-        body_text_area = self.body_text_area
-
-        def update_language(language: str):
-            body_text_area.language = language
-
-        def update_soft_wrap(soft_wrap: bool):
-            body_text_area.soft_wrap = soft_wrap
-
-        self.watch(body_config, "language", update_language)
-        self.watch(body_config, "soft_wrap", update_soft_wrap)
-
     def compose(self) -> ComposeResult:
         with ResponseTabbedContent(disabled=self.response is None):
             with TabPane("Body", id="response-body-pane"):
-                yield TextAreaFooter()
-                yield ResponseTextArea(language="json")
+                yield TextEditor(
+                    text_area=ResponseTextArea(language="json"),
+                    footer=TextAreaFooter(),
+                )
+                # yield TextAreaFooter()
+                # yield ResponseTextArea(language="json")
             with TabPane("Headers", id="response-headers-pane"):
                 yield ResponseHeadersTable()
             with TabPane("Cookies", id="response-cookies-pane"):
@@ -79,12 +70,12 @@ class ResponseArea(Vertical):
         self.add_class("response-ready")
 
         # Update the body text area with the body content.
-        response_text_area = self.body_text_area
+        response_text_area = self.text_editor.text_area
         response_text_area.text = response.text
         content_type = response.headers.get("content-type")
         if content_type:
             language = content_type_to_language(content_type)
-            self.body_config.language = language
+            self.text_editor.language = language
         response_text_area.focus()
 
         # Update the response headers table with the response headers.
@@ -114,21 +105,9 @@ class ResponseArea(Vertical):
 
         self.border_subtitle = f"{human_readable_size(len(response.content))} in {response.elapsed.total_seconds() * 1000:.2f}[dim]ms[/]"
 
-    @on(TextArea.SelectionChanged, selector="ResponseTextArea")
-    def update_selection(self, event: TextArea.SelectionChanged) -> None:
-        self.body_config.selection = event.selection
-
-    @on(ReadOnlyTextArea.VisualModeToggled, selector="ResponseTextArea")
-    def update_visual_mode(self, event: ReadOnlyTextArea.VisualModeToggled) -> None:
-        self.body_config.visual_mode = event.value
-
     @property
-    def body_text_area(self) -> ResponseTextArea:
-        return self.query_one(ResponseTextArea)
-
-    @property
-    def body_config(self) -> TextAreaFooter:
-        return self.query_one(TextAreaFooter)
+    def text_editor(self) -> TextEditor:
+        return self.query_one(TextEditor)
 
     @property
     def headers_table(self) -> ResponseHeadersTable:
