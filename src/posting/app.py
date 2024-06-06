@@ -98,13 +98,15 @@ class MainScreen(Screen[None]):
 
         except Exception as e:
             log.error("Error sending request", e)
+            self.url_input.add_class("error")
             self.url_input.focus()
             self.notify(
                 severity="error",
                 title="Couldn't send request",
                 message=str(e),
             )
-            pass
+        else:
+            self.url_input.remove_class("error")
 
     @on(HttpResponseReceived)
     def on_response_received(self, event: HttpResponseReceived) -> None:

@@ -1,3 +1,4 @@
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Input, Button
@@ -23,11 +24,18 @@ class UrlInput(Input):
               background: $accent-lighten-2;
             }
         }
+        &.error {
+            border-left: thick $error;
+        }
     }
     """
 
     def on_mount(self):
         self.highlighter = URLHighlighter()
+
+    @on(Input.Changed)
+    def on_change(self, event: Input.Changed) -> None:
+        self.remove_class("error")
 
 
 class SendRequestButton(Button, can_focus=False):
