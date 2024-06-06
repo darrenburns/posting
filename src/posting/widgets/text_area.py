@@ -48,13 +48,13 @@ class TextAreaFooter(Horizontal):
         }
 
         #location-label {
-            padding: 0 1;
             color: $text 50%;
         }
 
         #mode-label {
             dock: left;
             color: $text;
+            padding: 0 1;
             display: none;
             &.visual-mode {
                 background: $secondary;
