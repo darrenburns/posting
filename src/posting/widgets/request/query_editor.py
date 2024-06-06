@@ -10,6 +10,7 @@ from textual.widgets import DataTable, Input, Button
 from textual.widgets.data_table import RowKey, CellDoesNotExist
 
 from posting.widgets.datatable import PostingDataTable
+from posting.widgets.key_value import KeyValue
 
 
 class ParamsTable(PostingDataTable):
@@ -87,83 +88,24 @@ class QueryStringEditor(Vertical):
     The query string editor.
     """
 
-    # The CSS is very similar to the header editor
     DEFAULT_CSS = """\
     QueryStringEditor {
-        & #param-inputs {
-            height: auto;
+        & KeyValue {
             dock: bottom;
-            & > Input {
-                border: none;
-                width: 1fr;
-                margin-left: 1;
-
-                &:focus {
-                    background: $surface-lighten-1;
-                }
-            }
-
-            #add-param-button {
-                background: $success;
-                color: $text;
-                text-style: none;
-                width: 10;
-                margin: 0 1;
-                &:hover {
-                    text-style: b;
-                    padding: 0 1;
-                    border: none;
-                    background: $success-darken-1;
-                }
-            }
         }
     }
     """
 
     def compose(self) -> ComposeResult:
-        with Horizontal(id="param-inputs"):
-            yield Input(placeholder="Key", id="param-key-input")
-            yield Input(placeholder="Value", id="param-value-input")
-            yield Button(label="Add param", disabled=True, id="add-param-button")
-
+        yield KeyValue(
+            Input(placeholder="Key", id="param-key-input"),
+            Input(placeholder="Value", id="param-value-input"),
+            button_label="Add parameter",
+        )
         yield ParamsTable()
 
-    @on(Input.Changed, selector="#param-key-input")
-    @on(Input.Changed, selector="#param-value-input")
-    def determine_button_enabled(self) -> None:
-        key_input = self.query_one("#param-key-input", Input)
-        button = self.query_one("#add-param-button", Button)
-        button.disabled = not key_input.value
-
-    @on(Input.Submitted, selector="#param-key-input")
-    @on(Input.Submitted, selector="#param-value-input")
-    @on(Button.Pressed, selector="#add-param-button")
-    def add_param(self, event: Input.Submitted | Button.Pressed) -> None:
-        key_input = self.query_one("#param-key-input", Input)
-        value_input = self.query_one("#param-value-input", Input)
-        key = key_input.value
-        value = value_input.value
+    @on(KeyValue.New)
+    def add_header(self, event: KeyValue.New) -> None:
         table = self.query_one(ParamsTable)
-
-        def add_param() -> None:
-            table.add_row(key, value)
-            key_input.clear()
-            value_input.clear()
-            key_input.focus()
-            table.move_cursor(row=table.row_count - 1)
-
-        if key and value:
-            add_param()
-        elif key and not value:
-            # This is a technically valid, but unlikely.
-            if isinstance(event, Input.Submitted):
-                input_id = event.input.id
-                if input_id == "param-key-input":
-                    value_input.focus()
-                elif input_id == "param-value-input":
-                    add_param()
-        elif value and not key:
-            key_input.focus()
-        else:
-            # Case where both are empty - do nothing.
-            pass
+        table.add_row(event.key, event.value)
+        table.move_cursor(row=table.row_count - 1)

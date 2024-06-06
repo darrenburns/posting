@@ -50,10 +50,8 @@ class HeaderEditor(Vertical):
 
     @on(KeyValue.New)
     def add_header(self, event: KeyValue.New) -> None:
-        key = event.key
-        value = event.value
         table = self.query_one(HeadersTable)
-        table.add_row(key, value)
+        table.add_row(event.key, event.value)
         table.move_cursor(row=table.row_count - 1)
 
 
