@@ -338,7 +338,7 @@ class Posting(App[None]):
         self, event: CommandPalette.OptionHighlighted
     ) -> None:
         prompt: Group = event.highlighted_event.option.prompt
-        # This is making quite a lot of assumptions. Fragile, but the only
+        # TODO: This is making quite a lot of assumptions. Fragile, but the only
         # way I can think of doing it given the current Textual APIs.
         command_name = prompt.renderables[0]
         if isinstance(command_name, Text):

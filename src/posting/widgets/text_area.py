@@ -114,8 +114,8 @@ class ReadOnlyTextArea(TextArea):
             self.notify(message, title="Selection copied")
         else:
             text_to_copy = self.text
-            message = f"Copied message ({len(text_to_copy)} characters)."
-            self.notify(message, title="Message copied")
+            message = f"Copied ({len(text_to_copy)} characters)."
+            self.notify(message, title="Response copied")
 
         import pyperclip
 
