@@ -28,9 +28,10 @@ class RequestEditor(Vertical):
                 with TabPane("Headers", id="headers-pane"):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
+                    text_area = RequestBodyTextArea(language="json")
                     yield TextEditor(
-                        text_area=RequestBodyTextArea(language="json"),
-                        footer=TextAreaFooter(),
+                        text_area=text_area,
+                        footer=TextAreaFooter(text_area),
                     )
                 with TabPane("Parameters", id="parameters-pane"):
                     yield QueryStringEditor()

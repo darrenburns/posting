@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing_extensions import Literal
 from rich.style import Style
 from textual import on
 from textual.app import ComposeResult
@@ -6,7 +7,6 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.reactive import reactive, Reactive
-from textual.widget import Widget
 from textual.widgets import TextArea, Label, Select, Checkbox
 from textual.widgets.text_area import Selection, TextAreaTheme
 
@@ -54,9 +54,20 @@ class TextAreaFooter(Horizontal):
 
         #mode-label {
             dock: left;
+            color: $text;
+            display: none;
+            &.visual-mode {
+                background: $secondary;
+                display: block;
+            }
+        }
+
+        #rw-label {
             padding: 0 1;
             color: $text-muted;
-            &.visual-mode {
+            display: none;
+            &.read-only {
+                display: block;
             }
         }
     }
@@ -83,7 +94,27 @@ class TextAreaFooter(Horizontal):
     language: Reactive[str | None] = reactive("json", init=False)
     soft_wrap: Reactive[bool] = reactive(True, init=False)
     visual_mode: Reactive[bool] = reactive(False, init=False)
+    read_only: Reactive[bool] = reactive(False, init=False)
     selection: Reactive[Selection] = reactive(Selection.cursor((0, 0)), init=False)
+
+    def __init__(
+        self,
+        text_area: TextArea,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.set_reactive(TextAreaFooter.read_only, text_area.read_only)
+        self.set_reactive(TextAreaFooter.language, text_area.language)
+        self.set_reactive(TextAreaFooter.soft_wrap, text_area.soft_wrap)
+        self.set_reactive(TextAreaFooter.selection, text_area.selection)
+        if isinstance(text_area, ReadOnlyTextArea):
+            self.set_reactive(TextAreaFooter.visual_mode, text_area.visual_mode)
+
+        print("text_area read_only", text_area.read_only)
+        print("read_only", self.read_only)
 
     def watch_selection(self, selection: Selection) -> None:
         row, column = selection.end
@@ -94,10 +125,17 @@ class TextAreaFooter(Horizontal):
         label.set_class(value, "visual-mode")
         label.update("Visual" if value else "")
 
+    def watch_read_only(self, value: bool) -> None:
+        label = self.query_one("#rw-label", Label)
+        label.set_class(value, "read-only")
+        label.update("read-only" if value else "")
+
     def compose(self) -> ComposeResult:
         yield Label("", id="mode-label")
         with Horizontal(classes="dock-right w-auto"):
             yield Label("1:1", id="location-label")
+            read_only = "read-only" if self.read_only else ""
+            yield Label(read_only, id="rw-label", classes=read_only)
             yield Select(
                 prompt="Content type",
                 value=self.language,
@@ -118,7 +156,6 @@ class TextAreaFooter(Horizontal):
         # but then broadcasts this change up to anyone who cares.
         event.stop()
         self.language = event.value
-        print(self.language)
         self.post_message(self.LanguageChanged(self.language, self))
 
     @on(Checkbox.Changed, selector="#wrap-checkbox")
@@ -180,6 +217,37 @@ class ReadOnlyTextArea(TextArea):
         ),
     ]
 
+    def __init__(
+        self,
+        text: str = "",
+        *,
+        language: str | None = None,
+        theme: str = "css",
+        soft_wrap: bool = True,
+        tab_behavior: Literal["focus"] | Literal["indent"] = "focus",
+        read_only: bool = True,
+        show_line_numbers: bool = False,
+        max_checkpoints: int = 50,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        super().__init__(
+            text,
+            language=language,
+            theme=theme,
+            soft_wrap=soft_wrap,
+            tab_behavior=tab_behavior,
+            read_only=read_only,
+            show_line_numbers=show_line_numbers,
+            max_checkpoints=max_checkpoints,
+            name=name,
+            id=id,
+            classes=classes,
+            disabled=disabled,
+        )
+
     @dataclass
     class VisualModeToggled(Message):
         value: bool
@@ -190,9 +258,6 @@ class ReadOnlyTextArea(TextArea):
             return self.text_area
 
     visual_mode = reactive(False, init=False)
-
-    def on_mount(self):
-        self.read_only = True
 
     def action_toggle_visual_mode(self):
         self.visual_mode = not self.visual_mode
@@ -252,18 +317,15 @@ class TextEditor(Vertical):
             dock: bottom;
             height: 1;
         }
-
-        TextArea {
-        }
     }
     """
 
     soft_wrap: Reactive[bool] = reactive(True, init=False)
     language: Reactive[str | None] = reactive("json", init=False)
+    read_only: Reactive[bool] = reactive(False, init=False)
 
     def __init__(
         self,
-        *children: Widget,
         text_area: TextArea,
         footer: TextAreaFooter,
         name: str | None = None,
@@ -271,15 +333,22 @@ class TextEditor(Vertical):
         classes: str | None = None,
         disabled: bool = False,
     ) -> None:
-        super().__init__(
-            *children, name=name, id=id, classes=classes, disabled=disabled
-        )
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.text_area = text_area
         self.footer = footer
+        self.read_only = text_area.read_only
 
     def compose(self) -> ComposeResult:
-        yield self.text_area.data_bind(TextEditor.soft_wrap, TextEditor.language)
-        yield self.footer.data_bind(TextEditor.soft_wrap, TextEditor.language)
+        yield self.text_area.data_bind(
+            TextEditor.soft_wrap,
+            TextEditor.language,
+            TextEditor.read_only,
+        )
+        yield self.footer.data_bind(
+            TextEditor.soft_wrap,
+            TextEditor.language,
+            TextEditor.read_only,
+        )
 
     @on(TextArea.SelectionChanged)
     def update_selection(self, event: TextArea.SelectionChanged) -> None:

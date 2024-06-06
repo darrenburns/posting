@@ -50,12 +50,11 @@ class ResponseArea(Vertical):
     def compose(self) -> ComposeResult:
         with ResponseTabbedContent(disabled=self.response is None):
             with TabPane("Body", id="response-body-pane"):
+                text_area = ResponseTextArea(language="json")
                 yield TextEditor(
-                    text_area=ResponseTextArea(language="json"),
-                    footer=TextAreaFooter(),
+                    text_area,
+                    TextAreaFooter(text_area),
                 )
-                # yield TextAreaFooter()
-                # yield ResponseTextArea(language="json")
             with TabPane("Headers", id="response-headers-pane"):
                 yield ResponseHeadersTable()
             with TabPane("Cookies", id="response-cookies-pane"):
