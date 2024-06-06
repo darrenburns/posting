@@ -9,7 +9,7 @@ class RequestHeader(TypedDict):
     url: str
 
 
-REQUEST_HEADERS = [
+REQUEST_HEADERS: list[RequestHeader] = [
     {
         "section": "Authentication",
         "name": "Authorization",
