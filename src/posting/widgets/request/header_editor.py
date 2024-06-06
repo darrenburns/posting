@@ -12,25 +12,22 @@ from textual_autocomplete import DropdownItem, AutoComplete
 
 from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
-from posting.widgets.key_value import KeyValue
+from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 
 
 class HeaderEditor(Vertical):
     DEFAULT_CSS = """\
-    HeaderEditor {
-        & KeyValue {
-            dock: bottom;
-        }
-    }
     """
 
     def compose(self) -> ComposeResult:
-        yield KeyValue(
-            Input(placeholder="Name", id="header-key-input"),
-            Input(placeholder="Value", id="header-value-input"),
-            button_label="Add header",
+        yield KeyValueEditor(
+            HeadersTable(),
+            KeyValueInput(
+                Input(placeholder="Name", id="header-key-input"),
+                Input(placeholder="Value", id="header-value-input"),
+                button_label="Add header",
+            ),
         )
-        yield HeadersTable()
 
     def on_mount(self):
         header_input = self.query_one("#header-key-input", Input)
@@ -47,12 +44,6 @@ class HeaderEditor(Vertical):
                 prevent_default_enter=False,
             )
         )
-
-    @on(KeyValue.New)
-    def add_header(self, event: KeyValue.New) -> None:
-        table = self.query_one(HeadersTable)
-        table.add_row(event.key, event.value)
-        table.move_cursor(row=table.row_count - 1)
 
 
 class HeadersTable(PostingDataTable):

@@ -1,15 +1,17 @@
 from dataclasses import dataclass
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Button, Input
 
+from posting.widgets.datatable import PostingDataTable
 
-class KeyValue(Horizontal):
+
+class KeyValueInput(Horizontal):
     DEFAULT_CSS = """\
-    KeyValue {
+    KeyValueInput {
         height: auto;
         width: 1fr;
         & > Input {
@@ -42,10 +44,10 @@ class KeyValue(Horizontal):
     class New(Message):
         key: str
         value: str
-        _control: "KeyValue"
+        _control: "KeyValueInput"
 
         @property
-        def control(self) -> "KeyValue":
+        def control(self) -> "KeyValueInput":
             return self._control
 
     def __init__(
@@ -118,3 +120,36 @@ class KeyValue(Horizontal):
         else:
             # Case where both are empty - do nothing.
             pass
+
+
+class KeyValueEditor(Vertical):
+    DEFAULT_CSS = """\
+    KeyValueEditor {
+        & KeyValueInput {
+            dock: bottom;
+        }
+    }
+    """
+
+    def __init__(
+        self,
+        table: PostingDataTable,
+        key_value_input: KeyValueInput,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.table = table
+        self.key_value_input = key_value_input
+
+    def compose(self) -> ComposeResult:
+        yield self.table
+        yield self.key_value_input
+
+    @on(KeyValueInput.New)
+    def add_header(self, event: KeyValueInput.New) -> None:
+        table = self.query_one(PostingDataTable)
+        table.add_row(event.key, event.value)
+        table.move_cursor(row=table.row_count - 1)

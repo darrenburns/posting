@@ -10,7 +10,7 @@ from textual.widgets import DataTable, Input, Button
 from textual.widgets.data_table import RowKey, CellDoesNotExist
 
 from posting.widgets.datatable import PostingDataTable
-from posting.widgets.key_value import KeyValue
+from posting.widgets.key_value import KeyValueInput
 
 
 class ParamsTable(PostingDataTable):
@@ -97,15 +97,15 @@ class QueryStringEditor(Vertical):
     """
 
     def compose(self) -> ComposeResult:
-        yield KeyValue(
+        yield KeyValueInput(
             Input(placeholder="Key", id="param-key-input"),
             Input(placeholder="Value", id="param-value-input"),
             button_label="Add parameter",
         )
         yield ParamsTable()
 
-    @on(KeyValue.New)
-    def add_header(self, event: KeyValue.New) -> None:
+    @on(KeyValueInput.New)
+    def add_header(self, event: KeyValueInput.New) -> None:
         table = self.query_one(ParamsTable)
         table.add_row(event.key, event.value)
         table.move_cursor(row=table.row_count - 1)
