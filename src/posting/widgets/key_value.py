@@ -81,9 +81,7 @@ class KeyValue(Horizontal):
     def submit_allowed(self) -> bool:
         has_key = bool(self.key_input.value)
         has_value = bool(self.value_input.value)
-        return (has_key and not self.value_required) or (
-            self.value_required and has_key and has_value
-        )
+        return has_key and (not self.value_required or has_value)
 
     @on(Input.Changed)
     def determine_button_enabled(self) -> None:
