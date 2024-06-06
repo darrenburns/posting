@@ -16,9 +16,6 @@ from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 
 
 class HeaderEditor(Vertical):
-    DEFAULT_CSS = """\
-    """
-
     def compose(self) -> ComposeResult:
         yield KeyValueEditor(
             HeadersTable(),
