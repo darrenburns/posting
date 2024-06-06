@@ -1,23 +1,19 @@
 import httpx
+from posting.widgets.text_area import ReadOnlyTextArea, TextAreaFooter
+from posting.widgets.response.cookies_table import CookiesTable
+from posting.widgets.response.response_body import ResponseTextArea
+from posting.widgets.response.response_headers import ResponseHeadersTable
+
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Horizontal
+from textual.containers import Vertical
 from textual.reactive import Reactive, reactive
 from textual.widgets import (
     TabbedContent,
     TabPane,
-    Select,
-    Checkbox,
-    Switch,
-    Label,
     TextArea,
 )
-
-from posting.text_area import ReadOnlyTextArea
-from posting.widgets.response.cookies_table import CookiesTable
-from posting.widgets.response.response_body import ResponseBodyConfig, ResponseTextArea
-from posting.widgets.response.response_headers import ResponseHeadersTable
 
 
 class ResponseTabbedContent(TabbedContent):
@@ -67,7 +63,7 @@ class ResponseArea(Vertical):
     def compose(self) -> ComposeResult:
         with ResponseTabbedContent(disabled=self.response is None):
             with TabPane("Body", id="response-body-pane"):
-                yield ResponseBodyConfig()
+                yield TextAreaFooter()
                 yield ResponseTextArea(language="json")
             with TabPane("Headers", id="response-headers-pane"):
                 yield ResponseHeadersTable()
@@ -131,8 +127,8 @@ class ResponseArea(Vertical):
         return self.query_one(ResponseTextArea)
 
     @property
-    def body_config(self) -> ResponseBodyConfig:
-        return self.query_one(ResponseBodyConfig)
+    def body_config(self) -> TextAreaFooter:
+        return self.query_one(TextAreaFooter)
 
     @property
     def headers_table(self) -> ResponseHeadersTable:
