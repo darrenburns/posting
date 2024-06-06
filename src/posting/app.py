@@ -96,7 +96,14 @@ class MainScreen(Screen[None]):
                 response = await client.send(request=request)
                 self.post_message(HttpResponseReceived(response))
 
-        except Exception:
+        except Exception as e:
+            log.error("Error sending request", e)
+            self.url_input.focus()
+            self.notify(
+                severity="error",
+                title="Couldn't send request",
+                message=str(e),
+            )
             pass
 
     @on(HttpResponseReceived)
