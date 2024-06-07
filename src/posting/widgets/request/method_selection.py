@@ -61,10 +61,10 @@ class MethodSelection(Label):
     DEFAULT_CSS = """\
     MethodSelection {
         padding: 0 1;
-        background: $accent-darken-1;
+        background: $secondary;
         color: $text;
         &:hover {
-            background: $accent-darken-2;
+            background: $secondary-darken-1;
         }
     }
     """

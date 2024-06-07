@@ -288,14 +288,41 @@ class Posting(App[None]):
             accent="#9d4edd",
             dark=True,
         ),
-        "catpuccin": ColorSystem(
-            primary="#d08770",
-            secondary="#ebcb8b",
-            warning="#ebcb8b",
-            error="#bf616a",
-            success="#a3be8c",
-            accent="#b48ead",
+        "nebula": ColorSystem(
+            primary="#191970",  # Midnight Blue
+            secondary="#4B0082",  # Indigo Dye
+            warning="#FFD700",  # Gold, for a visually distinct warning
+            error="#DC143C",  # Crimson, for a striking error indication
+            success="#00FA9A",  # Medium Spring Green, for a refreshing success visualization
+            accent="#FF6FFF",  # Neon Pink-Purple
+            dark=True,  # Dedicated to a dark theme aesthetic
+            surface="#242124",  # Raisin Black
+            panel="#313131",  # Dark Charcoal
+            background="#1B1B1B",  # Eerie Black
+        ),
+        "cobalt": ColorSystem(
+            primary="#334D5C",  # Deep Cobalt Blue
+            secondary="#4878A6",  # Slate Blue
+            warning="#FFAA22",  # Amber, suitable for warnings related to primary
+            error="#E63946",  # Red, universally recognized for errors
+            success="#4CAF50",  # Green, commonly used for success indication
+            accent="#D94E64",  # Candy Apple Red
             dark=True,
+            surface="#27343B",  # Dark Lead
+            panel="#2D3E46",  # Storm Gray
+            background="#1F262A",  # Charcoal
+        ),
+        "alpine": ColorSystem(
+            primary="#36454F",  # Charcoal
+            secondary="#414A4C",  # Outer Space
+            warning="#FFA500",  # Orange, for highly visible warnings
+            error="#B22222",  # Firebrick, for distinct error alerts
+            success="#228B22",  # Forest Green, integrating an earthly contrast for success indications
+            accent="#1E90FF",  # Dodger Blue, a brighter blue leaning less towards cyan
+            dark=True,  # Emphasizing the dark theme
+            surface="#536872",
+            panel="#536872",  # Cadet
+            background="#2A3439",  # Gunmetal
         ),
     }
 

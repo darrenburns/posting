@@ -48,7 +48,7 @@ class SendRequestButton(Button, can_focus=False):
         padding: 0 1;
         height: 1;
         min-width: 10;
-        background: $success;
+        background: $primary;
         color: $text;
         border: none;
         text-style: none;
@@ -56,7 +56,7 @@ class SendRequestButton(Button, can_focus=False):
             text-style: b;
             padding: 0 1;
             border: none;
-            background: $success;
+            background: $primary;
         }
     }
     """

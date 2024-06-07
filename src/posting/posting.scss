@@ -1,3 +1,9 @@
+* {
+  scrollbar-color: $accent;
+  scrollbar-color-hover: $accent-lighten-1;
+  scrollbar-color-active: $accent-lighten-2;
+}
+
 Screen {
   background: $background;
 }

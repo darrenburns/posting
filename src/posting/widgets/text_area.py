@@ -58,7 +58,7 @@ class TextAreaFooter(Horizontal):
             display: none;
             margin-left: 1;
             &.visual-mode {
-                background: $primary-background;
+                background: $secondary;
                 display: block;
             }
         }
