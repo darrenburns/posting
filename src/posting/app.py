@@ -269,17 +269,6 @@ class Posting(App[None]):
             accent="#8FBC8B",  # Dusty Sea Green
             dark=True,
         ),
-        "forest-light": ColorSystem(
-            primary="#00FF7F",  # Spring Green
-            secondary="#98FB98",  # Pale Green
-            warning="#FFD700",  # Muted Gold
-            error="#CD5C5C",  # Soft Red
-            success="#3CB371",  # Medium Sea Green
-            accent="#20B2AA",  # Soft Sea Green
-            background="#F0FFF0",  # Honeydew
-            surface="#F0FFF0",  # Honeydew
-            dark=False,  # This is a light theme
-        ),
         "galaxy": ColorSystem(
             primary="#2e003e",
             secondary="#3a0ca3",
@@ -333,8 +322,8 @@ class Posting(App[None]):
             success="#32CD32",  # Lime Green, a fresh and positive success indicator
             accent="#FF7F50",  # Coral
             dark=True,  # Emphasizing the low-light conditions
-            surface="#4C516D",  # Independence
-            panel="#2D2F41",  # Space Cadet
+            surface="#2D2F41",  # Independence
+            panel="#4C516D",  # Space Cadet
             background="#191970",  # Midnight Blue
         ),
     }
