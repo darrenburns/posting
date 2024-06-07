@@ -1,7 +1,7 @@
 * {
-  scrollbar-color: $accent;
-  scrollbar-color-hover: $accent-lighten-1;
-  scrollbar-color-active: $accent-lighten-2;
+  scrollbar-color: $accent-darken-1;
+  scrollbar-color-hover: $accent;
+  scrollbar-color-active: $accent-lighten-1;
 }
 
 Screen {
@@ -122,7 +122,7 @@ DataTable {
     }
 
     .datatable--fixed-cursor {
-      background: $accent 50%;
+      background: $accent 70%;
       color: $text;
     }
 

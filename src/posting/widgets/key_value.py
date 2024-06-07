@@ -25,7 +25,7 @@ class KeyValueInput(Horizontal):
         }
 
         & > Button {
-            background: $secondary;
+            background: $primary;
             color: $text;
             text-style: none;
             width: 10;
@@ -34,7 +34,7 @@ class KeyValueInput(Horizontal):
                 text-style: b;
                 padding: 0 1;
                 border: none;
-                background: $secondary-darken-1;
+                background: $primary-darken-1;
             }
         }
     }

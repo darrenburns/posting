@@ -224,11 +224,11 @@ class Posting(App[None]):
     themes: dict[str, ColorSystem] = {
         "textual": ColorSystem(
             primary="#004578",
-            secondary="#ffa62b",
+            secondary="#0178D4",
             warning="#ffa62b",
             error="#ba3c5b",
             success="#4EBF71",
-            accent="#0178D4",
+            accent="#ffa62b",
             dark=True,
         ),
         "sunset": ColorSystem(
@@ -261,23 +261,24 @@ class Posting(App[None]):
             panel="#f0f8ff",
         ),
         "forest": ColorSystem(
-            primary="#228B22",
-            secondary="#32CD32",
-            warning="#FFD700",
-            error="#8B0000",
-            success="#006400",
-            accent="#8FBC8F",
+            primary="#006B3F",  # Deep Forest Green
+            secondary="#8A9A5B",  # Moss Green
+            warning="#DAA520",  # Goldenrod
+            error="#8B0000",  # Dark Red
+            success="#228B22",  # Dark Forest Green
+            accent="#8FBC8B",  # Dusty Sea Green
             dark=True,
         ),
         "forest-light": ColorSystem(
-            primary="#228B22",
-            secondary="#32CD32",
-            warning="#FFD700",
-            error="#8B0000",
-            success="#006400",
-            accent="#8FBC8F",
-            background="#F0FFF0",
-            surface="#F0FFF0",
+            primary="#00FF7F",  # Spring Green
+            secondary="#98FB98",  # Pale Green
+            warning="#FFD700",  # Muted Gold
+            error="#CD5C5C",  # Soft Red
+            success="#3CB371",  # Medium Sea Green
+            accent="#20B2AA",  # Soft Sea Green
+            background="#F0FFF0",  # Honeydew
+            surface="#F0FFF0",  # Honeydew
+            dark=False,  # This is a light theme
         ),
         "galaxy": ColorSystem(
             primary="#2e003e",
@@ -312,17 +313,29 @@ class Posting(App[None]):
             panel="#2D3E46",  # Storm Gray
             background="#1F262A",  # Charcoal
         ),
-        "alpine": ColorSystem(
-            primary="#36454F",  # Charcoal
-            secondary="#414A4C",  # Outer Space
-            warning="#FFA500",  # Orange, for highly visible warnings
-            error="#B22222",  # Firebrick, for distinct error alerts
-            success="#228B22",  # Forest Green, integrating an earthly contrast for success indications
-            accent="#1E90FF",  # Dodger Blue, a brighter blue leaning less towards cyan
-            dark=True,  # Emphasizing the dark theme
-            surface="#536872",
-            panel="#536872",  # Cadet
-            background="#2A3439",  # Gunmetal
+        "royal": ColorSystem(
+            primary="#483D8B",  # Dark Slate Blue, a deep and rich primary color evoking a sense of royalty and depth
+            secondary="#6A5ACD",  # Slate Blue, slightly lighter than the primary, but maintains the regal theme
+            warning="#FFD700",  # Gold, for striking, majestic warnings that draw attention
+            error="#B22222",  # Firebrick, a strong and important red for errors, ensuring they are noticed
+            success="#228B22",  # Forest Green, an earthy, rich color for success, giving a subtle nod to traditional regal gardens
+            accent="#9370DB",  # Medium Purple, a regal accent that stands out well against the darker shades
+            dark=True,  # Emphasizing a dark, sophisticated theme
+            surface="#39324B",  # A slightly muted version of Dark Slate Blue enhancing UI depth
+            panel="#504A65",  # A medium dark blue-purple to provide subtle contrast within UI elements
+            background="#2E2E40",  # A very deep blue tinged with purple, providing a solemn royal backdrop
+        ),
+        "twilight": ColorSystem(
+            primary="#367588",  # Teal Blue
+            secondary="#5F9EA0",  # Cadet Blue
+            warning="#FFD700",  # Gold, for a noticeable yet elegant warning
+            error="#CD5C5C",  # Indian Red, for urgent yet harmonious alerts
+            success="#32CD32",  # Lime Green, a fresh and positive success indicator
+            accent="#FF7F50",  # Coral
+            dark=True,  # Emphasizing the low-light conditions
+            surface="#4C516D",  # Independence
+            panel="#2D2F41",  # Space Cadet
+            background="#191970",  # Midnight Blue
         ),
     }
 
