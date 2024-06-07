@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 from textual import events
 from textual.app import ComposeResult
+from textual.containers import Center, Horizontal
 from textual.screen import ModalScreen
 from textual.widget import Widget
 from textual.widgets import Label
@@ -65,4 +66,5 @@ class JumpOverlay(ModalScreen[str | Widget]):
             label = Label(key, classes="textual-jump-label")
             label.styles.offset = offset
             yield label
-        yield Label("Press a key to jump", id="textual-jump-info")
+        with Center(id="textual-jump-info"):
+            yield Label("Press a key to jump")

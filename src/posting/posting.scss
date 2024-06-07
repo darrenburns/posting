@@ -177,9 +177,12 @@ TextArea {
 Input {
   padding: 0 1;
   height: 1;
+  background: $surface;
 
   &:focus {
     background: $surface-lighten-1;
+    padding-left: 0;
+    border-left: outer $surface-lighten-2;
 
     & .input--cursor {
       color: $text;
@@ -295,11 +298,16 @@ Checkbox {
 }
 
 #textual-jump-info {
-  text-align: center;
   margin-bottom: 1;
   dock: bottom;
   height: 1;
   width: 1fr;
   background: $secondary-lighten-2;
   color: $text;
+  hatch: right $secondary;
+  
+  & Label {
+    width: auto;
+    padding: 0 1;
+  }
 }
