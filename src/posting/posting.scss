@@ -91,11 +91,18 @@ ContentTab {
 
 Tabs {
   height: 2;
+
+  & #tabs-list {
+    min-height: 1;
+  }
+
+  &:focus {
+    & .underline--bar {
+      background: $accent 50%;
+    }
+  }
 }
 
-Tabs #tabs-list {
-  min-height: 1;
-}
 
 TabPane {
   padding: 0;
