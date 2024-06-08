@@ -34,7 +34,7 @@ class TextAreaFooter(Horizontal):
         
         & Select {
             width: 8;
-            margin-right: 1;
+            margin-left: 1;
             & SelectCurrent {
                 width: 8;
             }
@@ -44,11 +44,12 @@ class TextAreaFooter(Horizontal):
         }
         
         & Checkbox {
-            margin-right: 1;
+            margin-left: 1;
         }
 
         #location-label {
             color: $text 50%;
+            margin-left: 1;
         }
 
         #mode-label {
@@ -64,7 +65,7 @@ class TextAreaFooter(Horizontal):
         }
 
         #rw-label {
-            padding: 0 1;
+            margin-left: 1;
             color: $text-muted;
             display: none;
             &.read-only {

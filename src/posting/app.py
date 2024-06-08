@@ -322,7 +322,7 @@ class Posting(App[None]):
             success="#32CD32",  # Lime Green, a fresh and positive success indicator
             accent="#FF7F50",  # Coral
             dark=True,  # Emphasizing the low-light conditions
-            surface="#2D2F41",  # Independence
+            surface="#480ca8",
             panel="#4C516D",  # Space Cadet
             background="#191970",  # Midnight Blue
         ),
