@@ -44,7 +44,7 @@ class TextAreaFooter(Horizontal):
         }
         
         & Checkbox {
-            margin-left: 1;
+            margin: 0 1;
         }
 
         #location-label {
