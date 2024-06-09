@@ -7,9 +7,12 @@ from textual.widgets import Checkbox, Label
 
 class RequestOptions(Vertical):
     DEFAULT_CSS = """\
-    #options-under-construction {
-        color: $error;
+    RequestOptions {
         padding: 1 2;
+        #options-under-construction {
+            color: $error;
+            padding: 0 2 1 2;
+        }
     }
     """
 

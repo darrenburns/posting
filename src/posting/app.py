@@ -105,6 +105,7 @@ class MainScreen(Screen[None]):
                     request=request,
                     follow_redirects=request_options.follow_redirects,
                 )
+                print("response cookies =", response.cookies)
                 self.post_message(HttpResponseReceived(response))
 
         except Exception as e:
