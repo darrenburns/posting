@@ -13,6 +13,8 @@ class PostingDataTable(DataTable[str]):
         Binding("right,l", "cursor_right", "Cursor Right", show=False),
         Binding("left,h", "cursor_left", "Cursor Left", show=False),
         Binding("f", "toggle_fixed_columns", "Toggle Fixed Column", show=False),
+        Binding("g,home", "scroll_home", "Home", show=False),
+        Binding("G,end", "scroll_end", "End", show=False),
     ]
 
     @dataclass
@@ -33,14 +35,14 @@ class PostingDataTable(DataTable[str]):
         # TODO - this event was not bubbling up to the screen,
         # and I have no clue why. So I'll just post it directly
         # to the screen for now.
-        self.screen.post_message(self.Changed(self))
+        self.post_message(self.Changed(self))
         return super().add_row(*cells, height=height, key=key, label=label)
 
     def action_toggle_fixed_columns(self) -> None:
         self.fixed_columns = 1 if self.fixed_columns == 0 else 0
 
     def remove_row(self, row_key: RowKey | str) -> None:
-        self.screen.post_message(self.Changed(self))
+        self.post_message(self.Changed(self))
         rv = super().remove_row(row_key)
 
         # TODO - fix this inside Textual.

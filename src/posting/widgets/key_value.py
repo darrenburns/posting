@@ -128,6 +128,16 @@ class KeyValueEditor(Vertical):
         & KeyValueInput {
             dock: bottom;
         }
+
+        &.empty {
+            hatch: right $surface 80%;
+            & PostingDataTable {
+                display: none;
+            }
+        }
+        
+        
+
     }
     """
 
@@ -145,6 +155,7 @@ class KeyValueEditor(Vertical):
         self.key_value_input = key_value_input
 
     def compose(self) -> ComposeResult:
+        self.set_class(self.table.row_count == 0, "empty")
         yield self.table
         yield self.key_value_input
 
@@ -153,3 +164,10 @@ class KeyValueEditor(Vertical):
         table = self.query_one(PostingDataTable)
         table.add_row(event.key, event.value)
         table.move_cursor(row=table.row_count - 1)
+
+    @on(PostingDataTable.Changed)
+    def table_changed(self, event: PostingDataTable.Changed) -> None:
+        rows = event.data_table.row_count
+        self.set_class(rows == 0, "empty")
+        if rows == 0:
+            self.key_value_input.key_input.focus()

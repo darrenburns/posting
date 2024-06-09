@@ -1,12 +1,8 @@
-from dataclasses import dataclass
-
-from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
-from textual.message import Message
-from textual.widgets import DataTable, Input
-from textual.widgets.data_table import RowKey, CellDoesNotExist
+from textual.widgets import Input
+from textual.widgets.data_table import CellDoesNotExist
 
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
