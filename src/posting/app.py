@@ -153,9 +153,7 @@ class MainScreen(Screen[None]):
 
     @on(PostingDataTable.Changed, selector="HeadersTable")
     def on_content_changed(self, event: PostingDataTable.Changed) -> None:
-        print("on_content_changed")
         headers_tab = self.query_one("#--content-tab-headers-pane", ContentTab)
-        print("event.data_table.row_count", event.data_table.row_count)
         if event.data_table.row_count:
             headers_tab.update("Headers[cyan b]•[/]")
         else:
