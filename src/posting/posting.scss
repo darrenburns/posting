@@ -285,6 +285,7 @@ Checkbox {
   padding: 0 1;
   border: none;
   color: $text;
+  background: transparent;
 
   &:focus {
     background: $accent-lighten-1;
@@ -299,7 +300,8 @@ Checkbox {
 .textual-jump-label {
   layer: textual-jump;
   dock: top;
-  background: $accent;
+  background: $accent-lighten-2;
+  text-style: bold;
   color: $text;
 }
 

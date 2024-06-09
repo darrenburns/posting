@@ -39,6 +39,7 @@ from posting.widgets.request.query_editor import ParamsTable
 
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_editor import RequestEditor
+from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
 
@@ -86,15 +87,22 @@ class MainScreen(Screen[None]):
     @on(Button.Pressed, selector="SendRequestButton")
     @on(Input.Submitted, selector="UrlInput")
     async def send_request(self) -> None:
+        request_options = self.request_options
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(verify=request_options.verify) as client:
                 # TODO - update the request object here.
                 # TODO - think about whether we store a single request instance or create a new one each time.
                 request = self.build_httpx_request()
                 print("-- sending request --")
                 print(request)
                 print(request.headers)
-                response = await client.send(request=request)
+                print("follow redirects =", request_options.follow_redirects)
+                print("verify =", request_options.verify)
+                print("attach cookies =", request_options.attach_cookies)
+                response = await client.send(
+                    request=request,
+                    follow_redirects=request_options.follow_redirects,
+                )
                 self.post_message(HttpResponseReceived(response))
 
         except Exception as e:
@@ -199,6 +207,10 @@ class MainScreen(Screen[None]):
     def app_body(self) -> AppBody:
         return self.query_one(AppBody)
 
+    @property
+    def request_options(self) -> RequestOptions:
+        return self.query_one(RequestOptions)
+
     def watch_selected_method(self, value: str) -> None:
         self.query_one(MethodSelection).set_method(value)
 
@@ -270,13 +282,15 @@ class Posting(App[None]):
             dark=True,
         ),
         "galaxy": ColorSystem(
-            primary="#2e003e",
-            secondary="#3a0ca3",
-            warning="#ff9900",
-            error="#d00000",
-            success="#4cc9f0",
-            accent="#9d4edd",
-            dark=True,
+            primary="#571089",  # Deep Magenta
+            secondary="#603ca6",  # Dusky Indigo
+            warning="#ff9900",  # Vivid Orange for warnings
+            error="#d00000",  # Vivid Red for errors
+            success="#4cc9f0",  # Bright Cyan for success
+            accent="#bc6ff1",  # Bright Lilac
+            dark=True,  # Emphasizing a dark theme
+            surface="#32174d",  # Dark Purple
+            panel="#452864",  # Slightly Lighter Dark Purple
         ),
         "nebula": ColorSystem(
             primary="#191970",  # Midnight Blue
@@ -337,6 +351,7 @@ class Posting(App[None]):
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-parameters-pane": "e",
+                "--content-tab-options-pane": "r",
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",

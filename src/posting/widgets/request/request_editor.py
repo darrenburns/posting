@@ -6,6 +6,7 @@ from textual.widgets import TabbedContent, TabPane
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor
 from posting.widgets.request.request_body import RequestBodyTextArea
+from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.text_area import TextAreaFooter, TextEditor
 
 
@@ -35,6 +36,8 @@ class RequestEditor(Vertical):
                     )
                 with TabPane("Parameters", id="parameters-pane"):
                     yield QueryStringEditor()
+                with TabPane("Options", id="options-pane"):
+                    yield RequestOptions()
 
     def on_mount(self):
         self.border_title = "Request"
