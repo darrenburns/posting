@@ -1,6 +1,6 @@
 [project]
 name = "posting"
-version = "0.1.0a10"
+version = "1.0.0b1"
 description = "A powerful HTTP client that runs in the terminal."
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }
@@ -22,7 +22,6 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-pl = "posting.__main__:cli"
 posting = "posting.__main__:cli"
 
 [tool.rye]
