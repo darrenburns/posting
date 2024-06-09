@@ -76,6 +76,10 @@ class MainScreen(Screen[None]):
     selected_method = reactive("GET", init=False)
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.cookies = httpx.Cookies()
+
     def compose(self) -> ComposeResult:
         yield AppHeader(f"Posting [white dim]{version('posting')}[/]")
         yield UrlBar()
@@ -90,9 +94,7 @@ class MainScreen(Screen[None]):
         request_options = self.request_options
         try:
             async with httpx.AsyncClient(verify=request_options.verify) as client:
-                # TODO - update the request object here.
-                # TODO - think about whether we store a single request instance or create a new one each time.
-                request = self.build_httpx_request()
+                request = self.build_httpx_request(request_options)
                 print("-- sending request --")
                 print(request)
                 print(request.headers)
@@ -119,8 +121,8 @@ class MainScreen(Screen[None]):
 
     @on(HttpResponseReceived)
     def on_response_received(self, event: HttpResponseReceived) -> None:
-        # TODO - call method on the response section
         self.response_area.response = event.response
+        self.cookies.update(event.response.cookies)
 
     async def action_send_request(self) -> None:
         await self.send_request()
@@ -174,13 +176,14 @@ class MainScreen(Screen[None]):
 
         self.app.push_screen(MethodSelectionPopup(), callback=set_method)
 
-    def build_httpx_request(self) -> httpx.Request:
+    def build_httpx_request(self, request_options: RequestOptions) -> httpx.Request:
         return httpx.Request(
             method=self.selected_method,
             url=self.url_input.value.strip(),
             params=self.params_table.as_dict(),
             content=self.request_body_text_area.text,
             headers=self.headers_table.as_dict(),
+            cookies=self.cookies if request_options.attach_cookies else None,
         )
 
     @property
