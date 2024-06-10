@@ -1,5 +1,6 @@
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.widgets import Input, Button
 
@@ -29,6 +30,10 @@ class UrlInput(Input):
         }
     }
     """
+
+    BINDINGS = [
+        Binding("down", "app.focus_next", "Focus next"),
+    ]
 
     def on_mount(self):
         self.highlighter = URLHighlighter()

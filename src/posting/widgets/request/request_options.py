@@ -1,11 +1,12 @@
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Vertical
+from textual.binding import Binding
+from textual.containers import VerticalScroll
 from textual.reactive import reactive
-from textual.widgets import Checkbox, Label
+from textual.widgets import Checkbox
 
 
-class RequestOptions(Vertical):
+class RequestOptions(VerticalScroll):
     DEFAULT_CSS = """\
     RequestOptions {
         padding: 1 2;
@@ -16,12 +17,18 @@ class RequestOptions(Vertical):
     }
     """
 
+    BINDINGS = [
+        Binding("down", "screen.focus_next", "Next"),
+        Binding("up", "screen.focus_previous", "Previous"),
+    ]
+
     follow_redirects = reactive(False)
     verify = reactive(True)
     attach_cookies = reactive(True)
 
     def __init__(self):
         super().__init__()
+        self.can_focus = False
         # TODO - set the default values from config here.
 
     def compose(self) -> ComposeResult:

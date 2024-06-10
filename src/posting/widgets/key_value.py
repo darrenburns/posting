@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widget import Widget
@@ -39,6 +40,11 @@ class KeyValueInput(Horizontal):
         }
     }
     """
+
+    BINDINGS = [
+        # TODO - textual-autocomplete is eating the up key.
+        Binding("up", "screen.focus_previous", "Focus previous"),
+    ]
 
     @dataclass
     class New(Message):
