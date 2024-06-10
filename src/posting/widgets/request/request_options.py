@@ -17,7 +17,7 @@ class RequestOptions(Vertical):
     """
 
     follow_redirects = reactive(False)
-    verify = reactive(False)
+    verify = reactive(True)
     attach_cookies = reactive(True)
 
     def __init__(self):
