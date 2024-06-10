@@ -25,16 +25,13 @@ class RequestOptions(Vertical):
         # TODO - set the default values from config here.
 
     def compose(self) -> ComposeResult:
-        yield Label(
-            "This section is under construction!", id="options-under-construction"
-        )
         yield Checkbox(
             "Follow redirects",
             value=self.follow_redirects,
             id="follow-redirects",
         )
         yield Checkbox(
-            "Verify SSL/TLS certificates",
+            "Verify SSL certificates",
             value=self.verify,
             id="verify",
         )

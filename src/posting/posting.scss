@@ -280,23 +280,6 @@ Select {
   }
 }
 
-Checkbox {
-  height: 1;
-  padding: 0 1;
-  border: none;
-  color: $text;
-  background: transparent;
-
-  &:focus {
-    background: $accent-lighten-1;
-    color: $text;
-
-    & .toggle--label {
-      text-style: not underline;
-    }
-  }
-}
-
 .textual-jump-label {
   layer: textual-jump;
   dock: top;

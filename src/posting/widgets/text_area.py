@@ -45,6 +45,22 @@ class TextAreaFooter(Horizontal):
         
         & Checkbox {
             margin: 0 1;
+            height: 1;
+            color: $text;
+            background: transparent;
+            padding: 0 1;
+            border: none;
+
+            &:focus {
+                padding: 0 1;
+                border: none;
+                background: $accent-lighten-1;
+                color: $text;
+
+                & .toggle--label {
+                    text-style: not underline;
+                }
+            }
         }
 
         #location-label {
