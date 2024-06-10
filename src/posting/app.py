@@ -27,6 +27,7 @@ from textual.widgets._tabbed_content import ContentTab
 from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.widgets.collection.browser import CollectionBrowser
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
@@ -84,6 +85,7 @@ class MainScreen(Screen[None]):
         yield AppHeader(f"Posting [white dim]{version('posting')}[/]")
         yield UrlBar()
         with AppBody():
+            yield CollectionBrowser()
             yield RequestEditor()
             yield ResponseArea()
         yield Footer()
