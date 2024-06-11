@@ -1,0 +1,15 @@
+name: "Update User Profile"
+description: "Updates the profile information of a specific user based on their user profile ID."
+method: "PUT"
+url: "https://api.example.com/profiles/{profileId}"
+headers:
+  Content-Type: "application/json"
+body: |
+  {
+    "username": "updateduser",
+    "email": "updateduser@example.com",
+    "bio": "Updated bio content here."
+  }
+auth:
+  type: "Bearer"
+  token: "exampleToken123"

@@ -1,0 +1,12 @@
+name: "Get User Profile List"
+description: "Retrieves a list of all user profiles."
+method: "GET"
+url: "https://api.example.com/profiles"
+headers:
+  Content-Type: "application/json"
+params:
+  page: "1"
+  limit: "20"
+auth:
+  type: "Bearer"
+  token: "exampleToken123"
