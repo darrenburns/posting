@@ -2,6 +2,7 @@ from typing import Union
 from rich.style import Style
 from rich.text import Text
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Vertical
 from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
@@ -17,6 +18,13 @@ CollectionNode = Union[Collection, RequestModel]
 
 
 class CollectionTree(Tree[CollectionNode]):
+    BINDINGS = [
+        Binding("k", "cursor_up", "Cursor Up", show=False),
+        Binding("j", "cursor_down", "Cursor Down", show=False),
+        Binding("enter,l,h", "select_cursor", "Select Cursor", show=False),
+        Binding("space,r", "toggle_node", "Toggle Expand", show=False),
+    ]
+
     def render_label(
         self, node: TreeNode[CollectionNode], base_style: Style, style: Style
     ) -> Text:
@@ -109,4 +117,5 @@ class CollectionBrowser(Vertical):
         # Start building the tree from the root node
         add_collection_to_tree(tree.root, collection)
 
+        tree.root.expand_all()
         yield tree
