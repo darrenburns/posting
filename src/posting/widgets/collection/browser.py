@@ -4,7 +4,7 @@ from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical
+from textual.containers import Vertical, VerticalScroll
 from textual.reactive import Reactive, reactive
 from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
@@ -65,10 +65,11 @@ class CollectionTree(Tree[CollectionNode]):
         return text
 
 
-class RequestPreview(Static):
+class RequestPreview(VerticalScroll):
     DEFAULT_CSS = """\
         RequestPreview {
             height: auto;
+            max-height: 50%;
             padding: 0 1;
             dock: bottom;
             background: transparent;
@@ -81,10 +82,15 @@ class RequestPreview(Static):
 
     request: Reactive[RequestModel | None] = reactive(None)
 
+    def compose(self) -> ComposeResult:
+        self.can_focus = False
+        yield Static("", id="description")
+
     def watch_request(self, request: RequestModel | None) -> None:
         self.set_class(request is None, "hidden")
         if request:
-            self.update(Text(request.name))
+            description = self.query_one("#description", Static)
+            description.update(request.description)
 
 
 class CollectionBrowser(Vertical):
@@ -93,10 +99,9 @@ class CollectionBrowser(Vertical):
         height: 1fr;
         dock: left;
         width: auto;
+        max-width: 42;
         & Tree {
-            width: auto;
             min-width: 20;
-            max-width: 48;
             background: transparent;
         }
     }
