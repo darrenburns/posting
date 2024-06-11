@@ -23,6 +23,7 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
+from posting.collection import Collection
 
 from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
@@ -349,6 +350,10 @@ class Posting(App[None]):
     theme: Reactive[str | None] = reactive("textual", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
 
+    def __init__(self, collection: Collection | None = None) -> None:
+        super().__init__()
+        self.collection = collection
+
     def on_mount(self) -> None:
         self.jumper = Jumper(
             {
@@ -362,6 +367,7 @@ class Posting(App[None]):
             },
             screen=self.screen,
         )
+        log.info(f"Loaded collection: {self.collection!r}")
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen()
