@@ -154,6 +154,8 @@ class CollectionBrowser(Vertical):
     @on(Tree.NodeHighlighted)
     def on_node_highlighted(self, event: Tree.NodeHighlighted[CollectionNode]) -> None:
         node_data = event.node.data
+        # TODO - display more preview data.
+        #  It's already all in the node, just need to display it.
         if isinstance(node_data, RequestModel):
             self.request_preview.request = node_data
         else:
