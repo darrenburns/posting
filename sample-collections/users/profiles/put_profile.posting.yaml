@@ -1,9 +1,13 @@
 name: "Update User Profile"
+posting_version: "1.0"
 description: "Updates the profile information of a specific user based on their user profile ID."
 method: "PUT"
 url: "https://api.example.com/profiles/{profileId}"
 headers:
-  Content-Type: "application/json"
+  - name: "Content-Type"
+    value: "application/json"
+  - name: "Some-Header"
+    value: "Some value"
 body: |
   {
     "username": "updateduser",

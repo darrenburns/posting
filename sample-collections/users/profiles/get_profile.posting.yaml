@@ -1,12 +1,20 @@
 name: "Get User Profile List"
+posting_version: "1.0"
 description: "Retrieves a list of all user profiles."
 method: "GET"
 url: "https://api.example.com/profiles"
 headers:
-  Content-Type: "application/json"
+  - name: "Content-Type"
+    value: "application/json"
+  - name: "Some-Header"
+    value: "Some value"
+    enabled: false
 params:
-  page: "1"
-  limit: "20"
+  - name: "page"
+    value: "1"
+  - name: "limit"
+    value: "20"
+    enabled: false
 auth:
   type: "Bearer"
   token: "exampleToken123"

@@ -3,9 +3,14 @@ description: "Retrieves the profile information of a specific user based on thei
 method: "GET"
 url: "https://api.example.com/users/{userId}"
 headers:
-  Content-Type: "application/json"
+  - name: "Content-Type"
+    value: "application/json"
+  - name: "Some-Header"
+    value: "Some value"
+    enabled: false
 params:
-  verbose: "true"
+  - name: "verbose"
+    value: "true"
 auth:
   type: "Bearer"
   token: "exampleToken123"

@@ -302,3 +302,9 @@ Select {
     padding: 0 1;
   }
 }
+
+CollectionBrowser {
+  &.section {
+    border-title-align: left;
+  }
+}

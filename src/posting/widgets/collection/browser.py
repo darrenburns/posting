@@ -8,6 +8,7 @@ from textual.widgets.tree import TreeNode
 
 
 TOGGLE_STYLE = Style.from_meta({"toggle": True})
+SUFFIX = ".posting.yaml"
 
 
 class CollectionTree(DirectoryTree):
@@ -28,6 +29,9 @@ class CollectionTree(DirectoryTree):
         # the label fully, so we return early.
 
         node_label = node._label.copy()
+        if node_label.plain.endswith(SUFFIX):
+            node_label = Text(node_label.plain[: -len(SUFFIX)], style=node_label.style)
+
         node_label.stylize(style)
 
         if not self.is_mounted:
@@ -53,7 +57,8 @@ class CollectionBrowser(Vertical):
         width: auto;
         & Tree {
             width: auto;
-            min-width: 18;
+            min-width: 20;
+            max-width: 48;
             background: transparent;
         }
     }
