@@ -8,12 +8,14 @@ from textual import on, log
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.design import ColorSystem
+from textual.driver import Driver
 from textual.events import Click
 from textual.reactive import Reactive, reactive
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.screen import Screen
+from textual.types import CSSPathType
 from textual.widget import Widget
 from textual.widgets import (
     Button,
@@ -350,7 +352,10 @@ class Posting(App[None]):
     theme: Reactive[str | None] = reactive("textual", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
 
-    def __init__(self, collection: Collection | None = None) -> None:
+    def __init__(
+        self,
+        collection: Collection | None = None,
+    ) -> None:
         super().__init__()
         self.collection = collection
 
