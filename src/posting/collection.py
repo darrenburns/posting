@@ -42,6 +42,47 @@ class Collection(BaseModel):
     requests: list[RequestModel] = []
     children: list[Collection] = []
 
+    @classmethod
+    def from_directory(cls, directory_path: str) -> Collection:
+        """Load all request models into a tree structure from a directory containing .posting.yaml files.
+
+        Args:
+            directory_path: The path to the directory containing .posting.yaml files.
+
+        Returns:
+            Collection: The root collection containing all loaded requests and subcollections.
+        """
+
+        request_files = glob.glob(
+            os.path.join(directory_path, "**/*.posting.yaml"), recursive=True
+        )
+        root_collection = Collection(name=os.path.basename(directory_path))
+
+        for file_path in request_files:
+            try:
+                request = load_request_from_yaml(file_path)
+                path_parts = (
+                    file_path[len(directory_path) :]
+                    .strip(os.path.sep)
+                    .split(os.path.sep)
+                )
+                current_level = root_collection
+                for part in path_parts[:-1]:
+                    found = False
+                    for child in current_level.children:
+                        if child.name == part:
+                            current_level = child
+                            found = True
+                            break
+                    if not found:
+                        new_collection = Collection(name=part)
+                        current_level.children.append(new_collection)
+                        current_level = new_collection
+                current_level.requests.append(request)
+            except Exception as e:
+                print(f"Failed to load {file_path}: {e}")
+        return root_collection
+
 
 def load_request_from_yaml(file_path: str) -> RequestModel:
     """Load a request model from a YAML file.
@@ -57,46 +98,8 @@ def load_request_from_yaml(file_path: str) -> RequestModel:
         return RequestModel(**data)
 
 
-def load_all_requests_into_tree(directory_path: str) -> Collection:
-    """Load all request models into a tree structure from a directory containing .posting.yaml files.
-
-    Args:
-        directory_path: The path to the directory containing .posting.yaml files.
-
-    Returns:
-        Collection: The root collection containing all loaded requests and subcollections.
-    """
-    request_files = glob.glob(
-        os.path.join(directory_path, "**/*.posting.yaml"), recursive=True
-    )
-    root_collection = Collection(name=os.path.basename(directory_path))
-
-    for file_path in request_files:
-        try:
-            request = load_request_from_yaml(file_path)
-            path_parts = (
-                file_path[len(directory_path) :].strip(os.path.sep).split(os.path.sep)
-            )
-            current_level = root_collection
-            for part in path_parts[:-1]:
-                found = False
-                for child in current_level.children:
-                    if child.name == part:
-                        current_level = child
-                        found = True
-                        break
-                if not found:
-                    new_collection = Collection(name=part)
-                    current_level.children.append(new_collection)
-                    current_level = new_collection
-            current_level.requests.append(request)
-        except Exception as e:
-            print(f"Failed to load {file_path}: {e}")
-    return root_collection
-
-
 # Example usage
 if __name__ == "__main__":
     sample_file_path = "sample-collections/users"
-    collection = load_all_requests_into_tree(sample_file_path)
+    collection = Collection.from_directory(sample_file_path)
     print(collection)
