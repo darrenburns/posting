@@ -1,4 +1,4 @@
-name: "Delete User Account"
+name: "User"
 posting_version: "1.0"
 description: "Deletes the user account associated with the provided user ID."
 method: "DELETE"

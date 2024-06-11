@@ -136,7 +136,7 @@ class KeyValueEditor(Vertical):
         }
 
         &.empty {
-            hatch: right $surface 80%;
+            hatch: right $surface 100%;
             & PostingDataTable {
                 display: none;
             }

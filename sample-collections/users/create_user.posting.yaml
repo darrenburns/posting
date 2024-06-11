@@ -1,4 +1,4 @@
-name: Create User
+name: User
 posting_version: "1.0"
 description: Adds a new user to the system.
 method: POST

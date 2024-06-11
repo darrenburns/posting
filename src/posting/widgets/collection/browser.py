@@ -10,7 +10,7 @@ from textual.widgets.tree import TreeNode
 from posting.collection import Collection, RequestModel
 
 
-TOGGLE_STYLE = Style.from_meta({"toggle": True})
+TOGGLE_STYLE = Style.from_meta({"toggle": True}) + Style(dim=True)
 SUFFIX = ".posting.yaml"
 
 
@@ -45,8 +45,6 @@ class CollectionTree(Tree[CollectionNode]):
         if node_label.plain.endswith(SUFFIX):
             node_label = Text(node_label.plain[: -len(SUFFIX)], style=node_label.style)
 
-        node_label.stylize(style)
-
         if not self.is_mounted:
             return node_label
 
@@ -55,9 +53,12 @@ class CollectionTree(Tree[CollectionNode]):
                 "▼ " if node.is_expanded else "▶ ",
                 base_style + TOGGLE_STYLE,
             )
+            node_label.append("/")
+            node_label.stylize(Style(dim=True, bold=True))
         else:
-            prefix = ("  ", base_style)
+            prefix = (" ", base_style)
 
+        node_label.stylize(style)
         text = Text.assemble(prefix, node_label)
         return text
 

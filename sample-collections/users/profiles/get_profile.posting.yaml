@@ -1,7 +1,7 @@
 posting_version: "1.0"
-name: "Get User Profile List"
-description: "Retrieves a list of all user profiles."
 method: "GET"
+name: "User Profile List"
+description: "Retrieves a list of all user profiles."
 url: "https://api.example.com/profiles"
 headers:
   - name: "Content-Type"

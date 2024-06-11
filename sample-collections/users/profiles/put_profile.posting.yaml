@@ -1,7 +1,7 @@
-name: "Update User Profile"
+method: "PUT"
+name: "User Profile"
 posting_version: "1.0"
 description: "Updates the profile information of a specific user based on their user profile ID."
-method: "PUT"
 url: "https://api.example.com/profiles/{profileId}"
 headers:
   - name: "Content-Type"
