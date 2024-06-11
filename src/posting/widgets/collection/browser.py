@@ -1,10 +1,12 @@
 from typing import Union
 from rich.style import Style
 from rich.text import Text
+from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
-from textual.widgets import Tree
+from textual.reactive import Reactive, reactive
+from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
@@ -61,6 +63,28 @@ class CollectionTree(Tree[CollectionNode]):
         node_label.stylize(style)
         text = Text.assemble(prefix, node_label)
         return text
+
+
+class RequestPreview(Static):
+    DEFAULT_CSS = """\
+        RequestPreview {
+            height: auto;
+            padding: 0 1;
+            dock: bottom;
+            background: transparent;
+            border-top: solid $accent 50%;
+            &.hidden {
+                display: none;
+            }
+        }
+    """
+
+    request: Reactive[RequestModel | None] = reactive(None)
+
+    def watch_request(self, request: RequestModel | None) -> None:
+        self.set_class(request is None, "hidden")
+        if request:
+            self.update(Text(request.name))
 
 
 class CollectionBrowser(Vertical):
@@ -120,3 +144,21 @@ class CollectionBrowser(Vertical):
 
         tree.root.expand_all()
         yield tree
+        yield RequestPreview()
+
+    # TODO - implement the node selected event
+    # @on(Tree.NodeSelected)
+    # def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
+    #     print(event.node.data)
+
+    @on(Tree.NodeHighlighted)
+    def on_node_highlighted(self, event: Tree.NodeHighlighted[CollectionNode]) -> None:
+        node_data = event.node.data
+        if isinstance(node_data, RequestModel):
+            self.request_preview.request = node_data
+        else:
+            self.request_preview.request = None
+
+    @property
+    def request_preview(self) -> RequestPreview:
+        return self.query_one(RequestPreview)
