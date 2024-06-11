@@ -1,0 +1,7 @@
+name: "Delete User Account"
+description: "Deletes the user account associated with the provided user ID."
+method: "DELETE"
+url: "https://api.example.com/users/{userId}"
+auth:
+  type: "Bearer"
+  token: "adminToken123"

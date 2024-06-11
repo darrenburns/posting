@@ -1,0 +1,11 @@
+name: "Get User Profile"
+description: "Retrieves the profile information of a specific user based on their user ID."
+method: "GET"
+url: "https://api.example.com/users/{userId}"
+headers:
+  Content-Type: "application/json"
+params:
+  verbose: "true"
+auth:
+  type: "Bearer"
+  token: "exampleToken123"
