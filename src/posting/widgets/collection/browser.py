@@ -60,9 +60,9 @@ class CollectionBrowser(Vertical):
     """
 
     def compose(self) -> ComposeResult:
-        self.border_title = "Collections"
+        self.border_title = "Collection"
         self.add_class("section")
-        tree = CollectionTree("./sample-collections/")
+        tree = CollectionTree("./sample-collections/users")
         tree.guide_depth = 2
         tree.show_root = False
         tree.show_guides = False
