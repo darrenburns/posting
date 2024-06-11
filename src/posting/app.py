@@ -80,15 +80,16 @@ class MainScreen(Screen[None]):
     selected_method = reactive("GET", init=False)
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
-    def __init__(self) -> None:
+    def __init__(self, collection: Collection | None = None) -> None:
         super().__init__()
+        self.collection = collection
         self.cookies = httpx.Cookies()
 
     def compose(self) -> ComposeResult:
         yield AppHeader(f"Posting [white dim]{version('posting')}[/]")
         yield UrlBar()
         with AppBody():
-            yield CollectionBrowser()
+            yield CollectionBrowser(collection=self.collection)
             yield RequestEditor()
             yield ResponseArea()
         yield Footer()
@@ -375,7 +376,7 @@ class Posting(App[None]):
         log.info(f"Loaded collection: {self.collection!r}")
 
     def get_default_screen(self) -> MainScreen:
-        self.main_screen = MainScreen()
+        self.main_screen = MainScreen(collection=self.collection)
         return self.main_screen
 
     def get_css_variables(self) -> dict[str, str]:

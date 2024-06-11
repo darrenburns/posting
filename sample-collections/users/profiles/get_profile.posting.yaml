@@ -1,5 +1,5 @@
-name: "Get User Profile List"
 posting_version: "1.0"
+name: "Get User Profile List"
 description: "Retrieves a list of all user profiles."
 method: "GET"
 url: "https://api.example.com/profiles"

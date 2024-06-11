@@ -1,19 +1,24 @@
+from typing import Union
 from rich.style import Style
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.types import DirEntry
-from textual.widgets import DirectoryTree
+from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
+
+from posting.collection import Collection, RequestModel
 
 
 TOGGLE_STYLE = Style.from_meta({"toggle": True})
 SUFFIX = ".posting.yaml"
 
 
-class CollectionTree(DirectoryTree):
+CollectionNode = Union[Collection, RequestModel]
+
+
+class CollectionTree(Tree[CollectionNode]):
     def render_label(
-        self, node: TreeNode[DirEntry], base_style: Style, style: Style
+        self, node: TreeNode[CollectionNode], base_style: Style, style: Style
     ) -> Text:
         """Render a label for the given node.
 
@@ -64,12 +69,44 @@ class CollectionBrowser(Vertical):
     }
     """
 
+    def __init__(
+        self,
+        collection: Collection | None = None,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.collection = collection
+
     def compose(self) -> ComposeResult:
         self.border_title = "Collection"
         self.add_class("section")
-        tree = CollectionTree("./sample-collections/users")
-        tree.guide_depth = 2
+        collection = self.collection
+        if collection is None:
+            return
+
+        tree = CollectionTree(label=collection.name, data=collection)
+        tree.guide_depth = 1
         tree.show_root = False
         tree.show_guides = False
-        tree.expand = True
+
+        def add_collection_to_tree(
+            parent_node: TreeNode[CollectionNode], collection: Collection
+        ) -> None:
+            # Add the requests (leaf nodes)
+            for request in collection.requests:
+                parent_node.add_leaf(request.name, data=request)
+
+            # Add the subcollections (child nodes)
+            for child_collection in collection.children:
+                child_node = parent_node.add(
+                    child_collection.name, data=child_collection
+                )
+                add_collection_to_tree(child_node, child_collection)
+
+        # Start building the tree from the root node
+        add_collection_to_tree(tree.root, collection)
+
         yield tree
