@@ -1,6 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Literal
+import httpx
 from pydantic import BaseModel, Field
 import yaml
 import os
@@ -36,6 +37,16 @@ class RequestModel(BaseModel):
     headers: list[Header] = Field(default_factory=list)
     params: list[QueryParam] = Field(default_factory=list)
     posting_version: str = Field(default="1.0")
+
+    def to_httpx_request(self) -> httpx.Request:
+        headers = httpx.Headers(
+            [(header.name, header.value) for header in self.headers]
+        )
+        params = httpx.QueryParams([(param.name, param.value) for param in self.params])
+
+        return httpx.Request(
+            method=self.method, url=self.url, headers=headers, params=params
+        )
 
 
 class Collection(BaseModel):

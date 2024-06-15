@@ -129,6 +129,19 @@ class MainScreen(Screen[None]):
         self.response_area.response = event.response
         self.cookies.update(event.response.cookies)
 
+    @on(CollectionBrowser.RequestSelected)
+    def on_request_selected(self, event: CollectionBrowser.RequestSelected) -> None:
+        request = event.request
+        self.selected_method = request.method
+        self.url_input.value = str(request.url)
+        self.params_table.replace_all_rows(
+            [(param.name, param.value) for param in request.params]
+        )
+        self.headers_table.replace_all_rows(
+            [(header.name, header.value) for header in request.headers]
+        )
+        self.request_body_text_area.text = request.body or ""
+
     async def action_send_request(self) -> None:
         await self.send_request()
 
@@ -156,16 +169,22 @@ class MainScreen(Screen[None]):
         else:
             body_tab.update("Body")
 
-    @on(PostingDataTable.Changed, selector="HeadersTable")
-    def on_content_changed(self, event: PostingDataTable.Changed) -> None:
+    @on(PostingDataTable.RowsRemoved, selector="HeadersTable")
+    @on(PostingDataTable.RowsAdded, selector="HeadersTable")
+    def on_content_changed(
+        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
+    ) -> None:
         headers_tab = self.query_one("#--content-tab-headers-pane", ContentTab)
         if event.data_table.row_count:
             headers_tab.update("Headers[cyan b]•[/]")
         else:
             headers_tab.update("Headers")
 
-    @on(PostingDataTable.Changed, selector="ParamsTable")
-    def on_params_changed(self, event: PostingDataTable.Changed) -> None:
+    @on(PostingDataTable.RowsRemoved, selector="ParamsTable")
+    @on(PostingDataTable.RowsAdded, selector="ParamsTable")
+    def on_params_changed(
+        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
+    ) -> None:
         params_tab = self.query_one("#--content-tab-parameters-pane", ContentTab)
         if event.data_table.row_count:
             params_tab.update("Parameters[cyan b]•[/]")

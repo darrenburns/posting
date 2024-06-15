@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Union
 from rich.style import Style
 from rich.text import Text
@@ -5,6 +6,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
+from textual.message import Message
 from textual.reactive import Reactive, reactive
 from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
@@ -117,6 +119,15 @@ class CollectionBrowser(Vertical):
     }
     """
 
+    @dataclass
+    class RequestSelected(Message):
+        request: RequestModel
+        browser: "CollectionBrowser"
+
+        @property
+        def control(self) -> "CollectionBrowser":
+            return self.browser
+
     def __init__(
         self,
         collection: Collection | None = None,
@@ -161,10 +172,18 @@ class CollectionBrowser(Vertical):
         yield tree
         yield RequestPreview()
 
-    # TODO - implement the node selected event
-    # @on(Tree.NodeSelected)
-    # def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
-    #     print(event.node.data)
+    @on(Tree.NodeSelected)
+    def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
+        print("Node selected:")
+        print(event.node.data)
+        if isinstance(event.node.data, RequestModel):
+            self.request_preview.request = event.node.data
+            self.post_message(
+                self.RequestSelected(
+                    request=event.node.data,
+                    browser=self,
+                )
+            )
 
     @on(Tree.NodeHighlighted)
     def on_node_highlighted(self, event: Tree.NodeHighlighted[CollectionNode]) -> None:
