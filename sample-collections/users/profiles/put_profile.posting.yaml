@@ -2,7 +2,7 @@ method: "PUT"
 name: "User Profile"
 posting_version: "1.0"
 description: "Updates the profile information of a specific user based on their user profile ID."
-url: "https://api.example.com/profiles/{profileId}"
+url: "https://jsonplaceholder.typicode.com/users/{userId}"
 headers:
   - name: "Content-Type"
     value: "application/json"

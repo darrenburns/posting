@@ -21,6 +21,7 @@ class PostingDataTable(DataTable[str]):
     @dataclass
     class RowsRemoved(Message):
         data_table: "PostingDataTable"
+        explicit_by_user: bool = True
 
         @property
         def control(self) -> "PostingDataTable":
@@ -29,6 +30,7 @@ class PostingDataTable(DataTable[str]):
     @dataclass
     class RowsAdded(Message):
         data_table: "PostingDataTable"
+        explicit_by_user: bool = True
 
         @property
         def control(self) -> "PostingDataTable":
@@ -40,8 +42,9 @@ class PostingDataTable(DataTable[str]):
         height: int | None = 1,
         key: str | None = None,
         label: str | Text | None = None,
+        explicit_by_user: bool = True,
     ) -> RowKey:
-        self.post_message(self.RowsAdded(self))
+        self.post_message(self.RowsAdded(self, explicit_by_user=explicit_by_user))
         return super().add_row(*cells, height=height, key=key, label=label)
 
     def action_toggle_fixed_columns(self) -> None:
@@ -54,7 +57,7 @@ class PostingDataTable(DataTable[str]):
         return rv
 
     def clear(self, columns: bool = False) -> Self:
-        self.post_message(self.RowsRemoved(self))
+        self.post_message(self.RowsRemoved(self, explicit_by_user=False))
         super().clear(columns=columns)
         self._column_width_refresh()
         return self
@@ -62,7 +65,7 @@ class PostingDataTable(DataTable[str]):
     def replace_all_rows(self, rows: Iterable[Iterable[str]]) -> None:
         self.clear()
         for row in rows:
-            self.add_row(*row)
+            self.add_row(*row, explicit_by_user=False)
         self._column_width_refresh()
 
     def _column_width_refresh(self) -> None:

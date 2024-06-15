@@ -1,7 +1,7 @@
 name: Get User
 description: Retrieves the specific user based on their user ID.
 method: "GET"
-url: "https://api.example.com/users/{userId}"
+url: "https://jsonplaceholder.typicode.com/users/{userId}"
 headers:
   - name: "Content-Type"
     value: "application/json"

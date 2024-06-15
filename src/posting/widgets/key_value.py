@@ -171,11 +171,14 @@ class KeyValueEditor(Vertical):
         table.move_cursor(row=table.row_count - 1)
 
     @on(PostingDataTable.RowsRemoved)
-    @on(PostingDataTable.RowsAdded)
-    def table_changed(
-        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
-    ) -> None:
+    def rows_removed(self, event: PostingDataTable.RowsRemoved) -> None:
+        print("removed")
         rows = event.data_table.row_count
         self.set_class(rows == 0, "empty")
-        if rows == 0:
+        if rows == 0 and event.explicit_by_user:
             self.key_value_input.key_input.focus()
+
+    @on(PostingDataTable.RowsAdded)
+    def rows_added(self, event: PostingDataTable.RowsAdded) -> None:
+        rows = event.data_table.row_count
+        self.set_class(rows == 0, "empty")

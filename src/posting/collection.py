@@ -29,6 +29,8 @@ class QueryParam(BaseModel):
 
 class RequestModel(BaseModel):
     name: str
+    path: Path
+    """The path of the request on the file system (i.e. where the yaml is)"""
     url: str
     method: HttpRequestMethod = Field(default="GET")
     description: str = Field(default="")
@@ -50,6 +52,7 @@ class RequestModel(BaseModel):
 
 
 class Collection(BaseModel):
+    path: Path
     name: str = Field(default="__default__")
     requests: list[RequestModel] = Field(default_factory=list)
     children: list[Collection] = Field(default_factory=list)
@@ -70,7 +73,7 @@ class Collection(BaseModel):
         )
         collection_name = directory_path.name
 
-        root_collection = Collection(name=collection_name)
+        root_collection = Collection(name=collection_name, path=directory_path)
 
         for file_path in request_files:
             try:
@@ -87,7 +90,7 @@ class Collection(BaseModel):
                             found = True
                             break
                     if not found:
-                        new_collection = Collection(name=part)
+                        new_collection = Collection(name=part, path=directory_path)
                         current_level.children.append(new_collection)
                         current_level = new_collection
                 current_level.requests.append(request)
@@ -107,7 +110,7 @@ def load_request_from_yaml(file_path: str) -> RequestModel:
     """
     with open(file_path, "r") as file:
         data = yaml.safe_load(file)
-        return RequestModel(**data)
+        return RequestModel(**data, path=Path(file_path))
 
 
 # Example usage

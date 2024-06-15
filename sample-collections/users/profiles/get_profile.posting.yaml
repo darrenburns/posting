@@ -2,7 +2,7 @@ posting_version: "1.0"
 method: "GET"
 name: "User Profile List"
 description: "Retrieves a list of all user profiles."
-url: "https://api.example.com/profiles"
+url: "https://jsonplaceholder.typicode.com/users"
 headers:
   - name: "Content-Type"
     value: "application/json"
