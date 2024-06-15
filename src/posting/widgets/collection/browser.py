@@ -58,10 +58,20 @@ class CollectionTree(Tree[CollectionNode]):
             node_label.append("/")
             node_label.stylize(Style(dim=True, bold=True))
         else:
-            prefix = (" ", base_style)
+            method = (
+                f"{node.data.method[:3]} "
+                if isinstance(node.data, RequestModel)
+                else ""
+            )
+            node_label = Text.assemble((method, Style(dim=True)), node_label)
+            prefix = ""
 
         node_label.stylize(style)
-        text = Text.assemble(prefix, node_label)
+
+        text = Text.assemble(
+            prefix,
+            node_label,
+        )
         return text
 
 
@@ -99,7 +109,7 @@ class CollectionBrowser(Vertical):
         height: 1fr;
         dock: left;
         width: auto;
-        max-width: 42;
+        max-width: 33%;
         & Tree {
             min-width: 20;
             background: transparent;

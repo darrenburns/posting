@@ -1,5 +1,5 @@
-name: "Get User Profile"
-description: "Retrieves the profile information of a specific user based on their user ID."
+name: Get User
+description: Retrieves the specific user based on their user ID.
 method: "GET"
 url: "https://api.example.com/users/{userId}"
 headers:

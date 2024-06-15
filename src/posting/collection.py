@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel, Field
 import yaml
@@ -38,12 +39,12 @@ class RequestModel(BaseModel):
 
 
 class Collection(BaseModel):
-    name: str
-    requests: list[RequestModel] = []
-    children: list[Collection] = []
+    name: str = Field(default="__default__")
+    requests: list[RequestModel] = Field(default_factory=list)
+    children: list[Collection] = Field(default_factory=list)
 
     @classmethod
-    def from_directory(cls, directory_path: str) -> Collection:
+    def from_directory(cls, directory: str) -> Collection:
         """Load all request models into a tree structure from a directory containing .posting.yaml files.
 
         Args:
@@ -52,19 +53,19 @@ class Collection(BaseModel):
         Returns:
             Collection: The root collection containing all loaded requests and subcollections.
         """
-
+        directory_path = Path(directory)
         request_files = glob.glob(
-            os.path.join(directory_path, "**/*.posting.yaml"), recursive=True
+            str(directory_path / "**/*.posting.yaml"), recursive=True
         )
-        root_collection = Collection(name=os.path.basename(directory_path))
+        collection_name = directory_path.name
+
+        root_collection = Collection(name=collection_name)
 
         for file_path in request_files:
             try:
                 request = load_request_from_yaml(file_path)
                 path_parts = (
-                    file_path[len(directory_path) :]
-                    .strip(os.path.sep)
-                    .split(os.path.sep)
+                    file_path[len(directory) :].strip(os.path.sep).split(os.path.sep)
                 )
                 current_level = root_collection
                 for part in path_parts[:-1]:

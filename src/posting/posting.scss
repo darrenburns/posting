@@ -119,7 +119,7 @@ DataTable {
 
   &:focus {
     .datatable--cursor {
-      background: $accent 50%;
+      background: $accent;
       color: $text;
     }
 
@@ -129,7 +129,7 @@ DataTable {
     }
 
     .datatable--fixed-cursor {
-      background: $accent 70%;
+      background: $accent-lighten-1;
       color: $text;
     }
 
@@ -166,7 +166,7 @@ DataTable {
 TextArea {
   & .text-area--cursor {
     color: $text;
-    background: $accent-lighten-2;
+    background: $accent;
   }
 
   &.empty {
@@ -179,6 +179,16 @@ TextArea {
     }
   }
 
+}
+
+Tree {
+  & > .tree--cursor {
+    background: $accent;
+  }
+
+  & > .tree--highlight {
+    text-style: not underline;
+}
 }
 
 Input {
