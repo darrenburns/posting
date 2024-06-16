@@ -128,7 +128,7 @@ class Collection(BaseModel):
     children: list[Collection] = Field(default_factory=list)
 
     @classmethod
-    def from_directory(cls, directory: str) -> Collection:
+    def from_directory(cls, directory: str | None = None) -> Collection:
         """Load all request models into a tree structure from a directory containing .posting.yaml files.
 
         Args:
@@ -137,12 +137,14 @@ class Collection(BaseModel):
         Returns:
             Collection: The root collection containing all loaded requests and subcollections.
         """
-        directory_path = Path(directory)
-        request_files = glob.glob(
-            str(directory_path / "**/*.posting.yaml"), recursive=True
-        )
-        collection_name = directory_path.name
+        if directory:
+            directory_path = Path(directory)
+            request_files = directory_path.rglob("*.posting.yaml")
+        else:
+            directory_path = Path.cwd()
+            request_files = directory_path.glob("*.posting.yaml")
 
+        collection_name = directory_path.name
         root_collection = Collection(name=collection_name, path=directory_path)
 
         for file_path in request_files:

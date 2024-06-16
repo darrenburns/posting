@@ -40,8 +40,8 @@ def default(collection: Path | None = None) -> None:
     if collection:
         collection_tree = Collection.from_directory(str(collection))
     else:
-        default_collections_directory = data_directory() / "collections"
-        collection_tree = Collection.from_directory(str(default_collections_directory))
+        collection_tree = Collection.from_directory()
 
-    app = Posting(collection_tree)
+    collection_specified = collection is not None
+    app = Posting(collection_tree, collection_specified)
     app.run()

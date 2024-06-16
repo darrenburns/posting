@@ -13,7 +13,7 @@ ModalScreen {
   align: center middle;
 
   & > VerticalScroll {
-    background: $surface-darken-1;
+    background: $surface;
     border: wide $surface;
     padding: 1 2;
     border-title-background: $surface;

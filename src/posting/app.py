@@ -421,9 +421,11 @@ class Posting(App[None]):
     def __init__(
         self,
         collection: Collection | None = None,
+        collection_specified: bool = False,
     ) -> None:
         super().__init__()
         self.collection = collection
+        self.collection_specified = collection_specified
 
     def on_mount(self) -> None:
         self.jumper = Jumper(
@@ -443,6 +445,13 @@ class Posting(App[None]):
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(collection=self.collection)
+        if not self.collection_specified:
+            self.notify(
+                "Requests will be saved in the current directory.",
+                title="No collection specified",
+                severity="warning",
+                timeout=7,
+            )
         return self.main_screen
 
     def get_css_variables(self) -> dict[str, str]:

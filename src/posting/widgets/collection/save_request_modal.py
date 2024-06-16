@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Input
@@ -35,6 +36,10 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
         }
     }
     """
+
+    BINDINGS = [
+        Binding("escape", "app.pop_screen", "Cancel"),
+    ]
 
     def __init__(self, request: RequestModel):
         super().__init__()
