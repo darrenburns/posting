@@ -1,26 +1,18 @@
 import httpx
-from posting.widgets.text_area import ReadOnlyTextArea, TextAreaFooter, TextEditor
+from posting.widgets.tabbed_content import PostingTabbedContent
+from posting.widgets.text_area import TextAreaFooter, TextEditor
 from posting.widgets.response.cookies_table import CookiesTable
 from posting.widgets.response.response_body import ResponseTextArea
 from posting.widgets.response.response_headers import ResponseHeadersTable
 
-from textual import on
 from textual.app import ComposeResult
-from textual.binding import Binding
 from textual.containers import Vertical
 from textual.reactive import Reactive, reactive
-from textual.widgets import (
-    TabbedContent,
-    TabPane,
-    TextArea,
-)
+from textual.widgets import TabPane
 
 
-class ResponseTabbedContent(TabbedContent):
-    BINDINGS = [
-        Binding("down,j", "app.focus_next", "Focus next", show=False),
-        Binding("up,k", "app.focus_previous", "Focus previous", show=False),
-    ]
+class ResponseTabbedContent(PostingTabbedContent):
+    pass
 
 
 class ResponseArea(Vertical):

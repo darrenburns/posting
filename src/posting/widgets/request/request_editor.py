@@ -1,20 +1,17 @@
 from textual.app import ComposeResult
-from textual.binding import Binding
 from textual.containers import Vertical
-from textual.widgets import TabbedContent, TabPane
+from textual.widgets import TabPane
 
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_options import RequestOptions
+from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextAreaFooter, TextEditor
 
 
-class RequestEditorTabbedContent(TabbedContent):
-    BINDINGS = [
-        Binding("down,j", "app.focus_next", "Focus next", show=False),
-        Binding("up,k", "app.focus_previous", "Focus previous", show=False),
-    ]
+class RequestEditorTabbedContent(PostingTabbedContent):
+    pass
 
 
 class RequestEditor(Vertical):

@@ -76,3 +76,10 @@ class PostingDataTable(DataTable[str]):
             self._update_column_widths(
                 {CellKey(row_zero, column) for column in columns}
             )
+
+    def action_cursor_up(self) -> None:
+        row, _ = self.cursor_coordinate
+        if row == 0:
+            self.screen.focus_previous()
+        else:
+            super().action_cursor_up()
