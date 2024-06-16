@@ -29,6 +29,23 @@ class CollectionTree(Tree[CollectionNode]):
         Binding("space,r", "toggle_node", "Toggle Expand", show=False),
     ]
 
+    COMPONENT_CLASSES = {
+        "node-selected",
+    }
+
+    DEFAULT_CSS = """\
+    CollectionTree { 
+        & .node-selected {
+            background: $primary-lighten-1;
+            color: $text;
+            text-style: bold;
+        }
+    }
+    
+    """
+
+    currently_open: Reactive[TreeNode[CollectionNode] | None] = reactive(None)
+
     def render_label(
         self, node: TreeNode[CollectionNode], base_style: Style, style: Style
     ) -> Text:
@@ -61,7 +78,7 @@ class CollectionTree(Tree[CollectionNode]):
             node_label.stylize(Style(dim=True, bold=True))
         else:
             method = (
-                f"{node.data.method[:3]} "
+                f"{'█ ' if node is self.currently_open else ' '}{node.data.method[:3]} "
                 if isinstance(node.data, RequestModel)
                 else ""
             )
@@ -70,11 +87,24 @@ class CollectionTree(Tree[CollectionNode]):
 
         node_label.stylize(style)
 
+        if node is self.currently_open:
+            open_style = self.get_component_rich_style("node-selected")
+        else:
+            open_style = ""
+
         text = Text.assemble(
             prefix,
             node_label,
+            style=open_style,
         )
         return text
+
+    @on(Tree.NodeSelected)
+    def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
+        if isinstance(event.node.data, RequestModel):
+            self.currently_open = event.node
+            self._clear_line_cache()
+            self.refresh()
 
 
 class RequestPreview(VerticalScroll):
@@ -85,7 +115,7 @@ class RequestPreview(VerticalScroll):
             padding: 0 1;
             dock: bottom;
             background: transparent;
-            border-top: solid $accent 50%;
+            border-top: solid $accent 35%;
             &.hidden {
                 display: none;
             }
@@ -150,6 +180,7 @@ class CollectionBrowser(Vertical):
         tree.guide_depth = 1
         tree.show_root = False
         tree.show_guides = False
+        self.border_subtitle = collection.name
 
         def add_collection_to_tree(
             parent_node: TreeNode[CollectionNode], collection: Collection
