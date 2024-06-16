@@ -73,10 +73,12 @@ class MainScreen(Screen[None]):
         Binding("ctrl+t", "change_method", "Change method"),
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
+        Binding("ctrl+n", "preview_request_model", "DEBUG Preview request model"),
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
+    currently_open: Reactive[RequestModel | None] = reactive(None)
 
     def __init__(self, collection: Collection | None = None) -> None:
         super().__init__()
@@ -132,6 +134,7 @@ class MainScreen(Screen[None]):
     @on(CollectionBrowser.RequestSelected)
     def on_request_selected(self, event: CollectionBrowser.RequestSelected) -> None:
         request = event.request
+        self.currently_open = request
         self.selected_method = request.method
         self.url_input.value = str(request.url)
         self.params_table.replace_all_rows(
@@ -147,6 +150,10 @@ class MainScreen(Screen[None]):
 
     def action_change_method(self) -> None:
         self.method_selection()
+
+    def action_preview_request_model(self) -> None:
+        request_model = self.build_request_model(self.request_options)
+        log.info(request_model)
 
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
         classes = {"horizontal", "vertical"}
@@ -204,9 +211,10 @@ class MainScreen(Screen[None]):
     def build_request_model(self, request_options: RequestOptions) -> RequestModel:
         """Grab data from the UI and pull it into a request model. This model
         may be passed around, stored on disk, etc."""
+        currently_open = self.currently_open
         return RequestModel(
-            name="",
-            path=Path(""),
+            name=currently_open.name if currently_open else None,
+            path=currently_open.path if currently_open else None,
             method=self.selected_method,
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),

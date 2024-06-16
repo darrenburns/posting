@@ -38,20 +38,43 @@ class Cookie(BaseModel):
 
 
 class RequestModel(BaseModel):
-    name: str
-    path: Path
-    """The path of the request on the file system (i.e. where the yaml is)"""
+    name: str | None = Field(default=None)
+    """The name of the request. This is used to identify the request in the UI.
+    Before saving a request, the name may be None."""
+
+    path: Path | None = Field(default=None)
+    """The path of the request on the file system (i.e. where the yaml is).
+    Before saving a request, the path may be None."""
+
     url: str
+    """The URL of the request."""
+
     method: HttpRequestMethod = Field(default="GET")
+    """The HTTP method of the request."""
+
     description: str = Field(default="")
+    """The description of the request."""
+
     body: str | None = Field(default=None)
+    """The body of the request."""
+
     auth: Auth | None = Field(default=None)
+    """The authentication information for the request."""
+
     headers: list[Header] = Field(default_factory=list)
+    """The headers of the request."""
+
     params: list[QueryParam] = Field(default_factory=list)
+    """The query parameters of the request."""
+
     cookies: list[Cookie] = Field(default_factory=list)
+    """The cookies of the request."""
+
     posting_version: str = Field(default="1.0")
+    """The version of Posting."""
 
     def to_httpx(self) -> httpx.Request:
+        """Convert the request model to an httpx request."""
         return httpx.Request(
             method=self.method,
             url=self.url,
