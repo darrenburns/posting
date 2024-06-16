@@ -4,7 +4,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Button, Input, Label, TextArea
+from textual.widgets import Button, Footer, Input, Label, TextArea
 
 from posting.collection import RequestModel
 from posting.widgets.text_area import PostingTextArea
@@ -74,3 +74,4 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
             yield Label("Description")
             yield PostingTextArea()
             yield Button.success("Save")
+        yield Footer()
