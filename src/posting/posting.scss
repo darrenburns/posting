@@ -13,11 +13,12 @@ ModalScreen {
   align: center middle;
 
   & > VerticalScroll {
-    background: $surface;
-    border: wide $surface;
+    background: $background;
+    border: wide $background-lighten-2;
     padding: 1 2;
-    border-title-background: $surface;
+    border-title-background: $background;
     border-title-color: $text;
+    border-title-style: b;
   }
 }
 
@@ -173,6 +174,11 @@ DataTable {
 
 
 TextArea {
+  border: none;
+  &:focus {
+      border: none;
+  }
+
   & .text-area--cursor {
     color: $text;
     background: $accent;

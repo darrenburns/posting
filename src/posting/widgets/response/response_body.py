@@ -9,17 +9,6 @@ class ResponseTextArea(ReadOnlyTextArea):
     For displaying responses.
     """
 
-    DEFAULT_CSS = """\
-    ResponseTextArea {
-        border: none;
-        padding: 0;
-        &:focus {
-            border: none;
-            padding: 0;
-        }
-    }
-    """
-
     def on_mount(self):
         self.register_theme(POSTLING_THEME)
         self.theme = "posting"

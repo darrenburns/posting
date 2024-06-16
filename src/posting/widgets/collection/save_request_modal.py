@@ -4,9 +4,10 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Input
+from textual.widgets import Button, Input, Label
 
 from posting.collection import RequestModel
+from posting.widgets.text_area import TextEditor
 
 
 @dataclass
@@ -26,14 +27,20 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
 
     CSS = """
     SaveRequestModal {
-        & Input {
-            width: 100%;
-        }
 
         & VerticalScroll {
             width: 30%;
             height: 70%;
+            & Input {
+                width: 100%;
+            }
+            & Button {
+                dock: bottom;
+                width: 1fr;
+            }
         }
+
+
     }
     """
 
@@ -49,4 +56,8 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
     def compose(self) -> ComposeResult:
         with VerticalScroll() as vs:
             vs.border_title = "Save new request"
-            yield Input(placeholder="Title")
+            yield Label("Title")
+            yield Input()
+            yield Label("Description")
+            yield TextArea()
+            yield Button.success("Save")
