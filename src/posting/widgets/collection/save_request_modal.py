@@ -3,7 +3,7 @@ from pathlib import Path
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Input, Label
+from textual.widgets import Input
 
 from posting.collection import RequestModel
 
@@ -42,5 +42,6 @@ class SaveRequestModal(ModalScreen[SaveRequestModalData]):
         """The request to save."""
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll():
+        with VerticalScroll() as vs:
+            vs.border_title = "Save new request"
             yield Input(placeholder="Title")

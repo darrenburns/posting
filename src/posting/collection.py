@@ -106,7 +106,6 @@ class RequestModel(BaseModel):
             content = self.model_dump(
                 exclude_defaults=True, exclude_none=True, exclude_unset=True
             )
-            print("saving", content)
             yaml.dump(content, file, sort_keys=False)
 
 

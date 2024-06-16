@@ -10,6 +10,15 @@ Screen {
 
 ModalScreen {
   background: black 30%;
+  align: center middle;
+
+  & > VerticalScroll {
+    background: $surface-darken-1;
+    border: wide $surface;
+    padding: 1 2;
+    border-title-background: $surface;
+    border-title-color: $text;
+  }
 }
 
 .section {
@@ -198,6 +207,7 @@ Input {
   padding: 0 1;
   height: 1;
   background: $surface;
+  border: none;
 
   &:focus {
     background: $surface-lighten-1;
