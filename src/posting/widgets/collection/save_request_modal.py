@@ -9,14 +9,14 @@ from posting.collection import RequestModel
 
 
 @dataclass
-class SaveRequestModalData:
+class SaveRequestData:
     """Data for the save request modal."""
 
     path: Path
     """The path to save the request to."""
 
 
-class SaveRequestModal(ModalScreen[SaveRequestModalData]):
+class SaveRequestModal(ModalScreen[SaveRequestData]):
     """A modal for saving a request to disk if it has not already been saved.
 
     (Can also be used in situations where we're saving a copy of an existing request

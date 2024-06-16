@@ -29,7 +29,10 @@ from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.widgets.collection.browser import CollectionBrowser
-from posting.widgets.collection.save_request_modal import SaveRequestModal
+from posting.widgets.collection.save_request_modal import (
+    SaveRequestData,
+    SaveRequestModal,
+)
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
@@ -155,14 +158,29 @@ class MainScreen(Screen[None]):
 
     def action_save_request(self) -> None:
         """Save the request to disk."""
+
+        def _notify_saved(save_path: Path) -> None:
+            self.notify(
+                title="Request saved",
+                message=f"{save_path.absolute().relative_to(Path.cwd())}",
+                timeout=3,
+            )
+
         request_model = self.build_request_model(self.request_options)
         if request_model.path:
-            request_model.save_to_disk(request_model.path)
+            save_path = request_model.path
+            request_model.save_to_disk(save_path)
+            _notify_saved(save_path)
         else:
             # Saving for the first time, prompt the user for info.
-            # TODO: Finish
+            # TODO - this info could already be supplied via metadata tab.
+            def save_callback(save_data: SaveRequestData) -> None:
+                save_path = save_data.path
+                request_model.save_to_disk(save_path)
+                _notify_saved(save_path)
+
             self.app.push_screen(
-                SaveRequestModal(request_model), callback=request_model.save_to_disk
+                SaveRequestModal(request_model), callback=save_callback
             )
 
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
