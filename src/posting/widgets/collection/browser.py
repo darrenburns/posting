@@ -176,7 +176,11 @@ class CollectionBrowser(Vertical):
         if collection is None:
             return
 
-        tree = CollectionTree(label=collection.name, data=collection)
+        tree = CollectionTree(
+            label=collection.name,
+            data=collection,
+            id="collection-tree",
+        )
         tree.guide_depth = 1
         tree.show_root = False
         tree.show_guides = False
@@ -205,8 +209,6 @@ class CollectionBrowser(Vertical):
 
     @on(Tree.NodeSelected)
     def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
-        print("Node selected:")
-        print(event.node.data)
         if isinstance(event.node.data, RequestModel):
             self.request_preview.request = event.node.data
             self.post_message(

@@ -380,6 +380,7 @@ class Posting(App[None]):
     def on_mount(self) -> None:
         self.jumper = Jumper(
             {
+                "collection-tree": "tab",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-parameters-pane": "e",
