@@ -40,7 +40,6 @@ def default(collection: Path | None = None) -> None:
     if collection:
         collection_tree = Collection.from_directory(str(collection))
     else:
-        print(data_directory())
         default_collections_directory = data_directory() / "collections"
         collection_tree = Collection.from_directory(str(default_collections_directory))
 

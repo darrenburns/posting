@@ -131,9 +131,6 @@ class TextAreaFooter(Horizontal):
         if isinstance(text_area, ReadOnlyTextArea):
             self.set_reactive(TextAreaFooter.visual_mode, text_area.visual_mode)
 
-        print("text_area read_only", text_area.read_only)
-        print("read_only", self.read_only)
-
     def watch_selection(self, selection: Selection) -> None:
         row, column = selection.end
         self.cursor_location_label.update(f"{row+1}:{column+1}")

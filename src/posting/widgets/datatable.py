@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import Iterable, Self
-import rich.repr
 from rich.text import Text
 from textual import on
 from textual.binding import Binding

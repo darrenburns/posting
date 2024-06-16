@@ -172,7 +172,6 @@ class KeyValueEditor(Vertical):
 
     @on(PostingDataTable.RowsRemoved)
     def rows_removed(self, event: PostingDataTable.RowsRemoved) -> None:
-        print("removed")
         rows = event.data_table.row_count
         self.set_class(rows == 0, "empty")
         if rows == 0 and event.explicit_by_user:
