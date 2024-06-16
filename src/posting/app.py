@@ -160,6 +160,7 @@ class MainScreen(Screen[None]):
             request_model.save_to_disk(request_model.path)
         else:
             # Saving for the first time, prompt the user for info.
+            # TODO: Finish
             self.app.push_screen(
                 SaveRequestModal(request_model), callback=request_model.save_to_disk
             )
@@ -236,9 +237,12 @@ class MainScreen(Screen[None]):
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
             headers=self.headers_table.to_model(),
-            cookies=Cookie.from_httpx(self.cookies)
-            if request_options.attach_cookies
-            else [],
+            body=self.request_body_text_area.text,
+            cookies=(
+                Cookie.from_httpx(self.cookies)
+                if request_options.attach_cookies
+                else []
+            ),
         )
 
     def load_request_model(self, request_model: RequestModel) -> None:
