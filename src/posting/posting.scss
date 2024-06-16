@@ -183,6 +183,9 @@ TextArea {
 
 Tree {
   & > .tree--cursor {
+    background: $panel-lighten-1 70%;
+  }
+  &:focus > .tree--cursor {
     background: $accent;
   }
 
