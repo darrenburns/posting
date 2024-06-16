@@ -3,6 +3,7 @@ from textual.binding import Binding
 from textual.containers import Vertical
 from textual.widgets import Input
 from textual.widgets.data_table import CellDoesNotExist
+from posting.collection import QueryParam
 
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
@@ -50,12 +51,20 @@ class ParamsTable(PostingDataTable):
         except CellDoesNotExist:
             pass
 
-    def as_dict(self) -> dict[str, str]:
-        params: dict[str, str] = {}
+    def to_model(self) -> list[QueryParam]:
+        params: list[QueryParam] = []
+        # TODO - handle enabled/disabled...
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            params[row[0]] = row[1]
+            params.append(QueryParam(name=row[0], value=row[1], enabled=True))
         return params
+
+    # def to_httpx(self) -> httpx.QueryParams:
+    #     params: list[tuple[str, str]] = []
+    #     for row_index in range(self.row_count):
+    #         row = self.get_row_at(row_index)
+    #         params.append((row[0], row[1]))
+    #     return httpx.QueryParams(tuple(params))
 
 
 class QueryStringEditor(Vertical):

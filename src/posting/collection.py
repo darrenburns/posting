@@ -1,6 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Literal
+import httpx
 from pydantic import BaseModel, Field
 import yaml
 import os
@@ -26,6 +27,16 @@ class QueryParam(BaseModel):
     enabled: bool = Field(default=True)
 
 
+class Cookie(BaseModel):
+    name: str
+    value: str
+    enabled: bool = Field(default=True)
+
+    @classmethod
+    def from_httpx(cls, cookies: httpx.Cookies) -> list[Cookie]:
+        return [Cookie(name=name, value=value) for name, value in cookies.items()]
+
+
 class RequestModel(BaseModel):
     name: str
     path: Path
@@ -37,7 +48,32 @@ class RequestModel(BaseModel):
     auth: Auth | None = Field(default=None)
     headers: list[Header] = Field(default_factory=list)
     params: list[QueryParam] = Field(default_factory=list)
+    cookies: list[Cookie] = Field(default_factory=list)
     posting_version: str = Field(default="1.0")
+
+    def to_httpx(self) -> httpx.Request:
+        return httpx.Request(
+            method=self.method,
+            url=self.url,
+            content=self.body,
+            headers=httpx.Headers(
+                [
+                    (header.name, header.value)
+                    for header in self.headers
+                    if header.enabled
+                ]
+            ),
+            params=httpx.QueryParams(
+                [(param.name, param.value) for param in self.params if param.enabled]
+            ),
+            cookies=httpx.Cookies(
+                [
+                    (cookie.name, cookie.value)
+                    for cookie in self.cookies
+                    if cookie.enabled
+                ]
+            ),
+        )
 
 
 class Collection(BaseModel):

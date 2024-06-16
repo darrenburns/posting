@@ -1,14 +1,11 @@
-from dataclasses import dataclass
-
 from rich.text import Text
-from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
-from textual.message import Message
-from textual.widgets import Input, DataTable
-from textual.widgets.data_table import RowKey, CellDoesNotExist
+from textual.widgets import Input
+from textual.widgets.data_table import CellDoesNotExist
 from textual_autocomplete import DropdownItem, AutoComplete
+from posting.collection import Header
 
 from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
@@ -104,3 +101,18 @@ class HeadersTable(PostingDataTable):
             self.remove_row(cursor_row_key)
         except CellDoesNotExist:
             pass
+
+    def to_model(self) -> list[Header]:
+        headers: list[Header] = []
+        # TODO - handle enabled/disabled...
+        for row_index in range(self.row_count):
+            row = self.get_row_at(row_index)
+            headers.append(Header(name=row[0], value=row[1], enabled=True))
+        return headers
+
+    # def to_httpx(self) -> httpx.Headers:
+    #     headers: list[tuple[str, str]] = []
+    #     for row_index in range(self.row_count):
+    #         row = self.get_row_at(row_index)
+    #         headers.append((row[0], row[1]))
+    #     return httpx.Headers(headers)

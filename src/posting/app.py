@@ -23,7 +23,7 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
-from posting.collection import Collection
+from posting.collection import Collection, Cookie, HttpRequestMethod, RequestModel
 
 from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
@@ -75,13 +75,13 @@ class MainScreen(Screen[None]):
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
     ]
 
-    selected_method = reactive("GET", init=False)
+    selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
     def __init__(self, collection: Collection | None = None) -> None:
         super().__init__()
         self.collection = collection
-        self.cookies = httpx.Cookies()
+        self.cookies: httpx.Cookies = httpx.Cookies()
 
     def compose(self) -> ComposeResult:
         yield AppHeader(f"Posting [white dim]{version('posting')}[/]")
@@ -199,14 +199,25 @@ class MainScreen(Screen[None]):
         self.app.push_screen(MethodSelectionPopup(), callback=set_method)
 
     def build_httpx_request(self, request_options: RequestOptions) -> httpx.Request:
-        return httpx.Request(
+        return self.build_request_model(request_options).to_httpx()
+
+    def build_request_model(self, request_options: RequestOptions) -> RequestModel:
+        """Grab data from the UI and pull it into a request model. This model
+        may be passed around, stored on disk, etc."""
+        return RequestModel(
+            name="",
+            path=Path(""),
             method=self.selected_method,
             url=self.url_input.value.strip(),
-            params=self.params_table.as_dict(),
-            content=self.request_body_text_area.text,
-            headers=self.headers_table.as_dict(),
-            cookies=self.cookies if request_options.attach_cookies else None,
+            params=self.params_table.to_model(),
+            headers=self.headers_table.to_model(),
+            cookies=Cookie.from_httpx(self.cookies)
+            if request_options.attach_cookies
+            else [],
         )
+
+    def load_request_model(self) -> None:
+        pass
 
     @property
     def url_input(self) -> UrlInput:
