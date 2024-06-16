@@ -91,6 +91,10 @@ class TextAreaFooter(Horizontal):
     }
     """
 
+    BINDINGS = [
+        Binding("escape", "focus_text_area", "Focus text area", show=False),
+    ]
+
     @dataclass
     class LanguageChanged(Message):
         language: str | None
@@ -124,6 +128,7 @@ class TextAreaFooter(Horizontal):
         disabled: bool = False,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.text_area = text_area
         self.set_reactive(TextAreaFooter.read_only, text_area.read_only)
         self.set_reactive(TextAreaFooter.language, text_area.language)
         self.set_reactive(TextAreaFooter.soft_wrap, text_area.soft_wrap)
@@ -182,6 +187,9 @@ class TextAreaFooter(Horizontal):
     @property
     def cursor_location_label(self) -> Label:
         return self.query_one("#location-label", Label)
+
+    def action_focus_text_area(self) -> None:
+        self.text_area.focus()
 
 
 class ReadOnlyTextArea(TextArea):
