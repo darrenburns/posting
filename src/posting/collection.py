@@ -1,15 +1,29 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 import httpx
-from pydantic import BaseModel, Field, model_serializer
+from pydantic import BaseModel, Field
 import yaml
 import os
 import glob
 
-from posting.save_request import generate_request_filename
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+
+
+def str_presenter(dumper, data):
+    if data.count("\n") > 0:
+        data = "\n".join(
+            [line.rstrip() for line in data.splitlines()]
+        )  # Remove any trailing spaces, then put it back together again
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data)
+
+
+yaml.add_representer(str, str_presenter)
+yaml.representer.SafeRepresenter.add_representer(
+    str, str_presenter
+)  # to use with safe_dump
 
 
 class Auth(BaseModel):
@@ -103,9 +117,7 @@ class RequestModel(BaseModel):
     def save_to_disk(self, path: Path) -> None:
         """Save the request model to a YAML file."""
         with open(path, "w") as file:
-            content = self.model_dump(
-                exclude_defaults=True, exclude_none=True, exclude_unset=True
-            )
+            content = self.model_dump(exclude_defaults=True, exclude_none=True)
             yaml.dump(content, file, sort_keys=False)
 
 

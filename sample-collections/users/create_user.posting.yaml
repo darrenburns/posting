@@ -1,24 +1,18 @@
 name: Create user
-posting_version: "1.0"
 description: Adds a new user to the system.
 method: POST
 url: https://jsonplaceholder.typicode.com/users
-headers:
-  - name: "Content-Type"
-    value: "application/json"
-  - name: "Some-Header"
-    value: "Some value"
-    enabled: false
-body: |
+body: |-
   {
     "firstName": "John",
     "lastName": "Doe",
     "email": "john.doe@example.com"
   }
+headers:
+- name: Content-Type
+  value: application/json
+- name: Some-Header
+  value: Some value
 params:
-  - name: "sendWelcomeEmail"
-    value: "true"
-    enabled: false
-auth:
-  type: Bearer
-  token: "abcdef12345"
+- name: sendWelcomeEmail
+  value: 'true'

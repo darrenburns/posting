@@ -1,20 +1,14 @@
-posting_version: "1.0"
-method: "GET"
-name: "User Profile List"
-description: "Retrieves a list of all user profiles."
-url: "https://jsonplaceholder.typicode.com/users"
+name: User Profile List
+description: Retrieves a list of all user profiles.
+url: https://jsonplaceholder.typicode.com/users
+body: ''
 headers:
-  - name: "Content-Type"
-    value: "application/json"
-  - name: "Some-Header"
-    value: "Some value"
-    enabled: false
+- name: Content-Type
+  value: application/json
+- name: Some-Header
+  value: Some value
 params:
-  - name: "page"
-    value: "1"
-  - name: "limit"
-    value: "20"
-    enabled: false
-auth:
-  type: "Bearer"
-  token: "exampleToken123"
+- name: page
+  value: '1'
+- name: limit
+  value: '20'
