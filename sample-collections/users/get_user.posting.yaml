@@ -1,16 +1,11 @@
 name: Get User
 description: Retrieves the specific user based on their user ID.
-method: "GET"
-url: "https://jsonplaceholder.typicode.com/users/{userId}"
+url: https://jsonplaceholder.typicode.com/users/{userId}
 headers:
-  - name: "Content-Type"
-    value: "application/json"
-  - name: "Some-Header"
-    value: "Some value"
-    enabled: false
+- name: Content-Type
+  value: application/json
+- name: Some-Header
+  value: Some value
 params:
-  - name: "verbose"
-    value: "true"
-auth:
-  type: "Bearer"
-  token: "exampleToken123"
+- name: verbose
+  value: 'true'

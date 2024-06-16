@@ -29,6 +29,7 @@ from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.widgets.collection.browser import CollectionBrowser
+from posting.widgets.collection.save_request_modal import SaveRequestModal
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
@@ -74,6 +75,7 @@ class MainScreen(Screen[None]):
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
         Binding("ctrl+n", "preview_request_model", "DEBUG Preview request model"),
+        Binding("ctrl+s", "save_request", "Save request"),
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
@@ -151,6 +153,17 @@ class MainScreen(Screen[None]):
         request_model = self.build_request_model(self.request_options)
         log.info(request_model)
 
+    def action_save_request(self) -> None:
+        """Save the request to disk."""
+        request_model = self.build_request_model(self.request_options)
+        if request_model.path:
+            request_model.save_to_disk(request_model.path)
+        else:
+            # Saving for the first time, prompt the user for info.
+            self.app.push_screen(
+                SaveRequestModal(request_model), callback=request_model.save_to_disk
+            )
+
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
         """Update the layout of the app to be horizontal or vertical."""
         classes = {"horizontal", "vertical"}
@@ -218,6 +231,7 @@ class MainScreen(Screen[None]):
         return RequestModel(
             name=currently_open.name if currently_open else None,
             path=currently_open.path if currently_open else None,
+            description=currently_open.description if currently_open else "",
             method=self.selected_method,
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
@@ -426,7 +440,9 @@ class Posting(App[None]):
     def command_theme(self, theme: str) -> None:
         self.theme = theme
         self.refresh_css()
-        self.notify(f"Theme is now [b]{theme}[/].", title="Theme updated", timeout=2.5)
+        self.notify(
+            f"Theme is now [b]{theme!r}[/].", title="Theme updated", timeout=2.5
+        )
 
     @on(CommandPalette.Opened)
     def palette_opened(self) -> None:

@@ -1,11 +1,13 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 import httpx
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer
 import yaml
 import os
 import glob
+
+from posting.save_request import generate_request_filename
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 
@@ -42,18 +44,18 @@ class RequestModel(BaseModel):
     """The name of the request. This is used to identify the request in the UI.
     Before saving a request, the name may be None."""
 
-    path: Path | None = Field(default=None)
-    """The path of the request on the file system (i.e. where the yaml is).
-    Before saving a request, the path may be None."""
-
-    url: str
-    """The URL of the request."""
+    description: str = Field(default="")
+    """The description of the request."""
 
     method: HttpRequestMethod = Field(default="GET")
     """The HTTP method of the request."""
 
-    description: str = Field(default="")
-    """The description of the request."""
+    url: str = Field()
+    """The URL of the request."""
+
+    path: Path | None = Field(default=None, exclude=True)
+    """The path of the request on the file system (i.e. where the yaml is).
+    Before saving a request, the path may be None."""
 
     body: str | None = Field(default=None)
     """The body of the request."""
@@ -97,6 +99,15 @@ class RequestModel(BaseModel):
                 ]
             ),
         )
+
+    def save_to_disk(self, path: Path) -> None:
+        """Save the request model to a YAML file."""
+        with open(path, "w") as file:
+            content = self.model_dump(
+                exclude_defaults=True, exclude_none=True, exclude_unset=True
+            )
+            print("saving", content)
+            yaml.dump(content, file, sort_keys=False)
 
 
 class Collection(BaseModel):
