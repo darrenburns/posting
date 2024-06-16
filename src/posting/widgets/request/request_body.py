@@ -43,7 +43,7 @@ class RequestBodyTextArea(TextArea):
     def on_change(self, event: TextArea.Changed) -> None:
         self.set_class(len(self.text) == 0, "empty")
 
-    def _on_key(self, event: events.Key) -> None:
+    def on_key(self, event: events.Key) -> None:
         character = event.character
 
         if character in self.OPENING_BRACKETS:
@@ -77,7 +77,7 @@ class RequestBodyTextArea(TextArea):
             get_content_start_column = self.get_content_start_column
             get_column_width = self.get_column_width
             try:
-                for character, location in character_locations:
+                for character, _location in character_locations:
                     # Ignore whitespace
                     if character.isspace():
                         continue
