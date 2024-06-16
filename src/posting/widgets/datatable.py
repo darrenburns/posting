@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Iterable, Self
+import rich.repr
 from rich.text import Text
+from textual import on
 from textual.binding import Binding
 from textual.message import Message
 from textual.widgets import DataTable
@@ -8,6 +10,14 @@ from textual.widgets.data_table import CellKey, RowKey
 
 
 class PostingDataTable(DataTable[str]):
+    DEFAULT_CSS = """\
+PostingDataTable {
+    &.empty {
+        display: none;
+    }
+}
+"""
+
     BINDINGS = [
         Binding("up,k", "cursor_up", "Cursor Up", show=False),
         Binding("down,j", "cursor_down", "Cursor Down", show=False),
@@ -83,3 +93,13 @@ class PostingDataTable(DataTable[str]):
             self.screen.focus_previous()
         else:
             super().action_cursor_up()
+
+    @on(RowsRemoved)
+    @on(RowsAdded)
+    def _on_rows_removed(self, event: RowsRemoved | RowsAdded) -> None:
+        self.set_class(self.row_count == 0, "empty")
+
+    def __rich_repr__(self):
+        yield "id", self.id
+        yield "classes", self.classes
+        yield "row_count", self.row_count

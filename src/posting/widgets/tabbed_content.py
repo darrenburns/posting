@@ -11,7 +11,11 @@ class PostingTabbedContent(TabbedContent):
     ]
 
     def action_next_tab(self) -> None:
-        self.query_one(Tabs).action_next_tab()
+        tabs = self.query_one(Tabs)
+        if tabs.has_focus:
+            tabs.action_next_tab()
 
     def action_previous_tab(self) -> None:
-        self.query_one(Tabs).action_previous_tab()
+        tabs = self.query_one(Tabs)
+        if tabs.has_focus:
+            tabs.action_previous_tab()

@@ -7,7 +7,7 @@ from click_default_group import DefaultGroup
 
 from posting.app import Posting
 from posting.collection import Collection
-from posting.locations import config_file
+from posting.locations import config_file, data_directory
 
 
 def load_or_create_config_file() -> dict[str, Any]:
@@ -37,6 +37,12 @@ def cli() -> None:
     help="Path to the collection directory",
 )
 def default(collection: Path | None = None) -> None:
-    collection_tree = Collection.from_directory(str(collection))
+    if collection:
+        collection_tree = Collection.from_directory(str(collection))
+    else:
+        print(data_directory())
+        default_collections_directory = data_directory() / "collections"
+        collection_tree = Collection.from_directory(str(default_collections_directory))
+
     app = Posting(collection_tree)
     app.run()
