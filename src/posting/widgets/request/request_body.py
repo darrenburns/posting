@@ -12,17 +12,6 @@ class RequestBodyTextArea(TextArea):
     For editing request bodies.
     """
 
-    DEFAULT_CSS = """\
-    RequestBodyTextArea {
-        border: none;
-
-        &:focus {
-            border: none;
-        }
-
-    }
-    """
-
     OPENING_BRACKETS = {
         "(": ")",
         "[": "]",
