@@ -12,7 +12,7 @@ dependencies = [
     "httpx>=0.27.0",
     "textual-autocomplete>=3.0.0a2",
     "pyperclip>=1.8.2",
-    "textual[syntax]>=0.67.1",
+    "textual[syntax]>=0.69.0",
     "pydantic>=2.7.3",
     "pyyaml>=6.0.1",
 ]

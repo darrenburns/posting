@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
@@ -7,6 +8,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Footer, Input, Label, TextArea
 
 from posting.collection import RequestModel
+from posting.save_request import generate_request_filename
 from posting.widgets.text_area import PostingTextArea
 
 
@@ -14,8 +16,12 @@ from posting.widgets.text_area import PostingTextArea
 class SaveRequestData:
     """Data for the save request modal."""
 
-    path: Path
-    """The path to save the request to."""
+    file_name: str
+    """The file name of the request."""
+    title: str
+    """The title of the request."""
+    description: str
+    """The description of the request."""
 
 
 class SaveRequestModal(ModalScreen[SaveRequestData]):
@@ -68,10 +74,33 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
 
     def compose(self) -> ComposeResult:
         with VerticalScroll() as vs:
+            vs.can_focus = False
             vs.border_title = "Save new request"
-            yield Label("Title")
-            yield Input()
-            yield Label("Description")
-            yield PostingTextArea()
-            yield Button.success("Save")
+            yield Label("File name [dim]optional[/dim]")
+            yield Input(placeholder=self.generated_filename, id="file-name-input")
+            yield Label("Title [dim]optional[/dim]")
+            yield Input(id="title-input")
+            yield Label("Description [dim]optional[/dim]")
+            yield PostingTextArea(id="description-textarea")
+            yield Button.success("Save", id="save-button")
         yield Footer()
+
+    @property
+    def generated_filename(self) -> str:
+        request = self.request
+        return generate_request_filename(request.method, request.name)
+
+    @on(Button.Pressed, selector="#save-button")
+    def on_save(self) -> None:
+        file_name = self.query_one("#file-name-input", Input).value
+        if not file_name:
+            file_name = self.generated_filename
+        title = self.query_one("#title-input", Input).value
+        description = self.query_one("#description-textarea", PostingTextArea).text
+        self.dismiss(
+            SaveRequestData(
+                file_name=file_name,
+                title=title,
+                description=description,
+            )
+        )

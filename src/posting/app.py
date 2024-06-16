@@ -85,7 +85,7 @@ class MainScreen(Screen[None]):
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
     currently_open: Reactive[RequestModel | None] = reactive(None)
 
-    def __init__(self, collection: Collection | None = None) -> None:
+    def __init__(self, collection: Collection) -> None:
         super().__init__()
         self.collection = collection
         self.cookies: httpx.Cookies = httpx.Cookies()
@@ -175,9 +175,14 @@ class MainScreen(Screen[None]):
             # Saving for the first time, prompt the user for info.
             # TODO - this info could already be supplied via metadata tab.
             def save_callback(save_data: SaveRequestData) -> None:
-                save_path = save_data.path
-                request_model.save_to_disk(save_path)
-                _notify_saved(save_path)
+                title = save_data.title
+                description = save_data.description
+                request_model.name = title
+                request_model.description = description
+                request_model.path = self.collection.path / save_data.file_name
+                print("saving request model", request_model)
+                request_model.save_to_disk(request_model.path)
+                _notify_saved(request_model.path)
 
             self.app.push_screen(
                 SaveRequestModal(request_model), callback=save_callback
@@ -420,7 +425,7 @@ class Posting(App[None]):
 
     def __init__(
         self,
-        collection: Collection | None = None,
+        collection: Collection,
         collection_specified: bool = False,
     ) -> None:
         super().__init__()
@@ -538,8 +543,3 @@ class Posting(App[None]):
 
         self.clear_notifications()
         await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
-
-
-app = Posting()
-if __name__ == "__main__":
-    app.run()

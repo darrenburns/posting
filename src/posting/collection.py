@@ -1,11 +1,11 @@
 from __future__ import annotations
+import glob
 from pathlib import Path
 from typing import Literal
 import httpx
 from pydantic import BaseModel, Field
 import yaml
 import os
-import glob
 
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
@@ -142,6 +142,7 @@ class Collection(BaseModel):
             request_files = directory_path.rglob("*.posting.yaml")
         else:
             directory_path = Path.cwd()
+            directory = str(directory_path)
             request_files = directory_path.glob("*.posting.yaml")
 
         collection_name = directory_path.name
@@ -149,6 +150,7 @@ class Collection(BaseModel):
 
         for file_path in request_files:
             try:
+                file_path = str(file_path)
                 request = load_request_from_yaml(file_path)
                 path_parts = (
                     file_path[len(directory) :].strip(os.path.sep).split(os.path.sep)
