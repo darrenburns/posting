@@ -13,7 +13,6 @@ class ResponseTextArea(ReadOnlyTextArea):
         self.register_theme(POSTLING_THEME)
         self.theme = "posting"
         empty = len(self.text) == 0
-        self.set_class(empty, "empty")
         self.show_line_numbers = not empty
 
     @on(TextArea.Changed)

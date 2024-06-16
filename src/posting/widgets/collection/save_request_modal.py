@@ -4,10 +4,10 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Button, Input, Label
+from textual.widgets import Button, Input, Label, TextArea
 
 from posting.collection import RequestModel
-from posting.widgets.text_area import TextEditor
+from posting.widgets.text_area import PostingTextArea
 
 
 @dataclass
@@ -29,10 +29,23 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
     SaveRequestModal {
 
         & VerticalScroll {
-            width: 30%;
-            height: 70%;
+            width: 50%;
+            height: auto;
+            max-height: 70%;
             & Input {
                 width: 100%;
+                margin-bottom: 1;
+            }
+            & TextArea {
+                width: 100%;
+                height: 4;
+                padding: 0;
+                background: $surface;
+                margin-bottom: 1;
+                &:focus {
+                    background: $surface-lighten-1;
+                    border-left: outer $surface-lighten-2;
+                }
             }
             & Button {
                 dock: bottom;
@@ -59,5 +72,5 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
             yield Label("Title")
             yield Input()
             yield Label("Description")
-            yield TextArea()
+            yield PostingTextArea()
             yield Button.success("Save")

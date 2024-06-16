@@ -192,7 +192,17 @@ class TextAreaFooter(Horizontal):
         self.text_area.focus()
 
 
-class ReadOnlyTextArea(TextArea):
+class PostingTextArea(TextArea):
+    def on_mount(self) -> None:
+        self.indent_width = 2
+        self.set_class(len(self.text) == 0, "empty")
+
+    @on(TextArea.Changed)
+    def on_change(self, event: TextArea.Changed) -> None:
+        self.set_class(len(self.text) == 0, "empty")
+
+
+class ReadOnlyTextArea(PostingTextArea):
     """
     A read-only text area.
     """
