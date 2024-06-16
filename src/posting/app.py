@@ -97,6 +97,7 @@ class MainScreen(Screen[None]):
     @on(Button.Pressed, selector="SendRequestButton")
     @on(Input.Submitted, selector="UrlInput")
     async def send_request(self) -> None:
+        """Send the request."""
         request_options = self.request_options
         try:
             async with httpx.AsyncClient(verify=request_options.verify) as client:
@@ -128,34 +129,30 @@ class MainScreen(Screen[None]):
 
     @on(HttpResponseReceived)
     def on_response_received(self, event: HttpResponseReceived) -> None:
+        """Update the response area with the response."""
         self.response_area.response = event.response
         self.cookies.update(event.response.cookies)
 
     @on(CollectionBrowser.RequestSelected)
     def on_request_selected(self, event: CollectionBrowser.RequestSelected) -> None:
-        request = event.request
-        self.currently_open = request
-        self.selected_method = request.method
-        self.url_input.value = str(request.url)
-        self.params_table.replace_all_rows(
-            [(param.name, param.value) for param in request.params]
-        )
-        self.headers_table.replace_all_rows(
-            [(header.name, header.value) for header in request.headers]
-        )
-        self.request_body_text_area.text = request.body or ""
+        """Load a request model into the UI when a request is selected."""
+        self.load_request_model(event.request)
 
     async def action_send_request(self) -> None:
+        """Send the request."""
         await self.send_request()
 
     def action_change_method(self) -> None:
+        """Change the method of the request."""
         self.method_selection()
 
     def action_preview_request_model(self) -> None:
+        """Preview the request model (debug aid)."""
         request_model = self.build_request_model(self.request_options)
         log.info(request_model)
 
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
+        """Update the layout of the app to be horizontal or vertical."""
         classes = {"horizontal", "vertical"}
         other_class = classes.difference({layout}).pop()
         self.app_body.add_class(f"layout-{layout}")
@@ -170,6 +167,7 @@ class MainScreen(Screen[None]):
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:
+        """Update the body tab to indicate if there is a body."""
         body_tab = self.query_one("#--content-tab-body-pane", ContentTab)
         if event.text_area.text:
             body_tab.update("Body[cyan b]•[/]")
@@ -181,6 +179,7 @@ class MainScreen(Screen[None]):
     def on_content_changed(
         self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
     ) -> None:
+        """Update the headers tab to indicate if there are any headers."""
         headers_tab = self.query_one("#--content-tab-headers-pane", ContentTab)
         if event.data_table.row_count:
             headers_tab.update("Headers[cyan b]•[/]")
@@ -192,6 +191,7 @@ class MainScreen(Screen[None]):
     def on_params_changed(
         self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
     ) -> None:
+        """Update the parameters tab to indicate if there are any parameters."""
         params_tab = self.query_one("#--content-tab-parameters-pane", ContentTab)
         if event.data_table.row_count:
             params_tab.update("Parameters[cyan b]•[/]")
@@ -200,12 +200,15 @@ class MainScreen(Screen[None]):
 
     @on(MethodSelection.Clicked)
     def method_selection(self) -> None:
+        """Open a popup to select the method."""
+
         def set_method(method: str) -> None:
             self.selected_method = method
 
         self.app.push_screen(MethodSelectionPopup(), callback=set_method)
 
     def build_httpx_request(self, request_options: RequestOptions) -> httpx.Request:
+        """Build an httpx request from the UI."""
         return self.build_request_model(request_options).to_httpx()
 
     def build_request_model(self, request_options: RequestOptions) -> RequestModel:
@@ -224,8 +227,18 @@ class MainScreen(Screen[None]):
             else [],
         )
 
-    def load_request_model(self) -> None:
-        pass
+    def load_request_model(self, request_model: RequestModel) -> None:
+        """Load a request model into the UI."""
+        self.currently_open = request_model
+        self.selected_method = request_model.method
+        self.url_input.value = str(request_model.url)
+        self.params_table.replace_all_rows(
+            [(param.name, param.value) for param in request_model.params]
+        )
+        self.headers_table.replace_all_rows(
+            [(header.name, header.value) for header in request_model.headers]
+        )
+        self.request_body_text_area.text = request_model.body or ""
 
     @property
     def url_input(self) -> UrlInput:
