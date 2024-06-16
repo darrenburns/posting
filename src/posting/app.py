@@ -300,15 +300,6 @@ class Posting(App[None]):
             accent="#ffa62b",
             dark=True,
         ),
-        "sunset": ColorSystem(
-            primary="#ff4500",
-            secondary="#ff8c00",
-            warning="#ff6347",
-            error="#b22222",
-            success="#32cd32",
-            accent="#ffd700",
-            dark=True,
-        ),
         "ocean": ColorSystem(
             primary="#1e90ff",
             secondary="#00ced1",
@@ -317,17 +308,6 @@ class Posting(App[None]):
             success="#20b2aa",
             accent="#4682b4",
             dark=True,
-        ),
-        "ocean-light": ColorSystem(
-            primary="#1e90ff",
-            secondary="#00ced1",
-            warning="#ffa07a",
-            error="#ff4500",
-            success="#20b2aa",
-            accent="#4682b4",
-            background="#f0f8ff",
-            surface="#f0f8ff",
-            panel="#f0f8ff",
         ),
         "forest": ColorSystem(
             primary="#006B3F",  # Deep Forest Green

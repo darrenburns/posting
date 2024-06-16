@@ -321,3 +321,9 @@ CollectionBrowser {
     border-title-align: left;
   }
 }
+
+Toast {
+  color: $text; 
+  background: $secondary-background-darken-2;
+  border-right: none;
+}
