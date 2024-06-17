@@ -5,6 +5,7 @@ from textual.widgets import TabPane
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor
 from posting.widgets.request.request_body import RequestBodyTextArea
+from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextAreaFooter, TextEditor
@@ -33,6 +34,8 @@ class RequestEditor(Vertical):
                     )
                 with TabPane("Parameters", id="parameters-pane"):
                     yield QueryStringEditor()
+                with TabPane("Metadata", id="metadata-pane"):
+                    yield RequestMetadata()
                 with TabPane("Options", id="options-pane"):
                     yield RequestOptions()
 

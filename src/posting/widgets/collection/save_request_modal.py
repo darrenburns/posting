@@ -33,38 +33,6 @@ class SaveRequestModal(ModalScreen[SaveRequestData | None]):
     CSS = """
     SaveRequestModal {
         align: center middle;
-        & VerticalScroll {
-            background: $background;
-            border: wide $background-lighten-2;
-            padding: 1 2;
-            border-title-background: $background;
-            border-title-color: $text;
-            border-title-style: b;
-            width: 50%;
-            height: auto;
-            max-height: 70%;
-            & Input {
-                width: 100%;
-                margin-bottom: 1;
-            }
-            & TextArea {
-                width: 100%;
-                height: 4;
-                padding: 0;
-                background: $surface;
-                margin-bottom: 1;
-                &:focus {
-                    background: $surface-lighten-1;
-                    border-left: outer $surface-lighten-2;
-                }
-            }
-            & Button {
-                dock: bottom;
-                width: 1fr;
-            }
-        }
-
-
     }
     """
 
@@ -78,22 +46,12 @@ class SaveRequestModal(ModalScreen[SaveRequestData | None]):
         """The request to save."""
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll() as vs:
-            vs.can_focus = False
-            vs.border_title = "Save new request"
-            yield Label("Save path [dim]optional[/dim]")
-            yield Input(placeholder=self.generated_filename, id="save-path-input")
-            yield Label("Title [dim]optional[/dim]")
-            yield Input(placeholder=self.generated_filename, id="title-input")
-            yield Label("Description [dim]optional[/dim]")
-            yield PostingTextArea(id="description-textarea")
-            yield Button.success("Save", id="save-button")
         yield Footer()
 
     @property
     def generated_filename(self) -> str:
         request = self.request
-        return generate_request_filename(request.method, request.name)
+        return generate_request_filename(request)
 
     def action_close_screen(self) -> None:
         self.dismiss(None)

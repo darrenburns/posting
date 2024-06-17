@@ -184,7 +184,21 @@ TextArea {
     }
   }
 
+  &#description-textarea {
+    width: 100%;
+    height: 1fr;
+    padding: 0;
+    background: $surface;
+    margin-bottom: 1;
+    &:focus {
+      background: $surface-lighten-1;
+      border-left: outer $surface-lighten-2;
+  }
+  }
+
 }
+
+
 
 Tree {
   & > .tree--cursor {

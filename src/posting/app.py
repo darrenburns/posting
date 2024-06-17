@@ -46,6 +46,7 @@ from posting.widgets.request.query_editor import ParamsTable
 
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_editor import RequestEditor
+from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
@@ -304,6 +305,7 @@ class MainScreen(Screen[None]):
             [(header.name, header.value) for header in request_model.headers]
         )
         self.request_body_text_area.text = request_model.body or ""
+        self.request_metadata.request = request_model
 
     @property
     def url_input(self) -> UrlInput:
@@ -332,6 +334,10 @@ class MainScreen(Screen[None]):
     @property
     def request_options(self) -> RequestOptions:
         return self.query_one(RequestOptions)
+
+    @property
+    def request_metadata(self) -> RequestMetadata:
+        return self.query_one(RequestMetadata)
 
     def watch_selected_method(self, value: str) -> None:
         self.query_one(MethodSelection).set_method(value)
@@ -463,7 +469,8 @@ class Posting(App[None]):
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-parameters-pane": "e",
-                "--content-tab-options-pane": "r",
+                "--content-tab-metadata-pane": "r",
+                "--content-tab-options-pane": "t",
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
