@@ -51,6 +51,10 @@ To open a collection, simply pass the path to the `--collection` option when lau
 posting --collection path/to/collection
 ```
 
+The collection will be displayed in the sidebar.
+
+Press <kbd>ctrl</kbd>+<kbd>s</kbd> to save the currently open request.
+
 ## Navigation
 
 Posting can be navigated using either mouse or keyboard.
@@ -59,7 +63,7 @@ Posting can be navigated using either mouse or keyboard.
 
 Jump mode is the fastest way to get around in Posting.
 
-Press <kbd>ctrl+o</kbd> to enter jump mode.
+Press <kbd>ctrl</kbd>+<kbd>o</kbd> to enter jump mode.
 
 A key overlay will appear on the screen, allowing you to jump to any widget by pressing the corresponding key.
 
@@ -80,7 +84,7 @@ However, there are many other shortcuts available - these will be documented soo
 
 Some functionality in Posting doesn't warrant a dedicated keyboard shortcut (for example, switching to a specific theme), and can instead be accessed via the _command palette_.
 
-To open the command palette, press <kbd>ctrl+p</kbd>.
+To open the command palette, press <kbd>ctrl</kbd>+<kbd>p</kbd>.
 
 ## Planned Features
 
