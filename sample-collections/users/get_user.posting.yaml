@@ -1,5 +1,5 @@
-name: Get User!
-description: Retrieves the specific user based on their user ID.
+name: Get User
+description: Retrieves the specific user based on their user ID
 url: https://jsonplaceholder.typicode.com/users/{userId}
 body: ''
 headers:

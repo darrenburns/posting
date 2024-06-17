@@ -493,7 +493,7 @@ class Posting(App[None]):
         self.main_screen = MainScreen(collection=self.collection)
         if not self.collection_specified:
             self.notify(
-                "Requests will be saved in the current directory.",
+                "Using the current working directory.",
                 title="No collection specified",
                 severity="warning",
                 timeout=7,
