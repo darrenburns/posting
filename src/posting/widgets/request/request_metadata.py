@@ -1,5 +1,5 @@
 from textual.app import ComposeResult
-from textual.containers import Vertical, VerticalScroll
+from textual.containers import VerticalScroll
 from textual.reactive import Reactive, reactive
 from textual.widgets import Button, Input, Label
 from posting.collection import RequestModel

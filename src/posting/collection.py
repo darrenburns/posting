@@ -1,5 +1,4 @@
 from __future__ import annotations
-import glob
 from pathlib import Path
 from typing import Literal
 import httpx
