@@ -45,8 +45,7 @@ To open a collection, simply pass the path to the `--collection` option when lau
 posting --collection path/to/collection
 ```
 
-The collection will be displayed in the sidebar.
-Posting will recursively search the supplied directory for files matching `**/*.posting.yaml`, and display them in the collection panel.
+The supplied directory will be recursively searched for files matching `**/*.posting.yaml`, and they'll appear in the sidebar.
 
 If you don't supply a collection directory, the current working directory will be used.
 
