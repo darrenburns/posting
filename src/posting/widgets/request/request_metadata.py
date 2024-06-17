@@ -51,14 +51,10 @@ class RequestMetadata(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
-        # TODO - maybe the file path shouldn't be set here.
-        # yield Label("Save path [dim]optional[/dim]")
-        # yield Input(placeholder=self.generated_filename, id="save-path-input")
         yield Label("Title [dim]optional[/dim]")
         yield Input(placeholder=self.generated_filename, id="name-input")
         yield Label("Description [dim]optional[/dim]")
         yield PostingTextArea(id="description-textarea")
-        yield Button.success("Save", id="save-button")
 
     @property
     def generated_filename(self) -> str:
