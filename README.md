@@ -15,7 +15,7 @@ A collection is simply a directory containing one or more requests.
 
 Each request is stored as a simple YAML file, suffixed with `.posting.yaml` - easy to read, understand, and version control!
 
-Here's a quick example of a `posting.yaml` file.
+Here's a quick example of a `*.posting.yaml` file.
 
 ```yaml
 name: Create user
