@@ -19,7 +19,7 @@ It's still a work in progress and far from feature complete. Please don't open a
 Requests can be stored inside "collections" on your file system.
 A collection is simply a directory containing one or more requests.
 
-Each request is stored as a simple YAML file, suffixed with `.posting.yaml` - easy to read, understand, share!
+Each request is stored as a simple YAML file, suffixed with `.posting.yaml` - easy to read, understand, and version control!
 
 Here's a quick example of a `posting.yaml` file.
 
