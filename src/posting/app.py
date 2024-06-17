@@ -188,7 +188,6 @@ class MainScreen(Screen[None]):
                     request_model.name = title
                     request_model.description = description
                     request_model.path = self.collection.path / save_data.file_name
-                    print("saving request model", request_model)
                     request_model.save_to_disk(request_model.path)
                     _notify_saved(request_model.path)
 

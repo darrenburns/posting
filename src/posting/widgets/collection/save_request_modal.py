@@ -7,7 +7,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Footer, Input, Label
 
 from posting.collection import RequestModel
-from posting.save_request import generate_request_filename
+from posting.save_request import FILE_SUFFIX, generate_request_filename
 from posting.widgets.text_area import PostingTextArea
 
 
@@ -76,9 +76,11 @@ class SaveRequestModal(ModalScreen[SaveRequestData | None]):
             vs.can_focus = False
             vs.border_title = "Save new request"
             yield Label("File name [dim]optional[/dim]")
-            yield Input(placeholder=self.generated_filename, id="file-name-input")
+            yield Input(
+                placeholder=self.generated_filename + FILE_SUFFIX, id="file-name-input"
+            )
             yield Label("Title [dim]optional[/dim]")
-            yield Input(id="title-input")
+            yield Input(placeholder=self.generated_filename, id="title-input")
             yield Label("Description [dim]optional[/dim]")
             yield PostingTextArea(id="description-textarea")
             yield Button.success("Save", id="save-button")
@@ -95,9 +97,13 @@ class SaveRequestModal(ModalScreen[SaveRequestData | None]):
     @on(Button.Pressed, selector="#save-button")
     def on_save(self) -> None:
         file_name = self.query_one("#file-name-input", Input).value
+        generated_filename = self.generated_filename
         if not file_name:
-            file_name = self.generated_filename
+            file_name = generated_filename + FILE_SUFFIX
+
         title = self.query_one("#title-input", Input).value
+        if not title:
+            title = generated_filename
         description = self.query_one("#description-textarea", PostingTextArea).text
         self.dismiss(
             SaveRequestData(
