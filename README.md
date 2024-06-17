@@ -46,8 +46,11 @@ posting --collection path/to/collection
 ```
 
 The collection will be displayed in the sidebar.
+Posting will recursively search the supplied directory for files matching `**/*.posting.yaml`, and display them in the collection panel.
 
-Press <kbd>ctrl</kbd>+<kbd>s</kbd> to save the currently open request.
+If you don't supply a collection directory, the current working directory will be used.
+
+To save the currently open request, press <kbd>ctrl</kbd>+<kbd>s</kbd>.
 
 ## Navigation
 
