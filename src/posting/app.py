@@ -81,7 +81,7 @@ class MainScreen(Screen[None]):
         Binding("ctrl+t", "change_method", "Change method"),
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
-        Binding("ctrl+n", "preview_request_model", "DEBUG Preview request model"),
+        # Binding("ctrl+n", "preview_request_model", "DEBUG Preview request model"),
         Binding("ctrl+s", "save_request", "Save request"),
     ]
 
