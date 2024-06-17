@@ -1,6 +1,5 @@
-name: Create user
+name: Create users!
 description: Adds a new user to the system.
-method: POST
 url: https://jsonplaceholder.typicode.com/users
 body: |-
   {

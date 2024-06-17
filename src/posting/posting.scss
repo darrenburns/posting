@@ -190,9 +190,11 @@ TextArea {
     padding: 0;
     background: $surface;
     margin-bottom: 1;
+    padding-left: 1;
     &:focus {
       background: $surface-lighten-1;
       border-left: outer $surface-lighten-2;
+      padding: 0;
   }
   }
 
