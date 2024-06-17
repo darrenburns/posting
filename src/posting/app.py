@@ -23,7 +23,6 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
-from textual.widgets.tree import TreeNode
 from posting.collection import Collection, Cookie, HttpRequestMethod, RequestModel
 
 from posting.commands import PostingProvider
@@ -31,7 +30,6 @@ from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.widgets.collection.browser import (
     CollectionBrowser,
-    CollectionNode,
     CollectionTree,
 )
 from posting.widgets.collection.save_request_modal import (
