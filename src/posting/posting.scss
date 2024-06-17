@@ -10,16 +10,6 @@ Screen {
 
 ModalScreen {
   background: black 30%;
-  align: center middle;
-
-  & > VerticalScroll {
-    background: $background;
-    border: wide $background-lighten-2;
-    padding: 1 2;
-    border-title-background: $background;
-    border-title-color: $text;
-    border-title-style: b;
-  }
 }
 
 .section {

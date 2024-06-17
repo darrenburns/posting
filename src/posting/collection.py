@@ -116,9 +116,10 @@ class RequestModel(BaseModel):
 
     def save_to_disk(self, path: Path) -> None:
         """Save the request model to a YAML file."""
-        with open(path, "w") as file:
-            content = self.model_dump(exclude_defaults=True, exclude_none=True)
-            yaml.dump(content, file, sort_keys=False)
+        content = self.model_dump(exclude_defaults=True, exclude_none=True)
+        yaml_content = yaml.dump(content, None, sort_keys=False)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(yaml_content)
 
 
 class Collection(BaseModel):
@@ -139,12 +140,11 @@ class Collection(BaseModel):
         """
         if directory:
             directory_path = Path(directory)
-            request_files = directory_path.rglob("*.posting.yaml")
         else:
             directory_path = Path.cwd()
             directory = str(directory_path)
-            request_files = directory_path.glob("*.posting.yaml")
 
+        request_files = directory_path.rglob("*.posting.yaml")
         collection_name = directory_path.name
         root_collection = Collection(name=collection_name, path=directory_path)
 

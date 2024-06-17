@@ -152,6 +152,7 @@ class CollectionBrowser(Vertical):
     @dataclass
     class RequestSelected(Message):
         request: RequestModel
+        node: TreeNode[CollectionNode]
         browser: "CollectionBrowser"
 
         @property
@@ -214,6 +215,7 @@ class CollectionBrowser(Vertical):
             self.post_message(
                 self.RequestSelected(
                     request=event.node.data,
+                    node=event.node,
                     browser=self,
                 )
             )

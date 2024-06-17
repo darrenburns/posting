@@ -83,7 +83,6 @@ class UrlBar(Horizontal):
         with Horizontal():
             yield MethodSelection("GET")
             yield UrlInput(
-                "http://jsonplaceholder.typicode.com/posts",
                 placeholder="Enter a URL...",
                 id="url-input",
             )

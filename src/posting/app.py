@@ -23,12 +23,13 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
+from textual.widgets.tree import TreeNode
 from posting.collection import Collection, Cookie, HttpRequestMethod, RequestModel
 
 from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.widgets.collection.browser import CollectionBrowser
+from posting.widgets.collection.browser import CollectionBrowser, CollectionNode
 from posting.widgets.collection.save_request_modal import (
     SaveRequestData,
     SaveRequestModal,
@@ -83,7 +84,7 @@ class MainScreen(Screen[None]):
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
-    currently_open: Reactive[RequestModel | None] = reactive(None)
+    currently_open: Reactive[TreeNode[CollectionNode] | None] = reactive(None)
 
     def __init__(self, collection: Collection) -> None:
         super().__init__()
@@ -141,6 +142,7 @@ class MainScreen(Screen[None]):
     @on(CollectionBrowser.RequestSelected)
     def on_request_selected(self, event: CollectionBrowser.RequestSelected) -> None:
         """Load a request model into the UI when a request is selected."""
+        self.currently_open = event.node
         self.load_request_model(event.request)
 
     async def action_send_request(self) -> None:
@@ -170,6 +172,7 @@ class MainScreen(Screen[None]):
         if request_model.path:
             save_path = request_model.path
             request_model.save_to_disk(save_path)
+            self._update_request_tree_node(request_model)
             _notify_saved(save_path)
         else:
             # Saving for the first time, prompt the user for info.
@@ -187,13 +190,23 @@ class MainScreen(Screen[None]):
                     description = save_data.description
                     request_model.name = title
                     request_model.description = description
-                    request_model.path = self.collection.path / save_data.file_name
+                    request_model.path = self.collection.path / save_data.file_path
                     request_model.save_to_disk(request_model.path)
+                    self._update_request_tree_node(request_model)
                     _notify_saved(request_model.path)
 
             self.app.push_screen(
                 SaveRequestModal(request_model), callback=save_callback
             )
+
+    def _update_request_tree_node(self, request_model: RequestModel) -> None:
+        """Update the request tree node with the new request model."""
+        if self.currently_open is not None and isinstance(
+            self.currently_open.data, RequestModel
+        ):
+            print("saving request model", request_model)
+            self.currently_open.data = request_model
+            self.currently_open.refresh()
 
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
         """Update the layout of the app to be horizontal or vertical."""
@@ -258,11 +271,16 @@ class MainScreen(Screen[None]):
     def build_request_model(self, request_options: RequestOptions) -> RequestModel:
         """Grab data from the UI and pull it into a request model. This model
         may be passed around, stored on disk, etc."""
-        currently_open = self.currently_open
+        open_node = self.currently_open
+        open_request = open_node.data if open_node else None
+
+        # We ensure elsewhere that the we can only "open" requests, not collection nodes.
+        assert not isinstance(open_request, Collection)
+
         return RequestModel(
-            name=currently_open.name if currently_open else None,
-            path=currently_open.path if currently_open else None,
-            description=currently_open.description if currently_open else "",
+            name=open_request.name if open_request else None,
+            path=open_request.path if open_request else None,
+            description=open_request.description if open_request else "",
             method=self.selected_method,
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
@@ -277,7 +295,6 @@ class MainScreen(Screen[None]):
 
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
-        self.currently_open = request_model
         self.selected_method = request_model.method
         self.url_input.value = str(request_model.url)
         self.params_table.replace_all_rows(

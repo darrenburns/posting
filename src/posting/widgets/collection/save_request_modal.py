@@ -15,8 +15,8 @@ from posting.widgets.text_area import PostingTextArea
 class SaveRequestData:
     """Data for the save request modal."""
 
-    file_name: str
-    """The file name of the request."""
+    file_path: str
+    """The file path of the request."""
     title: str
     """The title of the request."""
     description: str
@@ -32,8 +32,14 @@ class SaveRequestModal(ModalScreen[SaveRequestData | None]):
 
     CSS = """
     SaveRequestModal {
-
+        align: center middle;
         & VerticalScroll {
+            background: $background;
+            border: wide $background-lighten-2;
+            padding: 1 2;
+            border-title-background: $background;
+            border-title-color: $text;
+            border-title-style: b;
             width: 50%;
             height: auto;
             max-height: 70%;
@@ -75,10 +81,8 @@ class SaveRequestModal(ModalScreen[SaveRequestData | None]):
         with VerticalScroll() as vs:
             vs.can_focus = False
             vs.border_title = "Save new request"
-            yield Label("File name [dim]optional[/dim]")
-            yield Input(
-                placeholder=self.generated_filename + FILE_SUFFIX, id="file-name-input"
-            )
+            yield Label("Save path [dim]optional[/dim]")
+            yield Input(placeholder=self.generated_filename, id="save-path-input")
             yield Label("Title [dim]optional[/dim]")
             yield Input(placeholder=self.generated_filename, id="title-input")
             yield Label("Description [dim]optional[/dim]")
@@ -96,10 +100,12 @@ class SaveRequestModal(ModalScreen[SaveRequestData | None]):
 
     @on(Button.Pressed, selector="#save-button")
     def on_save(self) -> None:
-        file_name = self.query_one("#file-name-input", Input).value
+        file_path = self.query_one("#save-path-input", Input).value
         generated_filename = self.generated_filename
-        if not file_name:
-            file_name = generated_filename + FILE_SUFFIX
+        if not file_path:
+            file_path = generated_filename + FILE_SUFFIX
+        else:
+            file_path += FILE_SUFFIX
 
         title = self.query_one("#title-input", Input).value
         if not title:
@@ -107,7 +113,7 @@ class SaveRequestModal(ModalScreen[SaveRequestData | None]):
         description = self.query_one("#description-textarea", PostingTextArea).text
         self.dismiss(
             SaveRequestData(
-                file_name=file_name,
+                file_path=file_path,
                 title=title,
                 description=description,
             )
