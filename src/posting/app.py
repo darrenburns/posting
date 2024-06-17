@@ -32,9 +32,9 @@ from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
-from posting.widgets.collection.save_request_modal import (
-    SaveRequestData,
-    SaveRequestModal,
+from posting.widgets.collection.new_request_modal import (
+    NewRequestData,
+    NewRequestModal,
 )
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
@@ -141,9 +141,10 @@ class MainScreen(Screen[None]):
         self.response_area.response = event.response
         self.cookies.update(event.response.cookies)
 
-    @on(CollectionBrowser.RequestSelected)
-    def on_request_selected(self, event: CollectionBrowser.RequestSelected) -> None:
+    @on(CollectionTree.RequestSelected)
+    def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
         """Load a request model into the UI when a request is selected."""
+        print("NEW REQUEST SELECTED", event.request)
         self.load_request_model(event.request)
 
     async def action_send_request(self) -> None:
@@ -178,29 +179,9 @@ class MainScreen(Screen[None]):
             self._update_request_tree_node(request_model)
             _notify_saved(save_path)
         else:
-            # Saving for the first time, prompt the user for info.
-            # TODO - this info could already be supplied via metadata tab.
-            focused = self.focused
-            if focused:
-                self.set_focus(None)
-
-            def save_callback(save_data: SaveRequestData | None) -> None:
-                if save_data is None:
-                    if focused:
-                        self.set_focus(focused)
-                else:
-                    title = save_data.title
-                    description = save_data.description
-                    request_model.name = title
-                    request_model.description = description
-                    request_model.path = self.collection.path / save_data.file_path
-                    request_model.save_to_disk(request_model.path)
-                    self._update_request_tree_node(request_model)
-                    _notify_saved(request_model.path)
-
-            self.app.push_screen(
-                SaveRequestModal(request_model), callback=save_callback
-            )
+            # We shouldn't allow this. When creating a new request,
+            # it should be assigned a default path on disk - never `None`.
+            pass
 
     def _update_request_tree_node(self, request_model: RequestModel) -> None:
         """Update the request tree node with the new request model."""

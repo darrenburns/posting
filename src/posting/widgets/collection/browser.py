@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from typing import Union
 from rich.style import Style
 from rich.text import Text
@@ -12,6 +13,10 @@ from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
+from posting.widgets.collection.new_request_modal import (
+    NewRequestData,
+    NewRequestModal,
+)
 
 
 TOGGLE_STYLE = Style.from_meta({"toggle": True}) + Style(dim=True)
@@ -27,6 +32,7 @@ class CollectionTree(Tree[CollectionNode]):
         Binding("j", "cursor_down", "Cursor Down", show=False),
         Binding("enter,l,h", "select_cursor", "Select Cursor", show=False),
         Binding("space,r", "toggle_node", "Toggle Expand", show=False),
+        Binding("n", "new_request", "New Request"),
     ]
 
     COMPONENT_CLASSES = {
@@ -44,7 +50,29 @@ class CollectionTree(Tree[CollectionNode]):
     
     """
 
+    @dataclass
+    class RequestSelected(Message):
+        request: RequestModel
+        node: TreeNode[CollectionNode]
+        tree: "CollectionTree"
+
+        @property
+        def control(self) -> "CollectionTree":
+            return self.tree
+
     currently_open: Reactive[TreeNode[CollectionNode] | None] = reactive(None)
+
+    def watch_currently_open(self, node: TreeNode[CollectionNode] | None) -> None:
+        print(node)
+        if node and isinstance(node.data, RequestModel):
+            print("sending request selected message")
+            self.post_message(
+                self.RequestSelected(
+                    request=node.data,
+                    node=node,
+                    tree=self,
+                )
+            )
 
     def render_label(
         self, node: TreeNode[CollectionNode], base_style: Style, style: Style
@@ -101,10 +129,50 @@ class CollectionTree(Tree[CollectionNode]):
 
     @on(Tree.NodeSelected)
     def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
+        event.stop()
         if isinstance(event.node.data, RequestModel):
             self.currently_open = event.node
             self._clear_line_cache()
             self.refresh()
+
+    async def action_new_request(self) -> None:
+        # Get the current highlighted node.
+        cursor_node = self.cursor_node
+        if cursor_node is None:
+            # If it's None, we'll add a new RequestModel to the root of the tree.
+            target = self.root
+        else:
+            node_data = cursor_node.data
+            if isinstance(node_data, Collection):
+                # If it's a Collection, we'll add a leaf to it directly.
+                target = cursor_node
+            elif isinstance(node_data, RequestModel):
+                # If it's a RequestModel, we'll add a new RequestModel to it's parent Collection.
+                target = cursor_node.parent or self.root
+            else:
+                target = self.root
+
+        data = target.data
+        assert data is not None, "all nodes should have data"
+
+        def _handle_new_request_data(new_request_data: NewRequestData | None) -> None:
+            """Get the new request data from the modal, and update the UI with it."""
+            if new_request_data is None:
+                # Happens when the user presses `escape` while in the modal.
+                return
+
+            # The user confirms the details in the modal, so use these details
+            # to create a new RequestModel and add it to the tree.
+            request_name = new_request_data.title
+            file_name = new_request_data.file_name
+            new_request = RequestModel(
+                name=request_name, path=data.path / f"{file_name}{SUFFIX}"
+            )
+            new_node = target.add_leaf(request_name, data=new_request)
+            self.currently_open = new_node
+            self.call_later(self.select_node, new_node)
+
+        await self.app.push_screen(NewRequestModal(), callback=_handle_new_request_data)
 
 
 class RequestPreview(VerticalScroll):
@@ -148,16 +216,6 @@ class CollectionBrowser(Vertical):
         }
     }
     """
-
-    @dataclass
-    class RequestSelected(Message):
-        request: RequestModel
-        node: TreeNode[CollectionNode]
-        browser: "CollectionBrowser"
-
-        @property
-        def control(self) -> "CollectionBrowser":
-            return self.browser
 
     def __init__(
         self,
@@ -208,17 +266,11 @@ class CollectionBrowser(Vertical):
         yield tree
         yield RequestPreview()
 
-    @on(Tree.NodeSelected)
-    def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
+    @on(CollectionTree.RequestSelected)
+    def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
+        print("CollectionBrowser.on_request_selected")
         if isinstance(event.node.data, RequestModel):
             self.request_preview.request = event.node.data
-            self.post_message(
-                self.RequestSelected(
-                    request=event.node.data,
-                    node=event.node,
-                    browser=self,
-                )
-            )
 
     @on(Tree.NodeHighlighted)
     def on_node_highlighted(self, event: Tree.NodeHighlighted[CollectionNode]) -> None:

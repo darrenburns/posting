@@ -89,3 +89,9 @@ class RequestMetadata(VerticalScroll):
                 }
             )
             self.set_reactive(RequestMetadata.request, new_request)
+
+    @on(Input.Submitted)
+    def _on_submitted(self, event: Input.Submitted) -> None:
+        event.stop()
+        if self.request is not None:
+            self.post_message(RequestMetadata.Saved(self.request, self))

@@ -63,7 +63,7 @@ class RequestModel(BaseModel):
     method: HttpRequestMethod = Field(default="GET")
     """The HTTP method of the request."""
 
-    url: str = Field()
+    url: str = Field(default="")
     """The URL of the request."""
 
     path: Path | None = Field(default=None, exclude=True)
