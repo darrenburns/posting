@@ -174,15 +174,23 @@ class MainScreen(Screen[None]):
         else:
             # Saving for the first time, prompt the user for info.
             # TODO - this info could already be supplied via metadata tab.
-            def save_callback(save_data: SaveRequestData) -> None:
-                title = save_data.title
-                description = save_data.description
-                request_model.name = title
-                request_model.description = description
-                request_model.path = self.collection.path / save_data.file_name
-                print("saving request model", request_model)
-                request_model.save_to_disk(request_model.path)
-                _notify_saved(request_model.path)
+            focused = self.focused
+            if focused:
+                self.set_focus(None)
+
+            def save_callback(save_data: SaveRequestData | None) -> None:
+                if save_data is None:
+                    if focused:
+                        self.set_focus(focused)
+                else:
+                    title = save_data.title
+                    description = save_data.description
+                    request_model.name = title
+                    request_model.description = description
+                    request_model.path = self.collection.path / save_data.file_name
+                    print("saving request model", request_model)
+                    request_model.save_to_disk(request_model.path)
+                    _notify_saved(request_model.path)
 
             self.app.push_screen(
                 SaveRequestModal(request_model), callback=save_callback

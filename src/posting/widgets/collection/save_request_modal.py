@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from pathlib import Path
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Input, Label, TextArea
+from textual.widgets import Button, Footer, Input, Label
 
 from posting.collection import RequestModel
 from posting.save_request import generate_request_filename
@@ -24,7 +23,7 @@ class SaveRequestData:
     """The description of the request."""
 
 
-class SaveRequestModal(ModalScreen[SaveRequestData]):
+class SaveRequestModal(ModalScreen[SaveRequestData | None]):
     """A modal for saving a request to disk if it has not already been saved.
 
     (Can also be used in situations where we're saving a copy of an existing request
@@ -64,7 +63,7 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
     """
 
     BINDINGS = [
-        Binding("escape", "app.pop_screen", "Cancel"),
+        Binding("escape", "close_screen", "Cancel"),
     ]
 
     def __init__(self, request: RequestModel):
@@ -89,6 +88,9 @@ class SaveRequestModal(ModalScreen[SaveRequestData]):
     def generated_filename(self) -> str:
         request = self.request
         return generate_request_filename(request.method, request.name)
+
+    def action_close_screen(self) -> None:
+        self.dismiss(None)
 
     @on(Button.Pressed, selector="#save-button")
     def on_save(self) -> None:
