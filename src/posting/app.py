@@ -181,8 +181,7 @@ class MainScreen(Screen[None]):
             return
 
         # In this case, we're saving an existing request to disk.
-        currently_open = self.collection_tree.currently_open
-        request_model = currently_open.data
+        request_model = self.build_request_model(self.request_options)
         assert isinstance(
             request_model, RequestModel
         ), "currently open node should contain a request model"
@@ -192,7 +191,7 @@ class MainScreen(Screen[None]):
         save_path = request_model.path
         if save_path is not None:
             request_model.save_to_disk(save_path)
-            self.collection_tree.update_currently_open_node(request_model)
+            self.collection_browser.update_currently_open_node(request_model)
             self.notify(
                 title="Request saved",
                 message=f"{save_path.absolute().relative_to(Path.cwd())}",

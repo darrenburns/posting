@@ -1,5 +1,5 @@
-name: get google home page
-description: Get the google.com homepage
+name: get google home
+description: Get the google.com page
 url: https://www.google.com
 body: ''
 headers:

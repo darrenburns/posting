@@ -115,6 +115,7 @@ class RequestModel(BaseModel):
 
     def save_to_disk(self, path: Path) -> None:
         """Save the request model to a YAML file."""
+        print(f"Saving model to disk: {self!r}")
         content = self.model_dump(exclude_defaults=True, exclude_none=True)
         yaml_content = yaml.dump(content, None, sort_keys=False)
         path.parent.mkdir(parents=True, exist_ok=True)

@@ -224,14 +224,6 @@ class CollectionTree(Tree[CollectionNode]):
             callback=_handle_new_request_data,
         )
 
-    def update_currently_open_node(self, request_model: RequestModel) -> None:
-        """Update the request tree node with the new request model."""
-        currently_open = self.currently_open
-        if currently_open is not None and isinstance(currently_open.data, RequestModel):
-            currently_open.data = request_model
-            currently_open.set_label(request_model.name or "")
-            currently_open.refresh()
-
 
 class RequestPreview(VerticalScroll):
     DEFAULT_CSS = """\
@@ -339,6 +331,21 @@ class CollectionBrowser(Vertical):
         else:
             self.request_preview.request = None
 
+    def update_currently_open_node(self, request_model: RequestModel) -> None:
+        """Update the request tree node with the new request model."""
+        currently_open = self.collection_tree.currently_open
+        if currently_open is not None and isinstance(currently_open.data, RequestModel):
+            currently_open.data = request_model
+            currently_open.set_label(request_model.name or "")
+            currently_open.refresh()
+            # Update the description preview if it's the one currently being displayed.
+            if currently_open is self.collection_tree.cursor_node:
+                self.request_preview.request.path = request_model.path
+
     @property
     def request_preview(self) -> RequestPreview:
         return self.query_one(RequestPreview)
+
+    @property
+    def collection_tree(self) -> CollectionTree:
+        return self.query_one(CollectionTree)
