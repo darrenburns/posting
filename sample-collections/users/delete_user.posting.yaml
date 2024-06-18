@@ -1,0 +1,5 @@
+name: Delete user
+description: Deletes the user account associated with the provided user ID.
+method: DELETE
+url: https://jsonplaceholder.typicode.com/users/{userId}
+body: ''

@@ -23,10 +23,25 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
+from posting.collection import (
+    Collection,
+    Cookie,
+    Header,
+    HttpRequestMethod,
+    RequestModel,
+)
 
 from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.widgets.collection.browser import (
+    CollectionBrowser,
+    CollectionTree,
+)
+from posting.widgets.collection.new_request_modal import (
+    NewRequestData,
+    NewRequestModal,
+)
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
@@ -39,9 +54,12 @@ from posting.widgets.request.query_editor import ParamsTable
 
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_editor import RequestEditor
+from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
+
+VERSION = version("posting")
 
 
 class AppHeader(Label):
@@ -71,19 +89,23 @@ class MainScreen(Screen[None]):
         Binding("ctrl+t", "change_method", "Change method"),
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
+        # Binding("ctrl+n", "preview_request_model", "DEBUG Preview request model"),
+        Binding("ctrl+s", "save_request", "Save request"),
     ]
 
-    selected_method = reactive("GET", init=False)
+    selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
 
-    def __init__(self) -> None:
+    def __init__(self, collection: Collection) -> None:
         super().__init__()
-        self.cookies = httpx.Cookies()
+        self.collection = collection
+        self.cookies: httpx.Cookies = httpx.Cookies()
 
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"Posting [white dim]{version('posting')}[/]")
+        yield AppHeader(f"Posting [white dim]{VERSION}[/]")
         yield UrlBar()
         with AppBody():
+            yield CollectionBrowser(collection=self.collection)
             yield RequestEditor()
             yield ResponseArea()
         yield Footer()
@@ -91,6 +113,7 @@ class MainScreen(Screen[None]):
     @on(Button.Pressed, selector="SendRequestButton")
     @on(Input.Submitted, selector="UrlInput")
     async def send_request(self) -> None:
+        """Send the request."""
         request_options = self.request_options
         try:
             async with httpx.AsyncClient(verify=request_options.verify) as client:
@@ -122,16 +145,61 @@ class MainScreen(Screen[None]):
 
     @on(HttpResponseReceived)
     def on_response_received(self, event: HttpResponseReceived) -> None:
+        """Update the response area with the response."""
         self.response_area.response = event.response
         self.cookies.update(event.response.cookies)
 
+    @on(CollectionTree.RequestSelected)
+    def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
+        """Load a request model into the UI when a request is selected."""
+        self.load_request_model(event.request)
+
     async def action_send_request(self) -> None:
+        """Send the request."""
         await self.send_request()
 
     def action_change_method(self) -> None:
+        """Change the method of the request."""
         self.method_selection()
 
+    def action_preview_request_model(self) -> None:
+        """Preview the request model (debug aid)."""
+        request_model = self.build_request_model(self.request_options)
+        log.info(request_model)
+
+    async def action_save_request(self) -> None:
+        """Save the request to disk, possibly prompting the user for more information
+        if it's the first time this request has been saved to disk."""
+        if self.collection_tree.currently_open is None:
+            # No request currently open in the collection tree, we're saving a
+            # request which the user may already have filled in some data of in
+            # the UI.
+            request_model = self.build_request_model(self.request_options)
+            await self.collection_tree.new_request_flow(request_model)
+            # The new request flow is already handling the saving of the request to disk.
+            # No further action is required.
+            return
+
+        # In this case, we're saving an existing request to disk.
+        request_model = self.build_request_model(self.request_options)
+        assert isinstance(
+            request_model, RequestModel
+        ), "currently open node should contain a request model"
+
+        # At this point, either we're reusing the pre-existing home for the request
+        # on disk, or the new location on disk which was assigned during the "new request flow"
+        save_path = request_model.path
+        if save_path is not None:
+            request_model.save_to_disk(save_path)
+            self.collection_browser.update_currently_open_node(request_model)
+            self.notify(
+                title="Request saved",
+                message=f"{save_path.absolute().relative_to(Path.cwd())}",
+                timeout=3,
+            )
+
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
+        """Update the layout of the app to be horizontal or vertical."""
         classes = {"horizontal", "vertical"}
         other_class = classes.difference({layout}).pop()
         self.app_body.add_class(f"layout-{layout}")
@@ -146,22 +214,31 @@ class MainScreen(Screen[None]):
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:
+        """Update the body tab to indicate if there is a body."""
         body_tab = self.query_one("#--content-tab-body-pane", ContentTab)
         if event.text_area.text:
             body_tab.update("Body[cyan b]•[/]")
         else:
             body_tab.update("Body")
 
-    @on(PostingDataTable.Changed, selector="HeadersTable")
-    def on_content_changed(self, event: PostingDataTable.Changed) -> None:
+    @on(PostingDataTable.RowsRemoved, selector="HeadersTable")
+    @on(PostingDataTable.RowsAdded, selector="HeadersTable")
+    def on_content_changed(
+        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
+    ) -> None:
+        """Update the headers tab to indicate if there are any headers."""
         headers_tab = self.query_one("#--content-tab-headers-pane", ContentTab)
         if event.data_table.row_count:
             headers_tab.update("Headers[cyan b]•[/]")
         else:
             headers_tab.update("Headers")
 
-    @on(PostingDataTable.Changed, selector="ParamsTable")
-    def on_params_changed(self, event: PostingDataTable.Changed) -> None:
+    @on(PostingDataTable.RowsRemoved, selector="ParamsTable")
+    @on(PostingDataTable.RowsAdded, selector="ParamsTable")
+    def on_params_changed(
+        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
+    ) -> None:
+        """Update the parameters tab to indicate if there are any parameters."""
         params_tab = self.query_one("#--content-tab-parameters-pane", ContentTab)
         if event.data_table.row_count:
             params_tab.update("Parameters[cyan b]•[/]")
@@ -170,20 +247,61 @@ class MainScreen(Screen[None]):
 
     @on(MethodSelection.Clicked)
     def method_selection(self) -> None:
+        """Open a popup to select the method."""
+
         def set_method(method: str) -> None:
             self.selected_method = method
 
         self.app.push_screen(MethodSelectionPopup(), callback=set_method)
 
     def build_httpx_request(self, request_options: RequestOptions) -> httpx.Request:
-        return httpx.Request(
+        """Build an httpx request from the UI."""
+        return self.build_request_model(request_options).to_httpx()
+
+    def build_request_model(self, request_options: RequestOptions) -> RequestModel:
+        """Grab data from the UI and pull it into a request model. This model
+        may be passed around, stored on disk, etc."""
+        open_node = self.collection_tree.currently_open
+        open_request = open_node.data if open_node else None
+
+        # We ensure elsewhere that the we can only "open" requests, not collection nodes.
+        assert not isinstance(open_request, Collection)
+
+        headers = self.headers_table.to_model()
+        headers.append(
+            Header(
+                name="User-Agent",
+                value=f"Posting/{VERSION} (Terminal-based API client)",
+            )
+        )
+        return RequestModel(
+            name=self.request_metadata.request_name,
+            path=open_request.path if open_request else None,
+            description=self.request_metadata.description,
             method=self.selected_method,
             url=self.url_input.value.strip(),
-            params=self.params_table.as_dict(),
-            content=self.request_body_text_area.text,
-            headers=self.headers_table.as_dict(),
-            cookies=self.cookies if request_options.attach_cookies else None,
+            params=self.params_table.to_model(),
+            headers=self.headers_table.to_model(),
+            body=self.request_body_text_area.text,
+            cookies=(
+                Cookie.from_httpx(self.cookies)
+                if request_options.attach_cookies
+                else []
+            ),
         )
+
+    def load_request_model(self, request_model: RequestModel) -> None:
+        """Load a request model into the UI."""
+        self.selected_method = request_model.method
+        self.url_input.value = str(request_model.url)
+        self.params_table.replace_all_rows(
+            [(param.name, param.value) for param in request_model.params]
+        )
+        self.headers_table.replace_all_rows(
+            [(header.name, header.value) for header in request_model.headers]
+        )
+        self.request_body_text_area.text = request_model.body or ""
+        self.request_metadata.request = request_model
 
     @property
     def url_input(self) -> UrlInput:
@@ -212,6 +330,18 @@ class MainScreen(Screen[None]):
     @property
     def request_options(self) -> RequestOptions:
         return self.query_one(RequestOptions)
+
+    @property
+    def request_metadata(self) -> RequestMetadata:
+        return self.query_one(RequestMetadata)
+
+    @property
+    def collection_browser(self) -> CollectionBrowser:
+        return self.query_one(CollectionBrowser)
+
+    @property
+    def collection_tree(self) -> CollectionTree:
+        return self.query_one(CollectionTree)
 
     def watch_selected_method(self, value: str) -> None:
         self.query_one(MethodSelection).set_method(value)
@@ -256,15 +386,6 @@ class Posting(App[None]):
             surface="#eee8d5",
             panel="#eee8d5",
         ),
-        "sunset": ColorSystem(
-            primary="#ff4500",
-            secondary="#ff8c00",
-            warning="#ff6347",
-            error="#b22222",
-            success="#32cd32",
-            accent="#ffd700",
-            dark=True,
-        ),
         "ocean": ColorSystem(
             primary="#1e90ff",
             secondary="#00ced1",
@@ -273,17 +394,6 @@ class Posting(App[None]):
             success="#20b2aa",
             accent="#4682b4",
             dark=True,
-        ),
-        "ocean-light": ColorSystem(
-            primary="#1e90ff",
-            secondary="#00ced1",
-            warning="#ffa07a",
-            error="#ff4500",
-            success="#20b2aa",
-            accent="#4682b4",
-            background="#f0f8ff",
-            surface="#f0f8ff",
-            panel="#f0f8ff",
         ),
         "forest": ColorSystem(
             primary="#006B3F",  # Deep Forest Green
@@ -358,22 +468,41 @@ class Posting(App[None]):
     theme: Reactive[str | None] = reactive("textual", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
 
+    def __init__(
+        self,
+        collection: Collection,
+        collection_specified: bool = False,
+    ) -> None:
+        super().__init__()
+        self.collection = collection
+        self.collection_specified = collection_specified
+
     def on_mount(self) -> None:
         self.jumper = Jumper(
             {
+                "collection-tree": "tab",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-parameters-pane": "e",
-                "--content-tab-options-pane": "r",
+                "--content-tab-metadata-pane": "r",
+                "--content-tab-options-pane": "t",
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
             },
             screen=self.screen,
         )
+        log.info(f"Loaded collection: {self.collection!r}")
 
     def get_default_screen(self) -> MainScreen:
-        self.main_screen = MainScreen()
+        self.main_screen = MainScreen(collection=self.collection)
+        if not self.collection_specified:
+            self.notify(
+                "Using the current working directory.",
+                title="No collection specified",
+                severity="warning",
+                timeout=7,
+            )
         return self.main_screen
 
     def get_css_variables(self) -> dict[str, str]:
@@ -393,7 +522,9 @@ class Posting(App[None]):
     def command_theme(self, theme: str) -> None:
         self.theme = theme
         self.refresh_css()
-        self.notify(f"Theme is now [b]{theme}[/].", title="Theme updated", timeout=2.5)
+        self.notify(
+            f"Theme is now [b]{theme!r}[/].", title="Theme updated", timeout=2.5
+        )
 
     @on(CommandPalette.Opened)
     def palette_opened(self) -> None:
@@ -458,8 +589,3 @@ class Posting(App[None]):
 
         self.clear_notifications()
         await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
-
-
-app = Posting()
-if __name__ == "__main__":
-    app.run()

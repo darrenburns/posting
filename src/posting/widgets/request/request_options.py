@@ -18,8 +18,8 @@ class RequestOptions(VerticalScroll):
     """
 
     BINDINGS = [
-        Binding("down", "screen.focus_next", "Next"),
-        Binding("up", "screen.focus_previous", "Previous"),
+        Binding("down,j", "screen.focus_next", "Next"),
+        Binding("up,k", "screen.focus_previous", "Previous"),
     ]
 
     follow_redirects = reactive(False)

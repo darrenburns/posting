@@ -134,16 +134,15 @@ class KeyValueEditor(Vertical):
         & KeyValueInput {
             dock: bottom;
         }
-
+        & PostingDataTable {
+            display: block;
+        }
         &.empty {
-            hatch: right $surface 80%;
+            hatch: right $surface 100%;
             & PostingDataTable {
                 display: none;
             }
         }
-        
-        
-
     }
     """
 
@@ -171,9 +170,14 @@ class KeyValueEditor(Vertical):
         table.add_row(event.key, event.value)
         table.move_cursor(row=table.row_count - 1)
 
-    @on(PostingDataTable.Changed)
-    def table_changed(self, event: PostingDataTable.Changed) -> None:
+    @on(PostingDataTable.RowsRemoved)
+    def rows_removed(self, event: PostingDataTable.RowsRemoved) -> None:
         rows = event.data_table.row_count
         self.set_class(rows == 0, "empty")
-        if rows == 0:
+        if rows == 0 and event.explicit_by_user:
             self.key_value_input.key_input.focus()
+
+    @on(PostingDataTable.RowsAdded)
+    def rows_added(self, event: PostingDataTable.RowsAdded) -> None:
+        rows = event.data_table.row_count
+        self.set_class(rows == 0, "empty")

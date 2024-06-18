@@ -12,6 +12,8 @@ aiohttp==3.9.5
     # via textual-dev
 aiosignal==1.3.1
     # via aiohttp
+annotated-types==0.7.0
+    # via pydantic
 anyio==4.4.0
     # via httpx
 attrs==23.2.0
@@ -53,16 +55,22 @@ msgpack==1.0.8
 multidict==6.0.5
     # via aiohttp
     # via yarl
+pydantic==2.7.3
+    # via posting
+pydantic-core==2.18.4
+    # via pydantic
 pygments==2.18.0
     # via rich
 pyperclip==1.8.2
+    # via posting
+pyyaml==6.0.1
     # via posting
 rich==13.7.1
     # via textual
 sniffio==1.3.1
     # via anyio
     # via httpx
-textual==0.66.0
+textual==0.69.0
     # via posting
     # via textual-autocomplete
     # via textual-dev
@@ -75,6 +83,8 @@ tree-sitter==0.20.4
 tree-sitter-languages==1.10.2
     # via textual
 typing-extensions==4.12.0
+    # via pydantic
+    # via pydantic-core
     # via textual
     # via textual-autocomplete
     # via textual-dev

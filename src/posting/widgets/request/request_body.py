@@ -4,23 +4,12 @@ from textual import on, events
 from textual.widgets.text_area import Location
 from textual.widgets import TextArea
 
-from posting.widgets.text_area import POSTLING_THEME
+from posting.widgets.text_area import POSTLING_THEME, PostingTextArea
 
 
-class RequestBodyTextArea(TextArea):
+class RequestBodyTextArea(PostingTextArea):
     """
     For editing request bodies.
-    """
-
-    DEFAULT_CSS = """\
-    RequestBodyTextArea {
-        border: none;
-
-        &:focus {
-            border: none;
-        }
-
-    }
     """
 
     OPENING_BRACKETS = {
@@ -36,14 +25,12 @@ class RequestBodyTextArea(TextArea):
         self.theme = "posting"
         self.show_line_numbers = True
         self.tab_behavior = "indent"
-        self.indent_width = 2
-        self.set_class(len(self.text) == 0, "empty")
 
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
         self.set_class(len(self.text) == 0, "empty")
 
-    def _on_key(self, event: events.Key) -> None:
+    def on_key(self, event: events.Key) -> None:
         character = event.character
 
         if character in self.OPENING_BRACKETS:
@@ -77,7 +64,7 @@ class RequestBodyTextArea(TextArea):
             get_content_start_column = self.get_content_start_column
             get_column_width = self.get_column_width
             try:
-                for character, location in character_locations:
+                for character, _location in character_locations:
                     # Ignore whitespace
                     if character.isspace():
                         continue

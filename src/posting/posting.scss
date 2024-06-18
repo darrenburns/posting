@@ -119,7 +119,7 @@ DataTable {
 
   &:focus {
     .datatable--cursor {
-      background: $accent 50%;
+      background: $accent;
       color: $text;
     }
 
@@ -129,7 +129,7 @@ DataTable {
     }
 
     .datatable--fixed-cursor {
-      background: $accent 70%;
+      background: $accent-lighten-1;
       color: $text;
     }
 
@@ -164,9 +164,14 @@ DataTable {
 
 
 TextArea {
+  border: none;
+  &:focus {
+      border: none;
+  }
+
   & .text-area--cursor {
     color: $text;
-    background: $accent-lighten-2;
+    background: $accent;
   }
 
   &.empty {
@@ -179,12 +184,41 @@ TextArea {
     }
   }
 
+  &#description-textarea {
+    width: 100%;
+    height: 1fr;
+    padding: 0;
+    background: $surface;
+    padding-left: 1;
+    &:focus {
+      background: $surface-lighten-1;
+      border-left: outer $surface-lighten-2;
+      padding: 0;
+  }
+  }
+
+}
+
+
+
+Tree {
+  & > .tree--cursor {
+    background: $panel-lighten-1 70%;
+  }
+  &:focus > .tree--cursor {
+    background: $accent;
+  }
+
+  & > .tree--highlight {
+    text-style: not underline;
+}
 }
 
 Input {
   padding: 0 1;
   height: 1;
   background: $surface;
+  border: none;
 
   &:focus {
     background: $surface-lighten-1;
@@ -193,7 +227,7 @@ Input {
 
     & .input--cursor {
       color: $text;
-      background: $accent-lighten-2;
+      background: $accent;
       text-style: not reverse;
     }
 
@@ -301,4 +335,16 @@ Select {
     width: auto;
     padding: 0 1;
   }
+}
+
+CollectionBrowser {
+  &.section {
+    border-title-align: left;
+  }
+}
+
+Toast {
+  color: $text; 
+  background: $secondary-background-darken-2;
+  border-right: none;
 }

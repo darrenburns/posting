@@ -1,6 +1,6 @@
 [project]
 name = "posting"
-version = "1.0.0b2"
+version = "1.0.0b6"
 description = "A powerful HTTP client that runs in the terminal."
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }
@@ -12,10 +12,30 @@ dependencies = [
     "httpx>=0.27.0",
     "textual-autocomplete>=3.0.0a2",
     "pyperclip>=1.8.2",
-    "textual[syntax]>=0.66.0",
+    "pydantic>=2.7.3",
+    "pyyaml>=6.0.1",
+    "textual[syntax]>=0.69.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.11"
+license = { file = "LICENSE" }
+keywords = ["tui", "http", "client", "terminal", "api", "testing", "textual", "cli", "posting", "developer-tool"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://github.com/darrenburns/posting"
+Repository = "https://github.com/darrenburns/posting"
+Issues = "https://github.com/darrenburns/posting/issues"
+Documentation = "https://github.com/darrenburns/posting/blob/main/README.md"
 
 [build-system]
 requires = ["hatchling"]

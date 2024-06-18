@@ -91,6 +91,10 @@ class TextAreaFooter(Horizontal):
     }
     """
 
+    BINDINGS = [
+        Binding("escape", "focus_text_area", "Focus text area", show=False),
+    ]
+
     @dataclass
     class LanguageChanged(Message):
         language: str | None
@@ -124,15 +128,13 @@ class TextAreaFooter(Horizontal):
         disabled: bool = False,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.text_area = text_area
         self.set_reactive(TextAreaFooter.read_only, text_area.read_only)
         self.set_reactive(TextAreaFooter.language, text_area.language)
         self.set_reactive(TextAreaFooter.soft_wrap, text_area.soft_wrap)
         self.set_reactive(TextAreaFooter.selection, text_area.selection)
         if isinstance(text_area, ReadOnlyTextArea):
             self.set_reactive(TextAreaFooter.visual_mode, text_area.visual_mode)
-
-        print("text_area read_only", text_area.read_only)
-        print("read_only", self.read_only)
 
     def watch_selection(self, selection: Selection) -> None:
         row, column = selection.end
@@ -186,8 +188,21 @@ class TextAreaFooter(Horizontal):
     def cursor_location_label(self) -> Label:
         return self.query_one("#location-label", Label)
 
+    def action_focus_text_area(self) -> None:
+        self.text_area.focus()
 
-class ReadOnlyTextArea(TextArea):
+
+class PostingTextArea(TextArea):
+    def on_mount(self) -> None:
+        self.indent_width = 2
+        self.set_class(len(self.text) == 0, "empty")
+
+    @on(TextArea.Changed)
+    def on_change(self, event: TextArea.Changed) -> None:
+        self.set_class(len(self.text) == 0, "empty")
+
+
+class ReadOnlyTextArea(PostingTextArea):
     """
     A read-only text area.
     """
