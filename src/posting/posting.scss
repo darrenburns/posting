@@ -1,7 +1,8 @@
 * {
-  scrollbar-color: $accent-darken-1;
-  scrollbar-color-hover: $accent;
-  scrollbar-color-active: $accent-lighten-1;
+  scrollbar-color: $surface-lighten-1;
+  scrollbar-color-hover: $surface;
+  scrollbar-color-active: $surface-darken-1;
+  scrollbar-size-vertical: 1;
 }
 
 Screen {

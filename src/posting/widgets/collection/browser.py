@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import partial
 import os
 from pathlib import Path
 from typing import Union
@@ -42,6 +43,7 @@ class CollectionTree(Tree[CollectionNode]):
 
     DEFAULT_CSS = """\
     CollectionTree { 
+        scrollbar-size-horizontal: 0;
         & .node-selected {
             background: $primary-lighten-1;
             color: $text;
@@ -250,7 +252,7 @@ class CollectionTree(Tree[CollectionNode]):
                 self.select_node(new_node)
                 self.scroll_to_node(new_node, animate=False)
 
-            self.call_later(post_new_request)
+            self.call_after_refresh(post_new_request)
 
         parent_path = parent_node.data.path
         assert parent_path is not None, "parent should have a path"
@@ -290,7 +292,7 @@ class RequestPreview(VerticalScroll):
         yield Static("", id="description")
 
     def watch_request(self, request: RequestModel | None) -> None:
-        self.set_class(request is None, "hidden")
+        self.set_class(request is None or not request.description, "hidden")
         if request:
             description = self.query_one("#description", Static)
             description.update(request.description)
@@ -373,6 +375,11 @@ class CollectionBrowser(Vertical):
             self.request_preview.request = node_data
         else:
             self.request_preview.request = None
+
+        self.set_timer(
+            0.05,
+            partial(self.collection_tree.scroll_to_node, event.node, animate=False),
+        )
 
     def update_currently_open_node(self, request_model: RequestModel) -> None:
         """Update the request tree node with the new request model."""
