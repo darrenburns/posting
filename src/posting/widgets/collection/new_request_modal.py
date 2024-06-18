@@ -2,13 +2,11 @@ from dataclasses import dataclass
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.containers import Horizontal, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Button, Footer, Input, Label
 
-from posting.collection import RequestModel
 from posting.save_request import FILE_SUFFIX, generate_request_filename
-from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.text_area import PostingTextArea
 
 

@@ -63,9 +63,7 @@ class CollectionTree(Tree[CollectionNode]):
     currently_open: Reactive[TreeNode[CollectionNode] | None] = reactive(None)
 
     def watch_currently_open(self, node: TreeNode[CollectionNode] | None) -> None:
-        print(node)
         if node and isinstance(node.data, RequestModel):
-            print("sending request selected message")
             self.post_message(
                 self.RequestSelected(
                     request=node.data,
@@ -166,7 +164,7 @@ class CollectionTree(Tree[CollectionNode]):
             request_name = new_request_data.title
             file_name = new_request_data.file_name
             new_request = RequestModel(
-                name=request_name, path=data.path / f"{file_name}{SUFFIX}"
+                name=request_name, path=data.path / f"{file_name}"
             )
             new_node = target.add_leaf(request_name, data=new_request)
             self.currently_open = new_node
@@ -268,7 +266,6 @@ class CollectionBrowser(Vertical):
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
-        print("CollectionBrowser.on_request_selected")
         if isinstance(event.node.data, RequestModel):
             self.request_preview.request = event.node.data
 

@@ -144,7 +144,6 @@ class MainScreen(Screen[None]):
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
         """Load a request model into the UI when a request is selected."""
-        print("NEW REQUEST SELECTED", event.request)
         self.load_request_model(event.request)
 
     async def action_send_request(self) -> None:
@@ -171,7 +170,6 @@ class MainScreen(Screen[None]):
             )
 
         request_model = self.build_request_model(self.request_options)
-        print("saving request", request_model)
         if request_model.path:
             # The request already has a home on disk.
             save_path = request_model.path

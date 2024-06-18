@@ -163,7 +163,9 @@ class Collection(BaseModel):
                             found = True
                             break
                     if not found:
-                        new_collection = Collection(name=part, path=directory_path)
+                        new_collection = Collection(
+                            name=part, path=Path(file_path).parent
+                        )
                         current_level.children.append(new_collection)
                         current_level = new_collection
                 current_level.requests.append(request)
@@ -184,10 +186,3 @@ def load_request_from_yaml(file_path: str) -> RequestModel:
     with open(file_path, "r") as file:
         data = yaml.safe_load(file)
         return RequestModel(**data, path=Path(file_path))
-
-
-# Example usage
-if __name__ == "__main__":
-    sample_file_path = "sample-collections/users"
-    collection = Collection.from_directory(sample_file_path)
-    print(collection)
