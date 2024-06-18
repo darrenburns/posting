@@ -86,6 +86,10 @@ To open the command palette, press <kbd>ctrl</kbd>+<kbd>p</kbd>.
 
 https://github.com/darrenburns/posting/assets/5740731/a199e5f2-5621-42e6-b239-a796d1dc144a
 
+## Animation
+
+You can turn off animations by setting the environment variable `TEXTUAL_ANIMATIONS=none`.
+
 ## Planned Features
 
 - **Keyboard Friendly**: Navigate and iterate on your APIs using simple keyboard shortcuts.
