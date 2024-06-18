@@ -257,7 +257,7 @@ class CollectionTree(Tree[CollectionNode]):
             new_request.save_to_disk(save_path)
             self.notify(
                 title="Request saved",
-                message=f"{save_path.resolve().relative_to(root_path.absolute())}",
+                message=f"{save_path.resolve().relative_to(root_path.resolve())}",
                 timeout=3,
             )
 
@@ -272,7 +272,7 @@ class CollectionTree(Tree[CollectionNode]):
         await self.app.push_screen(
             NewRequestModal(
                 initial_directory=str(
-                    parent_path.resolve().relative_to(root_path.absolute())
+                    parent_path.resolve().relative_to(root_path.resolve())
                 ),
                 initial_title="" if initial_request is None else initial_request.name,
                 initial_description=""

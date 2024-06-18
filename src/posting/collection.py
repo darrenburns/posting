@@ -82,7 +82,7 @@ class RequestModel(BaseModel):
     params: list[QueryParam] = Field(default_factory=list)
     """The query parameters of the request."""
 
-    cookies: list[Cookie] = Field(default_factory=list)
+    cookies: list[Cookie] = Field(default_factory=list, exclude=True)
     """The cookies of the request."""
 
     posting_version: str = Field(default="1.0")
