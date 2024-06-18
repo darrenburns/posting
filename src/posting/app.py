@@ -375,6 +375,17 @@ class Posting(App[None]):
             accent="#ffa62b",
             dark=True,
         ),
+        "solarized-light": ColorSystem(
+            primary="#268bd2",
+            secondary="#2aa198",
+            warning="#cb4b16",
+            error="#dc322f",
+            success="#859900",
+            accent="#6c71c4",
+            background="#fdf6e3",
+            surface="#eee8d5",
+            panel="#eee8d5",
+        ),
         "ocean": ColorSystem(
             primary="#1e90ff",
             secondary="#00ced1",
