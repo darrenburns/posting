@@ -1,7 +1,10 @@
 * {
   scrollbar-color: $surface-lighten-1;
-  scrollbar-color-hover: $surface;
-  scrollbar-color-active: $surface-darken-1;
+  scrollbar-color-hover: $accent 50%;
+  scrollbar-color-active: $accent;
+  scrollbar-background: $surface-darken-1;
+  scrollbar-background-hover: $surface-darken-1;
+  scrollbar-background-active: $surface-darken-1;
   scrollbar-size-vertical: 1;
 }
 
