@@ -114,6 +114,9 @@ class MainScreen(Screen[None]):
         try:
             async with httpx.AsyncClient(verify=request_options.verify) as client:
                 request = self.build_httpx_request(request_options)
+                request.headers["User-Agent"] = (
+                    f"Posting/{VERSION} (Terminal-based API client)"
+                )
                 print("-- sending request --")
                 print(request)
                 print(request.headers)
@@ -264,12 +267,6 @@ class MainScreen(Screen[None]):
         assert not isinstance(open_request, Collection)
 
         headers = self.headers_table.to_model()
-        headers.append(
-            Header(
-                name="User-Agent",
-                value=f"Posting/{VERSION} (Terminal-based API client)",
-            )
-        )
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,

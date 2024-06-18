@@ -1,6 +1,0 @@
-name: get reddit home page
-url: https://reddit.com
-body: ''
-headers:
-- name: Content-Type
-  value: application/json

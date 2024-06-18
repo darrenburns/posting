@@ -1,6 +1,0 @@
-name: this is a request
-url: http://www.google.co.uk
-body: ''
-headers:
-- name: Content-Type
-  value: application/json
