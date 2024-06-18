@@ -171,6 +171,14 @@ class CollectionTree(Tree[CollectionNode]):
         region = Region(0, line, 1, 1)
         self.scroll_to_region(region, animate=animate, force=True)
 
+    def on_mount(self) -> None:
+        self.post_message(
+            self.RequestCacheUpdated(
+                cached_base_urls=list(self.cached_base_urls),
+                tree=self,
+            )
+        )
+
     @on(Tree.NodeSelected)
     def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
         event.stop()

@@ -100,13 +100,40 @@ class UrlBar(Horizontal):
         yield SendRequestButton("Send")
 
     def on_mount(self) -> None:
-        self.screen.mount(
-            AutoComplete(
-                target=self.query_one("#url-input", UrlInput),
-                items=self._get_autocomplete_items,
-            )
+        self.auto_complete = AutoComplete(
+            target=self.query_one("#url-input", UrlInput),
+            items=self._get_autocomplete_items,
         )
+        self.screen.mount(self.auto_complete)
 
     def _get_autocomplete_items(self, target_state: TargetState) -> list[DropdownItem]:
-        print(self.cached_base_urls)
-        return [DropdownItem(url) for url in self.cached_base_urls]
+        items = [DropdownItem(url) for url in self.cached_base_urls]
+        matches: list[DropdownItem] = []
+        assert isinstance(items, list)
+        value = target_state.text
+        search_string = self.auto_complete.search_string
+        highlight_style = self.auto_complete.get_component_rich_style(
+            "autocomplete--highlight-match"
+        )
+        for item in items:
+            text = item.main
+            if value.lower() in text.plain.lower():
+                matches.append(
+                    DropdownItem(
+                        left_meta=item.left_meta,
+                        main=item.main,
+                        # popup=item.popup,
+                        search_string=search_string,
+                        highlight_ranges=item.highlight_ranges,
+                        highlight_style=highlight_style
+                        if item.highlight_style is None
+                        else item.highlight_style,
+                    )
+                )
+
+        matches = sorted(
+            matches,
+            key=lambda match: not match.main.plain.lower().startswith(value.lower()),
+        )
+
+        return matches
