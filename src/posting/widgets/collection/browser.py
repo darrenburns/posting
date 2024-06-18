@@ -245,7 +245,12 @@ class CollectionTree(Tree[CollectionNode]):
                 message=f"{save_path.resolve().relative_to(root_path.absolute())}",
                 timeout=3,
             )
-            self.call_later(self.select_node, new_node)
+
+            def post_new_request() -> None:
+                self.select_node(new_node)
+                self.scroll_to_node(new_node, animate=False)
+
+            self.call_later(post_new_request)
 
         parent_path = parent_node.data.path
         assert parent_path is not None, "parent should have a path"
