@@ -108,10 +108,3 @@ class HeadersTable(PostingDataTable):
             row = self.get_row_at(row_index)
             headers.append(Header(name=row[0], value=row[1], enabled=True))
         return headers
-
-    # def to_httpx(self) -> httpx.Headers:
-    #     headers: list[tuple[str, str]] = []
-    #     for row_index in range(self.row_count):
-    #         row = self.get_row_at(row_index)
-    #         headers.append((row[0], row[1]))
-    #     return httpx.Headers(headers)
