@@ -200,15 +200,9 @@ class CollectionTree(Tree[CollectionNode]):
             if initial_request is not None:
                 # Ensure that any data which was filled by the user in the UI is included in the
                 # node data, alongside the typed title and filename from the modal.
-                new_request = initial_request.model_copy(
-                    update={
-                        "name": request_name,
-                        "path": final_path,
-                        "description": request_description,
-                    }
-                )
+                new_request = initial_request.model_copy(update={"path": final_path})
             else:
-                # We're creating an entirely new request
+                # We're creating an entirely new request from the sidebar
                 new_request = RequestModel(
                     name=request_name,
                     path=final_path,
@@ -220,7 +214,6 @@ class CollectionTree(Tree[CollectionNode]):
             path_parts = request_directory.strip(os.path.sep).split(os.path.sep)
             pointer = self.root
             subpath = ""
-
             for part in path_parts:
                 if part == ".":
                     continue
@@ -239,16 +232,11 @@ class CollectionTree(Tree[CollectionNode]):
                     pointer = pointer.add(part, data=new_collection)
                     pointer.expand()
 
-                    # If we're creating new nodes on the path, then update the parent
-                    # node. This will ensure that the deepest collection we create ends
-                    # up being the one that the new request gets attached to - this is
-                    # what we want.
-                    nonlocal parent_node
-                    parent_node = pointer
-
                 subpath = os.path.join(subpath, part)
 
-            new_node = parent_node.add_leaf(request_name, data=new_request)
+            # Attach to the relevant node
+            # target = parent_node if pointer is self.root else pointer
+            new_node = pointer.add_leaf(request_name, data=new_request)
             self.currently_open = new_node
 
             # Persist the request on disk.

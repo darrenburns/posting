@@ -174,6 +174,7 @@ class MainScreen(Screen[None]):
             # request which the user may already have filled in some data of in
             # the UI.
             request_model = self.build_request_model(self.request_options)
+            print("initial_request", request_model)
             await self.collection_tree.new_request_flow(request_model)
             # The new request flow is already handling the saving of the request to disk.
             # No further action is required.
