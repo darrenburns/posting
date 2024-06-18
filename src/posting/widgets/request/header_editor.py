@@ -69,7 +69,6 @@ class HeadersTable(PostingDataTable):
         self.zebra_stripes = True
         self.fixed_columns = 1
         self.add_columns(*["Header", "Value"])
-        self.add_row("Content-Type", "application/json")
 
     def watch_has_focus(self, value: bool) -> None:
         self._scroll_cursor_into_view()

@@ -38,10 +38,6 @@ from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
-from posting.widgets.collection.new_request_modal import (
-    NewRequestData,
-    NewRequestModal,
-)
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
