@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import os
+from pathlib import Path
 from typing import Union
 from rich.style import Style
 from rich.text import Text
@@ -150,26 +151,22 @@ class CollectionTree(Tree[CollectionNode]):
         cursor_node = self.cursor_node
         if cursor_node is None:
             # If it's None, we'll add a new RequestModel to the root of the tree.
-            target = self.root
+            parent_node = self.root
         else:
             node_data = cursor_node.data
             if isinstance(node_data, Collection):
                 # If it's a Collection, we'll add a leaf to it directly.
-                target = cursor_node
+                parent_node = cursor_node
             elif isinstance(node_data, RequestModel):
                 # If it's a RequestModel, we'll add a new RequestModel to it's parent Collection.
-                target = cursor_node.parent or self.root
+                parent_node = cursor_node.parent or self.root
             else:
                 # This should never happen - nodes should always contain data.
-                target = self.root
+                parent_node = self.root
 
-        parent_data = target.data
-        parent_path = parent_data.path
         root_path = self.root.data.path
 
         assert root_path is not None, "root should have a path"
-        assert parent_path is not None, "parent should have a path"
-        assert parent_data is not None, "all nodes should have data"
 
         def _handle_new_request_data(new_request_data: NewRequestData | None) -> None:
             """Get the new request data from the modal, and update the UI with it."""
@@ -203,20 +200,40 @@ class CollectionTree(Tree[CollectionNode]):
                     description=request_description,
                 )
 
-            # TODO
-            # We may need to create more than just the leaf here,
-            # if the user has requested that we save in a directory
-            # which is nested deeper in the tree.
-            # We should create any intermediate collections
-            # as well as the leaf node.
-
-            # If parent directories have been specified which are not
-            # already in the tree, we should create them.
+            # Traverse the path, creating any intermediate collections
+            # which are not already in the tree.
             path_parts = request_directory.strip(os.path.sep).split(os.path.sep)
-            for part in path_parts:
-                target = target.add(part, data=Collection(name=part))
+            pointer = self.root
+            subpath = ""
 
-            new_node = target.add_leaf(request_name, data=new_request)
+            for part in path_parts:
+                if part == ".":
+                    continue
+
+                found = False
+                for child in pointer.children:
+                    if isinstance(child.data, Collection) and child.data.name == part:
+                        pointer = child
+                        found = True
+                        break
+
+                if not found:
+                    # Collection couldn't be found at this level of the tree.
+                    # Create it and move down.
+                    new_collection = Collection(name=part, path=Path(subpath))
+                    pointer = pointer.add(part, data=new_collection)
+                    pointer.expand()
+
+                    # If we're creating new nodes on the path, then update the parent
+                    # node. This will ensure that the deepest collection we create ends
+                    # up being the one that the new request gets attached to - this is
+                    # what we want.
+                    nonlocal parent_node
+                    parent_node = pointer
+
+                subpath = os.path.join(subpath, part)
+
+            new_node = parent_node.add_leaf(request_name, data=new_request)
             self.currently_open = new_node
 
             # Persist the request on disk.
@@ -230,6 +247,8 @@ class CollectionTree(Tree[CollectionNode]):
             )
             self.call_later(self.select_node, new_node)
 
+        parent_path = parent_node.data.path
+        assert parent_path is not None, "parent should have a path"
         await self.app.push_screen(
             NewRequestModal(
                 initial_directory=str(

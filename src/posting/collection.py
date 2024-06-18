@@ -156,7 +156,7 @@ class Collection(BaseModel):
                     path_string[len(directory) :].strip(os.path.sep).split(os.path.sep)
                 )
                 current_level = root_collection
-                subpath = file_path
+                subpath = root_collection.path
                 for part in path_parts[:-1]:
                     subpath = subpath / part
                     found = False
@@ -166,7 +166,6 @@ class Collection(BaseModel):
                             found = True
                             break
 
-                    # TODO - fix this. the path is not correct.
                     if not found:
                         new_collection = Collection(name=part, path=subpath)
                         current_level.children.append(new_collection)
@@ -174,6 +173,7 @@ class Collection(BaseModel):
                 current_level.requests.append(request)
             except Exception as e:
                 print(f"Failed to load {file_path}: {e}")
+
         return root_collection
 
 

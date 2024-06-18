@@ -84,6 +84,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         self._initial_title = initial_title
         self._initial_description = initial_description
         self._initial_directory = initial_directory
+        self._generated_filename = ""
 
     def compose(self) -> ComposeResult:
         with VerticalScroll() as vs:
