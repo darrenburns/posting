@@ -2,10 +2,9 @@ from dataclasses import dataclass
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
-from textual.dom import DOMNode
 from textual.message import Message
 from textual.reactive import Reactive, reactive
-from textual.widgets import Button, Input, Label, TextArea
+from textual.widgets import Input, Label, TextArea
 from posting.collection import RequestModel
 from posting.save_request import generate_request_filename
 

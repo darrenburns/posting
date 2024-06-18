@@ -23,7 +23,13 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
-from posting.collection import Collection, Cookie, HttpRequestMethod, RequestModel
+from posting.collection import (
+    Collection,
+    Cookie,
+    Header,
+    HttpRequestMethod,
+    RequestModel,
+)
 
 from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
@@ -52,6 +58,8 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
+
+VERSION = version("posting")
 
 
 class AppHeader(Label):
@@ -94,7 +102,7 @@ class MainScreen(Screen[None]):
         self.cookies: httpx.Cookies = httpx.Cookies()
 
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"Posting [white dim]{version('posting')}[/]")
+        yield AppHeader(f"Posting [white dim]{VERSION}[/]")
         yield UrlBar()
         with AppBody():
             yield CollectionBrowser(collection=self.collection)
@@ -177,8 +185,9 @@ class MainScreen(Screen[None]):
             self._update_request_tree_node(request_model)
             _notify_saved(save_path)
         else:
-            # We shouldn't allow this. When creating a new request,
-            # it should be assigned a default path on disk - never `None`.
+            # The case where someone has opened Posting, creates a request,
+            # and then later wants to save after (i.e. supply the name last
+            # rather than in advance)
             pass
 
     def _update_request_tree_node(self, request_model: RequestModel) -> None:
@@ -259,6 +268,13 @@ class MainScreen(Screen[None]):
         # We ensure elsewhere that the we can only "open" requests, not collection nodes.
         assert not isinstance(open_request, Collection)
 
+        headers = self.headers_table.to_model()
+        headers.append(
+            Header(
+                name="User-Agent",
+                value=f"Posting/{VERSION} (Terminal-based API client)",
+            )
+        )
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
