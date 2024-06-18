@@ -26,7 +26,6 @@ from textual.widgets._tabbed_content import ContentTab
 from posting.collection import (
     Collection,
     Cookie,
-    Header,
     HttpRequestMethod,
     RequestModel,
 )
@@ -152,6 +151,14 @@ class MainScreen(Screen[None]):
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
         """Load a request model into the UI when a request is selected."""
         self.load_request_model(event.request)
+
+    @on(CollectionTree.RequestCacheUpdated)
+    def on_request_cache_updated(
+        self, event: CollectionTree.RequestCacheUpdated
+    ) -> None:
+        """Update the autocomplete suggestions when the request cache is updated."""
+        print(event.cached_base_urls)
+        self.url_bar.cached_base_urls = event.cached_base_urls
 
     async def action_send_request(self) -> None:
         """Send the request."""
@@ -296,6 +303,10 @@ class MainScreen(Screen[None]):
         )
         self.request_body_text_area.text = request_model.body or ""
         self.request_metadata.request = request_model
+
+    @property
+    def url_bar(self) -> UrlBar:
+        return self.query_one(UrlBar)
 
     @property
     def url_input(self) -> UrlInput:

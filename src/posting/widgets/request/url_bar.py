@@ -3,6 +3,8 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.widgets import Input, Button
+from textual_autocomplete import AutoComplete, DropdownItem
+from textual_autocomplete._autocomplete2 import TargetState
 
 from posting.highlight_url import URLHighlighter
 from posting.widgets.request.method_selection import MethodSelection
@@ -79,11 +81,32 @@ class UrlBar(Horizontal):
     }
     """
 
+    def __init__(
+        self,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.cached_base_urls: list[str] = []
+
     def compose(self) -> ComposeResult:
-        with Horizontal():
-            yield MethodSelection("GET")
-            yield UrlInput(
-                placeholder="Enter a URL...",
-                id="url-input",
+        yield MethodSelection("GET")
+        yield UrlInput(
+            placeholder="Enter a URL...",
+            id="url-input",
+        )
+        yield SendRequestButton("Send")
+
+    def on_mount(self) -> None:
+        self.screen.mount(
+            AutoComplete(
+                target=self.query_one("#url-input", UrlInput),
+                items=self._get_autocomplete_items,
             )
-            yield SendRequestButton("Send")
+        )
+
+    def _get_autocomplete_items(self, target_state: TargetState) -> list[DropdownItem]:
+        print(self.cached_base_urls)
+        return [DropdownItem(url) for url in self.cached_base_urls]

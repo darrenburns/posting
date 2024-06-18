@@ -3,8 +3,9 @@ from functools import partial
 import os
 from pathlib import Path
 from typing import Union
+from urllib.parse import urlparse
 from rich.style import Style
-from rich.text import Text
+from rich.text import Text, TextType
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -54,10 +55,39 @@ class CollectionTree(Tree[CollectionNode]):
     
     """
 
+    def __init__(
+        self,
+        label: TextType,
+        data: CollectionNode | None = None,
+        *,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        super().__init__(
+            label,
+            data,
+            name=name,
+            id=id,
+            classes=classes,
+            disabled=disabled,
+        )
+        self.cached_base_urls: set[str] = set()
+
     @dataclass
     class RequestSelected(Message):
         request: RequestModel
         node: TreeNode[CollectionNode]
+        tree: "CollectionTree"
+
+        @property
+        def control(self) -> "CollectionTree":
+            return self.tree
+
+    @dataclass
+    class RequestCacheUpdated(Message):
+        cached_base_urls: list[str]
         tree: "CollectionTree"
 
         @property
@@ -165,22 +195,17 @@ class CollectionTree(Tree[CollectionNode]):
         # This is based on the current cursor location within the tree.
         cursor_node = self.cursor_node
         if cursor_node is None:
-            # If it's None, we'll add a new RequestModel to the root of the tree.
             parent_node = self.root
         else:
             node_data = cursor_node.data
             if isinstance(node_data, Collection):
-                # If it's a Collection, we'll add a leaf to it directly.
                 parent_node = cursor_node
             elif isinstance(node_data, RequestModel):
-                # If it's a RequestModel, we'll add a new RequestModel to it's parent Collection.
                 parent_node = cursor_node.parent or self.root
             else:
-                # This should never happen - nodes should always contain data.
                 parent_node = self.root
 
         root_path = self.root.data.path
-
         assert root_path is not None, "root should have a path"
 
         def _handle_new_request_data(new_request_data: NewRequestData | None) -> None:
@@ -242,7 +267,7 @@ class CollectionTree(Tree[CollectionNode]):
 
             # Attach to the relevant node
             # target = parent_node if pointer is self.root else pointer
-            new_node = pointer.add_leaf(request_name, data=new_request)
+            new_node = self.add_request(new_request, parent_node)
             self.currently_open = new_node
 
             # Persist the request on disk.
@@ -275,6 +300,36 @@ class CollectionTree(Tree[CollectionNode]):
             ),
             callback=_handle_new_request_data,
         )
+
+    def add_request(
+        self, request: RequestModel, parent_node: TreeNode[CollectionNode]
+    ) -> TreeNode[CollectionNode]:
+        """Add a new request to the tree, and cache data from it."""
+        self.cache_request(request)
+        return parent_node.add_leaf(request.name, data=request)
+
+    def cache_request(self, request: RequestModel) -> None:
+        def get_base_url(url: str) -> str | None:
+            try:
+                parsed_url = urlparse(url)
+                # Check if the scheme and netloc are present
+                if parsed_url.scheme and parsed_url.netloc:
+                    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                    return base_url
+            except Exception:
+                return None
+
+        base_url = get_base_url(request.url)
+        if base_url:
+            self.cached_base_urls.add(base_url)
+            # Post a message up to the screen so that it can inform
+            # the URL bar that the autocomplete suggestions have changed.
+            self.post_message(
+                self.RequestCacheUpdated(
+                    cached_base_urls=list(self.cached_base_urls),
+                    tree=self,
+                )
+            )
 
 
 class RequestPreview(VerticalScroll):
@@ -352,7 +407,7 @@ class CollectionBrowser(Vertical):
         ) -> None:
             # Add the requests (leaf nodes)
             for request in collection.requests:
-                parent_node.add_leaf(request.name, data=request)
+                tree.add_request(request, parent_node)
 
             # Add the subcollections (child nodes)
             for child_collection in collection.children:
@@ -394,6 +449,7 @@ class CollectionBrowser(Vertical):
         if currently_open is not None and isinstance(currently_open.data, RequestModel):
             currently_open.data = request_model
             currently_open.set_label(request_model.name or "")
+            self.collection_tree.cache_request(request_model)
             currently_open.refresh()
             # Update the description preview if it's the one currently being displayed.
             if currently_open is self.collection_tree.cursor_node:
