@@ -1,7 +1,6 @@
-from dataclasses import dataclass
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
-from textual.message import Message
+from textual.reactive import Reactive, reactive
 from textual.widgets import Input, Label
 
 from posting.collection import RequestModel
@@ -23,14 +22,7 @@ class RequestMetadata(VerticalScroll):
     }
     """
 
-    @dataclass
-    class Saved(Message):
-        request: RequestModel
-        widget: "RequestMetadata"
-
-        @property
-        def control(self) -> "RequestMetadata":
-            return self.widget
+    request: Reactive[RequestModel | None] = reactive(None, init=False)
 
     def watch_request(self, request: RequestModel | None) -> None:
         """When the request changes, update the form."""

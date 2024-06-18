@@ -200,7 +200,13 @@ class CollectionTree(Tree[CollectionNode]):
             if initial_request is not None:
                 # Ensure that any data which was filled by the user in the UI is included in the
                 # node data, alongside the typed title and filename from the modal.
-                new_request = initial_request.model_copy(update={"path": final_path})
+                new_request = initial_request.model_copy(
+                    update={
+                        "name": request_name,
+                        "description": request_description,
+                        "path": final_path,
+                    }
+                )
             else:
                 # We're creating an entirely new request from the sidebar
                 new_request = RequestModel(

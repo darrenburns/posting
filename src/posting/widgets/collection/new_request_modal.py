@@ -142,6 +142,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         file_name = self.query_one("#file-name-input", Input).value
         directory = self.query_one("#directory-input", Input).value
         description = self.query_one("#description-textarea", PostingTextArea).text
+
         generated_filename = self._generated_filename
         if not file_name:
             file_name = generated_filename + FILE_SUFFIX
