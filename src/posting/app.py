@@ -277,7 +277,7 @@ class MainScreen(Screen[None]):
             method=self.selected_method,
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
-            headers=self.headers_table.to_model(),
+            headers=headers,
             body=self.request_body_text_area.text,
             cookies=(
                 Cookie.from_httpx(self.cookies)
