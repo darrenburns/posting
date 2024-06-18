@@ -9,6 +9,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
+from textual.geometry import Region
 from textual.message import Message
 from textual.reactive import Reactive, reactive
 from textual.widgets import Static, Tree
@@ -127,6 +128,18 @@ class CollectionTree(Tree[CollectionNode]):
             style=open_style,
         )
         return text
+
+    def scroll_to_line(self, line: int, animate: bool = False) -> None:
+        """Scroll to the given line.
+
+        Overridden because I don't like the default horizontal scrolling behavior.
+
+        Args:
+            line: A line number.
+            animate: Enable animation.
+        """
+        region = Region(0, line, 1, 1)
+        self.scroll_to_region(region, animate=animate, force=True)
 
     @on(Tree.NodeSelected)
     def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
