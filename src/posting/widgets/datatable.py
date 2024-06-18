@@ -23,8 +23,10 @@ PostingDataTable {
         Binding("right,l", "cursor_right", "Cursor Right", show=False),
         Binding("left,h", "cursor_left", "Cursor Left", show=False),
         Binding("f", "toggle_fixed_columns", "Toggle Fixed Column", show=False),
-        Binding("g,home", "scroll_home", "Home", show=False),
-        Binding("G,end", "scroll_end", "End", show=False),
+        Binding("home", "scroll_home", "Home", show=False),
+        Binding("end", "scroll_end", "End", show=False),
+        Binding("g,ctrl+home", "scroll_top", "Top", show=False),
+        Binding("G,ctrl+end", "scroll_bottom", "Bottom", show=False),
     ]
 
     @dataclass
