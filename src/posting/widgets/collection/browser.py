@@ -340,7 +340,7 @@ class CollectionBrowser(Vertical):
             currently_open.refresh()
             # Update the description preview if it's the one currently being displayed.
             if currently_open is self.collection_tree.cursor_node:
-                self.request_preview.request.path = request_model.path
+                self.request_preview.request = request_model
 
     @property
     def request_preview(self) -> RequestPreview:

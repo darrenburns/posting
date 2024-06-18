@@ -1,6 +1,12 @@
 name: Somethings
 description: aasdsd123123123
+method: PUT
 body: ''
 headers:
 - name: Authorization
   value: '123'
+cookies:
+- name: AEC
+  value: AQTF6HxHWdB20yXvL7ReGAcbriL7Ej43rVLHPwG6vT5QDJeESnnezPkYYJM
+- name: __Secure-ENID
+  value: 20.SE=bdDLRNhPf6FmNcCIYKdtZum08Puv326JlZ4_xNCp-cjQ_WjV0T3jRzQiCQO_GGptpkjEWk7LRxdd_BZ8NSBUnk-oSr--9YMw9CZTXz4XaxXFkSMJJyAXhesC_bQgfiTiwt_PWtKTCMDIyiwzHkrCP2BFwNmhpEFjbdRjd19bVHlI8sx-AF4l
