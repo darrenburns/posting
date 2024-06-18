@@ -69,16 +69,35 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         Binding("escape", "close_screen", "Cancel"),
     ]
 
+    def __init__(
+        self,
+        initial_title: str = "",
+        initial_description: str = "",
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+    ) -> None:
+        super().__init__(name, id, classes)
+        self._initial_title = initial_title
+        self._initial_description = initial_description
+
     def compose(self) -> ComposeResult:
         with VerticalScroll() as vs:
             vs.can_focus = False
             vs.border_title = "New request"
 
             yield Label("Title")
-            yield Input(placeholder="Enter a title", id="title-input")
+            yield Input(
+                self._initial_title,
+                placeholder="Enter a title",
+                id="title-input",
+            )
 
             yield Label("Description [dim]optional[/dim]")
-            yield PostingTextArea(id="description-textarea")
+            yield PostingTextArea(
+                self._initial_description,
+                id="description-textarea",
+            )
 
             yield Label("File name [dim]optional[/dim]")
             with Horizontal():

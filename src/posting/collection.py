@@ -53,7 +53,7 @@ class Cookie(BaseModel):
 
 
 class RequestModel(BaseModel):
-    name: str | None = Field(default=None)
+    name: str = Field(default="")
     """The name of the request. This is used to identify the request in the UI.
     Before saving a request, the name may be None."""
 

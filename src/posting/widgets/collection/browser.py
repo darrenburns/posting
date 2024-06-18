@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import os
+from pathlib import Path
 from typing import Union
 from rich.style import Style
 from rich.text import Text
@@ -134,7 +135,19 @@ class CollectionTree(Tree[CollectionNode]):
             self.refresh()
 
     async def action_new_request(self) -> None:
-        # Get the current highlighted node.
+        # This is a completely new request, we should not pre-populate the
+        # modal with any data/initial request.
+        await self.new_request_flow(initial_request=None)
+
+    async def new_request_flow(self, initial_request: RequestModel | None) -> None:
+        """Start the flow to create a new request.
+
+        Args:
+            initial_request: If the user has already started filling out request info
+            in the UI, then we can pre-fill the modal with that info.
+        """
+        # Determine where in the tree the new request will live.
+        # This is based on the current cursor location within the tree.
         cursor_node = self.cursor_node
         if cursor_node is None:
             # If it's None, we'll add a new RequestModel to the root of the tree.
@@ -148,10 +161,11 @@ class CollectionTree(Tree[CollectionNode]):
                 # If it's a RequestModel, we'll add a new RequestModel to it's parent Collection.
                 target = cursor_node.parent or self.root
             else:
+                # This should never happen - nodes should always contain data.
                 target = self.root
 
-        data = target.data
-        assert data is not None, "all nodes should have data"
+        parent_data = target.data
+        assert parent_data is not None, "all nodes should have data"
 
         def _handle_new_request_data(new_request_data: NewRequestData | None) -> None:
             """Get the new request data from the modal, and update the UI with it."""
@@ -162,15 +176,61 @@ class CollectionTree(Tree[CollectionNode]):
             # The user confirms the details in the modal, so use these details
             # to create a new RequestModel and add it to the tree.
             request_name = new_request_data.title
+            request_description = new_request_data.description
             file_name = new_request_data.file_name
-            new_request = RequestModel(
-                name=request_name, path=data.path / f"{file_name}"
-            )
+            parent_path = parent_data.path
+
+            assert parent_path is not None, "parent should have a path"
+
+            if initial_request is not None:
+                # Ensure that any data which was filled by the user in the UI is included in the
+                # node data, alongside the typed title and filename from the modal.
+                new_request = initial_request.model_copy(
+                    update={
+                        "name": request_name,
+                        "path": parent_path / f"{file_name}",
+                        "description": request_description,
+                    }
+                )
+            else:
+                # We're creating an entirely new request
+                new_request = RequestModel(
+                    name=request_name,
+                    path=parent_path / f"{file_name}",
+                    description=request_description,
+                )
+
             new_node = target.add_leaf(request_name, data=new_request)
             self.currently_open = new_node
+
+            # Persist the request on disk.
+            save_path = new_request.path
+            assert save_path is not None, "new request must have a path"
+            new_request.save_to_disk(save_path)
+            self.notify(
+                title="Request saved",
+                message=f"{save_path.absolute().relative_to(Path.cwd())}",
+                timeout=3,
+            )
             self.call_later(self.select_node, new_node)
 
-        await self.app.push_screen(NewRequestModal(), callback=_handle_new_request_data)
+        await self.app.push_screen(
+            NewRequestModal(
+                initial_title="" if initial_request is None else initial_request.name,
+                initial_description=""
+                if initial_request is None
+                else initial_request.description,
+            ),
+            callback=_handle_new_request_data,
+        )
+
+    def update_currently_open_node(self, request_model: RequestModel) -> None:
+        """Update the request tree node with the new request model."""
+        currently_open = self.currently_open
+        if currently_open is not None and isinstance(currently_open.data, RequestModel):
+            currently_open.data = request_model
+            currently_open.set_label(request_model.name or "")
+            currently_open.refresh()
 
 
 class RequestPreview(VerticalScroll):

@@ -1,0 +1,5 @@
+name: sausages
+body: ''
+headers:
+- name: Content-Type
+  value: application/json

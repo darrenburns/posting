@@ -167,37 +167,37 @@ class MainScreen(Screen[None]):
         request_model = self.build_request_model(self.request_options)
         log.info(request_model)
 
-    def action_save_request(self) -> None:
-        """Save the request to disk."""
+    async def action_save_request(self) -> None:
+        """Save the request to disk, possibly prompting the user for more information
+        if it's the first time this request has been saved to disk."""
+        if self.collection_tree.currently_open is None:
+            # No request currently open in the collection tree, we're saving a
+            # request which the user may already have filled in some data of in
+            # the UI.
+            request_model = self.build_request_model(self.request_options)
+            await self.collection_tree.new_request_flow(request_model)
+            # The new request flow is already handling the saving of the request to disk.
+            # No further action is required.
+            return
 
-        def _notify_saved(save_path: Path) -> None:
+        # In this case, we're saving an existing request to disk.
+        currently_open = self.collection_tree.currently_open
+        request_model = currently_open.data
+        assert isinstance(
+            request_model, RequestModel
+        ), "currently open node should contain a request model"
+
+        # At this point, either we're reusing the pre-existing home for the request
+        # on disk, or the new location on disk which was assigned during the "new request flow"
+        save_path = request_model.path
+        if save_path is not None:
+            request_model.save_to_disk(save_path)
+            self.collection_tree.update_currently_open_node(request_model)
             self.notify(
                 title="Request saved",
                 message=f"{save_path.absolute().relative_to(Path.cwd())}",
                 timeout=3,
             )
-
-        request_model = self.build_request_model(self.request_options)
-        if request_model.path:
-            # The request already has a home on disk.
-            save_path = request_model.path
-            request_model.save_to_disk(save_path)
-            self._update_request_tree_node(request_model)
-            _notify_saved(save_path)
-        else:
-            # The case where someone has opened Posting, creates a request,
-            # and then later wants to save after (i.e. supply the name last
-            # rather than in advance)
-            pass
-
-    def _update_request_tree_node(self, request_model: RequestModel) -> None:
-        """Update the request tree node with the new request model."""
-        currently_open = self.collection_tree.currently_open
-        if currently_open is not None and isinstance(currently_open.data, RequestModel):
-            currently_open.data = request_model
-            currently_open.set_label(request_model.name or "")
-            self.collection_browser.request_preview.request = request_model
-            currently_open.refresh()
 
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
         """Update the layout of the app to be horizontal or vertical."""
