@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from textual import events, on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical
 from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import OptionList, Footer, Label
@@ -12,16 +11,12 @@ from textual.widgets import OptionList, Footer, Label
 class MethodSelectionPopup(ModalScreen[str]):
     CSS = """\
     MethodSelectionPopup {
-        & > Vertical {
-            height: auto;
-            width: auto;
+        & > OptionList {
             margin: 4 3;
+            width: 10;
+            height: 7;
+            border: none;
             border-left: outer $primary-lighten-1;
-            & > OptionList {
-                background: transparent;
-                width: auto;
-                border: none;
-            }
         }
     }"""
 
@@ -37,8 +32,7 @@ class MethodSelectionPopup(ModalScreen[str]):
     ]
 
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield OptionList("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
+        yield OptionList("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
         yield Footer()
 
     def on_click(self, event: events.Click) -> None:
