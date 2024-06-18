@@ -20,6 +20,8 @@ class NewRequestData:
     """The file name of the request."""
     description: str
     """The description of the request."""
+    directory: str
+    """The directory of the request."""
 
 
 class NewRequestModal(ModalScreen[NewRequestData | None]):
@@ -71,6 +73,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
 
     def __init__(
         self,
+        initial_directory: str,
         initial_title: str = "",
         initial_description: str = "",
         name: str | None = None,
@@ -80,6 +83,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         super().__init__(name, id, classes)
         self._initial_title = initial_title
         self._initial_description = initial_description
+        self._initial_directory = initial_directory
 
     def compose(self) -> ComposeResult:
         with VerticalScroll() as vs:
@@ -99,9 +103,16 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 id="description-textarea",
             )
 
+            yield Label("Directory [dim]optional[/dim]")
+            yield Input(
+                self._initial_directory,
+                placeholder="Enter a directory",
+                id="directory-input",
+            )
+
             yield Label("File name [dim]optional[/dim]")
             with Horizontal():
-                yield Input(placeholder="Enter a file name", id="save-path-input")
+                yield Input(placeholder="Enter a file name", id="file-name-input")
                 yield Label(".posting.yaml", id="file-suffix-label")
 
             yield Button.success("Create request", id="create-button")
@@ -120,12 +131,16 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         """
         value = event.value
         self._generated_filename = generate_request_filename(value)
-        self.query_one("#save-path-input", Input).placeholder = self._generated_filename
+        file_name_input = self.query_one("#file-name-input", Input)
+        file_name_input.placeholder = self._generated_filename
+        file_name_input.refresh()
 
     @on(Input.Submitted)
     @on(Button.Pressed, selector="#create-button")
     def on_create(self, event: Input.Submitted | Button.Pressed) -> None:
-        file_name = self.query_one("#save-path-input", Input).value
+        file_name = self.query_one("#file-name-input", Input).value
+        directory = self.query_one("#directory-input", Input).value
+        description = self.query_one("#description-textarea", PostingTextArea).text
         generated_filename = self._generated_filename
         if not file_name:
             file_name = generated_filename + FILE_SUFFIX
@@ -136,12 +151,11 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         if not title:
             title = generated_filename
 
-        description = self.query_one("#description-textarea", PostingTextArea).text
-
         self.dismiss(
             NewRequestData(
                 file_name=file_name,
                 title=title,
                 description=description,
+                directory=directory,
             )
         )

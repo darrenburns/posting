@@ -150,23 +150,25 @@ class Collection(BaseModel):
 
         for file_path in request_files:
             try:
-                file_path = str(file_path)
-                request = load_request_from_yaml(file_path)
+                path_string = str(file_path)
+                request = load_request_from_yaml(path_string)
                 path_parts = (
-                    file_path[len(directory) :].strip(os.path.sep).split(os.path.sep)
+                    path_string[len(directory) :].strip(os.path.sep).split(os.path.sep)
                 )
                 current_level = root_collection
+                subpath = file_path
                 for part in path_parts[:-1]:
+                    subpath = subpath / part
                     found = False
                     for child in current_level.children:
                         if child.name == part:
                             current_level = child
                             found = True
                             break
+
+                    # TODO - fix this. the path is not correct.
                     if not found:
-                        new_collection = Collection(
-                            name=part, path=Path(file_path).parent
-                        )
+                        new_collection = Collection(name=part, path=subpath)
                         current_level.children.append(new_collection)
                         current_level = new_collection
                 current_level.requests.append(request)
