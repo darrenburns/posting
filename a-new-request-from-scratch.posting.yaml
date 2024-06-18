@@ -1,9 +1,0 @@
-name: A new request from scratch
-description: This is a test of creating a new request from scratch!
-url: http://www.reddit.com
-body: ''
-headers:
-- name: If-Modified-Since
-  value: '123123'
-- name: User-Agent
-  value: Posting/1.0.0b8 (Terminal-based API client)
