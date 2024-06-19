@@ -8,6 +8,15 @@
   scrollbar-size-vertical: 1;
 }
 
+AutoComplete {
+  border-left: wide $accent;
+  background: transparent;
+
+  & AutoCompleteList {
+    background: transparent;
+  }
+}
+
 Screen {
   background: $background;
 }
