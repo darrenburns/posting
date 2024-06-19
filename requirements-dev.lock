@@ -74,7 +74,7 @@ textual==0.69.0
     # via posting
     # via textual-autocomplete
     # via textual-dev
-textual-autocomplete==3.0.0a2
+textual-autocomplete==3.0.0a3
     # via posting
 textual-dev==1.5.1
 tree-sitter==0.20.4
