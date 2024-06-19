@@ -16,7 +16,6 @@ class RequestMetadata(VerticalScroll):
             margin-bottom: 1;
         }
         & PostingTextArea {
-            margin-bottom: 1;
         }
         & Button {
             dock: bottom;
@@ -24,7 +23,6 @@ class RequestMetadata(VerticalScroll):
         }
         & #request-path {
             color: $text-muted;
-            margin-bottom: 1;
         }
     }
     """

@@ -86,6 +86,7 @@ class MainScreen(Screen[None]):
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
         # Binding("ctrl+n", "preview_request_model", "DEBUG Preview request model"),
         Binding("ctrl+s", "save_request", "Save request"),
+        Binding("ctrl+n", "new_request", "New request"),
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
@@ -204,6 +205,10 @@ class MainScreen(Screen[None]):
                 message=f"{save_path.absolute().relative_to(Path.cwd())}",
                 timeout=3,
             )
+
+    async def action_new_request(self) -> None:
+        """Open the new request flow."""
+        await self.collection_tree.new_request_flow(None)
 
     def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
         """Update the layout of the app to be horizontal or vertical."""

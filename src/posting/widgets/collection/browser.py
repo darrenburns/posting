@@ -192,11 +192,6 @@ class CollectionTree(Tree[CollectionNode]):
             self._clear_line_cache()
             self.refresh()
 
-    async def action_new_request(self) -> None:
-        # This is a completely new request, we should not pre-populate the
-        # modal with any data/initial request.
-        await self.new_request_flow(initial_request=None)
-
     async def new_request_flow(self, initial_request: RequestModel | None) -> None:
         """Start the flow to create a new request.
 
