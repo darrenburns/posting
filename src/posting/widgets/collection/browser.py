@@ -36,7 +36,6 @@ class CollectionTree(Tree[CollectionNode]):
         Binding("j", "cursor_down", "Cursor Down", show=False),
         Binding("enter,l,h", "select_cursor", "Select Cursor", show=False),
         Binding("space,r", "toggle_node", "Toggle Expand", show=False),
-        Binding("n", "new_request", "New Request"),
     ]
 
     COMPONENT_CLASSES = {

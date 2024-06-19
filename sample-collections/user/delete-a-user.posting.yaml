@@ -1,0 +1,3 @@
+name: delete a user
+method: DELETE
+body: ''
