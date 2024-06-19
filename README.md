@@ -6,7 +6,19 @@ It's designed for those who prefer working in a terminal environment and enjoy f
 
 <img width="1370" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/d52d6a93-f94b-41e5-af5a-baabfa1f2f48">
 
-It's still a work in progress and far from feature complete (that's why there are no installation instructions yet). Please don't open any bug reports yet - although I'm happy to hear ideas/suggestions!
+It's still a work in progress and far from feature complete. Please don't open any bug reports yet - although I'm happy to hear ideas/suggestions!
+
+## Installation
+
+Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/):
+
+```bash
+pipx install posting
+```
+
+Python 3.11 or later is required.
+
+More installation methods (`brew`, etc) will be added soon.
 
 ## Collections
 

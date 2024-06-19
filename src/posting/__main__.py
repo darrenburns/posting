@@ -7,7 +7,7 @@ from click_default_group import DefaultGroup
 
 from posting.app import Posting
 from posting.collection import Collection
-from posting.locations import config_file, data_directory
+from posting.locations import config_file
 
 
 def load_or_create_config_file() -> dict[str, Any]:
