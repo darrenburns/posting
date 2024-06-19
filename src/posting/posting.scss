@@ -11,9 +11,15 @@
 AutoComplete {
   border-left: wide $accent;
   background: transparent;
-
+  
   & AutoCompleteList {
+    color: $text-muted;
     background: transparent;
+  }
+
+  & .autocomplete--highlight-match {
+    color: $text;
+    background: $primary-lighten-2;
   }
 }
 

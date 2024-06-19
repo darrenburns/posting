@@ -232,8 +232,10 @@ class CollectionTree(Tree[CollectionNode]):
             request_name = new_request_data.title
             request_description = new_request_data.description
             request_directory = new_request_data.directory
+
             if request_directory.strip() == "":
                 request_directory = "."
+
             file_name = new_request_data.file_name
             final_path = root_path / request_directory / f"{file_name}"
 
@@ -258,7 +260,6 @@ class CollectionTree(Tree[CollectionNode]):
             # Traverse the path, creating any intermediate collections
             # which are not already in the tree.
             path_parts = request_directory.strip(os.path.sep).split(os.path.sep)
-            print("path_parts", path_parts)
             pointer = self.root
             subpath = self.root.data.path
             for part in path_parts:
@@ -266,7 +267,6 @@ class CollectionTree(Tree[CollectionNode]):
                     continue
 
                 subpath = os.path.join(subpath, part)
-                print("subpath", subpath)
 
                 found = False
                 for child in pointer.children:
@@ -283,8 +283,9 @@ class CollectionTree(Tree[CollectionNode]):
                     pointer.expand()
 
             # Attach to the relevant node
-            # target = parent_node if pointer is self.root else pointer
-            new_node = self.add_request(new_request, parent_node)
+            new_node = self.add_request(
+                new_request, parent_node if pointer is self.root else pointer
+            )
             self.currently_open = new_node
 
             # Persist the request on disk.

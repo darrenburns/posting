@@ -98,6 +98,11 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 id="title-input",
             )
 
+            yield Label("File name [dim]optional[/dim]")
+            with Horizontal():
+                yield Input(placeholder="Enter a file name", id="file-name-input")
+                yield Label(".posting.yaml", id="file-suffix-label")
+
             yield Label("Description [dim]optional[/dim]")
             yield PostingTextArea(
                 self._initial_description,
@@ -110,11 +115,6 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 placeholder="Enter a directory",
                 id="directory-input",
             )
-
-            yield Label("File name [dim]optional[/dim]")
-            with Horizontal():
-                yield Input(placeholder="Enter a file name", id="file-name-input")
-                yield Label(".posting.yaml", id="file-suffix-label")
 
             yield Button.success("Create request", id="create-button")
 
