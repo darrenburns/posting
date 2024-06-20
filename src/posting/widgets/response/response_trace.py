@@ -1,9 +1,7 @@
 import time
 from typing import Any, Literal
 from textual.app import ComposeResult
-from textual.containers import Vertical, VerticalScroll
-from textual.reactive import Reactive, reactive
-from textual.widget import Widget
+from textual.containers import VerticalScroll
 from textual.widgets import Label
 
 
@@ -23,9 +21,6 @@ Event = Literal[
     "http11.send_request_body.started",
     "http11.send_request_body.complete",
     "http11.send_request_body.failed",
-    "http11.receive_response.started",
-    "http11.receive_response.complete",
-    "http11.receive_response.failed",
     "http11.receive_response_body.started",
     "http11.receive_response_body.complete",
     "http11.receive_response_body.failed",

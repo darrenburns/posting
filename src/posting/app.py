@@ -1,9 +1,9 @@
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 import httpx
 from rich.console import Group
 from rich.text import Text
-from textual import on, log
+from textual import on, log, work
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.design import ColorSystem
@@ -55,7 +55,7 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
-from posting.widgets.response.response_trace import ResponseTrace
+from posting.widgets.response.response_trace import Event, ResponseTrace
 
 
 class AppHeader(Label):
@@ -107,10 +107,8 @@ class MainScreen(Screen[None]):
             yield ResponseArea()
         yield Footer()
 
-    @on(Button.Pressed, selector="SendRequestButton")
-    @on(Input.Submitted, selector="UrlInput")
     async def send_request(self) -> None:
-        """Send the request."""
+        self.url_bar.clear_events()
         request_options = self.request_options.to_model()
         verify_ssl = request_options.verify_ssl
         proxy_url = request_options.proxy_url or None
@@ -162,6 +160,16 @@ class MainScreen(Screen[None]):
         else:
             self.url_input.remove_class("error")
 
+    @work(exclusive=True)
+    async def send_via_worker(self) -> None:
+        await self.send_request()
+
+    @on(Button.Pressed, selector="SendRequestButton")
+    @on(Input.Submitted, selector="UrlInput")
+    def handle_submit_via_event(self) -> None:
+        """Send the request."""
+        self.send_via_worker()
+
     @on(HttpResponseReceived)
     def on_response_received(self, event: HttpResponseReceived) -> None:
         """Update the response area with the response."""
@@ -184,7 +192,7 @@ class MainScreen(Screen[None]):
 
     async def action_send_request(self) -> None:
         """Send the request."""
-        await self.send_request()
+        self.send_via_worker()
 
     def action_change_method(self) -> None:
         """Change the method of the request."""
@@ -292,8 +300,13 @@ class MainScreen(Screen[None]):
     ) -> httpx.Request:
         """Build an httpx request from the UI."""
         request = self.build_request_model(request_options).to_httpx(client)
-        request.extensions = {"trace": self.response_trace.log_event}
+        request.extensions = {"trace": self.log_request_trace_event}
         return request
+
+    async def log_request_trace_event(self, event: Event, info: dict[str, Any]) -> None:
+        """Log an event to the request trace."""
+        await self.response_trace.log_event(event, info)
+        self.url_bar.log_event(event, info)
 
     def build_request_model(self, request_options: Options) -> RequestModel:
         """Grab data from the UI and pull it into a request model. This model
