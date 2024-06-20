@@ -176,6 +176,7 @@ class UrlBar(Horizontal):
             "connection.start_tls",
             "http11.send_request_headers",
             "http11.send_request_body",
+            "http11.receive_response_headers",
             "http11.receive_response_body",
             "http11.response_closed",
         ]
