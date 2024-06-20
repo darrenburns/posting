@@ -114,11 +114,13 @@ class MainScreen(Screen[None]):
         verify_ssl = request_options.verify_ssl
         proxy_url = request_options.proxy_url or None
         timeout = request_options.timeout
+        auth = self.request_auth.to_httpx_auth()
         try:
             async with httpx.AsyncClient(
                 verify=verify_ssl,
                 proxy=proxy_url,
                 timeout=timeout,
+                auth=auth,
             ) as client:
                 request = self.build_httpx_request(request_options, client)
                 request.headers["User-Agent"] = (
@@ -132,6 +134,7 @@ class MainScreen(Screen[None]):
                 print("attach cookies =", request_options.attach_cookies)
                 print("proxy =", proxy_url)
                 print("timeout =", timeout)
+                print("auth =", auth)
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
@@ -328,6 +331,7 @@ class MainScreen(Screen[None]):
         self.request_body_text_area.text = request_model.body or ""
         self.request_metadata.request = request_model
         self.request_options.load_options(request_model.options)
+        self.request_auth.load_auth(request_model.auth)
 
     @property
     def url_bar(self) -> UrlBar:

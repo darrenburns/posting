@@ -2,7 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 import httpx
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 import yaml
 import os
 
@@ -28,8 +28,19 @@ yaml.representer.SafeRepresenter.add_representer(
 
 
 class Auth(BaseModel):
-    type: str
-    token: str
+    type: Literal["basic", "digest"] | None = Field(default=None)
+    basic: BasicAuth | None = Field(default=None)
+    digest: DigestAuth | None = Field(default=None)
+
+
+class BasicAuth(BaseModel):
+    username: SecretStr = Field(default="")
+    password: SecretStr = Field(default="")
+
+
+class DigestAuth(BaseModel):
+    username: SecretStr = Field(default="")
+    password: SecretStr = Field(default="")
 
 
 class Header(BaseModel):
@@ -96,6 +107,9 @@ class RequestModel(BaseModel):
     """The cookies of the request.
     
     These are excluded because they should not be persisted to the request file."""
+
+    auth: Auth | None = Field(default=None, exclude=True)
+    """The auth information for the request."""
 
     posting_version: str = Field(default=VERSION)
     """The version of Posting."""

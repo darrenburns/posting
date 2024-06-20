@@ -1,9 +1,11 @@
 from typing import Protocol, runtime_checkable
 import httpx
-from textual import on
+from textual import on, log
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import ContentSwitcher, Input, Label, Select, Static
+
+from posting.collection import Auth
 
 
 @runtime_checkable
@@ -35,6 +37,10 @@ class UserNamePasswordForm(Vertical):
         )
         yield Label("Password")
         yield Input(placeholder="Enter a password", password=True, id="password-input")
+
+    def set_values(self, username: str, password: str) -> None:
+        self.query_one("#username-input", Input).value = username
+        self.query_one("#password-input", Input).value = password
 
     def get_values(self) -> dict[str, str]:
         return {
@@ -112,6 +118,33 @@ class RequestAuth(VerticalScroll):
                 return httpx.DigestAuth(**form.get_values())
             case _:
                 return None
+
+    def load_auth(self, auth: Auth) -> None:
+        match auth.type:
+            case "basic":
+                self.query_one("#auth-type-select", Select).value = "basic"
+                if auth.basic is None:
+                    log.warning(
+                        "Basic auth selected, but no values provided for username or password."
+                    )
+                    return
+                self.query_one("#auth-form-basic", UserNamePasswordForm).set_values(
+                    auth.basic.username.get_secret_value(),
+                    auth.basic.password.get_secret_value(),
+                )
+            case "digest":
+                if auth.digest is None:
+                    log.warning(
+                        "Digest auth selected, but no values provided for username or password."
+                    )
+                    return
+                self.query_one("#auth-type-select", Select).value = "digest"
+                self.query_one("#auth-form-digest", UserNamePasswordForm).set_values(
+                    auth.digest.username.get_secret_value(),
+                    auth.digest.password.get_secret_value(),
+                )
+            case _:
+                pass
 
     @property
     def content_switcher(self) -> ContentSwitcher:
