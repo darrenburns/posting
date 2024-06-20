@@ -1,7 +1,6 @@
 name: get comments (via param)
 description: Retrieve the comments for a post using the query string
 url: https://jsonplaceholder.typicode.com/comments
-body: ''
 headers:
 - name: Content-Type
   value: application/json
@@ -14,3 +13,5 @@ headers:
 params:
 - name: postId
   value: '1'
+options:
+  follow_redirects: false

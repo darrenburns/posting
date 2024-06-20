@@ -2,7 +2,7 @@ name: edit a comment
 description: Edit a comment
 method: PUT
 url: https://jsonplaceholder.typicode.com/comments/1
-body: |
+body: |-
   {
     "postId": 1,
     "name": "Updated Commenter Name",
@@ -21,3 +21,5 @@ headers:
 params:
 - name: postId
   value: '1'
+options:
+  follow_redirects: false

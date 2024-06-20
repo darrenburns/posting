@@ -1,4 +1,3 @@
-from importlib.metadata import version
 from pathlib import Path
 from typing import Literal
 import httpx
@@ -33,6 +32,7 @@ from posting.collection import (
 from posting.commands import PostingProvider
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
@@ -53,8 +53,6 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
-
-VERSION = version("posting")
 
 
 class AppHeader(Label):
@@ -288,7 +286,8 @@ class MainScreen(Screen[None]):
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
             headers=headers,
-            body=self.request_body_text_area.text,
+            body=self.request_body_text_area.text or None,
+            options=self.request_options.to_model(),
             cookies=(
                 Cookie.from_httpx(self.cookies)
                 if request_options.attach_cookies
@@ -308,6 +307,7 @@ class MainScreen(Screen[None]):
         )
         self.request_body_text_area.text = request_model.body or ""
         self.request_metadata.request = request_model
+        self.request_options.load_options(request_model.options)
 
     @property
     def url_bar(self) -> UrlBar:

@@ -12,9 +12,13 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.4.0
     # via httpx
+brotlipy==0.7.0
+    # via posting
 certifi==2024.2.2
     # via httpcore
     # via httpx
+cffi==1.16.0
+    # via brotlipy
 click==8.1.7
     # via click-default-group
     # via posting
@@ -39,6 +43,8 @@ mdit-py-plugins==0.4.1
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
+pycparser==2.22
+    # via cffi
 pydantic==2.7.3
     # via posting
 pydantic-core==2.18.4

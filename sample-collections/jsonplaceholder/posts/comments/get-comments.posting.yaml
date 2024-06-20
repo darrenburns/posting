@@ -1,7 +1,6 @@
 name: get comments
 description: Retrieve the comments for a post
 url: https://jsonplaceholder.typicode.com/posts/1/comments
-body: ''
 headers:
 - name: Content-Type
   value: application/json
@@ -11,3 +10,5 @@ headers:
   value: gzip
 - name: Cache-Control
   value: no-cache
+options:
+  follow_redirects: false

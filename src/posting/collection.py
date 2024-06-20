@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 import yaml
 import os
 
+from posting.version import VERSION
+
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 
@@ -52,6 +54,12 @@ class Cookie(BaseModel):
         return [Cookie(name=name, value=value) for name, value in cookies.items()]
 
 
+class Options(BaseModel):
+    follow_redirects: bool = Field(default=True)
+    verify_ssl: bool = Field(default=True)
+    attach_cookies: bool = Field(default=True)
+
+
 class RequestModel(BaseModel):
     name: str = Field(default="")
     """The name of the request. This is used to identify the request in the UI.
@@ -85,8 +93,13 @@ class RequestModel(BaseModel):
     cookies: list[Cookie] = Field(default_factory=list, exclude=True)
     """The cookies of the request."""
 
-    posting_version: str = Field(default="1.0")
+    posting_version: str = Field(default=VERSION)
     """The version of Posting."""
+
+    options: Options = Field(
+        default=Options(follow_redirects=True, verify_ssl=True, attach_cookies=True)
+    )
+    """The options for the request."""
 
     def to_httpx(self) -> httpx.Request:
         """Convert the request model to an httpx request."""

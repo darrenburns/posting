@@ -1,7 +1,6 @@
 name: get all
 description: Retrieve all posts
 url: https://jsonplaceholder.typicode.com/posts
-body: ''
 headers:
 - name: Content-Type
   value: application/json
@@ -11,3 +10,5 @@ headers:
   value: gzip
 - name: Cache-Control
   value: no-cache
+options:
+  follow_redirects: false

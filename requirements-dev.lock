@@ -18,9 +18,13 @@ anyio==4.4.0
     # via httpx
 attrs==23.2.0
     # via aiohttp
+brotlipy==0.7.0
+    # via posting
 certifi==2024.2.2
     # via httpcore
     # via httpx
+cffi==1.16.0
+    # via brotlipy
 click==8.1.7
     # via click-default-group
     # via posting
@@ -55,6 +59,8 @@ msgpack==1.0.8
 multidict==6.0.5
     # via aiohttp
     # via yarl
+pycparser==2.22
+    # via cffi
 pydantic==2.7.3
     # via posting
 pydantic-core==2.18.4

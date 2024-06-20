@@ -1,8 +1,8 @@
 name: update a user
-method: PUT
 description: Update a user
+method: PUT
 url: https://jsonplaceholder.typicode.com/users/1
-body: |
+body: |-
   {
     "name": "James Doe",
     "username": "james.doe",
@@ -17,3 +17,5 @@ headers:
   value: gzip
 - name: Cache-Control
   value: no-cache
+options:
+  follow_redirects: false
