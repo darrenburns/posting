@@ -21,5 +21,3 @@ headers:
 params:
 - name: postId
   value: '1'
-options:
-  follow_redirects: false

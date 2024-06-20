@@ -91,7 +91,9 @@ class RequestModel(BaseModel):
     """The query parameters of the request."""
 
     cookies: list[Cookie] = Field(default_factory=list, exclude=True)
-    """The cookies of the request."""
+    """The cookies of the request.
+    
+    These are excluded because they should not be persisted to the request file."""
 
     posting_version: str = Field(default=VERSION)
     """The version of Posting."""

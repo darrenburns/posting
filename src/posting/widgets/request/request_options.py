@@ -43,7 +43,6 @@ class RequestOptions(VerticalScroll):
     def __init__(self):
         super().__init__()
         self.can_focus = False
-        # TODO - set the default values from config here.
 
         self.descriptions = {
             "follow-redirects": "Follow redirects when the server responds with a 3xx status code.",

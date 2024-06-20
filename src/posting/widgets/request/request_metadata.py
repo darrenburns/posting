@@ -16,6 +16,8 @@ class RequestMetadata(VerticalScroll):
             margin-bottom: 1;
         }
         & PostingTextArea {
+            max-height: 3;
+            margin-bottom: 1;
         }
         & Button {
             dock: bottom;

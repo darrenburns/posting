@@ -17,5 +17,3 @@ headers:
   value: gzip
 - name: Cache-Control
   value: no-cache
-options:
-  follow_redirects: false
