@@ -55,6 +55,7 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
+from posting.widgets.response.response_trace import ResponseTrace
 
 
 class AppHeader(Label):
@@ -166,6 +167,7 @@ class MainScreen(Screen[None]):
         """Update the response area with the response."""
         self.response_area.response = event.response
         self.cookies.update(event.response.cookies)
+        self.response_trace.trace_complete()
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
@@ -289,7 +291,9 @@ class MainScreen(Screen[None]):
         self, request_options: Options, client: httpx.AsyncClient
     ) -> httpx.Request:
         """Build an httpx request from the UI."""
-        return self.build_request_model(request_options).to_httpx(client)
+        request = self.build_request_model(request_options).to_httpx(client)
+        request.extensions = {"trace": self.response_trace.log_event}
+        return request
 
     def build_request_model(self, request_options: Options) -> RequestModel:
         """Grab data from the UI and pull it into a request model. This model
@@ -380,6 +384,10 @@ class MainScreen(Screen[None]):
     @property
     def collection_tree(self) -> CollectionTree:
         return self.query_one(CollectionTree)
+
+    @property
+    def response_trace(self) -> ResponseTrace:
+        return self.query_one(ResponseTrace)
 
     def watch_selected_method(self, value: str) -> None:
         self.query_one(MethodSelection).set_method(value)
