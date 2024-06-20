@@ -48,7 +48,7 @@ class RequestOptions(VerticalScroll):
         self.descriptions = {
             "follow-redirects": "Follow redirects when the server responds with a 3xx status code.",
             "verify": "Verify SSL certificates when making requests.",
-            "attach-cookies": "Attach cookies to requests to the same domain.",
+            "attach-cookies": "Attach cookies to outgoing requests to the same domain.",
         }
 
     def compose(self) -> ComposeResult:
