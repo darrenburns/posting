@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from textual import events
 from textual.app import ComposeResult
-from textual.containers import Center, Horizontal
+from textual.containers import Center
 from textual.screen import ModalScreen
 from textual.widget import Widget
 from textual.widgets import Label
