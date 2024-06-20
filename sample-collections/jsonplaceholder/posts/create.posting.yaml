@@ -17,3 +17,5 @@ headers:
   value: gzip
 - name: Cache-Control
   value: no-cache
+options:
+  timeout: 0.2

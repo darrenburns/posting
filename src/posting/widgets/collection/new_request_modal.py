@@ -109,7 +109,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 id="description-textarea",
             )
 
-            yield Label("Directory [dim]optional[/dim]")
+            yield Label("Directory")
             yield Input(
                 self._initial_directory,
                 placeholder="Enter a directory",

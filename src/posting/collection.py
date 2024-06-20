@@ -59,6 +59,7 @@ class Options(BaseModel):
     verify_ssl: bool = Field(default=True)
     attach_cookies: bool = Field(default=True)
     proxy_url: str = Field(default="")
+    timeout: float = Field(default=5.0)
 
 
 class RequestModel(BaseModel):
@@ -99,14 +100,12 @@ class RequestModel(BaseModel):
     posting_version: str = Field(default=VERSION)
     """The version of Posting."""
 
-    options: Options = Field(
-        default=Options(follow_redirects=True, verify_ssl=True, attach_cookies=True)
-    )
+    options: Options = Field(default_factory=Options)
     """The options for the request."""
 
-    def to_httpx(self) -> httpx.Request:
+    def to_httpx(self, client: httpx.AsyncClient) -> httpx.Request:
         """Convert the request model to an httpx request."""
-        return httpx.Request(
+        return client.build_request(
             method=self.method,
             url=self.url,
             content=self.body,

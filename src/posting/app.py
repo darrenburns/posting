@@ -26,6 +26,7 @@ from posting.collection import (
     Collection,
     Cookie,
     HttpRequestMethod,
+    Options,
     RequestModel,
 )
 
@@ -108,15 +109,17 @@ class MainScreen(Screen[None]):
     @on(Input.Submitted, selector="UrlInput")
     async def send_request(self) -> None:
         """Send the request."""
-        request_options = self.request_options
+        request_options = self.request_options.to_model()
         verify_ssl = request_options.verify_ssl
         proxy_url = request_options.proxy_url or None
+        timeout = request_options.timeout
         try:
             async with httpx.AsyncClient(
                 verify=verify_ssl,
                 proxy=proxy_url,
+                timeout=timeout,
             ) as client:
-                request = self.build_httpx_request(request_options)
+                request = self.build_httpx_request(request_options, client)
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
@@ -126,15 +129,24 @@ class MainScreen(Screen[None]):
                 print("follow redirects =", request_options.follow_redirects)
                 print("verify =", request_options.verify_ssl)
                 print("attach cookies =", request_options.attach_cookies)
+                print("proxy =", proxy_url)
+                print("timeout =", timeout)
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
                 )
                 print("response cookies =", response.cookies)
                 self.post_message(HttpResponseReceived(response))
-
+        except httpx.ConnectTimeout as connect_timeout:
+            log.error("Connect timeout", connect_timeout)
+            self.notify(
+                severity="error",
+                title="Connect timeout",
+                message=f"Couldn't connect within {timeout} seconds.",
+            )
         except Exception as e:
             log.error("Error sending request", e)
+            log.error("Type of error", type(e))
             self.url_input.add_class("error")
             self.url_input.focus()
             self.notify(
@@ -174,7 +186,7 @@ class MainScreen(Screen[None]):
 
     def action_preview_request_model(self) -> None:
         """Preview the request model (debug aid)."""
-        request_model = self.build_request_model(self.request_options)
+        request_model = self.build_request_model(self.request_options.to_model())
         log.info(request_model)
 
     async def action_save_request(self) -> None:
@@ -184,7 +196,7 @@ class MainScreen(Screen[None]):
             # No request currently open in the collection tree, we're saving a
             # request which the user may already have filled in some data of in
             # the UI.
-            request_model = self.build_request_model(self.request_options)
+            request_model = self.build_request_model(self.request_options.to_model())
             print("initial_request", request_model)
             await self.collection_tree.new_request_flow(request_model)
             # The new request flow is already handling the saving of the request to disk.
@@ -192,7 +204,7 @@ class MainScreen(Screen[None]):
             return
 
         # In this case, we're saving an existing request to disk.
-        request_model = self.build_request_model(self.request_options)
+        request_model = self.build_request_model(self.request_options.to_model())
         assert isinstance(
             request_model, RequestModel
         ), "currently open node should contain a request model"
@@ -269,11 +281,13 @@ class MainScreen(Screen[None]):
 
         self.app.push_screen(MethodSelectionPopup(), callback=set_method)
 
-    def build_httpx_request(self, request_options: RequestOptions) -> httpx.Request:
+    def build_httpx_request(
+        self, request_options: Options, client: httpx.AsyncClient
+    ) -> httpx.Request:
         """Build an httpx request from the UI."""
-        return self.build_request_model(request_options).to_httpx()
+        return self.build_request_model(request_options).to_httpx(client)
 
-    def build_request_model(self, request_options: RequestOptions) -> RequestModel:
+    def build_request_model(self, request_options: Options) -> RequestModel:
         """Grab data from the UI and pull it into a request model. This model
         may be passed around, stored on disk, etc."""
         open_node = self.collection_tree.currently_open
@@ -292,7 +306,7 @@ class MainScreen(Screen[None]):
             params=self.params_table.to_model(),
             headers=headers,
             body=self.request_body_text_area.text or None,
-            options=self.request_options.to_model(),
+            options=request_options,
             cookies=(
                 Cookie.from_httpx(self.cookies)
                 if request_options.attach_cookies

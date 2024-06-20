@@ -3,7 +3,6 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.events import DescendantFocus
-from textual.reactive import Reactive, reactive
 from textual.widgets import Checkbox, Input, Label, Static
 
 from posting.collection import Options
@@ -32,7 +31,14 @@ class RequestOptions(VerticalScroll):
         }
 
         #proxy-option {
-            padding: 0 2;
+            padding-left: 3;
+            margin-bottom: 1;
+            height: auto;
+        }
+
+        #timeout-option {
+            padding-left: 3;
+            height: auto;
             margin-bottom: 1;
         }
 
@@ -61,42 +67,49 @@ class RequestOptions(VerticalScroll):
         Binding("up,k", "screen.focus_previous", "Previous"),
     ]
 
-    follow_redirects: Reactive[bool] = reactive(True)
-    verify_ssl: Reactive[bool] = reactive(True)
-    attach_cookies: Reactive[bool] = reactive(True)
-    proxy_url: Reactive[str] = reactive("")
-
     def __init__(self):
         super().__init__()
         self.can_focus = False
+
+        self.options = Options()
 
         self.descriptions = {
             "follow-redirects": "Follow redirects when the server responds with a 3xx status code.",
             "verify": "Verify SSL certificates when making requests.",
             "attach-cookies": "Attach cookies to outgoing requests to the same domain.",
-            "proxy-url": "Proxy URL to use for requests. For example: 'http://user:password@localhost:8080'",
+            "proxy-url": "Proxy URL to use for requests.\ne.g. http://user:password@localhost:8080",
+            "timeout": "Timeout for the request in seconds.",
         }
 
     def compose(self) -> ComposeResult:
         yield Checkbox(
             "Follow redirects",
-            value=self.follow_redirects,
+            value=self.options.follow_redirects,
             id="follow-redirects",
-        ).data_bind(value=RequestOptions.follow_redirects)
+        )
         yield Checkbox(
             "Verify SSL certificates",
-            value=self.verify_ssl,
+            value=self.options.verify_ssl,
             id="verify",
-        ).data_bind(value=RequestOptions.verify_ssl)
+        )
         yield Checkbox(
             "Attach cookies",
-            value=self.attach_cookies,
+            value=self.options.attach_cookies,
             id="attach-cookies",
-        ).data_bind(value=RequestOptions.attach_cookies)
+        )
 
         with Vertical(id="proxy-option"):
             yield Label("Proxy URL")
-            yield Input(id="proxy-url").data_bind(value=RequestOptions.proxy_url)
+            yield Input(id="proxy-url")
+
+        with Vertical(id="timeout-option"):
+            yield Label("Timeout")
+            yield Input(
+                value=str(self.options.timeout),
+                id="timeout",
+                type="number",
+                validate_on=["changed"],
+            )
 
         # A panel which the description of the option will be
         # displayed inside.
@@ -107,18 +120,26 @@ class RequestOptions(VerticalScroll):
         """Handle the checkbox change event."""
         match event.checkbox.id:
             case "follow-redirects":
-                self.follow_redirects = event.value
+                self.options.follow_redirects = event.value
             case "verify":
-                self.verify_ssl = event.value
+                self.options.verify_ssl = event.value
             case "attach-cookies":
-                self.attach_cookies = event.value
+                self.options.attach_cookies = event.value
             case _:
                 pass
 
     @on(Input.Changed, selector="#proxy-url")
     def on_proxy_url_changed(self, event: Input.Changed) -> None:
         """Handle the input change event."""
-        self.proxy_url = event.value
+        self.options.proxy_url = event.value
+
+    @on(Input.Changed, selector="#timeout")
+    def on_timeout_changed(self, event: Input.Changed) -> None:
+        """Handle the input change event."""
+        try:
+            self.options.timeout = float(event.value)
+        except ValueError:
+            self.options.timeout = 5.0
 
     @on(DescendantFocus)
     def on_descendant_focus(self, event: DescendantFocus) -> None:
@@ -134,16 +155,38 @@ class RequestOptions(VerticalScroll):
 
     def to_model(self) -> Options:
         """Export the options to a model."""
-        return Options(
-            follow_redirects=self.follow_redirects,
-            verify_ssl=self.verify_ssl,
-            attach_cookies=self.attach_cookies,
-            proxy_url=self.proxy_url,
-        )
+        return self.options
 
     def load_options(self, options: Options) -> None:
-        """Load the options into the widget."""
-        self.follow_redirects = options.follow_redirects
-        self.verify_ssl = options.verify_ssl
-        self.attach_cookies = options.attach_cookies
-        self.proxy_url = options.proxy_url
+        """Load the options into the widget.
+
+        Note that this is just setting the values on the widget.
+
+        The change events emitted from the widgets are the things that
+        result in the internal Options model state being updated.
+        """
+        self.follow_redirects_checkbox.value = options.follow_redirects
+        self.verify_ssl_checkbox.value = options.verify_ssl
+        self.attach_cookies_checkbox.value = options.attach_cookies
+        self.proxy_url_input.value = options.proxy_url
+        self.timeout_input.value = str(options.timeout)
+
+    @property
+    def follow_redirects_checkbox(self) -> Checkbox:
+        return self.query_one("#follow-redirects", Checkbox)
+
+    @property
+    def verify_ssl_checkbox(self) -> Checkbox:
+        return self.query_one("#verify", Checkbox)
+
+    @property
+    def attach_cookies_checkbox(self) -> Checkbox:
+        return self.query_one("#attach-cookies", Checkbox)
+
+    @property
+    def proxy_url_input(self) -> Input:
+        return self.query_one("#proxy-url", Input)
+
+    @property
+    def timeout_input(self) -> Input:
+        return self.query_one("#timeout", Input)
