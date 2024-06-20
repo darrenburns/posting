@@ -65,11 +65,22 @@ AppBody {
         width: 1fr;
       }
     }
-  }
 
+    & #option-description {
+      dock: bottom;
+      border-left: none;
+      border-top: $accent 30%;
+      height: auto;
+      width: 1fr;
+      max-width: 1fr;
+      padding: 0 1;
+    }
+
+  }
+  
   &.layout-vertical {
     layout: vertical;
-
+    
     & KeyValueInput {
       layout: horizontal;
     }

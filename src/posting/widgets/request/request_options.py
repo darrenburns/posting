@@ -45,7 +45,7 @@ class RequestOptions(VerticalScroll):
         & #option-description {
             dock: right;
             height: 1fr;
-            width: auto;
+            width: 50%;
             max-width: 50%;
             background: transparent;
             color: $text-muted;
