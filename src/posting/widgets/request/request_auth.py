@@ -119,7 +119,10 @@ class RequestAuth(VerticalScroll):
             case _:
                 return None
 
-    def load_auth(self, auth: Auth) -> None:
+    def load_auth(self, auth: Auth | None) -> None:
+        if auth is None:
+            self.query_one("#auth-type-select", Select).value = None
+            return
         match auth.type:
             case "basic":
                 self.query_one("#auth-type-select", Select).value = "basic"
@@ -144,7 +147,7 @@ class RequestAuth(VerticalScroll):
                     auth.digest.password.get_secret_value(),
                 )
             case _:
-                pass
+                log.warning(f"Unknown auth type: {auth.type}")
 
     @property
     def content_switcher(self) -> ContentSwitcher:
