@@ -1,7 +1,7 @@
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import VerticalScroll
+from textual.containers import Vertical, VerticalScroll
 from textual.events import DescendantFocus
 from textual.reactive import Reactive, reactive
 from textual.widgets import Checkbox, Input, Label, Static
@@ -29,6 +29,11 @@ class RequestOptions(VerticalScroll):
                     text-style: not underline;
                 }
             }
+        }
+
+        #proxy-option {
+            padding: 0 2;
+            margin-bottom: 1;
         }
 
         & #option-description {
@@ -89,8 +94,9 @@ class RequestOptions(VerticalScroll):
             id="attach-cookies",
         ).data_bind(value=RequestOptions.attach_cookies)
 
-        yield Label("Proxy URL")
-        yield Input(id="proxy-url").data_bind(value=RequestOptions.proxy_url)
+        with Vertical(id="proxy-option"):
+            yield Label("Proxy URL")
+            yield Input(id="proxy-url").data_bind(value=RequestOptions.proxy_url)
 
         # A panel which the description of the option will be
         # displayed inside.
@@ -103,7 +109,7 @@ class RequestOptions(VerticalScroll):
             case "follow-redirects":
                 self.follow_redirects = event.value
             case "verify":
-                self.verify = event.value
+                self.verify_ssl = event.value
             case "attach-cookies":
                 self.attach_cookies = event.value
             case _:
@@ -130,7 +136,7 @@ class RequestOptions(VerticalScroll):
         """Export the options to a model."""
         return Options(
             follow_redirects=self.follow_redirects,
-            verify_ssl=self.verify,
+            verify_ssl=self.verify_ssl,
             attach_cookies=self.attach_cookies,
             proxy_url=self.proxy_url,
         )
@@ -138,6 +144,6 @@ class RequestOptions(VerticalScroll):
     def load_options(self, options: Options) -> None:
         """Load the options into the widget."""
         self.follow_redirects = options.follow_redirects
-        self.verify = options.verify_ssl
+        self.verify_ssl = options.verify_ssl
         self.attach_cookies = options.attach_cookies
         self.proxy_url = options.proxy_url

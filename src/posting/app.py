@@ -109,10 +109,12 @@ class MainScreen(Screen[None]):
     async def send_request(self) -> None:
         """Send the request."""
         request_options = self.request_options
+        verify_ssl = request_options.verify_ssl
+        proxy_url = request_options.proxy_url or None
         try:
             async with httpx.AsyncClient(
-                verify=request_options.verify,
-                proxy=request_options.proxy_url,
+                verify=verify_ssl,
+                proxy=proxy_url,
             ) as client:
                 request = self.build_httpx_request(request_options)
                 request.headers["User-Agent"] = (
@@ -122,7 +124,7 @@ class MainScreen(Screen[None]):
                 print(request)
                 print(request.headers)
                 print("follow redirects =", request_options.follow_redirects)
-                print("verify =", request_options.verify)
+                print("verify =", request_options.verify_ssl)
                 print("attach cookies =", request_options.attach_cookies)
                 response = await client.send(
                     request=request,
