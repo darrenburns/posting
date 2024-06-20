@@ -4,7 +4,7 @@ from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.events import DescendantFocus
 from textual.reactive import Reactive, reactive
-from textual.widgets import Checkbox, Static
+from textual.widgets import Checkbox, Input, Label, Static
 
 from posting.collection import Options
 
@@ -12,6 +12,24 @@ from posting.collection import Options
 class RequestOptions(VerticalScroll):
     DEFAULT_CSS = """\
     RequestOptions {
+    
+        Checkbox {
+            height: 1;
+            margin: 1 2;
+            padding: 0 1;
+            border: none;
+            background: transparent;
+            &:focus {
+                border: none;
+                background: $accent 20%;
+                color: $text;
+                padding: 0 1 0 0;
+                border-left: wide $accent;
+                & .toggle--label {
+                    text-style: not underline;
+                }
+            }
+        }
 
         & #option-description {
             dock: right;
@@ -28,6 +46,8 @@ class RequestOptions(VerticalScroll):
                 display: block;
             }
         }
+
+
     }
     """
 
@@ -39,6 +59,7 @@ class RequestOptions(VerticalScroll):
     follow_redirects: Reactive[bool] = reactive(True)
     verify_ssl: Reactive[bool] = reactive(True)
     attach_cookies: Reactive[bool] = reactive(True)
+    proxy_url: Reactive[str] = reactive("")
 
     def __init__(self):
         super().__init__()
@@ -48,6 +69,7 @@ class RequestOptions(VerticalScroll):
             "follow-redirects": "Follow redirects when the server responds with a 3xx status code.",
             "verify": "Verify SSL certificates when making requests.",
             "attach-cookies": "Attach cookies to outgoing requests to the same domain.",
+            "proxy-url": "Proxy URL to use for requests. For example: 'http://user:password@localhost:8080'",
         }
 
     def compose(self) -> ComposeResult:
@@ -67,6 +89,9 @@ class RequestOptions(VerticalScroll):
             id="attach-cookies",
         ).data_bind(value=RequestOptions.attach_cookies)
 
+        yield Label("Proxy URL")
+        yield Input(id="proxy-url").data_bind(value=RequestOptions.proxy_url)
+
         # A panel which the description of the option will be
         # displayed inside.
         yield Static("", id="option-description")
@@ -83,6 +108,11 @@ class RequestOptions(VerticalScroll):
                 self.attach_cookies = event.value
             case _:
                 pass
+
+    @on(Input.Changed, selector="#proxy-url")
+    def on_proxy_url_changed(self, event: Input.Changed) -> None:
+        """Handle the input change event."""
+        self.proxy_url = event.value
 
     @on(DescendantFocus)
     def on_descendant_focus(self, event: DescendantFocus) -> None:
@@ -102,6 +132,7 @@ class RequestOptions(VerticalScroll):
             follow_redirects=self.follow_redirects,
             verify_ssl=self.verify,
             attach_cookies=self.attach_cookies,
+            proxy_url=self.proxy_url,
         )
 
     def load_options(self, options: Options) -> None:
@@ -109,3 +140,4 @@ class RequestOptions(VerticalScroll):
         self.follow_redirects = options.follow_redirects
         self.verify = options.verify_ssl
         self.attach_cookies = options.attach_cookies
+        self.proxy_url = options.proxy_url

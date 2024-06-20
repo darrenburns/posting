@@ -110,7 +110,10 @@ class MainScreen(Screen[None]):
         """Send the request."""
         request_options = self.request_options
         try:
-            async with httpx.AsyncClient(verify=request_options.verify) as client:
+            async with httpx.AsyncClient(
+                verify=request_options.verify,
+                proxy=request_options.proxy_url,
+            ) as client:
                 request = self.build_httpx_request(request_options)
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"

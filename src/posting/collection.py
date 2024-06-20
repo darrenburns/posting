@@ -58,6 +58,7 @@ class Options(BaseModel):
     follow_redirects: bool = Field(default=True)
     verify_ssl: bool = Field(default=True)
     attach_cookies: bool = Field(default=True)
+    proxy_url: str = Field(default="")
 
 
 class RequestModel(BaseModel):
