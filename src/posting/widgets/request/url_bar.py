@@ -34,7 +34,7 @@ class UrlInput(Input):
     """
 
     BINDINGS = [
-        Binding("down", "app.focus_next", "Focus next"),
+        Binding("down", "app.focus_next", "Focus next", show=False),
     ]
 
     def on_mount(self):

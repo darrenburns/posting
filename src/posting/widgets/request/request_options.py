@@ -14,7 +14,7 @@ class RequestOptions(VerticalScroll):
     
         Checkbox {
             height: 1;
-            margin: 1 2;
+            margin: 0 2 1 2;
             padding: 0 1;
             border: none;
             background: transparent;

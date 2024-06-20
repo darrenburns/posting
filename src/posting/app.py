@@ -47,6 +47,7 @@ from posting.widgets.request.method_selection import (
 )
 
 from posting.widgets.request.query_editor import ParamsTable
+from posting.widgets.request.request_auth import RequestAuth
 
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_editor import RequestEditor
@@ -79,13 +80,13 @@ class AppBody(Vertical):
 
 class MainScreen(Screen[None]):
     BINDINGS = [
-        Binding("ctrl+j", "send_request", "Send request"),
-        Binding("ctrl+t", "change_method", "Change method"),
+        Binding("ctrl+j", "send_request", "Send"),
+        Binding("ctrl+t", "change_method", "Method"),
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         # Binding("ctrl+n", "tree", "DEBUG Show tree"),
         # Binding("ctrl+n", "preview_request_model", "DEBUG Preview request model"),
-        Binding("ctrl+s", "save_request", "Save request"),
-        Binding("ctrl+n", "new_request", "New request"),
+        Binding("ctrl+s", "save_request", "Save"),
+        Binding("ctrl+n", "new_request", "New"),
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
@@ -369,6 +370,10 @@ class MainScreen(Screen[None]):
         return self.query_one(CollectionBrowser)
 
     @property
+    def request_auth(self) -> RequestAuth:
+        return self.query_one(RequestAuth)
+
+    @property
     def collection_tree(self) -> CollectionTree:
         return self.query_one(CollectionTree)
 
@@ -513,8 +518,9 @@ class Posting(App[None]):
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-parameters-pane": "e",
-                "--content-tab-metadata-pane": "r",
-                "--content-tab-options-pane": "t",
+                "--content-tab-auth-pane": "r",
+                "--content-tab-metadata-pane": "t",
+                "--content-tab-options-pane": "y",
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
