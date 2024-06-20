@@ -1,0 +1,14 @@
+name: delete a user
+description: Delete a user
+method: DELETE
+url: https://jsonplaceholder.typicode.com/users/1
+body: ''
+headers:
+- name: Content-Type
+  value: application/json
+- name: Referer
+  value: https://example.com/
+- name: Accept-Encoding
+  value: gzip
+- name: Cache-Control
+  value: no-cache

@@ -10,7 +10,7 @@
 
 AutoComplete {
   border-left: wide $accent;
-  background: transparent;
+  background: $surface;
   
   & AutoCompleteList {
     color: $text-muted;

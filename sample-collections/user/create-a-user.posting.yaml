@@ -1,4 +1,0 @@
-name: create a user
-description: Creates a new user
-method: POST
-body: ''

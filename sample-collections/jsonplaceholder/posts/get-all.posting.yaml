@@ -1,0 +1,13 @@
+name: get all
+description: Retrieve all posts
+url: https://jsonplaceholder.typicode.com/posts
+body: ''
+headers:
+- name: Content-Type
+  value: application/json
+- name: Referer
+  value: https://example.com/
+- name: Accept-Encoding
+  value: gzip
+- name: Cache-Control
+  value: no-cache

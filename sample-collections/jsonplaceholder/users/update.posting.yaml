@@ -1,0 +1,19 @@
+name: update a user
+method: PUT
+description: Update a user
+url: https://jsonplaceholder.typicode.com/users/1
+body: |
+  {
+    "name": "James Doe",
+    "username": "james.doe",
+    "email": "james.doe@example.com"
+  }
+headers:
+- name: Content-Type
+  value: application/json
+- name: Referer
+  value: https://example.com/
+- name: Accept-Encoding
+  value: gzip
+- name: Cache-Control
+  value: no-cache
