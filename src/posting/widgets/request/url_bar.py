@@ -4,6 +4,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal
+from textual.design import ColorSystem
 from textual.widgets import Input, Button, Label
 from textual_autocomplete import AutoComplete, DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
@@ -144,6 +145,12 @@ class UrlBar(Horizontal):
             items=self._get_autocomplete_items,
         )
         self.screen.mount(self.auto_complete)
+        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+
+    def on_theme_change(self, theme: ColorSystem) -> None:
+        print("theme change")
+        markers = self._build_markers()
+        self.trace_markers.update(markers)
 
     def _get_autocomplete_items(self, target_state: TargetState) -> list[DropdownItem]:
         return [DropdownItem(main=base_url) for base_url in self.cached_base_urls]

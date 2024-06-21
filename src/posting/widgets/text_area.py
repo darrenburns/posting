@@ -5,6 +5,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
+from textual.design import ColorSystem
 from textual.message import Message
 from textual.reactive import reactive, Reactive
 from textual.widgets import TextArea, Label, Select, Checkbox
@@ -195,7 +196,22 @@ class TextAreaFooter(Horizontal):
 class PostingTextArea(TextArea):
     def on_mount(self) -> None:
         self.indent_width = 2
-        self.set_class(len(self.text) == 0, "empty")
+        self.register_theme(POSTING_THEME)
+        self.register_theme(MONOKAI_THEME)
+        self.register_theme(GITHUB_LIGHT_THEME)
+        self.theme = "posting"
+        empty = len(self.text) == 0
+        self.show_line_numbers = not empty
+        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+
+    def on_theme_change(self, theme: ColorSystem) -> None:
+        if self.app.theme == "monokai":
+            self.theme = "posting-monokai"
+        elif not theme._dark:
+            self.theme = "github_light"
+        else:
+            self.theme = "posting"
+        self.refresh()
 
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
@@ -400,43 +416,28 @@ class TextEditor(Vertical):
         self.soft_wrap = event.value
 
 
-POSTLING_THEME = TextAreaTheme(
+VSCODE = TextAreaTheme.get_builtin_theme("vscode_dark")
+POSTING_THEME = TextAreaTheme(
     name="posting",
     syntax_styles={
         "json.error": Style.parse("u #dc2626"),
-        "json.null": Style(color="#7DAF9C"),
-        "json.label": Style(color="#569cd6", bold=True),
-        "string": Style(color="#ce9178"),
-        "string.documentation": Style(color="#ce9178"),
-        "comment": Style(color="#6A9955"),
-        "keyword": Style(color="#569cd6"),
-        "operator": Style(color="#569cd6"),
-        "conditional": Style(color="#569cd6"),
-        "keyword.function": Style(color="#569cd6"),
-        "keyword.return": Style(color="#569cd6"),
-        "keyword.operator": Style(color="#569cd6"),
-        "repeat": Style(color="#569cd6"),
-        "exception": Style(color="#569cd6"),
-        "include": Style(color="#569cd6"),
-        "number": Style(color="#b5cea8"),
-        "float": Style(color="#b5cea8"),
-        "class": Style(color="#4EC9B0"),
-        "type.class": Style(color="#4EC9B0"),
-        "function": Style(color="#4EC9B0"),
-        "function.call": Style(color="#4EC9B0"),
-        "method": Style(color="#4EC9B0"),
-        "method.call": Style(color="#4EC9B0"),
-        "boolean": Style(color="#7DAF9C"),
-        "constant.builtin": Style(color="#7DAF9C"),
-        "tag": Style(color="#EFCB43"),
-        "yaml.field": Style(color="#569cd6", bold=True),
-        "toml.type": Style(color="#569cd6"),
-        "heading": Style(color="#569cd6", bold=True),
-        "bold": Style(bold=True),
-        "italic": Style(italic=True),
-        "strikethrough": Style(strike=True),
-        "link": Style(color="#40A6FF", underline=True),
-        "inline_code": Style(color="#ce9178"),
-        "info_string": Style(color="#ce9178", bold=True, italic=True),
+        **(VSCODE.syntax_styles if VSCODE else {}),
+    },
+)
+MONOKAI = TextAreaTheme.get_builtin_theme("monokai")
+MONOKAI_THEME = TextAreaTheme(
+    name="posting-monokai",
+    syntax_styles={
+        "json.error": Style.parse("u #dc2626"),
+        **(MONOKAI.syntax_styles if MONOKAI else {}),
+    },
+)
+
+GITHUB_LIGHT = TextAreaTheme.get_builtin_theme("github_light")
+GITHUB_LIGHT_THEME = TextAreaTheme(
+    name="github_light",
+    base_style=None,
+    syntax_styles={
+        **(GITHUB_LIGHT.syntax_styles if GITHUB_LIGHT else {}),
     },
 )

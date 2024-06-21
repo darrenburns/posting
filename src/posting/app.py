@@ -13,6 +13,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.screen import Screen
+from textual.signal import Signal
 from textual.widget import Widget
 from textual.widgets import (
     Button,
@@ -434,6 +435,18 @@ class Posting(App[None]):
             accent="#ffa62b",
             dark=True,
         ),
+        "monokai": ColorSystem(
+            primary="#F92672",  # Pink
+            secondary="#66D9EF",  # Light Blue
+            warning="#FD971F",  # Orange
+            error="#F92672",  # Pink (same as primary for consistency)
+            success="#A6E22E",  # Green
+            accent="#AE81FF",  # Purple
+            background="#272822",  # Dark gray-green
+            surface="#3E3D32",  # Slightly lighter gray-green
+            panel="#3E3D32",  # Same as surface for consistency
+            dark=True,
+        ),
         "solarized-light": ColorSystem(
             primary="#268bd2",
             secondary="#2aa198",
@@ -498,29 +511,17 @@ class Posting(App[None]):
             panel="#2D3E46",  # Storm Gray
             background="#1F262A",  # Charcoal
         ),
-        "royal": ColorSystem(
-            primary="#483D8B",  # Dark Slate Blue, a deep and rich primary color evoking a sense of royalty and depth
-            secondary="#6A5ACD",  # Slate Blue, slightly lighter than the primary, but maintains the regal theme
-            warning="#FFD700",  # Gold, for striking, majestic warnings that draw attention
-            error="#B22222",  # Firebrick, a strong and important red for errors, ensuring they are noticed
-            success="#228B22",  # Forest Green, an earthy, rich color for success, giving a subtle nod to traditional regal gardens
-            accent="#9370DB",  # Medium Purple, a regal accent that stands out well against the darker shades
-            dark=True,  # Emphasizing a dark, sophisticated theme
-            surface="#39324B",  # A slightly muted version of Dark Slate Blue enhancing UI depth
-            panel="#504A65",  # A medium dark blue-purple to provide subtle contrast within UI elements
-            background="#2E2E40",  # A very deep blue tinged with purple, providing a solemn royal backdrop
-        ),
         "twilight": ColorSystem(
-            primary="#367588",  # Teal Blue
-            secondary="#5F9EA0",  # Cadet Blue
-            warning="#FFD700",  # Gold, for a noticeable yet elegant warning
-            error="#CD5C5C",  # Indian Red, for urgent yet harmonious alerts
-            success="#32CD32",  # Lime Green, a fresh and positive success indicator
-            accent="#FF7F50",  # Coral
-            dark=True,  # Emphasizing the low-light conditions
-            surface="#480ca8",
-            panel="#4C516D",  # Space Cadet
-            background="#191970",  # Midnight Blue
+            primary="#367588",  # Keeping the original Teal Blue
+            secondary="#5F9EA0",  # Keeping the original Cadet Blue
+            warning="#FFD700",  # Keeping the original Gold
+            error="#FF6347",  # Tomato Red, slightly more vibrant than Indian Red
+            success="#00FA9A",  # Medium Spring Green, more vibrant yet retro
+            accent="#FF7F50",  # Keeping the original Coral
+            dark=True,  # Keeping it as a dark theme
+            background="#191970",  # Keeping the original Midnight Blue
+            surface="#3B3B6D",  # A mid-tone between background and panel
+            panel="#4C516D",  # Keeping the original Space Cadet
         ),
     }
 
@@ -553,6 +554,7 @@ class Posting(App[None]):
             screen=self.screen,
         )
         log.info(f"Loaded collection: {self.collection!r}")
+        self.theme_change_signal = Signal[ColorSystem](self, "theme-changed")
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(collection=self.collection)
@@ -620,9 +622,11 @@ class Posting(App[None]):
         if not event.option_selected:
             self.theme = self._original_theme
 
-    def watch_theme(self) -> None:
+    def watch_theme(self, theme: str | None) -> None:
         self.refresh_css(animate=False)
         self.screen._update_styles()
+        if theme:
+            self.theme_change_signal.publish(self.themes[theme])
 
     def action_toggle_jump_mode(self) -> None:
         self._jumping = not self._jumping

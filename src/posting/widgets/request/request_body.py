@@ -4,7 +4,7 @@ from textual import on, events
 from textual.widgets.text_area import Location
 from textual.widgets import TextArea
 
-from posting.widgets.text_area import POSTLING_THEME, PostingTextArea
+from posting.widgets.text_area import PostingTextArea
 
 
 class RequestBodyTextArea(PostingTextArea):
@@ -21,8 +21,6 @@ class RequestBodyTextArea(PostingTextArea):
     CLOSING_BRACKETS = {v: k for k, v in OPENING_BRACKETS.items()}
 
     def on_mount(self):
-        self.register_theme(POSTLING_THEME)
-        self.theme = "posting"
         self.show_line_numbers = True
         self.tab_behavior = "indent"
 
