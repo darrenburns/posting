@@ -458,46 +458,53 @@ class Posting(App[None]):
             surface="#eee8d5",
             panel="#eee8d5",
         ),
-        "ocean": ColorSystem(
-            primary="#1e90ff",
-            secondary="#00ced1",
-            warning="#ffa07a",
-            error="#ff4500",
-            success="#20b2aa",
-            accent="#4682b4",
+        "nautilus": ColorSystem(
+            primary="#0077BE",  # Ocean Blue
+            secondary="#20B2AA",  # Light Sea Green
+            warning="#FFD700",  # Gold (like sunlight on water)
+            error="#FF6347",  # Tomato (like a warning buoy)
+            success="#32CD32",  # Lime Green (like seaweed)
+            accent="#FF8C00",  # Dark Orange (like a sunset over water)
             dark=True,
-        ),
-        "forest": ColorSystem(
-            primary="#006B3F",  # Deep Forest Green
-            secondary="#8A9A5B",  # Moss Green
-            warning="#DAA520",  # Goldenrod
-            error="#8B0000",  # Dark Red
-            success="#228B22",  # Dark Forest Green
-            accent="#8FBC8B",  # Dusty Sea Green
-            dark=True,
+            background="#001F3F",  # Dark Blue (deep ocean)
+            surface="#003366",  # Navy Blue (shallower water)
+            panel="#005A8C",  # Steel Blue (water surface)
         ),
         "galaxy": ColorSystem(
-            primary="#571089",  # Deep Magenta
-            secondary="#603ca6",  # Dusky Indigo
-            warning="#ff9900",  # Vivid Orange for warnings
-            error="#d00000",  # Vivid Red for errors
-            success="#4cc9f0",  # Bright Cyan for success
-            accent="#bc6ff1",  # Bright Lilac
-            dark=True,  # Emphasizing a dark theme
-            surface="#32174d",  # Dark Purple
-            panel="#452864",  # Slightly Lighter Dark Purple
+            primary="#8A2BE2",  # Improved Deep Magenta (Blueviolet)
+            secondary="#9370DB",  # Softer Dusky Indigo (Medium Purple)
+            warning="#FFD700",  # Gold, more visible than orange
+            error="#FF4500",  # OrangeRed, vibrant but less harsh than pure red
+            success="#00FA9A",  # Medium Spring Green, kept for vibrancy
+            accent="#FF69B4",  # Hot Pink, for a pop of color
+            dark=True,
+            background="#0F0F1F",  # Very Dark Blue, almost black
+            surface="#1E1E3F",  # Dark Blue-Purple
+            panel="#2D2B55",  # Slightly Lighter Blue-Purple
         ),
         "nebula": ColorSystem(
-            primary="#191970",  # Midnight Blue
-            secondary="#4B0082",  # Indigo Dye
-            warning="#FFD700",  # Gold, for a visually distinct warning
-            error="#DC143C",  # Crimson, for a striking error indication
-            success="#00FA9A",  # Medium Spring Green, for a refreshing success visualization
-            accent="#FF6FFF",  # Neon Pink-Purple
-            dark=True,  # Dedicated to a dark theme aesthetic
-            surface="#242124",  # Raisin Black
-            panel="#313131",  # Dark Charcoal
-            background="#1B1B1B",  # Eerie Black
+            primary="#4169E1",  # Royal Blue, more vibrant than Midnight Blue
+            secondary="#9400D3",  # Dark Violet, more vibrant than Indigo Dye
+            warning="#FFD700",  # Kept Gold for warnings
+            error="#FF1493",  # Deep Pink, more nebula-like than Crimson
+            success="#00FF7F",  # Spring Green, slightly more vibrant
+            accent="#FF00FF",  # Magenta, for a true neon accent
+            dark=True,
+            background="#0A0A23",  # Dark Navy, closer to a night sky
+            surface="#1C1C3C",  # Dark Blue-Purple
+            panel="#2E2E5E",  # Slightly Lighter Blue-Purple
+        ),
+        "alpine": ColorSystem(
+            primary="#4A90E2",  # Clear Sky Blue
+            secondary="#81A1C1",  # Misty Blue
+            warning="#EBCB8B",  # Soft Sunlight
+            error="#BF616A",  # Muted Red
+            success="#A3BE8C",  # Alpine Meadow Green
+            accent="#5E81AC",  # Mountain Lake Blue
+            dark=True,
+            background="#2E3440",  # Dark Slate Grey
+            surface="#3B4252",  # Darker Blue-Grey
+            panel="#434C5E",  # Lighter Blue-Grey
         ),
         "cobalt": ColorSystem(
             primary="#334D5C",  # Deep Cobalt Blue
@@ -512,16 +519,28 @@ class Posting(App[None]):
             background="#1F262A",  # Charcoal
         ),
         "twilight": ColorSystem(
-            primary="#367588",  # Keeping the original Teal Blue
-            secondary="#5F9EA0",  # Keeping the original Cadet Blue
-            warning="#FFD700",  # Keeping the original Gold
-            error="#FF6347",  # Tomato Red, slightly more vibrant than Indian Red
-            success="#00FA9A",  # Medium Spring Green, more vibrant yet retro
-            accent="#FF7F50",  # Keeping the original Coral
-            dark=True,  # Keeping it as a dark theme
-            background="#191970",  # Keeping the original Midnight Blue
-            surface="#3B3B6D",  # A mid-tone between background and panel
-            panel="#4C516D",  # Keeping the original Space Cadet
+            primary="#367588",
+            secondary="#5F9EA0",
+            warning="#FFD700",
+            error="#FF6347",
+            success="#00FA9A",
+            accent="#FF7F50",
+            dark=True,
+            background="#191970",
+            surface="#3B3B6D",
+            panel="#4C516D",
+        ),
+        "hacker": ColorSystem(
+            primary="#00FF00",  # Bright Green (Lime)
+            secondary="#32CD32",  # Lime Green
+            warning="#ADFF2F",  # Green Yellow
+            error="#FF4500",  # Orange Red (for contrast)
+            success="#00FA9A",  # Medium Spring Green
+            accent="#39FF14",  # Neon Green
+            dark=True,
+            background="#0D0D0D",  # Almost Black
+            surface="#1A1A1A",  # Very Dark Gray
+            panel="#2A2A2A",  # Dark Gray
         ),
     }
 
@@ -550,6 +569,7 @@ class Posting(App[None]):
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
+                "--content-tab-response-trace-pane": "f",
             },
             screen=self.screen,
         )
