@@ -65,7 +65,6 @@ class ResponseTrace(VerticalScroll):
                     yield Label(f"[b]{event_name}[/b]: [yellow]waiting[/yellow]")
 
     async def log_event(self, event_name: Event, info: dict[str, Any]) -> None:
-        print(event_name)
         event_name, status = event_name.rsplit(".", maxsplit=1)
         events = self.events
         match status:
