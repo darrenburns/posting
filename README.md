@@ -132,7 +132,7 @@ layout: horizontal
 
 All configuration values can also be set as environment variables.
 
-Simply prefix the name of the environment variable with `POSTING_`.
+Simply prefix the name of the config with `POSTING_` and set it as an environment variable.
 
 For example, to set the theme to `galaxy`, you can set the environment variable `POSTING_THEME=galaxy`.
 
