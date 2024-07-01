@@ -149,7 +149,7 @@ POSTING_LAYOUT="vertical"
 
 | Config Key | Environment Variable | Possible Values       | Default | Description                                      |
 |------------|----------------------|-----------------------|---------|--------------------------------------------------|
-| `theme`    | `POSTING_THEME`      | `"posting"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | `"posting"` | Sets the theme of the application.               |
+| `theme`    | `POSTING_THEME`      | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | `"posting"` | Sets the theme of the application.               |
 | `layout`   | `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | `"horizontal"` | Sets the layout of the application.              |
 
 ## Animation
