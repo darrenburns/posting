@@ -4,7 +4,7 @@ Posting is an powerful HTTP client which brings Postman-like functionality to yo
 
 It's designed for those who prefer working in a terminal environment and enjoy fast, keyboard-centric user interfaces.
 
-<img width="1332" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/54b500df-48ac-4a8a-84ad-e5f64dbdc023">
+<img width="1138" alt="screenshot-01jul24-2" src="https://github.com/darrenburns/posting/assets/5740731/d0e9f640-a0ba-41af-b2ae-7bda67e18026">
 
 It's still a work in progress and not yet feature complete!
 
