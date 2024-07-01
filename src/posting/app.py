@@ -32,6 +32,7 @@ from posting.collection import (
 )
 
 from posting.commands import PostingProvider
+from posting.config import Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.version import VERSION
@@ -80,6 +81,9 @@ class AppBody(Vertical):
     """
 
 
+PostingLayout = Literal["horizontal", "vertical"]
+
+
 class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
@@ -92,12 +96,20 @@ class MainScreen(Screen[None]):
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
-    layout: Reactive[Literal["horizontal", "vertical"]] = reactive("vertical")
+    layout: Reactive[PostingLayout] = reactive("vertical")
 
-    def __init__(self, collection: Collection) -> None:
+    def __init__(
+        self,
+        collection: Collection,
+        layout: PostingLayout,
+    ) -> None:
         super().__init__()
         self.collection = collection
         self.cookies: httpx.Cookies = httpx.Cookies()
+        self._initial_layout: PostingLayout = layout
+
+    def on_mount(self) -> None:
+        self.layout = self._initial_layout
 
     def compose(self) -> ComposeResult:
         yield AppHeader(f"Posting [white dim]{VERSION}[/]")
@@ -407,7 +419,20 @@ class MainScreen(Screen[None]):
         self.query_one(MethodSelection).set_method(value)
 
 
-class Posting(App[None]):
+class PostingApp(App[None]):
+    def __init__(
+        self,
+        settings: Settings,
+        collection: Collection,
+        collection_specified: bool = False,
+    ) -> None:
+        super().__init__()
+        self.collection = collection
+        self.collection_specified = collection_specified
+        self.settings = settings
+
+
+class Posting(PostingApp):
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
@@ -426,7 +451,7 @@ class Posting(App[None]):
     ]
 
     themes: dict[str, ColorSystem] = {
-        "textual": ColorSystem(
+        "posting": ColorSystem(
             primary="#004578",
             secondary="#0178D4",
             warning="#ffa62b",
@@ -544,17 +569,8 @@ class Posting(App[None]):
         ),
     }
 
-    theme: Reactive[str | None] = reactive("textual", init=False)
+    theme: Reactive[str | None] = reactive("posting", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
-
-    def __init__(
-        self,
-        collection: Collection,
-        collection_specified: bool = False,
-    ) -> None:
-        super().__init__()
-        self.collection = collection
-        self.collection_specified = collection_specified
 
     def on_mount(self) -> None:
         self.jumper = Jumper(
@@ -573,11 +589,14 @@ class Posting(App[None]):
             },
             screen=self.screen,
         )
-        log.info(f"Loaded collection: {self.collection!r}")
         self.theme_change_signal = Signal[ColorSystem](self, "theme-changed")
+        self.theme = self.settings.theme
 
     def get_default_screen(self) -> MainScreen:
-        self.main_screen = MainScreen(collection=self.collection)
+        self.main_screen = MainScreen(
+            collection=self.collection,
+            layout=self.settings.layout,
+        )
         if not self.collection_specified:
             self.notify(
                 "Using the current working directory.",

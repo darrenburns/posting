@@ -57,8 +57,6 @@ class RequestOptions(VerticalScroll):
                 display: block;
             }
         }
-
-
     }
     """
 

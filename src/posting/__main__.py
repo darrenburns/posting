@@ -7,6 +7,7 @@ from click_default_group import DefaultGroup
 
 from posting.app import Posting
 from posting.collection import Collection
+from posting.config import Settings
 from posting.locations import config_file
 
 
@@ -36,12 +37,18 @@ def cli() -> None:
     type=click.Path(exists=True),
     help="Path to the collection directory",
 )
-def default(collection: Path | None = None) -> None:
+@click.option(
+    "--env-file",
+    type=click.Path(exists=True),
+    help="Path to the .env environment file",
+)
+def default(collection: Path | None = None, env_file: Path | None = None) -> None:
     if collection:
         collection_tree = Collection.from_directory(str(collection))
     else:
         collection_tree = Collection.from_directory()
 
     collection_specified = collection is not None
-    app = Posting(collection_tree, collection_specified)
+    settings = Settings(_env_file=env_file)  # type: ignore[call-arg]
+    app = Posting(settings, collection_tree, collection_specified)
     app.run()
