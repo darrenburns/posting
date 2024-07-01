@@ -98,6 +98,17 @@ To open the command palette, press <kbd>ctrl</kbd>+<kbd>p</kbd>.
 
 https://github.com/darrenburns/posting/assets/5740731/a199e5f2-5621-42e6-b239-a796d1dc144a
 
+
+## Configuration
+
+Posting can be configured using environment variables.
+
+| Environment Variable | Possible Values       | Description                                      |
+|----------------------|-----------------------|--------------------------------------------------|
+| `POSTING_THEME`      | `"posting"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | Sets the theme of the application.               |
+| `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | Sets the layout of the application.              |
+
+
 ## Animation
 
 You can turn off animations by setting the environment variable `TEXTUAL_ANIMATIONS=none`.
