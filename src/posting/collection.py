@@ -158,7 +158,7 @@ class Collection(BaseModel):
     children: list[Collection] = Field(default_factory=list)
 
     @classmethod
-    def from_directory(cls, directory: str | None = None) -> Collection:
+    def from_directory(cls, directory: str) -> Collection:
         """Load all request models into a tree structure from a directory containing .posting.yaml files.
 
         Args:

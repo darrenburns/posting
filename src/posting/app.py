@@ -35,6 +35,7 @@ from posting.commands import PostingProvider
 from posting.config import Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.locations import config_file
 from posting.types import PostingLayout
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
@@ -583,7 +584,7 @@ class Posting(PostingApp):
         )
         if not self.collection_specified:
             self.notify(
-                "Using the current working directory.",
+                "Using the default collection directory.",
                 title="No collection specified",
                 severity="warning",
                 timeout=7,
