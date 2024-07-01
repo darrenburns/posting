@@ -14,7 +14,7 @@ dependencies = [
     "pyperclip>=1.8.2",
     "pydantic>=2.7.3",
     "pyyaml>=6.0.1",
-    "textual[syntax]>=0.70.0",
+    "textual[syntax]==0.70.0",
     "pydantic-settings>=2.3.4",
 ]
 readme = "README.md"

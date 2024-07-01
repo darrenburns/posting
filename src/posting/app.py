@@ -275,7 +275,7 @@ class MainScreen(Screen[None]):
         request_editor = self.request_editor
         response_area = self.response_area
 
-        # Hide the request editor if the request is currently maximized,
+        # Hide the request editor if the response area is currently maximized,
         # and vice-versa.
         request_editor.set_class(maximized == "response", "hidden")
         response_area.set_class(maximized == "request", "hidden")

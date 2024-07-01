@@ -1,4 +1,5 @@
 from typing import Any, Mapping, NamedTuple, Protocol, runtime_checkable
+from textual.errors import NoWidget
 
 from textual.geometry import Offset
 from textual.screen import Screen
@@ -37,13 +38,20 @@ class Jumper:
         overlays: dict[Offset, JumpInfo] = {}
         ids_to_keys = self.ids_to_keys
         for child in children:
+            try:
+                widget_offset = screen.get_offset(child)
+            except NoWidget:
+                # The widget might not be visible in the layout
+                # due to it being hidden in some modes.
+                continue
+
             if child.id and child.id in ids_to_keys:
-                overlays[screen.get_offset(child)] = JumpInfo(
+                overlays[widget_offset] = JumpInfo(
                     ids_to_keys[child.id],
                     child.id,
                 )
             elif isinstance(child, Jumpable):
-                overlays[screen.get_offset(child)] = JumpInfo(
+                overlays[widget_offset] = JumpInfo(
                     child.jump_key,
                     child,
                 )
