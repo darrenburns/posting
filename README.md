@@ -6,7 +6,7 @@ It's designed for those who prefer working in a terminal environment and enjoy f
 
 <img width="1332" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/54b500df-48ac-4a8a-84ad-e5f64dbdc023">
 
-It's still a work in progress and far from feature complete. Please don't open any bug reports yet - although I'm happy to hear ideas/suggestions!
+It's still a work in progress and not yet feature complete!
 
 ## Installation
 
