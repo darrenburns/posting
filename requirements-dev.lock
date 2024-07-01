@@ -60,12 +60,17 @@ multidict==6.0.5
     # via yarl
 pydantic==2.7.3
     # via posting
+    # via pydantic-settings
 pydantic-core==2.18.4
     # via pydantic
+pydantic-settings==2.3.4
+    # via posting
 pygments==2.18.0
     # via rich
 pyperclip==1.8.2
     # via posting
+python-dotenv==1.0.1
+    # via pydantic-settings
 pyyaml==6.0.1
     # via posting
 rich==13.7.1
