@@ -91,6 +91,11 @@ However, there are many other shortcuts available - these will be documented soo
 
 <!-- TODO - document other shortcuts. -->
 
+### Expanding/hiding the request/response sections
+
+Press <kbd>ctrl</kbd>+<kbd>m</kbd> to expand the section which currently has focus (the request or response section).
+Press it again to reset the UI.
+
 ## Command palette
 
 Some functionality in Posting doesn't warrant a dedicated keyboard shortcut (for example, switching to a specific theme), and can instead be accessed via the _command palette_.
