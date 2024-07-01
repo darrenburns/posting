@@ -272,9 +272,6 @@ class MainScreen(Screen[None]):
 
     def watch_maximized(self, maximized: Literal["request", "response"] | None) -> None:
         """Hide the non-maximized section."""
-
-        print("maximized", maximized)
-
         request_editor = self.request_editor
         response_area = self.response_area
 
