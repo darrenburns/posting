@@ -65,7 +65,10 @@ def default(collection: Path | None = None, env_file: Path | None = None) -> Non
 
 
 @cli.command()
-@click.argument("thing_to_locate", type=str)
+@click.argument(
+    "thing_to_locate",
+    type=click.Choice(["config", "collection"]),
+)
 def locate(thing_to_locate: str) -> None:
     if thing_to_locate == "config":
         print("Config file:")
@@ -74,4 +77,6 @@ def locate(thing_to_locate: str) -> None:
         print("Default collection directory:")
         print(default_collection_directory())
     else:
+        # This shouldn't happen because the type annotation should enforce that
+        # the only valid options are "config" and "collection".
         raise ValueError(f"Unknown thing to locate: {thing_to_locate}")

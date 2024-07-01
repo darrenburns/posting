@@ -59,7 +59,8 @@ posting --collection path/to/collection
 
 The supplied directory will be recursively searched for files matching `**/*.posting.yaml`, and they'll appear in the sidebar.
 
-If you don't supply a collection directory, the current working directory will be used.
+If you don't supply a directory, Posting will use the default collection directory.
+You can check where this is by running `posting locate collection`.
 
 To save the currently open request, press <kbd>ctrl</kbd>+<kbd>s</kbd>.
 
@@ -109,16 +110,11 @@ Configuration values are loaded in the following order of precedence (highest to
 2. Environment variables
 3. `.env` files
 
-| Environment Variable | Possible Values       | Default | Description                                      |
-|----------------------|-----------------------|---------------|--------------------------------------------------|
-| `POSTING_THEME`      | `"posting"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | `"posting"`    | Sets the theme of the application.               |
-| `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | `"horizontal"` | Sets the layout of the application.              |
-
 ### Configuration file
 
 You can write configuration for Posting using YAML.
 
-The location of the config file can be checked using the command `posting config`.
+The location of the config file can be checked using the command `posting locate config`.
 
 Here's an example configuration file:
 
@@ -147,6 +143,14 @@ Here's an example `.env` file:
 POSTING_THEME="cobalt"
 POSTING_LAYOUT="vertical"
 ```
+
+### Available configuration options
+
+
+| Config Key | Environment Variable | Possible Values       | Default | Description                                      |
+|------------|----------------------|-----------------------|---------|--------------------------------------------------|
+| `theme`    | `POSTING_THEME`      | `"posting"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | `"posting"` | Sets the theme of the application.               |
+| `layout`   | `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | `"horizontal"` | Sets the layout of the application.              |
 
 ## Animation
 
