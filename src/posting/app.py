@@ -90,10 +90,17 @@ class MainScreen(Screen[None]):
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         Binding("ctrl+s", "save_request", "Save"),
         Binding("ctrl+n", "new_request", "New"),
+        Binding("ctrl+m", "toggle_maximized", "Expand", show=False),
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
-    layout: Reactive[PostingLayout] = reactive("vertical")
+    """The currently selected method of the request."""
+    layout: Reactive[PostingLayout] = reactive("vertical", init=False)
+    """The current layout of the app."""
+    maximized: Reactive[Literal["request", "response"] | None] = reactive(
+        None, init=False
+    )
+    """The currently maximized section of the main screen."""
 
     def __init__(
         self,
@@ -208,6 +215,18 @@ class MainScreen(Screen[None]):
         """Change the method of the request."""
         self.method_selection()
 
+    def action_toggle_maximized(self) -> None:
+        """Toggle the maximized state of the app."""
+        if self.maximized in {"request", "response"}:
+            self.maximized = None
+        elif self.focused:
+            # Maximize the currently focused section.
+            ancestors = self.focused.ancestors_with_self
+            if self.request_editor in ancestors:
+                self.maximized = "request"
+            elif self.response_area in ancestors:
+                self.maximized = "response"
+
     async def action_save_request(self) -> None:
         """Save the request to disk, possibly prompting the user for more information
         if it's the first time this request has been saved to disk."""
@@ -250,6 +269,16 @@ class MainScreen(Screen[None]):
         other_class = classes.difference({layout}).pop()
         self.app_body.add_class(f"layout-{layout}")
         self.app_body.remove_class(f"layout-{other_class}")
+
+    def watch_maximized(self, maximized: Literal["request", "response"] | None) -> None:
+        """Hide the non-maximized section."""
+        request_editor = self.request_editor
+        response_area = self.response_area
+
+        # Hide the request editor if the request is currently maximized,
+        # and vice-versa.
+        request_editor.set_class(maximized == "response", "hidden")
+        response_area.set_class(maximized == "request", "hidden")
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:
@@ -355,6 +384,10 @@ class MainScreen(Screen[None]):
     @property
     def url_input(self) -> UrlInput:
         return self.query_one(UrlInput)
+
+    @property
+    def request_editor(self) -> RequestEditor:
+        return self.query_one(RequestEditor)
 
     @property
     def response_area(self) -> ResponseArea:
