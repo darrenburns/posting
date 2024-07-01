@@ -90,10 +90,17 @@ class MainScreen(Screen[None]):
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         Binding("ctrl+s", "save_request", "Save"),
         Binding("ctrl+n", "new_request", "New"),
+        Binding("ctrl+m", "toggle_maximized", "Toggle maximized"),
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
-    layout: Reactive[PostingLayout] = reactive("vertical")
+    """The currently selected method of the request."""
+    layout: Reactive[PostingLayout] = reactive("vertical", init=False)
+    """The current layout of the app."""
+    maximized: Reactive[Literal["request", "response"] | None] = reactive(
+        None, init=False
+    )
+    """The currently maximized section of the app."""
 
     def __init__(
         self,
@@ -207,6 +214,14 @@ class MainScreen(Screen[None]):
     def action_change_method(self) -> None:
         """Change the method of the request."""
         self.method_selection()
+
+    def action_toggle_maximized(self) -> None:
+        """Toggle the maximized state of the app."""
+        if self.maximized in {"request", "response"}:
+            self.maximized = None
+        else:
+            # Maximize the currently focused section.
+            if self.request_options._has_focus_within
 
     async def action_save_request(self) -> None:
         """Save the request to disk, possibly prompting the user for more information
