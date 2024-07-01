@@ -35,6 +35,7 @@ from posting.commands import PostingProvider
 from posting.config import Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.types import PostingLayout
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
@@ -81,16 +82,11 @@ class AppBody(Vertical):
     """
 
 
-PostingLayout = Literal["horizontal", "vertical"]
-
-
 class MainScreen(Screen[None]):
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
         Binding("ctrl+t", "change_method", "Method"),
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
-        # Binding("ctrl+n", "tree", "DEBUG Show tree"),
-        # Binding("ctrl+n", "preview_request_model", "DEBUG Preview request model"),
         Binding("ctrl+s", "save_request", "Save"),
         Binding("ctrl+n", "new_request", "New"),
     ]
@@ -211,11 +207,6 @@ class MainScreen(Screen[None]):
         """Change the method of the request."""
         self.method_selection()
 
-    def action_preview_request_model(self) -> None:
-        """Preview the request model (debug aid)."""
-        request_model = self.build_request_model(self.request_options.to_model())
-        log.info(request_model)
-
     async def action_save_request(self) -> None:
         """Save the request to disk, possibly prompting the user for more information
         if it's the first time this request has been saved to disk."""
@@ -258,13 +249,6 @@ class MainScreen(Screen[None]):
         other_class = classes.difference({layout}).pop()
         self.app_body.add_class(f"layout-{layout}")
         self.app_body.remove_class(f"layout-{other_class}")
-
-    # def action_tree(self) -> None:
-    #     from textual import log
-
-    #     log.info(self.app.tree)
-    #     log(self.app.get_css_variables())
-    #     self.app.next_theme()
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:

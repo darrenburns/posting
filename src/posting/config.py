@@ -1,5 +1,6 @@
-from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from posting.types import PostingLayout
 
 
 class Settings(BaseSettings):
@@ -11,4 +12,4 @@ class Settings(BaseSettings):
     )
 
     theme: str = "posting"
-    layout: Literal["vertical", "horizontal"] = "vertical"
+    layout: PostingLayout = "vertical"
