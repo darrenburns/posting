@@ -107,6 +107,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
             yield PostingTextArea(
                 self._initial_description,
                 id="description-textarea",
+                show_line_numbers=False,
             )
 
             yield Label("Directory")

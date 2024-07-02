@@ -2,5 +2,9 @@ name: echo
 description: This is an echo server we can use to see exactly what request is being
   sent.
 url: https://postman-echo.com/get
+body:
+  form_data:
+  - name: something
+    value: '123'
 options:
   follow_redirects: false

@@ -21,6 +21,7 @@ class RequestBodyTextArea(PostingTextArea):
 
     def on_mount(self):
         self.tab_behavior = "indent"
+        self.show_line_numbers = True
 
     def on_key(self, event: events.Key) -> None:
         character = event.character

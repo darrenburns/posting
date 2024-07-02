@@ -1,10 +1,11 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 import httpx
 from pydantic import BaseModel, Field, SecretStr
 import yaml
 import os
+from posting.tuple_to_multidict import tuples_to_dict
 
 from posting.version import VERSION
 
@@ -49,6 +50,12 @@ class Header(BaseModel):
     enabled: bool = Field(default=True)
 
 
+class FormItem(BaseModel):
+    name: str
+    value: str
+    enabled: bool = Field(default=True)
+
+
 class QueryParam(BaseModel):
     name: str
     value: str
@@ -73,6 +80,22 @@ class Options(BaseModel):
     timeout: float = Field(default=5.0)
 
 
+class RequestBody(BaseModel):
+    content: str | None = Field(default=None)
+    form_data: list[FormItem] | None = Field(default=None)
+
+    def to_httpx_args(self) -> dict[str, Any]:
+        httpx_args: dict[str, Any] = {}
+        if self.content:
+            httpx_args["content"] = self.content
+        if self.form_data:
+            # Ensure we don't delete duplicate keys
+            httpx_args["data"] = tuples_to_dict(
+                [(item.name, item.value) for item in self.form_data]
+            )
+        return httpx_args
+
+
 class RequestModel(BaseModel):
     name: str = Field(default="")
     """The name of the request. This is used to identify the request in the UI.
@@ -91,8 +114,11 @@ class RequestModel(BaseModel):
     """The path of the request on the file system (i.e. where the yaml is).
     Before saving a request, the path may be None."""
 
-    body: str | None = Field(default=None)
+    body: RequestBody | None = Field(default=None)
     """The body of the request."""
+
+    content: str | bytes | None = Field(default=None)
+    """The content of the request."""
 
     auth: Auth | None = Field(default=None)
     """The authentication information for the request."""
@@ -122,7 +148,7 @@ class RequestModel(BaseModel):
         return client.build_request(
             method=self.method,
             url=self.url,
-            content=self.body,
+            **(self.body.to_httpx_args() if self.body else {}),
             headers=httpx.Headers(
                 [
                     (header.name, header.value)

@@ -11,7 +11,7 @@ from textual.events import Click
 from textual.reactive import Reactive, reactive
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical
+from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.signal import Signal
 from textual.widget import Widget
@@ -32,11 +32,11 @@ from posting.collection import (
 )
 
 from posting.commands import PostingProvider
-from posting.config import Settings
+from posting.config import SETTINGS, Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.locations import config_file
 from posting.types import PostingLayout
+from posting.user_host import get_user_host_string
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
@@ -62,15 +62,34 @@ from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 
 
-class AppHeader(Label):
+class AppHeader(Horizontal):
     """The header of the app."""
 
     DEFAULT_CSS = """\
     AppHeader {
         color: $accent-lighten-2;
-        padding: 1 3;
+        padding: 0 3;
+        margin-top: 1;
+        height: 1;
+
+        & > #app-title {
+            dock: left;
+        }
+
+        & > #app-user-host {
+            dock: right;
+            color: $text-muted;
+        }
     }
     """
+
+    def compose(self) -> ComposeResult:
+        settings = SETTINGS.get().heading
+        yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+        if settings.show_host:
+            yield Label(get_user_host_string(), id="app-user-host")
+
+        self.set_class(not settings.visible, "hidden")
 
 
 class AppBody(Vertical):
@@ -78,7 +97,7 @@ class AppBody(Vertical):
 
     DEFAULT_CSS = """\
     AppBody {
-        padding: 1 2 0 2;
+        padding: 0 2;
     }
     """
 
@@ -116,7 +135,7 @@ class MainScreen(Screen[None]):
         self.layout = self._initial_layout
 
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"Posting [white dim]{VERSION}[/]")
+        yield AppHeader()
         yield UrlBar()
         with AppBody():
             yield CollectionBrowser(collection=self.collection)
@@ -371,13 +390,13 @@ class MainScreen(Screen[None]):
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
             headers=headers,
-            body=self.request_body_text_area.text or None,
             options=request_options,
             cookies=(
                 Cookie.from_httpx(self.cookies)
                 if request_options.attach_cookies
                 else []
             ),
+            **self.request_editor.to_request_model_args(),
         )
 
     def load_request_model(self, request_model: RequestModel) -> None:
@@ -390,7 +409,24 @@ class MainScreen(Screen[None]):
         self.headers_table.replace_all_rows(
             [(header.name, header.value) for header in request_model.headers]
         )
-        self.request_body_text_area.text = request_model.body or ""
+        if request_model.body:
+            if request_model.body.content:
+                # Set the body content in the text area and ensure the content
+                # switcher is set such that the text area is visible.
+                self.request_body_text_area.text = request_model.body.content
+                self.request_editor.request_body_type_select.value = "text-body-editor"
+                self.request_editor.form_editor.replace_all_rows([])
+            elif request_model.body.form_data:
+                self.request_editor.form_editor.replace_all_rows(
+                    (param.name, param.value) for param in request_model.body.form_data
+                )
+                self.request_editor.request_body_type_select.value = "form-body-editor"
+                self.request_body_text_area.text = ""
+        else:
+            self.request_body_text_area.text = ""
+            self.request_editor.form_editor.replace_all_rows([])
+            self.request_editor.request_body_type_select.value = "no-body-label"
+
         self.request_metadata.request = request_model
         self.request_options.load_options(request_model.options)
         self.request_auth.load_auth(request_model.auth)
@@ -466,6 +502,7 @@ class PostingApp(App[None]):
         self.collection = collection
         self.collection_specified = collection_specified
         self.settings = settings
+        SETTINGS.set(settings)
 
 
 class Posting(PostingApp):

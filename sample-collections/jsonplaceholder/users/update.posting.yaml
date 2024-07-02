@@ -2,12 +2,13 @@ name: update a user
 description: Update a user
 method: PUT
 url: https://jsonplaceholder.typicode.com/users/1
-body: |-
-  {
-    "name": "James Doe",
-    "username": "james.doe",
-    "email": "james.doe@example.com"
-  }
+body:
+  content: |-
+    {
+      "name": "James Doe",
+      "username": "james.doe",
+      "email": "james.doe@example.com"
+    }
 headers:
 - name: Content-Type
   value: application/json

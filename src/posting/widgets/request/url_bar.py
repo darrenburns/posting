@@ -80,8 +80,8 @@ class UrlBar(Horizontal):
 
     DEFAULT_CSS = """\
     UrlBar {
-        height: 1;
-        padding: 0 3;
+        height: 3;
+        padding: 1 3 0 3;
 
         & > #trace-markers {
             padding: 0 1;

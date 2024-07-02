@@ -41,10 +41,10 @@ ModalScreen {
     border-title-color: $text;
     border-title-style: b;
   }
+}
 
-  &.hidden {
-    display: none;
-  }
+.hidden {
+  display: none;
 }
 
 .w-auto {
@@ -198,6 +198,7 @@ DataTable {
 
 
 TextArea {
+  height: 1fr;
   border: none;
   &:focus {
       border: none;

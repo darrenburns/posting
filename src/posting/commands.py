@@ -40,9 +40,8 @@ class PostingProvider(Provider):
                     ),
                 )
 
-            # Change the wording of the expand/collapse command depending
-            # on the current state.
-
+            # Change the available commands depending on what is currently
+            # maximized on the main screen.
             maximized = screen.maximized
             reset_command = (
                 "view: reset",

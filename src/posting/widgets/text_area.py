@@ -23,7 +23,6 @@ class TextAreaFooter(Horizontal):
         dock: bottom;
         height: 1;
         width: 1fr;
-        background: $primary 10%;
         
         &:focus-within {
             background: $primary 55%;
@@ -65,6 +64,7 @@ class TextAreaFooter(Horizontal):
         }
 
         #location-label {
+            width: auto;
             color: $text 50%;
             margin-left: 1;
         }
@@ -201,7 +201,6 @@ class PostingTextArea(TextArea):
         self.register_theme(GITHUB_LIGHT_THEME)
         self.register_theme(DRACULA_THEME)
         empty = len(self.text) == 0
-        self.show_line_numbers = not empty
         self.set_class(empty, "empty")
         self.on_theme_change(self.app.themes[self.app.theme])
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
@@ -222,7 +221,6 @@ class PostingTextArea(TextArea):
     def on_change(self, event: TextArea.Changed) -> None:
         empty = len(self.text) == 0
         self.set_class(empty, "empty")
-        self.show_line_numbers = not empty
 
 
 class ReadOnlyTextArea(PostingTextArea):
@@ -367,15 +365,6 @@ class ReadOnlyTextArea(PostingTextArea):
 
 
 class TextEditor(Vertical):
-    DEFAULT_CSS = """\
-    TextEditor {
-        TextAreaFooter {
-            dock: bottom;
-            height: 1;
-        }
-    }
-    """
-
     soft_wrap: Reactive[bool] = reactive(True, init=False)
     language: Reactive[str | None] = reactive("json", init=False)
     read_only: Reactive[bool] = reactive(False, init=False)
@@ -421,6 +410,10 @@ class TextEditor(Vertical):
     @on(TextAreaFooter.SoftWrapChanged, selector="TextAreaFooter")
     def update_soft_wrap(self, event: TextAreaFooter.SoftWrapChanged) -> None:
         self.soft_wrap = event.value
+
+    @property
+    def text(self) -> str:
+        return self.text_area.text
 
 
 VSCODE = TextAreaTheme.get_builtin_theme("vscode_dark")

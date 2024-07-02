@@ -37,7 +37,7 @@ class ParamsTable(PostingDataTable):
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
-        self.add_columns(*["Key", "Value"])
+        self.add_columns("Key", "Value")
 
     def watch_has_focus(self, value: bool) -> None:
         self._scroll_cursor_into_view()
@@ -59,13 +59,6 @@ class ParamsTable(PostingDataTable):
             params.append(QueryParam(name=row[0], value=row[1], enabled=True))
         return params
 
-    # def to_httpx(self) -> httpx.QueryParams:
-    #     params: list[tuple[str, str]] = []
-    #     for row_index in range(self.row_count):
-    #         row = self.get_row_at(row_index)
-    #         params.append((row[0], row[1]))
-    #     return httpx.QueryParams(tuple(params))
-
 
 class QueryStringEditor(Vertical):
     """
@@ -76,8 +69,9 @@ class QueryStringEditor(Vertical):
         yield KeyValueEditor(
             ParamsTable(),
             KeyValueInput(
-                Input(placeholder="Key", id="param-key-input"),
-                Input(placeholder="Value", id="param-value-input"),
+                Input(placeholder="Key"),
+                Input(placeholder="Value"),
                 button_label="Add parameter",
             ),
+            empty_message="There are no parameters.",
         )
