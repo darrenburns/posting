@@ -102,9 +102,8 @@ class RequestAuth(VerticalScroll):
 
     @on(Select.Changed, selector="#auth-type-select")
     def on_auth_type_changed(self, event: Select.Changed):
-        content_switcher = self.query_one("#auth-form-switcher", ContentSwitcher)
         value = event.value
-        content_switcher.current = f"auth-form-{value}" if value else None
+        self.content_switcher.current = f"auth-form-{value}" if value else None
 
     def to_httpx_auth(self) -> httpx.Auth | None:
         form = self.current_form
