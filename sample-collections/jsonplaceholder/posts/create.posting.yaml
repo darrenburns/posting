@@ -2,12 +2,13 @@ name: create
 description: Create a new post
 method: POST
 url: https://jsonplaceholder.typicode.com/posts
-body: |-
-  {
-    "title": "foo",
-    "body": "bar",
-    "userId": 1
-  }
+body: 
+  content: |-
+    {
+      "title": "foo",
+      "body": "bar",
+      "userId": 1
+    }
 headers:
 - name: Content-Type
   value: application/json

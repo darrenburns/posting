@@ -2,12 +2,13 @@ name: create a user
 description: Create a new user
 method: POST
 url: https://jsonplaceholder.typicode.com/users
-body: |-
-  {
-    "name": "John Doe",
-    "username": "john.doe",
-    "email": "john.doe@example.com"
-  }
+body: 
+  content: |-
+    {
+      "name": "John Doe",
+      "username": "john.doe",
+      "email": "john.doe@example.com"
+    }
 headers:
 - name: Content-Type
   value: application/json
