@@ -411,6 +411,10 @@ class TextEditor(Vertical):
     def update_soft_wrap(self, event: TextAreaFooter.SoftWrapChanged) -> None:
         self.soft_wrap = event.value
 
+    @property
+    def text(self) -> str:
+        return self.text_area.text
+
 
 VSCODE = TextAreaTheme.get_builtin_theme("vscode_dark")
 POSTING_THEME = TextAreaTheme(

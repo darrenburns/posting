@@ -371,15 +371,13 @@ class MainScreen(Screen[None]):
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
             headers=headers,
-            # TODO Update this to use the new request editor method to retrieve
-            #  the body content args!!
-            body=self.request_body_text_area.text or None,
             options=request_options,
             cookies=(
                 Cookie.from_httpx(self.cookies)
                 if request_options.attach_cookies
                 else []
             ),
+            **self.request_editor.to_request_model_args(),
         )
 
     def load_request_model(self, request_model: RequestModel) -> None:

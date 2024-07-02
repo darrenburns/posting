@@ -108,17 +108,29 @@ class RequestEditor(Vertical):
     def request_body_content_switcher(self) -> ContentSwitcher:
         return self.query_one("#request-body-type-content-switcher", ContentSwitcher)
 
-    def to_httpx_args(self) -> dict[str, Any]:
+    @property
+    def text_editor(self) -> TextEditor:
+        return self.query_one("#text-body-editor", TextEditor)
+
+    @property
+    def form_editor(self) -> FormEditor:
+        return self.query_one("#form-body-editor", FormEditor)
+
+    def to_request_model_args(self) -> dict[str, Any]:
         """Returns a dictionary containing the arguments that should be
         passed to the httpx.Request object. The keys will depend on the
         content type that the user has selected."""
         content_switcher = self.request_body_content_switcher
         current = content_switcher.current
+        text_editor = self.text_editor
         if current == "no-body-label":
             return {}
         elif current == "text-body-editor":
             # We need to check the chosen content type in the TextEditor
-            return {}
+            if text_editor.language == "json":
+                return {"json_body": text_editor.text}
+            else:
+                return {"content": text_editor.text}
         elif current == "form-body-editor":
-            return {}
+            return {"form_data": self.form_editor.to_model()}
         return {}

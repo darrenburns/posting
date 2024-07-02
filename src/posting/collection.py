@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 import httpx
 from pydantic import BaseModel, Field, SecretStr
 import yaml
@@ -49,6 +49,12 @@ class Header(BaseModel):
     enabled: bool = Field(default=True)
 
 
+class FormItem(BaseModel):
+    name: str
+    value: str
+    enabled: bool = Field(default=True)
+
+
 class QueryParam(BaseModel):
     name: str
     value: str
@@ -91,8 +97,14 @@ class RequestModel(BaseModel):
     """The path of the request on the file system (i.e. where the yaml is).
     Before saving a request, the path may be None."""
 
-    body: str | None = Field(default=None)
-    """The body of the request."""
+    json_body: dict[str, Any] | None = Field(default=None)
+    """The JSON body of the request."""
+
+    form_data: dict[str, Any] | None = Field(default=None)
+    """The form data of the request."""
+
+    content: str | bytes | None = Field(default=None)
+    """The content of the request."""
 
     auth: Auth | None = Field(default=None)
     """The authentication information for the request."""

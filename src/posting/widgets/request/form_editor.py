@@ -2,6 +2,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Input
+from posting.collection import FormItem
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 
@@ -13,6 +14,14 @@ class FormTable(PostingDataTable):
         self.cursor_type = "row"
         self.zebra_stripes = True
         self.add_columns("Key", "Value")
+
+    def to_model(self) -> list[FormItem]:
+        form_data: list[FormItem] = []
+        # TODO - handle enabled/disabled...
+        for row_index in range(self.row_count):
+            row = self.get_row_at(row_index)
+            form_data.append(FormItem(name=row[0], value=row[1], enabled=True))
+        return form_data
 
 
 class FormEditor(Vertical):
@@ -27,3 +36,6 @@ class FormEditor(Vertical):
             ),
             empty_message="There is no form data.",
         )
+
+    def to_model(self) -> list[FormItem]:
+        return self.query_one(FormTable).to_model()
