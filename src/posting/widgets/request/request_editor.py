@@ -37,7 +37,7 @@ class RequestEditor(Vertical):
         }
         & #no-body-label {
             height: 1fr;
-            hatch: right $surface-lighten-1;
+            hatch: right $surface-lighten-1 70%;
         }
     }
 """

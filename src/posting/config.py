@@ -7,6 +7,7 @@ from pydantic_settings import (
     SettingsConfigDict,
     YamlConfigSettingsSource,
 )
+from textual.types import AnimationLevel
 import yaml
 
 from posting.locations import config_file
@@ -34,6 +35,7 @@ class Settings(BaseSettings):
     theme: str = Field(default="posting")
     layout: PostingLayout = Field(default="vertical")
     heading: HeadingSettings = Field(default_factory=HeadingSettings)
+    animation: AnimationLevel = Field(default="none")
 
     @classmethod
     def settings_customise_sources(

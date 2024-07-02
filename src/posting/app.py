@@ -503,6 +503,7 @@ class PostingApp(App[None]):
         self.collection_specified = collection_specified
         self.settings = settings
         SETTINGS.set(settings)
+        self.animation_level = settings.animation
 
 
 class Posting(PostingApp):

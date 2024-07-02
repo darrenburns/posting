@@ -170,10 +170,8 @@ POSTING_HEADING__VISIBLE="false"
 | `layout`   | `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | `"horizontal"` | Sets the layout of the application.              |
 | `heading.visible` | `POSTING_HEADING__VISIBLE` | `true`, `false` | `true` | Show/hide the app header. |
 | `heading.show_host` | `POSTING_HEADING__SHOW_HOST` | `true`, `false` | `true` | Show/hide the hostname in the app header. |
+| `animation` | `POSTING_ANIMATION` | `"none"`, `"basic"`, `"full"` | `"none"` | Controls the animation level. |
 
-## Animation
-
-You can turn off animations by setting the environment variable `TEXTUAL_ANIMATIONS=none`.
 
 ## Planned Features
 

@@ -148,7 +148,7 @@ class KeyValueEditor(Vertical):
                 display: none;
             }
             & #empty-message {
-                hatch: right $surface-lighten-1;
+                hatch: right $surface-lighten-1 70%;
                 display: block;
             }
         }
