@@ -83,7 +83,7 @@ class AppHeader(Horizontal):
     """
 
     def compose(self) -> ComposeResult:
-        yield Label(f"Posting [white dim]{VERSION}[/]", id="app-title")
+        yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
         yield Label(get_user_host_string(), id="app-user-host")
 
 
