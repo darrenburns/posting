@@ -233,13 +233,17 @@ class MainScreen(Screen[None]):
         """Whether the focus is within the request editor."""
         if focused is None:
             focused = self.focused
-        return focused in self.request_editor.ancestors_with_self
+        if focused is None:
+            return False
+        return self.request_editor in focused.ancestors_with_self
 
     def focus_within_response(self, focused: Widget | None = None) -> bool:
         """Whether the focus is within the response area."""
         if focused is None:
             focused = self.focused
-        return focused in self.response_area.ancestors_with_self
+        if focused is None:
+            return False
+        return self.response_area in focused.ancestors_with_self
 
     async def action_save_request(self) -> None:
         """Save the request to disk, possibly prompting the user for more information
