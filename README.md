@@ -6,7 +6,11 @@ It's designed for those who prefer working in a terminal environment and enjoy f
 
 <img width="1138" alt="screenshot-01jul24-2" src="https://github.com/darrenburns/posting/assets/5740731/d0e9f640-a0ba-41af-b2ae-7bda67e18026">
 
-It's still a work in progress and not yet feature complete!
+## Important note
+
+Posting is still under development and not yet feature complete.
+
+Some notable missing features include variables/environments, pre/post-request scripts, and the ability to send form data and files.
 
 ## Installation
 
@@ -114,6 +118,8 @@ Configuration values are loaded in the following order of precedence (highest to
 1. Configuration file
 2. Environment variables
 3. `.env` files
+
+The range of available configuration will be greatly expanded in the future.
 
 ### Configuration file
 
