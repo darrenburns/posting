@@ -1,3 +1,4 @@
+from typing import Any
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Center, Horizontal, Middle, Vertical
@@ -96,11 +97,8 @@ class RequestEditor(Vertical):
 
     @on(Select.Changed, selector="#request-body-type-select")
     def request_body_type_changed(self, event: Select.Changed) -> None:
-        try:
-            content_switcher = self.request_body_content_switcher
-            content_switcher.current = event.value
-        except Exception as e:
-            print(e)
+        content_switcher = self.request_body_content_switcher
+        content_switcher.current = event.value
 
     @property
     def request_body_type_select(self) -> Select[str]:
@@ -109,3 +107,18 @@ class RequestEditor(Vertical):
     @property
     def request_body_content_switcher(self) -> ContentSwitcher:
         return self.query_one("#request-body-type-content-switcher", ContentSwitcher)
+
+    def to_httpx_args(self) -> dict[str, Any]:
+        """Returns a dictionary containing the arguments that should be
+        passed to the httpx.Request object. The keys will depend on the
+        content type that the user has selected."""
+        content_switcher = self.request_body_content_switcher
+        current = content_switcher.current
+        if current == "no-body-label":
+            return {}
+        elif current == "text-body-editor":
+            # We need to check the chosen content type in the TextEditor
+            return {}
+        elif current == "form-body-editor":
+            return {}
+        return {}

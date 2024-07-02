@@ -371,6 +371,8 @@ class MainScreen(Screen[None]):
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
             headers=headers,
+            # TODO Update this to use the new request editor method to retrieve
+            #  the body content args!!
             body=self.request_body_text_area.text or None,
             options=request_options,
             cookies=(

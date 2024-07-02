@@ -27,7 +27,3 @@ class FormEditor(Vertical):
             ),
             empty_message="There is no form data.",
         )
-
-    @on(KeyValueInput.New)
-    def on_new(self, event: KeyValueInput.New) -> None:
-        print("new", event.key, event.value)
