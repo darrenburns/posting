@@ -218,14 +218,28 @@ class MainScreen(Screen[None]):
     def action_toggle_maximized(self) -> None:
         """Toggle the maximized state of the app."""
         if self.maximized in {"request", "response"}:
-            self.maximized = None
+            self.maximize_section(None)
         elif self.focused:
             # Maximize the currently focused section.
-            ancestors = self.focused.ancestors_with_self
-            if self.request_editor in ancestors:
-                self.maximized = "request"
-            elif self.response_area in ancestors:
-                self.maximized = "response"
+            if self.focus_within_request():
+                self.maximize_section("request")
+            elif self.focus_within_response():
+                self.maximize_section("response")
+
+    def maximize_section(self, section: Literal["request", "response"] | None) -> None:
+        self.maximized = section
+
+    def focus_within_request(self, focused: Widget | None = None) -> bool:
+        """Whether the focus is within the request editor."""
+        if focused is None:
+            focused = self.focused
+        return focused in self.request_editor.ancestors_with_self
+
+    def focus_within_response(self, focused: Widget | None = None) -> bool:
+        """Whether the focus is within the response area."""
+        if focused is None:
+            focused = self.focused
+        return focused in self.response_area.ancestors_with_self
 
     async def action_save_request(self) -> None:
         """Save the request to disk, possibly prompting the user for more information

@@ -13,19 +13,62 @@ class PostingProvider(Provider):
         self,
     ) -> tuple[tuple[str, IgnoreReturnCallbackType, str], ...]:
         app = self.posting
-        return (
-            (
-                "layout: horizontal",
-                partial(app.command_layout, "horizontal"),
-                "Change layout to horizontal",
-            ),
-            (
-                "layout: vertical",
-                partial(app.command_layout, "vertical"),
-                "Change layout to vertical",
-            ),
+        screen = self.screen
+
+        commands_to_show: list[tuple[str, IgnoreReturnCallbackType, str]] = [
             *self.get_theme_commands(),
-        )
+        ]
+
+        from posting.app import MainScreen
+
+        if isinstance(screen, MainScreen):
+            # Only show the option to change to the layout which isn't the current one.
+            if screen.layout == "horizontal":
+                commands_to_show.append(
+                    (
+                        "layout: vertical",
+                        partial(app.command_layout, "vertical"),
+                        "Change layout to vertical",
+                    ),
+                )
+            elif screen.layout == "vertical":
+                commands_to_show.append(
+                    (
+                        "layout: horizontal",
+                        partial(app.command_layout, "horizontal"),
+                        "Change layout to horizontal",
+                    ),
+                )
+
+            # Change the wording of the expand/collapse command depending
+            # on the current state.
+
+            maximized = screen.maximized
+            reset_command = (
+                "view: reset",
+                partial(screen.maximize_section, None),
+                "Reset section sizes to default",
+            )
+            expand_request_command = (
+                "view: expand request",
+                partial(screen.maximize_section, "request"),
+                "Expand the request section",
+            )
+            expand_response_command = (
+                "view: expand response",
+                partial(screen.maximize_section, "response"),
+                "Expand the response section",
+            )
+            if maximized == "request":
+                commands_to_show.extend([reset_command, expand_response_command])
+            elif maximized == "response":
+                commands_to_show.extend([reset_command, expand_request_command])
+            else:
+                commands_to_show.extend(
+                    [expand_request_command, expand_response_command]
+                )
+
+        return tuple(commands_to_show)
 
     async def discover(self) -> Hits:
         """Handle a request for the discovery commands for this provider.
