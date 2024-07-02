@@ -5,6 +5,7 @@ import httpx
 from pydantic import BaseModel, Field, SecretStr
 import yaml
 import os
+from posting.tuple_to_multidict import tuples_to_dict
 
 from posting.version import VERSION
 
@@ -89,7 +90,9 @@ class RequestBody(BaseModel):
             httpx_args["content"] = self.content
         if self.form_data:
             # Ensure we don't delete duplicate keys
-            httpx_args["data"] = [(item.name, item.value) for item in self.form_data]
+            httpx_args["data"] = tuples_to_dict(
+                [(item.name, item.value) for item in self.form_data]
+            )
         return httpx_args
 
 

@@ -34,12 +34,6 @@ class RequestEditor(Vertical):
         & #request-body-type-select-container {
             dock: top;
             height: 1;
-            padding: 0 1;
-
-            & #body-type-label {
-                color: $text-muted;
-                padding-right: 1;
-            }
         }
         & #no-body-label {
             height: 1fr;
@@ -56,7 +50,6 @@ class RequestEditor(Vertical):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
                     with Horizontal(id="request-body-type-select-container"):
-                        yield Label("Body type:", id="body-type-label")
                         yield Select(
                             # These values are also referred to inside MainScreen.
                             # When we load a request, we need to set the correct

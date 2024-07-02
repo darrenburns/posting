@@ -59,13 +59,6 @@ class ParamsTable(PostingDataTable):
             params.append(QueryParam(name=row[0], value=row[1], enabled=True))
         return params
 
-    # def to_httpx(self) -> httpx.QueryParams:
-    #     params: list[tuple[str, str]] = []
-    #     for row_index in range(self.row_count):
-    #         row = self.get_row_at(row_index)
-    #         params.append((row[0], row[1]))
-    #     return httpx.QueryParams(tuple(params))
-
 
 class QueryStringEditor(Vertical):
     """

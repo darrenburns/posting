@@ -35,7 +35,6 @@ from posting.commands import PostingProvider
 from posting.config import Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.locations import config_file
 from posting.types import PostingLayout
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
@@ -398,9 +397,12 @@ class MainScreen(Screen[None]):
                 self.request_editor.request_body_type_select.value = "text-body-editor"
             elif request_model.body.form_data:
                 self.request_editor.request_body_type_select.value = "form-body-editor"
-                # TODO - load the form data if required.
-                pass
+                self.request_editor.form_editor.replace_all_rows(
+                    (param.name, param.value) for param in request_model.body.form_data
+                )
         else:
+            self.request_body_text_area.text = ""
+            self.request_editor.form_editor.replace_all_rows([])
             self.request_editor.request_body_type_select.value = "no-body-label"
 
         self.request_metadata.request = request_model

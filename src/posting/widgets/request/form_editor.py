@@ -1,4 +1,4 @@
-from textual import on
+from typing import Iterable
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Input
@@ -39,3 +39,6 @@ class FormEditor(Vertical):
 
     def to_model(self) -> list[FormItem]:
         return self.query_one(FormTable).to_model()
+
+    def replace_all_rows(self, rows: Iterable[tuple[str, str]]) -> None:
+        self.query_one(FormTable).replace_all_rows(rows)
