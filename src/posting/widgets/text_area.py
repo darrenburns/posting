@@ -199,14 +199,19 @@ class PostingTextArea(TextArea):
         self.register_theme(POSTING_THEME)
         self.register_theme(MONOKAI_THEME)
         self.register_theme(GITHUB_LIGHT_THEME)
-        self.theme = "posting"
+        self.register_theme(DRACULA_THEME)
         empty = len(self.text) == 0
         self.show_line_numbers = not empty
+        self.set_class(empty, "empty")
+        self.on_theme_change(self.app.theme)
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
     def on_theme_change(self, theme: ColorSystem) -> None:
-        if self.app.theme == "monokai":
+        app_theme = self.app.theme
+        if app_theme == "monokai":
             self.theme = "posting-monokai"
+        elif app_theme == "galaxy" or app_theme == "nebula":
+            self.theme = "posting-dracula"
         elif not theme._dark:
             self.theme = "github_light"
         else:
@@ -438,6 +443,16 @@ GITHUB_LIGHT_THEME = TextAreaTheme(
     name="github_light",
     base_style=None,
     syntax_styles={
+        "json.error": Style.parse("u #dc2626"),
         **(GITHUB_LIGHT.syntax_styles if GITHUB_LIGHT else {}),
+    },
+)
+
+DRACULA = TextAreaTheme.get_builtin_theme("dracula")
+DRACULA_THEME = TextAreaTheme(
+    name="posting-dracula",
+    syntax_styles={
+        "json.error": Style.parse("u #dc2626"),
+        **(DRACULA.syntax_styles if DRACULA else {}),
     },
 )
