@@ -21,6 +21,7 @@ class HeaderEditor(Vertical):
                 Input(placeholder="Value", id="header-value-input"),
                 button_label="Add header",
             ),
+            empty_message="There are no headers.",
         )
 
     def on_mount(self):

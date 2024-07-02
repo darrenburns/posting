@@ -5,7 +5,8 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widget import Widget
-from textual.widgets import Button, Input
+from textual.widgets import Button, Input, Label
+from posting.widgets.center_middle import CenterMiddle
 
 from posting.widgets.datatable import PostingDataTable
 
@@ -137,10 +138,18 @@ class KeyValueEditor(Vertical):
         & PostingDataTable {
             display: block;
         }
+
+        & #empty-message {
+            display: none;
+        }
+
         &.empty {
-            hatch: right $surface 100%;
             & PostingDataTable {
                 display: none;
+            }
+            & #empty-message {
+                hatch: right $surface 100%;
+                display: block;
             }
         }
     }
@@ -150,6 +159,7 @@ class KeyValueEditor(Vertical):
         self,
         table: PostingDataTable,
         key_value_input: KeyValueInput,
+        empty_message: str = "No entries",
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -158,9 +168,11 @@ class KeyValueEditor(Vertical):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.table = table
         self.key_value_input = key_value_input
+        self.empty_message = empty_message
 
     def compose(self) -> ComposeResult:
         self.set_class(self.table.row_count == 0, "empty")
+        yield CenterMiddle(Label(self.empty_message), id="empty-message")
         yield self.table
         yield self.key_value_input
 

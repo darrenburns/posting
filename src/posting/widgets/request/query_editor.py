@@ -80,4 +80,5 @@ class QueryStringEditor(Vertical):
                 Input(placeholder="Value", id="param-value-input"),
                 button_label="Add parameter",
             ),
+            empty_message="There are no parameters.",
         )
