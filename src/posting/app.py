@@ -11,7 +11,7 @@ from textual.events import Click
 from textual.reactive import Reactive, reactive
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical
+from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.signal import Signal
 from textual.widget import Widget
@@ -36,6 +36,7 @@ from posting.config import Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.types import PostingLayout
+from posting.user_host import get_user_host_string
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
@@ -61,15 +62,29 @@ from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 
 
-class AppHeader(Label):
+class AppHeader(Horizontal):
     """The header of the app."""
 
     DEFAULT_CSS = """\
     AppHeader {
         color: $accent-lighten-2;
         padding: 1 3;
+        height: 3;
+
+        & > #app-title {
+            dock: left;
+        }
+
+        & > #app-user-host {
+            dock: right;
+            color: $text-muted;
+        }
     }
     """
+
+    def compose(self) -> ComposeResult:
+        yield Label(f"Posting [white dim]{VERSION}[/]", id="app-title")
+        yield Label(get_user_host_string(), id="app-user-host")
 
 
 class AppBody(Vertical):
@@ -115,7 +130,7 @@ class MainScreen(Screen[None]):
         self.layout = self._initial_layout
 
     def compose(self) -> ComposeResult:
-        yield AppHeader(f"Posting [white dim]{VERSION}[/]")
+        yield AppHeader()
         yield UrlBar()
         with AppBody():
             yield CollectionBrowser(collection=self.collection)
@@ -395,11 +410,13 @@ class MainScreen(Screen[None]):
                 # switcher is set such that the text area is visible.
                 self.request_body_text_area.text = request_model.body.content
                 self.request_editor.request_body_type_select.value = "text-body-editor"
+                self.request_editor.form_editor.replace_all_rows([])
             elif request_model.body.form_data:
-                self.request_editor.request_body_type_select.value = "form-body-editor"
                 self.request_editor.form_editor.replace_all_rows(
                     (param.name, param.value) for param in request_model.body.form_data
                 )
+                self.request_editor.request_body_type_select.value = "form-body-editor"
+                self.request_body_text_area.text = ""
         else:
             self.request_body_text_area.text = ""
             self.request_editor.form_editor.replace_all_rows([])
