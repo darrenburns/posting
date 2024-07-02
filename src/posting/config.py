@@ -1,5 +1,6 @@
+from contextvars import ContextVar
 from typing import Type
-from pydantic import Field
+from pydantic import BaseModel, Field
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -13,17 +14,26 @@ from posting.locations import config_file
 from posting.types import PostingLayout
 
 
+class HeadingSettings(BaseModel):
+    visible: bool = Field(default=True)
+    """Whether this widget should be displayed or not."""
+    show_host: bool = Field(default=True)
+    """Whether or not to show the hostname in the app header."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         env_prefix="posting_",
+        env_nested_delimiter="__",
         env_ignore_empty=True,
         extra="allow",
     )
 
     theme: str = Field(default="posting")
     layout: PostingLayout = Field(default="vertical")
+    heading: HeadingSettings = Field(default_factory=HeadingSettings)
 
     @classmethod
     def settings_customise_sources(
@@ -62,3 +72,6 @@ class Settings(BaseSettings):
                 file_secret_settings,
             )
         return default_sources
+
+
+SETTINGS: ContextVar[Settings] = ContextVar("settings")

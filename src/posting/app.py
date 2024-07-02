@@ -32,7 +32,7 @@ from posting.collection import (
 )
 
 from posting.commands import PostingProvider
-from posting.config import Settings
+from posting.config import SETTINGS, Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.types import PostingLayout
@@ -68,8 +68,9 @@ class AppHeader(Horizontal):
     DEFAULT_CSS = """\
     AppHeader {
         color: $accent-lighten-2;
-        padding: 1 3;
-        height: 3;
+        padding: 0 3;
+        margin-top: 1;
+        height: 1;
 
         & > #app-title {
             dock: left;
@@ -83,8 +84,12 @@ class AppHeader(Horizontal):
     """
 
     def compose(self) -> ComposeResult:
+        settings = SETTINGS.get().heading
         yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
-        yield Label(get_user_host_string(), id="app-user-host")
+        if settings.show_host:
+            yield Label(get_user_host_string(), id="app-user-host")
+
+        self.set_class(not settings.visible, "hidden")
 
 
 class AppBody(Vertical):
@@ -92,7 +97,7 @@ class AppBody(Vertical):
 
     DEFAULT_CSS = """\
     AppBody {
-        padding: 1 2 0 2;
+        padding: 0 2;
     }
     """
 
@@ -497,6 +502,7 @@ class PostingApp(App[None]):
         self.collection = collection
         self.collection_specified = collection_specified
         self.settings = settings
+        SETTINGS.set(settings)
 
 
 class Posting(PostingApp):

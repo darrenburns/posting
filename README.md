@@ -132,6 +132,9 @@ Here's an example configuration file:
 ```yaml
 theme: galaxy
 layout: horizontal
+heading:
+  visible: true
+  show_host: false
 ```
 
 ### Environment variables
@@ -139,6 +142,8 @@ layout: horizontal
 All configuration values can also be set as environment variables.
 
 Simply prefix the name of the config with `POSTING_` and set it as an environment variable.
+
+For nested configuration values, use `__` as the delimiter. So to set `heading.visible` to `false`, you can set the environment variable `POSTING_HEADING__VISIBLE=false`.
 
 For example, to set the theme to `galaxy`, you can set the environment variable `POSTING_THEME=galaxy`.
 
@@ -153,6 +158,7 @@ Here's an example `.env` file:
 ```bash
 POSTING_THEME="cobalt"
 POSTING_LAYOUT="vertical"
+POSTING_HEADING__VISIBLE="false"
 ```
 
 ### Available configuration options
@@ -162,6 +168,8 @@ POSTING_LAYOUT="vertical"
 |------------|----------------------|-----------------------|---------|--------------------------------------------------|
 | `theme`    | `POSTING_THEME`      | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | `"posting"` | Sets the theme of the application.               |
 | `layout`   | `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | `"horizontal"` | Sets the layout of the application.              |
+| `heading.visible` | `POSTING_HEADING__VISIBLE` | `true`, `false` | `true` | Show/hide the app header. |
+| `heading.show_host` | `POSTING_HEADING__SHOW_HOST` | `true`, `false` | `true` | Show/hide the hostname in the app header. |
 
 ## Animation
 
