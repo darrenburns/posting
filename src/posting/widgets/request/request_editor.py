@@ -1,6 +1,6 @@
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Center, Middle, Vertical
+from textual.containers import Center, Horizontal, Middle, Vertical
 from textual.widgets import ContentSwitcher, Label, Select, TabPane
 from posting.widgets.center_middle import CenterMiddle
 from posting.widgets.request.form_editor import FormEditor
@@ -29,12 +29,19 @@ class RequestEditor(Vertical):
         & TextEditor {
             height: 1fr;
         }
-        & #request-body-type-select {
+        & #request-body-type-select-container {
             dock: top;
+            height: 1;
+            padding: 0 1;
+
+            & #body-type-label {
+                color: $text-muted;
+                padding-right: 1;
+            }
         }
         & #no-body-label {
             height: 1fr;
-            hatch: right $surface;
+            hatch: right $surface-lighten-1;
         }
     }
 """
@@ -46,15 +53,17 @@ class RequestEditor(Vertical):
                 with TabPane("Headers", id="headers-pane"):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
-                    yield Select(
-                        options=[
-                            ("None", "no-body-label"),
-                            ("Text", "text-body-editor"),
-                            ("Form", "form-body-editor"),
-                        ],
-                        id="request-body-type-select",
-                        allow_blank=False,
-                    )
+                    with Horizontal(id="request-body-type-select-container"):
+                        yield Label("Body type:", id="body-type-label")
+                        yield Select(
+                            options=[
+                                ("None", "no-body-label"),
+                                ("Raw (json, text, etc.)", "text-body-editor"),
+                                ("Form data", "form-body-editor"),
+                            ],
+                            id="request-body-type-select",
+                            allow_blank=False,
+                        )
                     with ContentSwitcher(
                         initial="no-body-label",
                         id="request-body-type-content-switcher",

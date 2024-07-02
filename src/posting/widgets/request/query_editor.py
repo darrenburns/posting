@@ -37,7 +37,7 @@ class ParamsTable(PostingDataTable):
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
-        self.add_columns(*["Key", "Value"])
+        self.add_columns("Key", "Value")
 
     def watch_has_focus(self, value: bool) -> None:
         self._scroll_cursor_into_view()
@@ -76,8 +76,8 @@ class QueryStringEditor(Vertical):
         yield KeyValueEditor(
             ParamsTable(),
             KeyValueInput(
-                Input(placeholder="Key", id="param-key-input"),
-                Input(placeholder="Value", id="param-value-input"),
+                Input(placeholder="Key"),
+                Input(placeholder="Value"),
                 button_label="Add parameter",
             ),
             empty_message="There are no parameters.",

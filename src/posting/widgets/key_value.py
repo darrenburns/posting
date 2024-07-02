@@ -148,7 +148,7 @@ class KeyValueEditor(Vertical):
                 display: none;
             }
             & #empty-message {
-                hatch: right $surface 100%;
+                hatch: right $surface-lighten-1;
                 display: block;
             }
         }
@@ -177,8 +177,8 @@ class KeyValueEditor(Vertical):
         yield self.key_value_input
 
     @on(KeyValueInput.New)
-    def add_header(self, event: KeyValueInput.New) -> None:
-        table = self.query_one(PostingDataTable)
+    def add_key_value_pair(self, event: KeyValueInput.New) -> None:
+        table = self.table
         table.add_row(event.key, event.value)
         table.move_cursor(row=table.row_count - 1)
 
