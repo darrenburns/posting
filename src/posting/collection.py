@@ -79,6 +79,11 @@ class Options(BaseModel):
     timeout: float = Field(default=5.0)
 
 
+class RequestBody(BaseModel):
+    content: str | None = Field(default=None)
+    form_data: list[FormItem] | None = Field(default=None)
+
+
 class RequestModel(BaseModel):
     name: str = Field(default="")
     """The name of the request. This is used to identify the request in the UI.
@@ -97,11 +102,8 @@ class RequestModel(BaseModel):
     """The path of the request on the file system (i.e. where the yaml is).
     Before saving a request, the path may be None."""
 
-    json_body: dict[str, Any] | None = Field(default=None)
-    """The JSON body of the request."""
-
-    form_data: dict[str, Any] | None = Field(default=None)
-    """The form data of the request."""
+    body: RequestBody | None = Field(default=None)
+    """The body of the request."""
 
     content: str | bytes | None = Field(default=None)
     """The content of the request."""

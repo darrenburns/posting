@@ -202,7 +202,7 @@ class PostingTextArea(TextArea):
         self.register_theme(DRACULA_THEME)
         empty = len(self.text) == 0
         self.set_class(empty, "empty")
-        self.on_theme_change(self.app.theme)
+        self.on_theme_change(self.app.themes[self.app.theme])
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
     def on_theme_change(self, theme: ColorSystem) -> None:
