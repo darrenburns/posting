@@ -83,6 +83,15 @@ class RequestBody(BaseModel):
     content: str | None = Field(default=None)
     form_data: list[FormItem] | None = Field(default=None)
 
+    def to_httpx_args(self) -> dict[str, Any]:
+        httpx_args: dict[str, Any] = {}
+        if self.content:
+            httpx_args["content"] = self.content
+        if self.form_data:
+            # Ensure we don't delete duplicate keys
+            httpx_args["data"] = [(item.name, item.value) for item in self.form_data]
+        return httpx_args
+
 
 class RequestModel(BaseModel):
     name: str = Field(default="")
@@ -136,7 +145,7 @@ class RequestModel(BaseModel):
         return client.build_request(
             method=self.method,
             url=self.url,
-            content=self.body,
+            **(self.body.to_httpx_args() if self.body else {}),
             headers=httpx.Headers(
                 [
                     (header.name, header.value)

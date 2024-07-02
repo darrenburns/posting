@@ -390,7 +390,19 @@ class MainScreen(Screen[None]):
         self.headers_table.replace_all_rows(
             [(header.name, header.value) for header in request_model.headers]
         )
-        self.request_body_text_area.text = request_model.body or ""
+        if request_model.body:
+            if request_model.body.content:
+                # Set the body content in the text area and ensure the content
+                # switcher is set such that the text area is visible.
+                self.request_body_text_area.text = request_model.body.content
+                self.request_editor.request_body_type_select.value = "text-body-editor"
+            elif request_model.body.form_data:
+                self.request_editor.request_body_type_select.value = "form-body-editor"
+                # TODO - load the form data if required.
+                pass
+        else:
+            self.request_editor.request_body_type_select.value = "no-body-label"
+
         self.request_metadata.request = request_model
         self.request_options.load_options(request_model.options)
         self.request_auth.load_auth(request_model.auth)

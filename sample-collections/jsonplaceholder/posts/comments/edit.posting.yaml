@@ -2,13 +2,14 @@ name: edit a comment
 description: Edit a comment
 method: PUT
 url: https://jsonplaceholder.typicode.com/comments/1
-body: |-
-  {
-    "postId": 1,
-    "name": "Updated Commenter Name",
-    "email": "updated.email@example.com",
-    "body": "This is the updated comment body."
-  }
+body: 
+  content: |-
+    {
+      "postId": 1,
+      "name": "Updated Commenter Name",
+      "email": "updated.email@example.com",
+      "body": "This is the updated comment body."
+    }
 headers:
 - name: Content-Type
   value: application/json

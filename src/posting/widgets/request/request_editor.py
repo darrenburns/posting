@@ -1,8 +1,9 @@
-from typing import Any
+from typing import Any, Literal
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Center, Horizontal, Middle, Vertical
 from textual.widgets import ContentSwitcher, Label, Select, TabPane
+from posting.collection import RequestBody
 from posting.widgets.center_middle import CenterMiddle
 from posting.widgets.request.form_editor import FormEditor
 
@@ -57,6 +58,9 @@ class RequestEditor(Vertical):
                     with Horizontal(id="request-body-type-select-container"):
                         yield Label("Body type:", id="body-type-label")
                         yield Select(
+                            # These values are also referred to inside MainScreen.
+                            # When we load a request, we need to set the correct
+                            # value in the select.
                             options=[
                                 ("None", "no-body-label"),
                                 ("Raw (json, text, etc.)", "text-body-editor"),
@@ -102,7 +106,7 @@ class RequestEditor(Vertical):
 
     @property
     def request_body_type_select(self) -> Select[str]:
-        return self.query_one("#request-body-type-select", Select[str])
+        return self.query_one("#request-body-type-select", Select)
 
     @property
     def request_body_content_switcher(self) -> ContentSwitcher:
@@ -124,13 +128,10 @@ class RequestEditor(Vertical):
         current = content_switcher.current
         text_editor = self.text_editor
         if current == "no-body-label":
-            return {}
+            return {"body": None}
         elif current == "text-body-editor":
             # We need to check the chosen content type in the TextEditor
-            if text_editor.language == "json":
-                return {"json_body": text_editor.text}
-            else:
-                return {"content": text_editor.text}
+            return {"body": RequestBody(content=text_editor.text)}
         elif current == "form-body-editor":
-            return {"form_data": self.form_editor.to_model()}
+            return {"body": RequestBody(form_data=self.form_editor.to_model())}
         return {}
