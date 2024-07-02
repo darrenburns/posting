@@ -1,8 +1,7 @@
 from typing import Iterable
 
-from textual import on, events
+from textual import events
 from textual.widgets.text_area import Location
-from textual.widgets import TextArea
 
 from posting.widgets.text_area import PostingTextArea
 
@@ -21,12 +20,7 @@ class RequestBodyTextArea(PostingTextArea):
     CLOSING_BRACKETS = {v: k for k, v in OPENING_BRACKETS.items()}
 
     def on_mount(self):
-        self.show_line_numbers = True
         self.tab_behavior = "indent"
-
-    @on(TextArea.Changed)
-    def on_change(self, event: TextArea.Changed) -> None:
-        self.set_class(len(self.text) == 0, "empty")
 
     def on_key(self, event: events.Key) -> None:
         character = event.character

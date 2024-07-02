@@ -220,7 +220,9 @@ class PostingTextArea(TextArea):
 
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
-        self.set_class(len(self.text) == 0, "empty")
+        empty = len(self.text) == 0
+        self.set_class(empty, "empty")
+        self.show_line_numbers = not empty
 
 
 class ReadOnlyTextArea(PostingTextArea):
