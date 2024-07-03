@@ -83,7 +83,7 @@ Press <kbd>ctrl</kbd>+<kbd>o</kbd> to enter jump mode.
 
 A key overlay will appear on the screen, allowing you to jump to any widget by pressing the corresponding key.
 
-https://github.com/darrenburns/posting/assets/5740731/5e7cdf57-90b2-4dba-b468-0057c6ef1806
+<img width="1327" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/0911e3da-7500-456f-a53f-ea5038498e13">
 
 ### Tab navigation
 
@@ -167,8 +167,7 @@ Some functionality in Posting doesn't warrant a dedicated keyboard shortcut (for
 
 To open the command palette, press <kbd>ctrl</kbd>+<kbd>p</kbd>.
 
-https://github.com/darrenburns/posting/assets/5740731/a199e5f2-5621-42e6-b239-a796d1dc144a
-
+<img width="1327" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/2e9a28cb-af6e-454c-b368-6f7943a367a4">
 
 ## Configuration
 
