@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing_extensions import Literal
-from rich.style import Style
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -420,7 +419,7 @@ VSCODE = TextAreaTheme.get_builtin_theme("vscode_dark")
 POSTING_THEME = TextAreaTheme(
     name="posting",
     syntax_styles={
-        "json.error": Style.parse("u #dc2626"),
+        # "json.error": Style.parse("u #dc2626"),
         **(VSCODE.syntax_styles if VSCODE else {}),
     },
 )
@@ -428,7 +427,7 @@ MONOKAI = TextAreaTheme.get_builtin_theme("monokai")
 MONOKAI_THEME = TextAreaTheme(
     name="posting-monokai",
     syntax_styles={
-        "json.error": Style.parse("u #dc2626"),
+        # "json.error": Style.parse("u #dc2626"),
         **(MONOKAI.syntax_styles if MONOKAI else {}),
     },
 )
@@ -438,7 +437,7 @@ GITHUB_LIGHT_THEME = TextAreaTheme(
     name="github_light",
     base_style=None,
     syntax_styles={
-        "json.error": Style.parse("u #dc2626"),
+        # "json.error": Style.parse("u #dc2626"),
         **(GITHUB_LIGHT.syntax_styles if GITHUB_LIGHT else {}),
     },
 )
@@ -447,7 +446,7 @@ DRACULA = TextAreaTheme.get_builtin_theme("dracula")
 DRACULA_THEME = TextAreaTheme(
     name="posting-dracula",
     syntax_styles={
-        "json.error": Style.parse("u #dc2626"),
+        # "json.error": Style.parse("u #dc2626"),
         **(DRACULA.syntax_styles if DRACULA else {}),
     },
 )

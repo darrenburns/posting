@@ -1,5 +1,7 @@
+import os
 from pathlib import Path
 from typing import Any, Literal
+from dotenv import dotenv_values
 import httpx
 from rich.console import Group
 from rich.text import Text
@@ -37,6 +39,7 @@ from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.types import PostingLayout
 from posting.user_host import get_user_host_string
+from posting.variables import SubstitutionError
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
@@ -125,11 +128,13 @@ class MainScreen(Screen[None]):
         self,
         collection: Collection,
         layout: PostingLayout,
+        environment_files: tuple[Path, ...],
     ) -> None:
         super().__init__()
         self.collection = collection
         self.cookies: httpx.Cookies = httpx.Cookies()
         self._initial_layout: PostingLayout = layout
+        self.environment_files = environment_files
 
     def on_mount(self) -> None:
         self.layout = self._initial_layout
@@ -157,7 +162,9 @@ class MainScreen(Screen[None]):
                 timeout=timeout,
                 auth=auth,
             ) as client:
-                request = self.build_httpx_request(request_options, client)
+                request = self.build_httpx_request(
+                    request_options, client, apply_template=True
+                )
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
@@ -360,10 +367,25 @@ class MainScreen(Screen[None]):
         self.app.push_screen(MethodSelectionPopup(), callback=set_method)
 
     def build_httpx_request(
-        self, request_options: Options, client: httpx.AsyncClient
+        self,
+        request_options: Options,
+        client: httpx.AsyncClient,
+        apply_template: bool,
     ) -> httpx.Request:
         """Build an httpx request from the UI."""
-        request = self.build_request_model(request_options).to_httpx(client)
+        request_model = self.build_request_model(request_options)
+        if apply_template:
+            dotenv_variables = {
+                f"env:{key}": value
+                for file in self.environment_files
+                for key, value in dotenv_values(file).items()
+            }
+            try:
+                request_model.apply_template({**dotenv_variables, **os.environ})
+            except SubstitutionError as e:
+                log.error(e)
+                raise
+        request = request_model.to_httpx(client)
         request.extensions = {"trace": self.log_request_trace_event}
         return request
 
@@ -495,14 +517,19 @@ class PostingApp(App[None]):
     def __init__(
         self,
         settings: Settings,
+        environment_files: tuple[Path, ...],
         collection: Collection,
         collection_specified: bool = False,
     ) -> None:
         super().__init__()
+
+        SETTINGS.set(settings)
+
+        self.settings = settings
+        self.environment_files = environment_files
         self.collection = collection
         self.collection_specified = collection_specified
-        self.settings = settings
-        SETTINGS.set(settings)
+
         self.animation_level = settings.animation
 
 
@@ -670,6 +697,7 @@ class Posting(PostingApp):
         self.main_screen = MainScreen(
             collection=self.collection,
             layout=self.settings.layout,
+            environment_files=self.environment_files,
         )
         if not self.collection_specified:
             self.notify(

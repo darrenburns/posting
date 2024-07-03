@@ -54,6 +54,7 @@ pygments==2.18.0
 pyperclip==1.8.2
     # via posting
 python-dotenv==1.0.1
+    # via posting
     # via pydantic-settings
 pyyaml==6.0.1
     # via posting

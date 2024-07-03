@@ -1,0 +1,9 @@
+name: echo post
+description: Echo server for post requests.
+method: POST
+url: https://postman-echo.com/post
+body:
+  content: |-
+    {
+      "var": "$env:FOO"
+    }

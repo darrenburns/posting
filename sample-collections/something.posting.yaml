@@ -1,2 +1,6 @@
 name: something
 description: this is a description
+method: POST
+url: https://postman-echo.com/post
+body:
+  content: ${env:BASE_URL}

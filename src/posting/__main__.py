@@ -2,6 +2,7 @@ from pathlib import Path
 import click
 
 from click_default_group import DefaultGroup
+from dotenv import load_dotenv
 
 from posting.app import Posting
 from posting.collection import Collection
@@ -45,11 +46,13 @@ def cli() -> None:
     help="Path to the collection directory",
 )
 @click.option(
-    "--env-file",
+    "--env",
+    "-e",
     type=click.Path(exists=True),
-    help="Path to the .env environment file",
+    help="Path to the .env environment file(s)",
+    multiple=True,
 )
-def default(collection: Path | None = None, env_file: Path | None = None) -> None:
+def default(collection: Path | None = None, env: tuple[Path, ...] = ()) -> None:
     create_config_file()
     default_collection = create_default_collection()
 
@@ -59,8 +62,9 @@ def default(collection: Path | None = None, env_file: Path | None = None) -> Non
         collection_tree = Collection.from_directory(str(default_collection))
 
     collection_specified = collection is not None
-    settings = Settings(_env_file=env_file)  # type: ignore[call-arg]
-    app = Posting(settings, collection_tree, collection_specified)
+    settings = Settings(_env_file=env)  # type: ignore[call-arg]
+
+    app = Posting(settings, env, collection_tree, collection_specified)
     app.run()
 
 

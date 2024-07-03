@@ -1,7 +1,7 @@
-from typing import Any, Literal
+from typing import Any
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Center, Horizontal, Middle, Vertical
+from textual.containers import Horizontal, Vertical
 from textual.widgets import ContentSwitcher, Label, Select, TabPane
 from posting.collection import RequestBody
 from posting.widgets.center_middle import CenterMiddle

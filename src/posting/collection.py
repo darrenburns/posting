@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, SecretStr
 import yaml
 import os
 from posting.tuple_to_multidict import tuples_to_dict
+from posting.variables import SubstitutionError, VariablesTemplate
 
 from posting.version import VERSION
 
@@ -142,6 +143,65 @@ class RequestModel(BaseModel):
 
     options: Options = Field(default_factory=Options)
     """The options for the request."""
+
+    def apply_template(self, variables: dict[str, Any]) -> None:
+        """Apply the template to the request model."""
+        try:
+            template = VariablesTemplate(self.url)
+            self.url = template.substitute(variables)
+
+            template = VariablesTemplate(self.description)
+            self.description = template.substitute(variables)
+            template = VariablesTemplate(self.options.proxy_url)
+            self.options.proxy_url = template.substitute(variables)
+
+            if self.body:
+                if self.body.content:
+                    template = VariablesTemplate(self.body.content)
+                    self.body.content = template.substitute(variables)
+                if self.body.form_data:
+                    for item in self.body.form_data:
+                        template = VariablesTemplate(item.name)
+                        item.name = template.substitute(variables)
+                        template = VariablesTemplate(item.value)
+                        item.value = template.substitute(variables)
+
+            for header in self.headers:
+                template = VariablesTemplate(header.name)
+                header.name = template.substitute(variables)
+                template = VariablesTemplate(header.value)
+                header.value = template.substitute(variables)
+            for param in self.params:
+                template = VariablesTemplate(param.name)
+                param.name = template.substitute(variables)
+                template = VariablesTemplate(param.value)
+                param.value = template.substitute(variables)
+
+            if self.auth:
+                if self.auth.basic:
+                    template = VariablesTemplate(
+                        self.auth.basic.username.get_secret_value()
+                    )
+                    self.auth.basic.username = SecretStr(template.substitute(variables))
+                    template = VariablesTemplate(
+                        self.auth.basic.password.get_secret_value()
+                    )
+                    self.auth.basic.password = SecretStr(template.substitute(variables))
+                if self.auth.digest:
+                    template = VariablesTemplate(
+                        self.auth.digest.username.get_secret_value()
+                    )
+                    self.auth.digest.username = SecretStr(
+                        template.substitute(variables)
+                    )
+                    template = VariablesTemplate(
+                        self.auth.digest.password.get_secret_value()
+                    )
+                    self.auth.digest.password = SecretStr(
+                        template.substitute(variables)
+                    )
+        except (KeyError, ValueError) as e:
+            raise SubstitutionError(f"Variable not defined: {e}")
 
     def to_httpx(self, client: httpx.AsyncClient) -> httpx.Request:
         """Convert the request model to an httpx request."""
