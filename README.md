@@ -110,7 +110,7 @@ This can also be done via the command palette options `view: expand request` and
 
 ## Environments
 
-You can refer to environment variables in the UI using the `${env:VARIABLE_NAME}` or `$env:VARIABLE_NAME` syntax.
+You can refer to variables in the UI using the `${env:VARIABLE_NAME}` or `$env:VARIABLE_NAME` syntax.
 
 These variables will be substituted into outgoing requests.
 
@@ -150,6 +150,8 @@ This will load all of the shared variables, and then load the `dev.env` file. Si
 
 Note that you do *not* need to restart to load changes made to these files,
 so you can open and edit  your env files in an editor of your choice alongside Posting.
+
+If you want to permit using environment variables that exist on the host machine (i.e. those which are not defined in any `.env` files), you must set the `use_host_environment` config option to `true` (or set the environmnet variable `POSTING_USE_HOST_ENVIRONMENT=true`).
 
 #### Environment specific config
 
@@ -227,7 +229,7 @@ POSTING_HEADING__VISIBLE="false"
 |------------|----------------------|-----------------------|---------|--------------------------------------------------|
 | `theme`    | `POSTING_THEME`      | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | `"posting"` | Sets the theme of the application.               |
 | `layout`   | `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | `"horizontal"` | Sets the layout of the application.              |
-| `use_host_environment` | `POSTING_USE_HOST_ENVIRONMENT` | `true`, `false` | `true` | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
+| `use_host_environment` | `POSTING_USE_HOST_ENVIRONMENT` | `true`, `false` | `false` | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
 | `animation` | `POSTING_ANIMATION` | `"none"`, `"basic"`, `"full"` | `"none"` | Controls the animation level. |
 | `heading.visible` | `POSTING_HEADING__VISIBLE` | `true`, `false` | `true` | Show/hide the app header. |
 | `heading.show_host` | `POSTING_HEADING__SHOW_HOST` | `true`, `false` | `true` | Show/hide the hostname in the app header. |

@@ -382,7 +382,10 @@ class MainScreen(Screen[None]):
                 for key, value in dotenv_values(file).items()
             }
             if self.settings.use_host_environment:
-                variables = {**variables, **os.environ}
+                host_env_variables = {
+                    f"env:{key}": value for key, value in os.environ.items()
+                }
+                variables = {**variables, **host_env_variables}
 
             try:
                 request_model.apply_template(variables)

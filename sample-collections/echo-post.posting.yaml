@@ -5,5 +5,6 @@ url: https://postman-echo.com/post
 body:
   content: |-
     {
-      "var": "$env:FOO"
+      "var": "$env:FOO",
+      "another": "$env:TERM_PROGRAM",
     }
