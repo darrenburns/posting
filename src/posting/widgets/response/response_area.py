@@ -1,6 +1,5 @@
 import json
 import httpx
-import textual
 
 from posting.widgets.response.response_trace import ResponseTrace
 from posting.widgets.tabbed_content import PostingTabbedContent
