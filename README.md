@@ -223,12 +223,11 @@ POSTING_HEADING__VISIBLE="false"
 
 ### Available configuration options
 
-
-| Config Key | Environment Variable | Possible Values       | Default | Description                                      |
-|------------|----------------------|-----------------------|---------|--------------------------------------------------|
-| `theme`    | `POSTING_THEME`      | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | `"posting"` | Sets the theme of the application.               |
-| `layout`   | `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | `"horizontal"` | Sets the layout of the application.              |
-| `use_host_environment` | `POSTING_USE_HOST_ENVIRONMENT` | `true`, `false` | `false` | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
-| `animation` | `POSTING_ANIMATION` | `"none"`, `"basic"`, `"full"` | `"none"` | Controls the animation level. |
-| `heading.visible` | `POSTING_HEADING__VISIBLE` | `true`, `false` | `true` | Show/hide the app header. |
-| `heading.show_host` | `POSTING_HEADING__SHOW_HOST` | `true`, `false` | `true` | Show/hide the hostname in the app header. |
+| Config Key (Env Var) | Values (Default) | Description |
+|----------------------|------------------|-------------|
+| `theme` (`POSTING_THEME`) | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` (Default: `"posting"`) | Sets the theme of the application. |
+| `layout` (`POSTING_LAYOUT`) | `"vertical"`, `"horizontal"` (Default: `"horizontal"`) | Sets the layout of the application. |
+| `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
+| `animation` (`POSTING_ANIMATION`) | `"none"`, `"basic"`, `"full"` (Default: `"none"`) | Controls the animation level. |
+| `heading.visible` (`POSTING_HEADING__VISIBLE`) | `true`, `false` (Default: `true`) | Show/hide the app header. |
+| `heading.show_host` (`POSTING_HEADING__SHOW_HOST`) | `true`, `false` (Default: `true`) | Show/hide the hostname in the app header. |
