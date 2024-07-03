@@ -227,17 +227,7 @@ POSTING_HEADING__VISIBLE="false"
 |------------|----------------------|-----------------------|---------|--------------------------------------------------|
 | `theme`    | `POSTING_THEME`      | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` | `"posting"` | Sets the theme of the application.               |
 | `layout`   | `POSTING_LAYOUT`     | `"vertical"`, `"horizontal"` | `"horizontal"` | Sets the layout of the application.              |
+| `use_host_environment` | `POSTING_USE_HOST_ENVIRONMENT` | `true`, `false` | `true` | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
+| `animation` | `POSTING_ANIMATION` | `"none"`, `"basic"`, `"full"` | `"none"` | Controls the animation level. |
 | `heading.visible` | `POSTING_HEADING__VISIBLE` | `true`, `false` | `true` | Show/hide the app header. |
 | `heading.show_host` | `POSTING_HEADING__SHOW_HOST` | `true`, `false` | `true` | Show/hide the hostname in the app header. |
-| `animation` | `POSTING_ANIMATION` | `"none"`, `"basic"`, `"full"` | `"none"` | Controls the animation level. |
-
-
-## Planned Features
-
-- **Keyboard Friendly**: Navigate and iterate on your APIs using simple keyboard shortcuts.
-- **File System Storage**: Your collections are saved as files, meaning you can easily sync them using version control or your favorite cloud provider.
-- **Multiplatform**: Run on MacOS, Linux and Windows.
-- **Template Variables**: Define variables and substitute them into your requests.
-- **Powerful Text and JSON Editor**: Offers tree-sitter powered syntax highlighting, undo/redo, copy/paste, and more.
-- **Runs Over SSH**: Send requests from a remote host via SSH.
-- **Your Idea Here**: Please let me know if you have opinions on the features above, or any other ideas!

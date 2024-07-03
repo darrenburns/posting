@@ -135,6 +135,7 @@ class MainScreen(Screen[None]):
         self.cookies: httpx.Cookies = httpx.Cookies()
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
+        self.settings = SETTINGS.get()
 
     def on_mount(self) -> None:
         self.layout = self._initial_layout
@@ -375,13 +376,16 @@ class MainScreen(Screen[None]):
         """Build an httpx request from the UI."""
         request_model = self.build_request_model(request_options)
         if apply_template:
-            dotenv_variables = {
+            variables = {
                 f"env:{key}": value
                 for file in self.environment_files
                 for key, value in dotenv_values(file).items()
             }
+            if self.settings.use_host_environment:
+                variables = {**variables, **os.environ}
+
             try:
-                request_model.apply_template({**dotenv_variables, **os.environ})
+                request_model.apply_template(variables)
             except SubstitutionError as e:
                 log.error(e)
                 raise

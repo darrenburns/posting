@@ -33,9 +33,21 @@ class Settings(BaseSettings):
     )
 
     theme: str = Field(default="posting")
+    """The name of the theme to use."""
+
     layout: PostingLayout = Field(default="vertical")
+    """Layout for the app."""
+
     heading: HeadingSettings = Field(default_factory=HeadingSettings)
+    """Configuration for the heading bar."""
+
     animation: AnimationLevel = Field(default="none")
+    """Controls the amount of animation permitted."""
+
+    use_host_environment: bool = Field(default=False)
+    """If enabled, you can use environment variables from the host machine in your requests 
+    using the `${env:VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
+    defined in any `.env` files explicitly supplied via the `--env` option."""
 
     @classmethod
     def settings_customise_sources(
