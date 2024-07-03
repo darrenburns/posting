@@ -65,6 +65,11 @@ class ResponseArea(Vertical):
 
         self.add_class("response-ready")
 
+        content_type = response.headers.get("content-type")
+        if content_type:
+            language = content_type_to_language(content_type)
+            self.text_editor.language = language
+
         # Update the body text area with the body content.
         response_text_area = self.text_editor.text_area
         response_text = response.text
@@ -75,10 +80,6 @@ class ResponseArea(Vertical):
                 pass
 
         response_text_area.text = response_text
-        content_type = response.headers.get("content-type")
-        if content_type:
-            language = content_type_to_language(content_type)
-            self.text_editor.language = language
 
         # Update the response headers table with the response headers.
         response_headers_table = self.headers_table
