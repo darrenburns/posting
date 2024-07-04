@@ -48,10 +48,7 @@ from posting.widgets.collection.browser import (
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
-from posting.widgets.request.method_selection import (
-    MethodSelectionPopup,
-    MethodSelection,
-)
+from posting.widgets.request.method_selection import MethodSelector
 
 from posting.widgets.request.query_editor import ParamsTable
 from posting.widgets.request.request_auth import RequestAuth
@@ -208,6 +205,10 @@ class MainScreen(Screen[None]):
     async def send_via_worker(self) -> None:
         await self.send_request()
 
+    @on(MethodSelector.MethodChanged)
+    def on_method_selector_changed(self, event: MethodSelector.MethodChanged) -> None:
+        self.selected_method = event.value
+
     @on(Button.Pressed, selector="SendRequestButton")
     @on(Input.Submitted, selector="UrlInput")
     def handle_submit_via_event(self) -> None:
@@ -240,7 +241,9 @@ class MainScreen(Screen[None]):
 
     def action_change_method(self) -> None:
         """Change the method of the request."""
-        self.method_selection()
+        method_selector = self.method_selector
+        method_selector.focus()
+        method_selector.expanded = not method_selector.expanded
 
     def action_toggle_maximized(self) -> None:
         """Toggle the maximized state of the app."""
@@ -358,15 +361,6 @@ class MainScreen(Screen[None]):
         else:
             params_tab.update("Parameters")
 
-    @on(MethodSelection.Clicked)
-    def method_selection(self) -> None:
-        """Open a popup to select the method."""
-
-        def set_method(method: str) -> None:
-            self.selected_method = method
-
-        self.app.push_screen(MethodSelectionPopup(), callback=set_method)
-
     def build_httpx_request(
         self,
         request_options: Options,
@@ -431,6 +425,7 @@ class MainScreen(Screen[None]):
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
         self.selected_method = request_model.method
+        self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
         self.params_table.replace_all_rows(
             [(param.name, param.value) for param in request_model.params]
@@ -463,6 +458,10 @@ class MainScreen(Screen[None]):
     @property
     def url_bar(self) -> UrlBar:
         return self.query_one(UrlBar)
+
+    @property
+    def method_selector(self) -> MethodSelector:
+        return self.query_one(MethodSelector)
 
     @property
     def url_input(self) -> UrlInput:
@@ -515,9 +514,6 @@ class MainScreen(Screen[None]):
     @property
     def response_trace(self) -> ResponseTrace:
         return self.query_one(ResponseTrace)
-
-    def watch_selected_method(self, value: str) -> None:
-        self.query_one(MethodSelection).set_method(value)
 
 
 class PostingApp(App[None]):

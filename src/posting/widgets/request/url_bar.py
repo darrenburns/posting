@@ -10,7 +10,7 @@ from textual_autocomplete import AutoComplete, DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
 
 from posting.highlight_url import URLHighlighter
-from posting.widgets.request.method_selection import MethodSelection
+from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
 
 
@@ -131,7 +131,7 @@ class UrlBar(Horizontal):
         self._trace_events: set[Event] = set()
 
     def compose(self) -> ComposeResult:
-        yield MethodSelection("GET")
+        yield MethodSelector(id="method-selector")
         yield UrlInput(
             placeholder="Enter a URL...",
             id="url-input",

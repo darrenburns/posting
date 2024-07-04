@@ -8,7 +8,7 @@ T = TypeVar("T")
 
 class PostingSelect(Select[T], inherit_bindings=False):
     BINDINGS = [
-        Binding("enter,space", "show_overlay"),
+        Binding("enter,space,l", "show_overlay"),
         Binding("up,k", "cursor_up"),
         Binding("down,j", "cursor_down"),
     ]

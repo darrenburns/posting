@@ -2,7 +2,7 @@ name: create
 description: Create a new post
 method: POST
 url: https://jsonplaceholder.typicode.com/posts
-body: 
+body:
   content: |-
     {
       "title": "foo",
