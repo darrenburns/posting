@@ -1,3 +1,4 @@
+import json
 import httpx
 
 from posting.widgets.response.response_trace import ResponseTrace
@@ -64,13 +65,21 @@ class ResponseArea(Vertical):
 
         self.add_class("response-ready")
 
-        # Update the body text area with the body content.
-        response_text_area = self.text_editor.text_area
-        response_text_area.text = response.text
         content_type = response.headers.get("content-type")
         if content_type:
             language = content_type_to_language(content_type)
             self.text_editor.language = language
+
+        # Update the body text area with the body content.
+        response_text_area = self.text_editor.text_area
+        response_text = response.text
+        if response_text_area.language == "json":
+            try:
+                response_text = json.dumps(json.loads(response_text), indent=2)
+            except json.JSONDecodeError:
+                pass
+
+        response_text_area.text = response_text
 
         # Update the response headers table with the response headers.
         response_headers_table = self.headers_table
