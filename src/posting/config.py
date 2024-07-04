@@ -22,6 +22,13 @@ class HeadingSettings(BaseModel):
     """Whether or not to show the hostname in the app header."""
 
 
+class ResponseSettings(BaseModel):
+    """Configuration for the response viewer."""
+
+    prettify_json: bool = Field(default=True)
+    """If enabled, JSON responses will be pretty-formatted."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -38,16 +45,19 @@ class Settings(BaseSettings):
     layout: PostingLayout = Field(default="vertical")
     """Layout for the app."""
 
-    heading: HeadingSettings = Field(default_factory=HeadingSettings)
-    """Configuration for the heading bar."""
-
-    animation: AnimationLevel = Field(default="none")
-    """Controls the amount of animation permitted."""
-
     use_host_environment: bool = Field(default=False)
     """If enabled, you can use environment variables from the host machine in your requests 
     using the `${env:VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
     defined in any `.env` files explicitly supplied via the `--env` option."""
+
+    animation: AnimationLevel = Field(default="none")
+    """Controls the amount of animation permitted."""
+
+    response: ResponseSettings = Field(default_factory=ResponseSettings)
+    """Configuration for the response viewer."""
+
+    heading: HeadingSettings = Field(default_factory=HeadingSettings)
+    """Configuration for the heading bar."""
 
     @classmethod
     def settings_customise_sources(

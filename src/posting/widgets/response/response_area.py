@@ -1,5 +1,6 @@
 import json
 import httpx
+from posting.config import SETTINGS
 
 from posting.widgets.response.response_trace import ResponseTrace
 from posting.widgets.tabbed_content import PostingTabbedContent
@@ -73,7 +74,8 @@ class ResponseArea(Vertical):
         # Update the body text area with the body content.
         response_text_area = self.text_editor.text_area
         response_text = response.text
-        if response_text_area.language == "json":
+        response_settings = SETTINGS.get().response
+        if response_text_area.language == "json" and response_settings.prettify_json:
             try:
                 response_text = json.dumps(json.loads(response_text), indent=2)
             except json.JSONDecodeError:
