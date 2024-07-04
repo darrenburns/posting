@@ -1,8 +1,8 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, get_args
 import httpx
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, HttpUrl, SecretStr
 import yaml
 import os
 from posting.tuple_to_multidict import tuples_to_dict
@@ -12,6 +12,7 @@ from posting.version import VERSION
 
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+VALID_HTTP_METHODS = get_args(HttpRequestMethod)
 
 
 def str_presenter(dumper, data):
@@ -230,11 +231,35 @@ class RequestModel(BaseModel):
 
     def save_to_disk(self, path: Path) -> None:
         """Save the request model to a YAML file."""
-        print(f"Saving model to disk: {self!r}")
         content = self.model_dump(exclude_defaults=True, exclude_none=True)
         yaml_content = yaml.dump(content, None, sort_keys=False)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(yaml_content)
+
+
+class Contact(BaseModel):
+    name: str | None = None
+    url: HttpUrl | None = None
+    email: str | None = None
+
+
+class License(BaseModel):
+    name: str
+    url: HttpUrl | None = None
+
+
+class ExternalDocs(BaseModel):
+    description: str | None = None
+    url: HttpUrl
+
+
+class APIInfo(BaseModel):
+    title: str
+    description: str | None = None
+    termsOfService: HttpUrl | None = None
+    contact: Contact | None = None
+    license: License | None = None
+    version: str
 
 
 class Collection(BaseModel):
@@ -242,6 +267,53 @@ class Collection(BaseModel):
     name: str = Field(default="__default__")
     requests: list[RequestModel] = Field(default_factory=list)
     children: list[Collection] = Field(default_factory=list)
+    readme: str | None = Field(default=None)
+
+    @classmethod
+    def from_openapi_spec(
+        cls, path: Path, info: APIInfo, external_docs: ExternalDocs | None = None
+    ) -> Collection:
+        readme = cls.generate_readme(info, external_docs)
+        return cls(path=path, name=info.title, readme=readme)
+
+    @staticmethod
+    def generate_readme(
+        info: APIInfo, external_docs: ExternalDocs | None = None
+    ) -> str:
+        readme = f"# {info.title}\n\n"
+
+        if info.description:
+            readme += f"{info.description}\n\n"
+
+        readme += f"Version: {info.version}\n\n"
+
+        if info.termsOfService:
+            readme += f"Terms of Service: {info.termsOfService}\n\n"
+
+        if info.contact:
+            readme += "## Contact Information\n"
+            if info.contact.name:
+                readme += f"Name: {info.contact.name}\n\n"
+            if info.contact.email:
+                readme += f"Email: {info.contact.email}\n\n"
+            if info.contact.url:
+                readme += f"URL: {info.contact.url}\n\n"
+            readme += "\n"
+
+        if info.license:
+            readme += "## License\n"
+            readme += f"Name: {info.license.name}\n\n"
+            if info.license.url:
+                readme += f"URL: {info.license.url}\n\n"
+            readme += "\n"
+
+        if external_docs:
+            readme += "## External Documentation\n"
+            if external_docs.description:
+                readme += f"{external_docs.description}\n\n"
+            readme += f"URL: {external_docs.url}\n\n"
+
+        return readme.strip()
 
     @classmethod
     def from_directory(cls, directory: str) -> Collection:
