@@ -2,6 +2,7 @@ from typing import Protocol, runtime_checkable
 import httpx
 from textual import on, log
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import ContentSwitcher, Input, Label, Select, Static
 
@@ -75,6 +76,11 @@ class RequestAuth(VerticalScroll):
 
     }
     """
+
+    BINDINGS = [
+        Binding("up", "screen.focus_previous", "Focus previous", show=False),
+        Binding("down", "screen.focus_next", "Focus next", show=False),
+    ]
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
