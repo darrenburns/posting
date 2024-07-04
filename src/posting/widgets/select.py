@@ -14,10 +14,16 @@ class PostingSelect(Select[T], inherit_bindings=False):
     ]
 
     def action_cursor_up(self):
-        self.select_overlay.action_cursor_up()
+        if self.expanded:
+            self.select_overlay.action_cursor_up()
+        else:
+            self.screen.focus_previous()
 
     def action_cursor_down(self):
-        self.select_overlay.action_cursor_down()
+        if self.expanded:
+            self.select_overlay.action_cursor_down()
+        else:
+            self.screen.focus_next()
 
     @property
     def select_overlay(self) -> SelectOverlay:
