@@ -69,6 +69,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
 
     BINDINGS = [
         Binding("escape", "close_screen", "Cancel"),
+        Binding("ctrl+n,alt+enter", "create_request", "Create"),
     ]
 
     def __init__(
@@ -140,6 +141,12 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
     @on(Input.Submitted)
     @on(Button.Pressed, selector="#create-button")
     def on_create(self, event: Input.Submitted | Button.Pressed) -> None:
+        self.create_request()
+
+    def action_create_request(self) -> None:
+        self.create_request()
+
+    def create_request(self) -> None:
         file_name = self.query_one("#file-name-input", Input).value
         directory = self.query_one("#directory-input", Input).value
         description = self.query_one("#description-textarea", PostingTextArea).text
