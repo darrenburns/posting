@@ -67,6 +67,14 @@ class PostingProvider(Provider):
                     [expand_request_command, expand_response_command]
                 )
 
+            commands_to_show.append(
+                (
+                    "view: toggle collection browser",
+                    screen.action_toggle_collection_browser,
+                    "Toggle the collection browser",
+                ),
+            )
+
         return tuple(commands_to_show)
 
     async def discover(self) -> Hits:

@@ -110,6 +110,9 @@ class MainScreen(Screen[None]):
         Binding("ctrl+s", "save_request", "Save"),
         Binding("ctrl+n", "new_request", "New"),
         Binding("ctrl+m", "toggle_maximized", "Expand", show=False),
+        Binding(
+            "ctrl+h", "toggle_collection_browser", "Collection browser", show=False
+        ),
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
@@ -244,6 +247,11 @@ class MainScreen(Screen[None]):
         method_selector = self.method_selector
         method_selector.focus()
         method_selector.expanded = not method_selector.expanded
+
+    def action_toggle_collection_browser(self) -> None:
+        """Toggle the collection browser."""
+        collection_browser = self.collection_browser
+        collection_browser.display = not collection_browser.display
 
     def action_toggle_maximized(self) -> None:
         """Toggle the maximized state of the app."""
