@@ -127,7 +127,11 @@ def generate_readme(
     for env_file in env_files:
         readme += f"- `{env_file.name}`\n"
     readme += "\n"
-    readme += "To use a different server, update the `BASE_URL` in the appropriate .env file.\n"
+    readme += "To use a different server, update the `BASE_URL` in the appropriate `.env` file.\n"
+
+    # TODO - add note on how to load in the variables for this server to
+    # the readme.
+
     return readme
 
 
