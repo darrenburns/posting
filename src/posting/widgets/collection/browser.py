@@ -8,7 +8,6 @@ from rich.style import Style
 from rich.text import Text, TextType
 from textual import on
 from textual.app import ComposeResult
-from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.geometry import Region
 from textual.message import Message
@@ -21,6 +20,7 @@ from posting.widgets.collection.new_request_modal import (
     NewRequestData,
     NewRequestModal,
 )
+from posting.widgets.tree import PostingTree
 
 
 TOGGLE_STYLE = Style.from_meta({"toggle": True}) + Style(dim=True)
@@ -30,29 +30,10 @@ SUFFIX = ".posting.yaml"
 CollectionNode = Union[Collection, RequestModel]
 
 
-class CollectionTree(Tree[CollectionNode]):
-    BINDINGS = [
-        Binding("k", "cursor_up", "Cursor Up", show=False),
-        Binding("j", "cursor_down", "Cursor Down", show=False),
-        Binding("enter,l,h", "select_cursor", "Select Cursor", show=False),
-        Binding("space,r", "toggle_node", "Toggle Expand", show=False),
-    ]
-
+class CollectionTree(PostingTree[CollectionNode]):
     COMPONENT_CLASSES = {
         "node-selected",
     }
-
-    DEFAULT_CSS = """\
-    CollectionTree { 
-        scrollbar-size-horizontal: 0;
-        & .node-selected {
-            background: $primary-lighten-1;
-            color: $text;
-            text-style: bold;
-        }
-    }
-    
-    """
 
     def __init__(
         self,
