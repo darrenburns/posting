@@ -88,9 +88,14 @@ PostingDataTable {
                 {CellKey(row_zero, column) for column in columns}
             )
 
+    def action_cursor_down(self) -> None:
+        if self.cursor_coordinate.row == self.row_count - 1:
+            self.screen.focus_next()
+        else:
+            super().action_cursor_down()
+
     def action_cursor_up(self) -> None:
-        row, _ = self.cursor_coordinate
-        if row == 0:
+        if self.cursor_coordinate.row == 0:
             self.screen.focus_previous()
         else:
             super().action_cursor_up()

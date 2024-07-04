@@ -82,18 +82,6 @@ class HeadersTable(PostingDataTable):
             headers[row[0]] = row[1]
         return headers
 
-    def action_cursor_down(self) -> None:
-        if self.cursor_coordinate.row == self.row_count - 1:
-            self.screen.focus_next()
-        else:
-            super().action_cursor_down()
-
-    def action_cursor_up(self) -> None:
-        if self.cursor_coordinate.row == 0:
-            self.screen.focus_previous()
-        else:
-            super().action_cursor_up()
-
     def action_remove_header(self) -> None:
         try:
             cursor_cell_key = self.coordinate_to_cell_key(self.cursor_coordinate)
