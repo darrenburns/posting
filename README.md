@@ -192,6 +192,8 @@ Here's an example configuration file:
 ```yaml
 theme: galaxy
 layout: horizontal
+response:
+  prettify_json: false
 heading:
   visible: true
   show_host: false
