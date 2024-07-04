@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 from textual import events
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Center
 from textual.screen import ModalScreen
 from textual.widget import Widget
@@ -20,6 +21,10 @@ class JumpOverlay(ModalScreen[str | Widget]):
     }
     """
 
+    BINDINGS = [
+        Binding("escape,ctrl+o", "dismiss_overlay", "Dismiss", show=False),
+    ]
+
     def __init__(
         self,
         jumper: "Jumper",
@@ -36,17 +41,16 @@ class JumpOverlay(ModalScreen[str | Widget]):
         self._sync()
 
     def on_key(self, key: events.Key) -> None:
-        # Close the overlay if the user presses escape
-        if key.key == "escape" or key.key == "ctrl+o":
-            self.dismiss()
-            return
-
         # If they press a key corresponding to a jump target,
         # then we jump to it.
-        target = self.keys_to_widgets.get(key.key)
-        if target is not None:
-            self.dismiss(target)
-            return
+        if self.is_active:
+            target = self.keys_to_widgets.get(key.key)
+            if target is not None:
+                self.dismiss(target)
+                return
+
+    def action_dismiss_overlay(self) -> None:
+        self.dismiss()
 
     async def on_resize(self) -> None:
         self._sync()

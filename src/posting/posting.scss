@@ -284,6 +284,7 @@ CommandPalette {
 
   & > Vertical {
     width: 50;
+    background: transparent;
   }
 
   & #--input {
@@ -294,7 +295,7 @@ CommandPalette {
       height: auto;
       border: none;
       padding: 1 2;
-      background: $panel;
+      background: transparent;
     }
 
     & SearchIcon {
