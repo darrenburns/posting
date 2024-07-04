@@ -10,6 +10,8 @@ from textual.reactive import reactive, Reactive
 from textual.widgets import TextArea, Label, Select, Checkbox
 from textual.widgets.text_area import Selection, TextAreaTheme
 
+from posting.widgets.select import PostingSelect
+
 
 class TextAreaFooter(Horizontal):
     """The bar that appears above the response body, allowing
@@ -156,7 +158,7 @@ class TextAreaFooter(Horizontal):
             yield Label("1:1", id="location-label")
             read_only = "read-only" if self.read_only else ""
             yield Label(read_only, id="rw-label", classes=read_only)
-            yield Select(
+            yield PostingSelect(
                 prompt="Content type",
                 value=self.language,
                 allow_blank=False,

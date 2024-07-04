@@ -6,6 +6,7 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import ContentSwitcher, Input, Label, Select, Static
 
 from posting.collection import Auth
+from posting.widgets.select import PostingSelect
 
 
 @runtime_checkable
@@ -80,7 +81,7 @@ class RequestAuth(VerticalScroll):
         with Horizontal():
             with Vertical():
                 yield Label("Auth type ", id="auth-type-label")
-                yield Select(
+                yield PostingSelect(
                     options=[
                         ("No Auth", None),
                         ("Basic", "basic"),

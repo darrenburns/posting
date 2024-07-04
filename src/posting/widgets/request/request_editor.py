@@ -13,6 +13,7 @@ from posting.widgets.request.request_auth import RequestAuth
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
+from posting.widgets.select import PostingSelect
 from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextAreaFooter, TextEditor
 
@@ -50,7 +51,7 @@ class RequestEditor(Vertical):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
                     with Horizontal(id="request-body-type-select-container"):
-                        yield Select(
+                        yield PostingSelect(
                             # These values are also referred to inside MainScreen.
                             # When we load a request, we need to set the correct
                             # value in the select.
