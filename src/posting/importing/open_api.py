@@ -20,7 +20,6 @@ from posting.collection import (
 )
 
 
-from urllib.parse import urlparse
 from rich.console import Console
 
 
@@ -39,71 +38,51 @@ def resolve_url_variables(url: str, variables: dict[str, dict[str, str]]) -> str
     return url
 
 
-def generate_unique_env_filename(
-    base_name: str, server_url: str, variables: dict[str, dict[str, str]]
-) -> str:
-    """
-    Generate a unique .env filename by appending a slugified server URL to the base name,
-    considering potential variables in the URL.
-
-    Args:
-        base_name (str): The base name for the .env file (typically the collection name).
-        server_url (str): The URL of the server, potentially containing variables.
-        variables (dict): A dictionary of server variables and their default values.
-
-    Returns:
-        str: A unique .env filename.
-    """
-    # Replace variables in the URL with their default values
-    for var, value in variables.items():
-        server_url = server_url.replace(f"{{{var}}}", value.get("value", ""))
-
-    # Parse the server URL
+def generate_unique_env_filename(base_name: str, server_url: str) -> str:
+    # Use the server URL to create a unique part of the filename
     parsed_url = urlparse(server_url)
-
-    # Extract hostname and path
-    hostname = parsed_url.hostname or ""
-    path = parsed_url.path.strip("/")
-
-    # Combine hostname and path
-    url_part = f"{hostname}_{path}" if path else hostname
+    url_part = parsed_url.netloc + parsed_url.path
 
     # Slugify the URL part
     slugified_url = re.sub(r"[^\w\-_]", "_", url_part)
 
-    # Trim the slugified URL if it's too long
-    max_slug_length = 50
-    if len(slugified_url) > max_slug_length:
-        slugified_url = slugified_url[:max_slug_length]
+    # Trim if it's too long
+    max_length = 50
+    if len(slugified_url) > max_length:
+        slugified_url = slugified_url[:max_length]
 
     # Remove trailing underscores
     slugified_url = slugified_url.rstrip("_")
 
-    # Combine base name and slugified URL
+    # TODO - if {id} is in the URL then it should be converted to the collection format.
     return f"{slugified_url}.env"
 
 
-def extract_server_variables(server: dict[str, Any]) -> dict[str, dict[str, str]]:
-    variables = {
-        "BASE_URL": {
+def extract_server_variables(spec: dict[str, Any]) -> dict[str, dict[str, str]]:
+    variables: dict[str, dict[str, str]] = {}
+
+    # Extract server URLs
+    servers = spec.get("servers", [{"url": ""}])
+    for i, server in enumerate(servers):
+        var_name = f"SERVER_URL_{i}" if i > 0 else "BASE_URL"
+        variables[var_name] = {
             "value": server.get("url", ""),
-            "description": "The base URL for this server",
-        }
-    }
-
-    # Extract server variables
-    for var, var_info in server.get("variables", {}).items():
-        variables[var] = {
-            "value": var_info.get("default", f"PLACEHOLDER_{var.upper()}"),
-            "description": var_info.get("description", ""),
+            "description": f"Server URL {i+1}: {server.get('description', '')}",
         }
 
-    # Resolve BASE_URL
-    base_url = resolve_url_variables(server.get("url", ""), variables)
-    variables["BASE_URL"] = {
-        "value": base_url,
-        "description": "The base URL for this server",
-    }
+    # # Extract security schemes
+    # security_schemes = spec.get("components", {}).get("securitySchemes", {})
+    # for scheme_name, scheme in security_schemes.items():
+    #     if scheme["type"] == "apiKey":
+    #         variables[f"{scheme_name.upper()}_API_KEY"] = {
+    #             "value": "YOUR_API_KEY_HERE",
+    #             "description": f"API Key for {scheme_name} authentication",
+    #         }
+    #     elif scheme["type"] == "http" and scheme["scheme"] == "bearer":
+    #         variables[f"{scheme_name.upper()}_BEARER_TOKEN"] = {
+    #             "value": "YOUR_BEARER_TOKEN_HERE",
+    #             "description": f"Bearer token for {scheme_name} authentication",
+    #         }
 
     return variables
 
@@ -187,6 +166,7 @@ def create_env_file(
 def import_openapi_spec(spec_path: str | Path) -> Collection:
     console = Console()
     console.print(f"Importing OpenAPI spec from {spec_path!r}.")
+
     spec_path = Path(spec_path)
     with open(spec_path, "r") as file:
         spec = yaml.safe_load(file)
@@ -202,20 +182,13 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
     main_collection = Collection(
         path=spec_path.parent,
         name=collection_name,
-        readme="",  # We'll update this later
     )
 
     env_files: list[Path] = []
     for server in servers:
         variables = extract_server_variables(server)
-        env_filename = generate_unique_env_filename(
-            collection_name, server["url"], variables
-        )
-        env_file = create_env_file(
-            spec_path.parent,
-            env_filename,
-            variables,
-        )
+        env_filename = generate_unique_env_filename(collection_name, server["url"])
+        env_file = create_env_file(spec_path.parent, env_filename, variables)
         console.print(
             f"Created environment file {str(env_file)!r} for server {server['url']!r}."
         )
