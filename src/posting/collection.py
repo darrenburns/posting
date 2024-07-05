@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Literal, get_args
 import httpx
 from pydantic import BaseModel, Field, HttpUrl, SecretStr
+import rich
 import yaml
 import os
 from posting.tuple_to_multidict import tuples_to_dict
@@ -362,6 +363,17 @@ class Collection(BaseModel):
                 print(f"Failed to load {file_path}: {e}")
 
         return root_collection
+
+    def save_to_disk(self, path: Path) -> None:
+        """Save the collection to a directory on disk."""
+        if self.readme:
+            readme_path = path / "README.md"
+            readme_path.write_text(self.readme)
+            rich.print(f"Saved collection README to {str(readme_path)!r}.")
+        for request in self.requests:
+            request.save_to_disk(path / f"{request.name}.posting.yaml")
+        for child in self.children:
+            child.save_to_disk(path / child.name)
 
 
 def load_request_from_yaml(file_path: str) -> RequestModel:

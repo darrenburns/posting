@@ -2,11 +2,12 @@ from pathlib import Path
 import click
 
 from click_default_group import DefaultGroup
-from dotenv import load_dotenv
+from rich.console import Console
 
 from posting.app import Posting
 from posting.collection import Collection
 from posting.config import Settings
+from posting.importing.open_api import import_openapi_spec
 from posting.locations import config_file, default_collection_directory
 
 
@@ -84,3 +85,36 @@ def locate(thing_to_locate: str) -> None:
         # This shouldn't happen because the type annotation should enforce that
         # the only valid options are "config" and "collection".
         raise ValueError(f"Unknown thing to locate: {thing_to_locate}")
+
+
+@cli.command(name="import")
+@click.argument("spec_path", type=click.Path(exists=True))
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Path to save the imported collection",
+    default=None,
+)
+def import_spec(spec_path: str, output: str | None) -> None:
+    """Import an OpenAPI specification into a Posting collection."""
+    console = Console()
+    console.print(
+        "Importing is currently an experimental feature.", style="bold yellow"
+    )
+    try:
+        collection = import_openapi_spec(spec_path)
+
+        if output:
+            output_path = Path(output)
+        else:
+            output_path = Path(default_collection_directory()) / f"{collection.name}"
+
+        output_path.mkdir(parents=True, exist_ok=True)
+        collection.path = output_path
+        collection.save_to_disk(output_path)
+
+        console.print(f"Successfully imported OpenAPI spec to {str(output_path)!r}")
+    except Exception:
+        console.print("An error occurred during the import process.", style="red")
+        console.print_exception()

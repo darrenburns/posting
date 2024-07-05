@@ -20,17 +20,29 @@ from posting.collection import (
 )
 
 
-def generate_unique_env_filename(server_url: str) -> str:
+from urllib.parse import urlparse
+from rich.console import Console
+
+
+def generate_unique_env_filename(
+    base_name: str, server_url: str, variables: dict[str, dict[str, str]]
+) -> str:
     """
-    Generate a unique .env filename by appending a slugified server URL to the base name.
+    Generate a unique .env filename by appending a slugified server URL to the base name,
+    considering potential variables in the URL.
 
     Args:
         base_name (str): The base name for the .env file (typically the collection name).
-        server_url (str): The URL of the server.
+        server_url (str): The URL of the server, potentially containing variables.
+        variables (dict): A dictionary of server variables and their default values.
 
     Returns:
         str: A unique .env filename.
     """
+    # Replace variables in the URL with their default values
+    for var, value in variables.items():
+        server_url = server_url.replace(f"{{{var}}}", value.get("value", ""))
+
     # Parse the server URL
     parsed_url = urlparse(server_url)
 
@@ -120,33 +132,33 @@ def generate_readme(
         readme += f"URL: {external_docs.url}\n\n"
 
     readme += "## Servers\n"
+    readme += "A separate `.env` file is generated for each server.\n\n"
     for server in servers:
         readme += f"- {server.get('url', 'No URL')} ({server.get('description', 'No description')})\n"
     readme += "\n"
     readme += "Environment variables are stored in the following files:\n"
     for env_file in env_files:
-        readme += f"- `{env_file.name}`\n"
-    readme += "\n"
-    readme += "To use a different server, update the `BASE_URL` in the appropriate `.env` file.\n"
+        readme += f"- `{env_file.name}`\n\n"
 
-    # TODO - add note on how to load in the variables for this server to
-    # the readme.
+    readme += "To load an environment run `posting` with the `--env` option, passing the path of the file."
 
     return readme
 
 
 def create_env_file(
-    path: Path,
-    collection_name: str,
-    server_url: str,
-    variables: dict[str, dict[str, str]],
+    path: Path, env_filename: str, variables: dict[str, dict[str, str]]
 ) -> Path:
-    env_filename = generate_unique_env_filename(server_url)
     env_content: list[str] = []
     for var, info in variables.items():
         if info["description"]:
             env_content.append(f"# {info['description']}")
-        env_content.append(f"{var}={info['value']}")
+
+        # Ensure the value is properly quoted if it contains spaces or special characters
+        value = info["value"].replace('"', '\\"')  # Escape any existing double quotes
+        if " " in value or any(char in value for char in "'\"\\"):
+            value = f'"{value}"'
+
+        env_content.append(f"{var}={value}")
         env_content.append("")  # Add a blank line after each variable for readability
 
     env_file = path / env_filename
@@ -155,6 +167,8 @@ def create_env_file(
 
 
 def import_openapi_spec(spec_path: str | Path) -> Collection:
+    console = Console()
+    console.print(f"Importing OpenAPI spec from {spec_path!r}.")
     spec_path = Path(spec_path)
     with open(spec_path, "r") as file:
         spec = yaml.safe_load(file)
@@ -164,31 +178,33 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
         ExternalDocs(**spec.get("externalDocs", {})) if "externalDocs" in spec else None
     )
 
-    # Use the name of the YAML file (without extension) as the collection name
     collection_name = spec_path.stem
     servers = spec.get("servers", [{"url": ""}])
 
-    # We'll use the first server for the BASE_URL
-    primary_server = servers[0]
+    main_collection = Collection(
+        path=spec_path.parent,
+        name=collection_name,
+        readme="",  # We'll update this later
+    )
 
-    variables = extract_server_variables(primary_server)
     env_files: list[Path] = []
     for server in servers:
         variables = extract_server_variables(server)
+        env_filename = generate_unique_env_filename(
+            collection_name, server["url"], variables
+        )
         env_file = create_env_file(
             spec_path.parent,
-            collection_name,
-            server["url"],
+            env_filename,
             variables,
+        )
+        console.print(
+            f"Created environment file {str(env_file)!r} for server {server['url']!r}."
         )
         env_files.append(env_file)
 
     readme = generate_readme(spec_path, info, external_docs, servers, env_files)
-    main_collection = Collection(
-        path=spec_path.parent,
-        name=collection_name,
-        readme=readme,
-    )
+    main_collection.readme = readme
 
     for path, path_item in spec.get("paths", {}).items():
         for method, operation in path_item.items():
@@ -197,7 +213,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                 continue
 
             request = RequestModel(
-                name=operation.get("summary", path),
+                name=operation.get("summary", path.strip("/")),
                 description=operation.get("description", ""),
                 method=method,
                 url=f"${{env:BASE_URL}}{path}",
@@ -244,6 +260,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
 
             main_collection.requests.append(request)
 
+    console.print(f"Imported {len(main_collection.requests)} requests.")
     return main_collection
 
 
