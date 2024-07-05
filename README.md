@@ -234,3 +234,18 @@ POSTING_HEADING__VISIBLE="false"
 | `response.prettify_json` (`POSTING_RESPONSE__PRETTIFY_JSON`) | `true`, `false` (Default: `true`) | If enabled, JSON responses will be pretty-formatted. |
 | `heading.visible` (`POSTING_HEADING__VISIBLE`) | `true`, `false` (Default: `true`) | Show/hide the app header. |
 | `heading.show_host` (`POSTING_HEADING__SHOW_HOST`) | `true`, `false` (Default: `true`) | Show/hide the hostname in the app header. |
+
+
+## Importing OpenAPI Specifications
+
+Note: this feature is highly experimental.
+
+Posting can import OpenAPI 3.x Specifications and generate collections environment files for you.
+
+To import an OpenAPI Specification, use the `posting import path/to/openapi.yaml` command.
+
+You can optionally supply an output directory.
+
+If no output directory is supplied, the default collection directory will be used.
+
+Posting will attempt to build a file structure in the collection that aligns with the URL structure of the imported API.
