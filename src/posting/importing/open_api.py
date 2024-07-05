@@ -24,6 +24,21 @@ from urllib.parse import urlparse
 from rich.console import Console
 
 
+def resolve_url_variables(url: str, variables: dict[str, dict[str, str]]) -> str:
+    """Resolve variables in the URL using their default values.
+
+    Args:
+        url: The URL to resolve.
+        variables: A dictionary of server variables and their default values.
+
+    Returns:
+        str: The resolved URL.
+    """
+    for var, info in variables.items():
+        url = url.replace(f"{{{var}}}", info["value"])
+    return url
+
+
 def generate_unique_env_filename(
     base_name: str, server_url: str, variables: dict[str, dict[str, str]]
 ) -> str:
@@ -75,17 +90,20 @@ def extract_server_variables(server: dict[str, Any]) -> dict[str, dict[str, str]
             "description": "The base URL for this server",
         }
     }
-    server_variables = server.get("variables", {})
 
-    for var, var_info in server_variables.items():
+    # Extract server variables
+    for var, var_info in server.get("variables", {}).items():
         variables[var] = {
             "value": var_info.get("default", f"PLACEHOLDER_{var.upper()}"),
             "description": var_info.get("description", ""),
         }
-        if "enum" in var_info and var_info["enum"] and "default" not in var_info:
-            variables[var]["value"] = var_info["enum"][
-                0
-            ]  # Use the first enum value if no default
+
+    # Resolve BASE_URL
+    base_url = resolve_url_variables(server.get("url", ""), variables)
+    variables["BASE_URL"] = {
+        "value": base_url,
+        "description": "The base URL for this server",
+    }
 
     return variables
 
