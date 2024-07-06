@@ -122,7 +122,7 @@ You can load `.env` files into Posting from the command line using the `--env` o
 
 Imagine you're testing an API which exists in both `dev` and `prod` environments.
 
-In the `dev` and `prod` environments, some variables are shared, but others are different. We can model this by having a single `shared.env` file which contains variables which are shared between environments, and then a `dev.env` and `prod.env` file which contain environment specific variables.
+The `dev` and `prod` environments share some common variables, but differ in many ways too. We can model this by having a single `shared.env` file which contains variables which are shared between environments, and then a `dev.env` and `prod.env` file which contain environment specific variables.
 
 ```bash
 # file: shared.env
@@ -146,7 +146,7 @@ When working in the `dev` environment, you can then load all of the shared varia
 posting --env shared.env --env dev.env
 ```
 
-This will load all of the shared variables, and then load the `dev.env` file. Since `ENV_NAME` appears in both files, the value from the `dev.env` file will be used since that was the last one specified.
+This will load all of the shared variables from `shared.env`, and then load the variables from `dev.env`. Since `ENV_NAME` appears in both files, the value from the `dev.env` file will be used since that was the last one specified.
 
 Note that you do *not* need to restart to load changes made to these files,
 so you can open and edit  your env files in an editor of your choice alongside Posting.
@@ -240,7 +240,7 @@ POSTING_HEADING__VISIBLE="false"
 
 Note: this feature is highly experimental.
 
-Posting can import OpenAPI 3.x Specifications and generate collections environment files for you.
+Posting can convert OpenAPI 3.x specs into collections.
 
 To import an OpenAPI Specification, use the `posting import path/to/openapi.yaml` command.
 
