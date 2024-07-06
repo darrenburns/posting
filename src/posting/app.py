@@ -1,7 +1,5 @@
-import os
 from pathlib import Path
 from typing import Any, Literal
-from dotenv import dotenv_values
 import httpx
 from rich.console import Group
 from rich.text import Text
@@ -39,13 +37,14 @@ from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.types import PostingLayout
 from posting.user_host import get_user_host_string
-from posting.variables import SubstitutionError
+from posting.variables import SubstitutionError, get_variables
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
 from posting.widgets.datatable import PostingDataTable
+from posting.variables import load_variables
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
@@ -136,6 +135,8 @@ class MainScreen(Screen[None]):
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
+        load_variables(self.environment_files, self.settings.use_host_environment)
+        print(get_variables())
 
     def on_mount(self) -> None:
         self.layout = self._initial_layout
@@ -378,17 +379,7 @@ class MainScreen(Screen[None]):
         """Build an httpx request from the UI."""
         request_model = self.build_request_model(request_options)
         if apply_template:
-            variables = {
-                f"env:{key}": value
-                for file in self.environment_files
-                for key, value in dotenv_values(file).items()
-            }
-            if self.settings.use_host_environment:
-                host_env_variables = {
-                    f"env:{key}": value for key, value in os.environ.items()
-                }
-                variables = {**variables, **host_env_variables}
-
+            variables = get_variables()
             try:
                 request_model.apply_template(variables)
             except SubstitutionError as e:

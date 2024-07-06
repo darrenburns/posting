@@ -10,7 +10,7 @@ dependencies = [
     "xdg-base-dirs>=6.0.1",
     "click-default-group>=1.2.4",
     "httpx[brotli]>=0.27.0",
-    "textual-autocomplete>=3.0.0a4",
+    "textual-autocomplete @ file:///Users/darrenburns/Code/posting/../textual-autocomplete",
     "pyperclip>=1.8.2",
     "pydantic>=2.7.3",
     "pyyaml>=6.0.1",

@@ -1,7 +1,7 @@
 from textual import on
 from textual.widgets import TextArea
 
-from posting.widgets.text_area import POSTING_THEME, ReadOnlyTextArea
+from posting.widgets.text_area import ReadOnlyTextArea
 
 
 class ResponseTextArea(ReadOnlyTextArea):

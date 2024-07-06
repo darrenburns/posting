@@ -1,5 +1,6 @@
 from typing import Any
 from rich.text import Text
+from rich.traceback import Traceback
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -8,8 +9,10 @@ from textual.design import ColorSystem
 from textual.widgets import Input, Button, Label
 from textual_autocomplete import AutoComplete, DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
+from posting.config import SETTINGS
 
 from posting.highlight_url import URLHighlighter
+from posting.variables import get_variables, load_variables
 from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
 
@@ -148,11 +151,20 @@ class UrlBar(Horizontal):
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
     def on_theme_change(self, theme: ColorSystem) -> None:
-        print("theme change")
         markers = self._build_markers()
         self.trace_markers.update(markers)
 
     def _get_autocomplete_items(self, target_state: TargetState) -> list[DropdownItem]:
+        # If the user just typed a `$`, we want to show them the available variables from
+        # the environment, otherwise we'll show them the possible URL completions.
+        _row, column = target_state.selection.end
+        text = target_state.text
+        # We need to record the last key pressed - if it's a `$`, we want to show the
+        # available variables from the environment.
+        if text and text[max(0, column - 1)] == "$":
+            variables = get_variables()
+            return [DropdownItem(main=f"${variable}") for variable in variables]
+
         return [DropdownItem(main=base_url) for base_url in self.cached_base_urls]
 
     def log_event(self, event: Event, info: dict[str, Any]) -> None:
