@@ -47,7 +47,7 @@ class Settings(BaseSettings):
 
     use_host_environment: bool = Field(default=False)
     """If enabled, you can use environment variables from the host machine in your requests 
-    using the `${env:VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
+    using the `${VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
     defined in any `.env` files explicitly supplied via the `--env` option."""
 
     animation: AnimationLevel = Field(default="none")

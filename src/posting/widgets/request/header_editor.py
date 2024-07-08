@@ -34,7 +34,7 @@ class HeaderEditor(Vertical):
         self.screen.mount(
             AutoComplete(
                 header_input,
-                items=items,
+                candidates=items,
                 prevent_default_tab=False,
                 prevent_default_enter=False,
             )

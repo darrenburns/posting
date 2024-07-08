@@ -207,7 +207,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                 name=operation.get("summary", path.strip("/")),
                 description=operation.get("description", ""),
                 method=method,
-                url=f"${{env:BASE_URL}}{path}",
+                url=f"${{BASE_URL}}{path}",
             )
             # Add query parameters
             for param in operation.get("parameters", []):

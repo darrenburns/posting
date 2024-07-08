@@ -1,5 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
+from string import Template
 from typing import Any, Literal, get_args
 import httpx
 from pydantic import BaseModel, Field, HttpUrl, SecretStr
@@ -7,7 +8,7 @@ import rich
 import yaml
 import os
 from posting.tuple_to_multidict import tuples_to_dict
-from posting.variables import SubstitutionError, VariablesTemplate
+from posting.variables import SubstitutionError
 
 from posting.version import VERSION
 
@@ -149,56 +150,48 @@ class RequestModel(BaseModel):
     def apply_template(self, variables: dict[str, Any]) -> None:
         """Apply the template to the request model."""
         try:
-            template = VariablesTemplate(self.url)
+            template = Template(self.url)
             self.url = template.substitute(variables)
 
-            template = VariablesTemplate(self.description)
+            template = Template(self.description)
             self.description = template.substitute(variables)
-            template = VariablesTemplate(self.options.proxy_url)
+            template = Template(self.options.proxy_url)
             self.options.proxy_url = template.substitute(variables)
 
             if self.body:
                 if self.body.content:
-                    template = VariablesTemplate(self.body.content)
+                    template = Template(self.body.content)
                     self.body.content = template.substitute(variables)
                 if self.body.form_data:
                     for item in self.body.form_data:
-                        template = VariablesTemplate(item.name)
+                        template = Template(item.name)
                         item.name = template.substitute(variables)
-                        template = VariablesTemplate(item.value)
+                        template = Template(item.value)
                         item.value = template.substitute(variables)
 
             for header in self.headers:
-                template = VariablesTemplate(header.name)
+                template = Template(header.name)
                 header.name = template.substitute(variables)
-                template = VariablesTemplate(header.value)
+                template = Template(header.value)
                 header.value = template.substitute(variables)
             for param in self.params:
-                template = VariablesTemplate(param.name)
+                template = Template(param.name)
                 param.name = template.substitute(variables)
-                template = VariablesTemplate(param.value)
+                template = Template(param.value)
                 param.value = template.substitute(variables)
 
             if self.auth:
                 if self.auth.basic:
-                    template = VariablesTemplate(
-                        self.auth.basic.username.get_secret_value()
-                    )
+                    template = Template(self.auth.basic.username.get_secret_value())
                     self.auth.basic.username = SecretStr(template.substitute(variables))
-                    template = VariablesTemplate(
-                        self.auth.basic.password.get_secret_value()
-                    )
+                    template = Template(self.auth.basic.password.get_secret_value())
                     self.auth.basic.password = SecretStr(template.substitute(variables))
                 if self.auth.digest:
-                    template = VariablesTemplate(
-                        self.auth.digest.username.get_secret_value()
-                    )
+                    template = Template(self.auth.digest.username.get_secret_value())
                     self.auth.digest.username = SecretStr(
                         template.substitute(variables)
                     )
-                    template = VariablesTemplate(
-                        self.auth.digest.password.get_secret_value()
-                    )
+                    template = Template(self.auth.digest.password.get_secret_value())
                     self.auth.digest.password = SecretStr(
                         template.substitute(variables)
                     )

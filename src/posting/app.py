@@ -108,11 +108,16 @@ class MainScreen(Screen[None]):
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         Binding("ctrl+s", "save_request", "Save"),
         Binding("ctrl+n", "new_request", "New"),
-        Binding("ctrl+m", "toggle_maximized", "Expand", show=False),
+        Binding("ctrl+m", "toggle_maximized", "Expand section", show=False),
         Binding(
-            "ctrl+h", "toggle_collection_browser", "Collection browser", show=False
+            "ctrl+h",
+            "toggle_collection_browser",
+            "Toggle collection browser",
+            show=False,
         ),
     ]
+
+    AUTO_FOCUS = "UrlInput"
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     """The currently selected method of the request."""

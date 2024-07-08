@@ -1,20 +1,19 @@
 from typing import Any
 from rich.text import Text
-from rich.traceback import Traceback
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.design import ColorSystem
 from textual.widgets import Input, Button, Label
-from textual_autocomplete import AutoComplete, DropdownItem
+from textual_autocomplete import DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
-from posting.config import SETTINGS
 
-from posting.highlight_url import URLHighlighter
-from posting.variables import get_variables, load_variables
+from posting.highlighters import VariablesAndUrlHighlighter
+from posting.variables import get_variables
 from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
+from posting.widgets.variable_autocomplete import VariableAutoComplete
 
 
 class UrlInput(Input):
@@ -45,7 +44,7 @@ class UrlInput(Input):
     ]
 
     def on_mount(self):
-        self.highlighter = URLHighlighter()
+        self.highlighter = VariablesAndUrlHighlighter()
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
@@ -143,29 +142,25 @@ class UrlBar(Horizontal):
         yield SendRequestButton("Send")
 
     def on_mount(self) -> None:
-        self.auto_complete = AutoComplete(
+        variable_candidates = [
+            DropdownItem(main=f"${variable}") for variable in get_variables()
+        ]
+        self.auto_complete = VariableAutoComplete(
             target=self.query_one("#url-input", UrlInput),
-            items=self._get_autocomplete_items,
+            candidates=self._get_autocomplete_candidates,
+            variable_candidates=variable_candidates,
         )
         self.screen.mount(self.auto_complete)
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
+    def _get_autocomplete_candidates(
+        self, target_state: TargetState
+    ) -> list[DropdownItem]:
+        return [DropdownItem(main=base_url) for base_url in self.cached_base_urls]
+
     def on_theme_change(self, theme: ColorSystem) -> None:
         markers = self._build_markers()
         self.trace_markers.update(markers)
-
-    def _get_autocomplete_items(self, target_state: TargetState) -> list[DropdownItem]:
-        # If the user just typed a `$`, we want to show them the available variables from
-        # the environment, otherwise we'll show them the possible URL completions.
-        _row, column = target_state.selection.end
-        text = target_state.text
-        # We need to record the last key pressed - if it's a `$`, we want to show the
-        # available variables from the environment.
-        if text and text[max(0, column - 1)] == "$":
-            variables = get_variables()
-            return [DropdownItem(main=f"${variable}") for variable in variables]
-
-        return [DropdownItem(main=base_url) for base_url in self.cached_base_urls]
 
     def log_event(self, event: Event, info: dict[str, Any]) -> None:
         """Log an event to the request trace."""

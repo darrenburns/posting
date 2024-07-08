@@ -2,14 +2,13 @@ from __future__ import annotations
 from contextvars import ContextVar
 
 import re
-from string import Template
 import os
 from pathlib import Path
 from dotenv import dotenv_values
 
 
 _VARIABLES_PATTERN = re.compile(
-    r"\$(?:\{((?:env:)?[_a-z][_a-z0-9]*)\}|(env:[_a-z][_a-z0-9]*))"
+    r"\$(?:([a-zA-Z_][a-zA-Z0-9_]*)|{([a-zA-Z_][a-zA-Z0-9_]*)})"
 )
 
 _initial_variables: dict[str, str | None] = {}
@@ -34,29 +33,16 @@ def load_variables(
         return {key: value for key, value in existing_variables}
 
     variables: dict[str, str | None] = {
-        f"env:{key}": value
+        key: value
         for file in environment_files
         for key, value in dotenv_values(file).items()
     }
     if use_host_environment:
-        host_env_variables = {f"env:{key}": value for key, value in os.environ.items()}
+        host_env_variables = {key: value for key, value in os.environ.items()}
         variables = {**variables, **host_env_variables}
 
     VARIABLES.set(variables)
     return variables
-
-
-class VariablesTemplate(Template):
-    delimiter = "$"
-    pattern = r"""
-    \$(?:
-      (?P<escaped>\$) |
-      (?:
-        \{(?P<braced>(?:env:)?[_a-z][_a-z0-9]*)\} |
-        (?P<named>env:[_a-z][_a-z0-9]*)
-      )
-    )
-    """
 
 
 def find_variables(template_str: str) -> list[tuple[str, int, int]]:
