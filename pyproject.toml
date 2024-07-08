@@ -1,6 +1,6 @@
 [project]
 name = "posting"
-version = "1.0.0b39"
+version = "1.0.0b40"
 description = "The modern API client that lives in your terminal."
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }
@@ -10,7 +10,7 @@ dependencies = [
     "xdg-base-dirs>=6.0.1",
     "click-default-group>=1.2.4",
     "httpx[brotli]>=0.27.0",
-    "textual-autocomplete>=3.0.0a4",
+    "textual-autocomplete==3.0.0a4",
     "pyperclip>=1.8.2",
     "pydantic>=2.7.3",
     "pyyaml>=6.0.1",
