@@ -1,16 +1,24 @@
+from dataclasses import dataclass
 from typing import Any
 from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
+from textual.css.query import NoMatches
 from textual.design import ColorSystem
+from textual.message import Message
 from textual.widgets import Input, Button, Label
 from textual_autocomplete import DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
+from posting.config import SETTINGS
 
 from posting.highlighters import VariablesAndUrlHighlighter
-from posting.variables import get_variables
+from posting.variables import (
+    extract_variable_name,
+    get_variable_at_cursor,
+    get_variables,
+)
 from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
 from posting.widgets.variable_autocomplete import VariableAutoComplete
@@ -43,12 +51,25 @@ class UrlInput(Input):
         Binding("down", "app.focus_next", "Focus next", show=False),
     ]
 
+    @dataclass
+    class CursorMoved(Message):
+        cursor_position: int
+        value: str
+        input: "UrlInput"
+
+        @property
+        def control(self) -> "UrlInput":
+            return self.input
+
     def on_mount(self):
         self.highlighter = VariablesAndUrlHighlighter(self)
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
         self.remove_class("error")
+
+    def watch_cursor_position(self, cursor_position: int) -> None:
+        self.post_message(self.CursorMoved(cursor_position, self.value, self))
 
 
 class SendRequestButton(Button, can_focus=False):
@@ -75,7 +96,7 @@ class SendRequestButton(Button, can_focus=False):
     """
 
 
-class UrlBar(Horizontal):
+class UrlBar(Vertical):
     """
     The URL bar.
     """
@@ -94,6 +115,12 @@ class UrlBar(Horizontal):
                 display: block;
                 width: auto;
             }
+        }
+        & #variable-value-bar {
+            width: 1fr;
+            color: $text-muted;
+            text-align: center;
+            height: 1;
         }
         & .complete-marker {
             color: $success;
@@ -133,13 +160,17 @@ class UrlBar(Horizontal):
         self._trace_events: set[Event] = set()
 
     def compose(self) -> ComposeResult:
-        yield MethodSelector(id="method-selector")
-        yield UrlInput(
-            placeholder="Enter a URL...",
-            id="url-input",
-        )
-        yield Label(id="trace-markers")
-        yield SendRequestButton("Send")
+        with Horizontal():
+            yield MethodSelector(id="method-selector")
+            yield UrlInput(
+                placeholder="Enter a URL...",
+                id="url-input",
+            )
+            yield Label(id="trace-markers")
+            yield SendRequestButton("Send")
+        variable_value_bar = Label(id="variable-value-bar")
+        if SETTINGS.get().show_url_variable_values:
+            yield variable_value_bar
 
     def on_mount(self) -> None:
         self.auto_complete = VariableAutoComplete(
@@ -149,6 +180,29 @@ class UrlBar(Horizontal):
         )
         self.screen.mount(self.auto_complete)
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+
+    @on(UrlInput.CursorMoved)
+    def on_cursor_moved(self, event: UrlInput.CursorMoved) -> None:
+        variables = get_variables()
+        variable_at_cursor = get_variable_at_cursor(event.cursor_position, event.value)
+        try:
+            variable_bar = self.query_one("#variable-value-bar", Label)
+        except NoMatches:
+            # Can be hidden with config, which will set display = None.
+            # In this case, the query will fail.
+            return
+
+        if not variable_at_cursor:
+            variable_bar.update("")
+            return
+
+        variable_name = extract_variable_name(variable_at_cursor)
+        variable_value = variables.get(variable_name)
+        if variable_value:
+            content = f"{variable_name} = {variable_value}"
+            variable_bar.update(content)
+        else:
+            variable_bar.update("")
 
     def _get_autocomplete_candidates(
         self, target_state: TargetState

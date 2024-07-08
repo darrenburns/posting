@@ -85,7 +85,6 @@ class VariableAutoComplete(AutoComplete):
         text = target_state.text
         if is_cursor_within_variable(cursor, text):
             variable_at_cursor = get_variable_at_cursor(cursor, text)
-            print("variable_at_cursor", variable_at_cursor)
             return variable_at_cursor or ""
         else:
             return target_state.text

@@ -58,26 +58,51 @@ def find_variables(template_str: str) -> list[tuple[str, int, int]]:
 @lru_cache()
 def is_cursor_within_variable(cursor: int, text: str) -> bool:
     # Check for ${var} syntax
-    if cursor > 0 and text[cursor - 1] == "}":
-        start = text.rfind("${", 0, cursor)
-        if start != -1:
-            return all(c.isalnum() or c == "_" for c in text[start + 2 : cursor - 1])
+    start = text.rfind("${", 0, cursor)
+    if start != -1:
+        end = text.find("}", start)
+        if end != -1 and start < cursor <= end:
+            return True
+
+    # Check for $ followed by { (cursor between $ and {)
+    if (
+        cursor > 0
+        and text[cursor - 1] == "$"
+        and cursor < len(text)
+        and text[cursor] == "{"
+    ):
+        return True
 
     # Check for $var syntax
     last_dollar = text.rfind("$", 0, cursor)
     if last_dollar == -1:
         return False
 
-    return all(c.isalnum() or c == "_" for c in text[last_dollar + 1 : cursor])
+    # Check if cursor is within a valid variable name
+    for i in range(last_dollar + 1, len(text)):
+        if i >= cursor:
+            return True
+        if not (text[i].isalnum() or text[i] == "_"):
+            return False
+
+    return True
 
 
 @lru_cache()
 def find_variable_start(cursor: int, text: str) -> int:
     # Check for ${var} syntax
-    if cursor > 0 and text[cursor - 1] == "}":
-        start = text.rfind("${", 0, cursor)
-        if start != -1:
-            return start
+    start = text.rfind("${", 0, cursor)
+    if start != -1 and start < cursor <= text.find("}", start):
+        return start
+
+    # Check for $ followed by { (cursor between $ and {)
+    if (
+        cursor > 0
+        and text[cursor - 1] == "$"
+        and cursor < len(text)
+        and text[cursor] == "{"
+    ):
+        return cursor - 1
 
     # Check for $var syntax
     for i in range(cursor - 1, -1, -1):
@@ -93,8 +118,22 @@ def find_variable_start(cursor: int, text: str) -> int:
 @lru_cache()
 def find_variable_end(cursor: int, text: str) -> int:
     # Check for ${var} syntax
-    if cursor > 0 and text[cursor - 1] == "}":
-        return cursor
+    start = text.rfind("${", 0, cursor)
+    if start != -1:
+        end = text.find("}", start)
+        if end != -1 and start < cursor <= end + 1:  # Include the closing brace
+            return end + 1
+
+    # Check for $ followed by { (cursor between $ and {)
+    if (
+        cursor > 0
+        and text[cursor - 1] == "$"
+        and cursor < len(text)
+        and text[cursor] == "{"
+    ):
+        end = text.find("}", cursor)
+        if end != -1:
+            return end + 1
 
     # Check for $var syntax
     for i in range(cursor, len(text)):
@@ -113,6 +152,29 @@ def get_variable_at_cursor(cursor: int, text: str) -> str | None:
     end = find_variable_end(cursor, text)
 
     return text[start:end]
+
+
+def extract_variable_name(variable_text: str) -> str:
+    """
+    Extract the variable name from a variable reference.
+
+    Args:
+        variable_text: The text containing the variable reference.
+
+    Returns:
+        str: The extracted variable name.
+
+    Examples:
+        >>> extract_variable_name("$var")
+        'var'
+        >>> extract_variable_name("${MY_VAR}")
+        'MY_VAR'
+    """
+    if variable_text.startswith("${") and variable_text.endswith("}"):
+        return variable_text[2:-1]
+    elif variable_text.startswith("$"):
+        return variable_text[1:]
+    return variable_text  # Return as-is if it doesn't match expected formats
 
 
 class SubstitutionError(Exception):

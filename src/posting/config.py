@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     heading: HeadingSettings = Field(default_factory=HeadingSettings)
     """Configuration for the heading bar."""
 
+    show_url_variable_values: bool = Field(default=True)
+    """If enabled, the variable value bar will be displayed below the URL.
+
+    When your cursor is above a variable, the value will be displayed on 
+    the line below the URL bar."""
+
     @classmethod
     def settings_customise_sources(
         cls,
