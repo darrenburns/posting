@@ -181,6 +181,11 @@ class UrlBar(Vertical):
         self.screen.mount(self.auto_complete)
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
+    @on(Input.Changed)
+    def on_change(self, event: Input.Changed) -> None:
+        variable_bar = self.query_one("#variable-value-bar", Label)
+        variable_bar.update("")
+
     @on(UrlInput.CursorMoved)
     def on_cursor_moved(self, event: UrlInput.CursorMoved) -> None:
         variables = get_variables()
