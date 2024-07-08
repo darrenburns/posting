@@ -44,7 +44,7 @@ class UrlInput(Input):
     ]
 
     def on_mount(self):
-        self.highlighter = VariablesAndUrlHighlighter()
+        self.highlighter = VariablesAndUrlHighlighter(self)
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
@@ -142,13 +142,10 @@ class UrlBar(Horizontal):
         yield SendRequestButton("Send")
 
     def on_mount(self) -> None:
-        variable_candidates = [
-            DropdownItem(main=f"${variable}") for variable in get_variables()
-        ]
         self.auto_complete = VariableAutoComplete(
             target=self.query_one("#url-input", UrlInput),
             candidates=self._get_autocomplete_candidates,
-            variable_candidates=variable_candidates,
+            variable_candidates=self._get_variable_candidates,
         )
         self.screen.mount(self.auto_complete)
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
@@ -157,6 +154,9 @@ class UrlBar(Horizontal):
         self, target_state: TargetState
     ) -> list[DropdownItem]:
         return [DropdownItem(main=base_url) for base_url in self.cached_base_urls]
+
+    def _get_variable_candidates(self, target_state: TargetState) -> list[DropdownItem]:
+        return [DropdownItem(main=f"${variable}") for variable in get_variables()]
 
     def on_theme_change(self, theme: ColorSystem) -> None:
         markers = self._build_markers()

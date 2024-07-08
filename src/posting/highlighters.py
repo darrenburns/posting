@@ -1,8 +1,16 @@
 import re
 from rich.highlighter import Highlighter
 from rich.text import Text
+from textual.widgets import Input
 
-from posting.variables import find_variables, get_variables
+from posting.variables import (
+    find_variable_end,
+    find_variable_start,
+    find_variables,
+    get_variable_at_cursor,
+    get_variables,
+    is_cursor_within_variable,
+)
 
 
 _URL_REGEX = re.compile(r"(?P<protocol>https?)://(?P<base>[^/]+)(?P<path>/[^ ]*)?")
@@ -20,7 +28,7 @@ def highlight_url(text: Text) -> None:
 
     for index, char in enumerate(text.plain):
         if char == "/":
-            text.stylize("dim", index, index + 1)
+            text.stylize("dim b", index, index + 1)
 
 
 class URLHighlighter(Highlighter):
@@ -34,7 +42,7 @@ def highlight_variables(text: Text) -> None:
         if variable_name not in get_variables():
             text.stylize("dim", start, end)
         else:
-            text.stylize("green not dim", start, end)
+            text.stylize("b green not dim", start, end)
 
 
 class VariableHighlighter(Highlighter):
@@ -43,6 +51,17 @@ class VariableHighlighter(Highlighter):
 
 
 class VariablesAndUrlHighlighter(Highlighter):
+    def __init__(self, input: Input) -> None:
+        super().__init__()
+        self.input = input
+
     def highlight(self, text: Text) -> None:
         highlight_url(text)
         highlight_variables(text)
+        input = self.input
+        cursor_position = input.cursor_position  # type:ignore
+        value: str = input.value
+        if is_cursor_within_variable(cursor_position, value):  # type: ignore
+            start = find_variable_start(cursor_position, value)  # type: ignore
+            end = find_variable_end(cursor_position, value)  # type: ignore
+            text.stylize("u", start, end)

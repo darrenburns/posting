@@ -8,6 +8,13 @@ from textual_autocomplete import (
     MatcherFactoryType,
 )
 
+from posting.variables import (
+    find_variable_end,
+    find_variable_start,
+    get_variable_at_cursor,
+    is_cursor_within_variable,
+)
+
 
 class VariableAutoComplete(AutoComplete):
     def __init__(
@@ -39,37 +46,10 @@ class VariableAutoComplete(AutoComplete):
         )
         self.variable_candidates = variable_candidates
 
-    def is_cursor_within_variable(self, target_state: TargetState) -> bool:
-        # Find the last '$' before the cursor
-        cursor = target_state.selection.end[1]
-        last_dollar = target_state.text.rfind("$", 0, cursor)
-
-        if last_dollar == -1:
-            return False
-
-        # Check if there's any whitespace between the last '$' and the cursor
-        return " " not in target_state.text[last_dollar:cursor]
-
-    def find_variable_start(self, target_state: TargetState) -> int:
-        return target_state.text.rfind("$", 0, target_state.selection.end[1])
-
-    def find_variable_end(self, target_state: TargetState) -> int:
-        for i in range(target_state.selection.end[1], len(target_state.text)):
-            if target_state.text[i].isspace():
-                return i
-        return len(target_state.text)
-
-    def get_variable_at_cursor(self, target_state: TargetState) -> str | None:
-        if not self.is_cursor_within_variable(target_state):
-            return None
-
-        start = self.find_variable_start(target_state)
-        end = self.find_variable_end(target_state)
-
-        return target_state.text[start:end]
-
     def get_candidates(self, target_state: TargetState) -> list[DropdownItem]:
-        if self.is_cursor_within_variable(target_state):
+        cursor = target_state.selection.end[1]
+        text = target_state.text
+        if is_cursor_within_variable(cursor, text):
             return self.get_variable_candidates(target_state)
         else:
             return super().get_candidates(target_state)
@@ -77,12 +57,14 @@ class VariableAutoComplete(AutoComplete):
     def _completion_strategy(
         self, value: str, target_state: TargetState
     ) -> TargetState:
-        if self.is_cursor_within_variable(target_state):
+        cursor = target_state.selection.end[1]
+        text = target_state.text
+        if is_cursor_within_variable(cursor, text):
             # Replace the text from the variable start
             # with the completion text.
-            start = self.find_variable_start(target_state)
-            end = self.find_variable_end(target_state)
-            old_value = target_state.text
+            start = find_variable_start(cursor, text)
+            end = find_variable_end(cursor, text)
+            old_value = text
             new_value = old_value[:start] + value + old_value[end:]
 
             # Move the cursor to the end of the inserted text
@@ -99,8 +81,12 @@ class VariableAutoComplete(AutoComplete):
             )
 
     def _search_string(self, target_state: TargetState) -> str:
-        if self.is_cursor_within_variable(target_state):
-            return self.get_variable_at_cursor(target_state) or ""
+        cursor = target_state.selection.end[1]
+        text = target_state.text
+        if is_cursor_within_variable(cursor, text):
+            variable_at_cursor = get_variable_at_cursor(cursor, text)
+            print("variable_at_cursor", variable_at_cursor)
+            return variable_at_cursor or ""
         else:
             return target_state.text
 

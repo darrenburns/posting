@@ -1,10 +1,12 @@
 from __future__ import annotations
 from contextvars import ContextVar
+from functools import lru_cache
 
 import re
 import os
 from pathlib import Path
 from dotenv import dotenv_values
+from textual_autocomplete import TargetState
 
 
 _VARIABLES_PATTERN = re.compile(
@@ -45,11 +47,72 @@ def load_variables(
     return variables
 
 
+@lru_cache()
 def find_variables(template_str: str) -> list[tuple[str, int, int]]:
     return [
         (m.group(1) or m.group(2), m.start(), m.end())
         for m in re.finditer(_VARIABLES_PATTERN, template_str)
     ]
+
+
+@lru_cache()
+def is_cursor_within_variable(cursor: int, text: str) -> bool:
+    # Check for ${var} syntax
+    if cursor > 0 and text[cursor - 1] == "}":
+        start = text.rfind("${", 0, cursor)
+        if start != -1:
+            return all(c.isalnum() or c == "_" for c in text[start + 2 : cursor - 1])
+
+    # Check for $var syntax
+    last_dollar = text.rfind("$", 0, cursor)
+    if last_dollar == -1:
+        return False
+
+    return all(c.isalnum() or c == "_" for c in text[last_dollar + 1 : cursor])
+
+
+@lru_cache()
+def find_variable_start(cursor: int, text: str) -> int:
+    # Check for ${var} syntax
+    if cursor > 0 and text[cursor - 1] == "}":
+        start = text.rfind("${", 0, cursor)
+        if start != -1:
+            return start
+
+    # Check for $var syntax
+    for i in range(cursor - 1, -1, -1):
+        if text[i] == "$":
+            if i + 1 < len(text) and text[i + 1] == "{":
+                return i
+            if all(c.isalnum() or c == "_" for c in text[i + 1 : cursor]):
+                return i
+
+    return cursor  # No valid variable start found
+
+
+@lru_cache()
+def find_variable_end(cursor: int, text: str) -> int:
+    # Check for ${var} syntax
+    if cursor > 0 and text[cursor - 1] == "}":
+        return cursor
+
+    # Check for $var syntax
+    for i in range(cursor, len(text)):
+        if not (text[i].isalnum() or text[i] == "_"):
+            return i
+
+    return len(text)
+
+
+@lru_cache()
+def get_variable_at_cursor(cursor: int, text: str) -> str | None:
+    if not is_cursor_within_variable(cursor, text):
+        return None
+
+    start = find_variable_start(cursor, text)
+    end = find_variable_end(cursor, text)
+
+    return text[start:end]
 
 
 class SubstitutionError(Exception):
