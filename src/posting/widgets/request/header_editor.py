@@ -10,6 +10,7 @@ from posting.collection import Header
 from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
+from posting.widgets.variable_input import VariableInput
 
 
 class HeaderEditor(Vertical):
@@ -18,7 +19,7 @@ class HeaderEditor(Vertical):
             HeadersTable(),
             KeyValueInput(
                 Input(placeholder="Name", id="header-key-input"),
-                Input(placeholder="Value", id="header-value-input"),
+                VariableInput(placeholder="Value", id="header-value-input"),
                 button_label="Add header",
             ),
             empty_message="There are no headers.",

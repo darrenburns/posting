@@ -5,6 +5,7 @@ from textual.widgets import Input
 from posting.collection import FormItem
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
+from posting.widgets.variable_input import VariableInput
 
 
 class FormTable(PostingDataTable):
@@ -31,8 +32,8 @@ class FormEditor(Vertical):
         yield KeyValueEditor(
             FormTable(),
             KeyValueInput(
-                Input(placeholder="Key"),
-                Input(placeholder="Value"),
+                VariableInput(placeholder="Key"),
+                VariableInput(placeholder="Value"),
             ),
             empty_message="There is no form data.",
         )

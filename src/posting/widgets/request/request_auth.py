@@ -8,6 +8,7 @@ from textual.widgets import ContentSwitcher, Input, Label, Select, Static
 
 from posting.collection import Auth
 from posting.widgets.select import PostingSelect
+from posting.widgets.variable_input import VariableInput
 
 
 @runtime_checkable
@@ -33,12 +34,12 @@ class UserNamePasswordForm(Vertical):
 
     def compose(self) -> ComposeResult:
         yield Label("Username")
-        yield Input(
+        yield VariableInput(
             placeholder="Enter a username",
             id="username-input",
         )
         yield Label("Password")
-        yield Input(placeholder="Enter a password", password=True, id="password-input")
+        yield VariableInput(placeholder="Enter a password", id="password-input")
 
     def set_values(self, username: str, password: str) -> None:
         self.query_one("#username-input", Input).value = username

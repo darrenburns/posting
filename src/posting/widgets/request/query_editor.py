@@ -7,6 +7,7 @@ from posting.collection import QueryParam
 
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
+from posting.widgets.variable_input import VariableInput
 
 
 class ParamsTable(PostingDataTable):
@@ -69,8 +70,8 @@ class QueryStringEditor(Vertical):
         yield KeyValueEditor(
             ParamsTable(),
             KeyValueInput(
-                Input(placeholder="Key"),
-                Input(placeholder="Value"),
+                VariableInput(placeholder="Key"),
+                VariableInput(placeholder="Value"),
                 button_label="Add parameter",
             ),
             empty_message="There are no parameters.",

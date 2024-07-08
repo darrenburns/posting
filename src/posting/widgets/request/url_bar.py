@@ -7,6 +7,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
 from textual.design import ColorSystem
+from textual.events import Blur
 from textual.message import Message
 from textual.widgets import Input, Button, Label
 from textual_autocomplete import DropdownItem
@@ -61,12 +62,23 @@ class UrlInput(Input):
         def control(self) -> "UrlInput":
             return self.input
 
+    @dataclass
+    class Blurred(Message):
+        input: "UrlInput"
+
+        @property
+        def control(self) -> "UrlInput":
+            return self.input
+
     def on_mount(self):
         self.highlighter = VariablesAndUrlHighlighter(self)
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
         self.remove_class("error")
+
+    def on_blur(self, _: Blur) -> None:
+        self.post_message(self.Blurred(self))
 
     def watch_cursor_position(self, cursor_position: int) -> None:
         self.post_message(self.CursorMoved(cursor_position, self.value, self))
@@ -183,15 +195,18 @@ class UrlBar(Vertical):
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
-        variable_bar = self.query_one("#variable-value-bar", Label)
-        variable_bar.update("")
+        self.variable_value_bar.update("")
+
+    @on(UrlInput.Blurred)
+    def on_blur(self, event: UrlInput.Blurred) -> None:
+        self.variable_value_bar.update("")
 
     @on(UrlInput.CursorMoved)
     def on_cursor_moved(self, event: UrlInput.CursorMoved) -> None:
         variables = get_variables()
         variable_at_cursor = get_variable_at_cursor(event.cursor_position, event.value)
         try:
-            variable_bar = self.query_one("#variable-value-bar", Label)
+            variable_bar = self.variable_value_bar
         except NoMatches:
             # Can be hidden with config, which will set display = None.
             # In this case, the query will fail.
@@ -268,3 +283,8 @@ class UrlBar(Vertical):
     def trace_markers(self) -> Label:
         """Get the trace markers."""
         return self.query_one("#trace-markers", Label)
+
+    @property
+    def variable_value_bar(self) -> Label:
+        """Get the variable value bar."""
+        return self.query_one("#variable-value-bar", Label)

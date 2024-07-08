@@ -5,6 +5,7 @@ from textual.widgets import Input, Label
 
 from posting.collection import RequestModel
 from posting.widgets.text_area import PostingTextArea
+from posting.widgets.variable_input import VariableInput
 
 
 class RequestMetadata(VerticalScroll):
@@ -45,7 +46,7 @@ class RequestMetadata(VerticalScroll):
     def compose(self) -> ComposeResult:
         self.can_focus = False
         yield Label("Name [dim]optional[/dim]")
-        yield Input(placeholder="Enter a name...", id="name-input")
+        yield VariableInput(placeholder="Enter a name...", id="name-input")
         yield Label("Description [dim]optional[/dim]")
         yield PostingTextArea(id="description-textarea")
 

@@ -6,6 +6,7 @@ from textual.events import DescendantFocus
 from textual.widgets import Checkbox, Input, Label, Static
 
 from posting.collection import Options
+from posting.widgets.variable_input import VariableInput
 
 
 class RequestOptions(VerticalScroll):
@@ -98,11 +99,11 @@ class RequestOptions(VerticalScroll):
 
         with Vertical(id="proxy-option"):
             yield Label("Proxy URL")
-            yield Input(id="proxy-url")
+            yield VariableInput(id="proxy-url")
 
         with Vertical(id="timeout-option"):
             yield Label("Timeout")
-            yield Input(
+            yield VariableInput(
                 value=str(self.options.timeout),
                 id="timeout",
                 type="number",
