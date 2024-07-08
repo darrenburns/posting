@@ -169,7 +169,7 @@ class UrlBar(Vertical):
             yield Label(id="trace-markers")
             yield SendRequestButton("Send")
         variable_value_bar = Label(id="variable-value-bar")
-        if SETTINGS.get().show_url_variable_values:
+        if SETTINGS.get().url_bar.show_value_preview:
             yield variable_value_bar
 
     def on_mount(self) -> None:
