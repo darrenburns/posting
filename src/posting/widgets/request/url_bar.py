@@ -106,7 +106,7 @@ class UrlBar(Vertical):
         height: 3;
         padding: 1 3 0 3;
 
-        & > #trace-markers {
+        & #trace-markers {
             padding: 0 1;
             display: none;
             background: $surface;

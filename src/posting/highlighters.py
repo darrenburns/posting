@@ -2,6 +2,7 @@ import re
 from rich.highlighter import Highlighter
 from rich.text import Text
 from textual.widgets import Input
+from textual.geometry import clamp
 
 from posting.variables import (
     find_variable_end,
@@ -56,11 +57,15 @@ class VariablesAndUrlHighlighter(Highlighter):
         self.input = input
 
     def highlight(self, text: Text) -> None:
+        if text.plain == "":
+            return
+
         highlight_url(text)
         highlight_variables(text)
         input = self.input
         cursor_position = input.cursor_position  # type:ignore
         value: str = input.value
+
         if is_cursor_within_variable(cursor_position, value):  # type: ignore
             start = find_variable_start(cursor_position, value)  # type: ignore
             end = find_variable_end(cursor_position, value)  # type: ignore

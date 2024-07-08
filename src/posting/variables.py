@@ -57,6 +57,9 @@ def find_variables(template_str: str) -> list[tuple[str, int, int]]:
 
 @lru_cache()
 def is_cursor_within_variable(cursor: int, text: str) -> bool:
+    if not text or cursor < 0 or cursor > len(text):
+        return False
+
     # Check for ${var} syntax
     start = text.rfind("${", 0, cursor)
     if start != -1:
@@ -90,6 +93,9 @@ def is_cursor_within_variable(cursor: int, text: str) -> bool:
 
 @lru_cache()
 def find_variable_start(cursor: int, text: str) -> int:
+    if not text:
+        return cursor
+
     # Check for ${var} syntax
     start = text.rfind("${", 0, cursor)
     if start != -1 and start < cursor <= text.find("}", start):
@@ -117,6 +123,9 @@ def find_variable_start(cursor: int, text: str) -> int:
 
 @lru_cache()
 def find_variable_end(cursor: int, text: str) -> int:
+    if not text:
+        return cursor
+
     # Check for ${var} syntax
     start = text.rfind("${", 0, cursor)
     if start != -1:
