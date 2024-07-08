@@ -80,7 +80,6 @@ class VariableAutoComplete(AutoComplete):
         if self.is_cursor_within_variable(target_state):
             # Replace the text from the variable start
             # with the completion text.
-            print("Cursor within variable")
             start = self.find_variable_start(target_state)
             end = self.find_variable_end(target_state)
             old_value = target_state.text
@@ -107,7 +106,4 @@ class VariableAutoComplete(AutoComplete):
 
     def get_variable_candidates(self, target_state: TargetState) -> list[DropdownItem]:
         candidates = self.variable_candidates
-        print("getting variable candidates!")
-        rv = candidates(target_state) if callable(candidates) else candidates
-        print("variable candidates", rv)
-        return rv
+        return candidates(target_state) if callable(candidates) else candidates
