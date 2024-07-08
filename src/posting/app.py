@@ -141,7 +141,6 @@ class MainScreen(Screen[None]):
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
         load_variables(self.environment_files, self.settings.use_host_environment)
-        print(get_variables())
 
     def on_mount(self) -> None:
         self.layout = self._initial_layout
@@ -241,7 +240,6 @@ class MainScreen(Screen[None]):
         self, event: CollectionTree.RequestCacheUpdated
     ) -> None:
         """Update the autocomplete suggestions when the request cache is updated."""
-        print(event.cached_base_urls)
         self.url_bar.cached_base_urls = event.cached_base_urls
 
     async def action_send_request(self) -> None:
@@ -297,7 +295,6 @@ class MainScreen(Screen[None]):
             # request which the user may already have filled in some data of in
             # the UI.
             request_model = self.build_request_model(self.request_options.to_model())
-            print("initial_request", request_model)
             await self.collection_tree.new_request_flow(request_model)
             # The new request flow is already handling the saving of the request to disk.
             # No further action is required.

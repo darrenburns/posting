@@ -76,11 +76,6 @@ class CollectionTree(PostingTree[CollectionNode]):
 
     currently_open: Reactive[TreeNode[CollectionNode] | None] = reactive(None)
 
-    def key_p(self):
-        print(
-            repr(self.cursor_node.data if self.cursor_node is not None else "no node")
-        )
-
     def watch_currently_open(self, node: TreeNode[CollectionNode] | None) -> None:
         if node and isinstance(node.data, RequestModel):
             self.post_message(

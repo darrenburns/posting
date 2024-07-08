@@ -277,7 +277,6 @@ class UrlBar(Vertical):
         """Clear the events from the request trace."""
         self.trace_markers.update("")
         self._trace_events.clear()
-        print("cleared events")
 
     @property
     def trace_markers(self) -> Label:
