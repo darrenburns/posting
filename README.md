@@ -127,7 +127,9 @@ This can also be done via the command palette options `view: expand request` and
 
 You can refer to variables in the UI using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
 
-![url-bar-environments-short](https://github.com/darrenburns/posting/assets/5740731/c8e5e805-1ed2-41b2-acde-030a276bc132)
+<p align="center">
+  <img src="https://github.com/darrenburns/posting/assets/5740731/c8e5e805-1ed2-41b2-acde-030a276bc132" alt="url-bar-environments-short" width="55%">
+</p>
 
 These variables will be substituted into outgoing requests.
 
