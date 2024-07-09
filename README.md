@@ -66,7 +66,7 @@ This will recursively find and display requests in the sidebar.
 If you don't supply a directory, Posting will use the default collection directory.
 You can check where this is by running `posting locate collection`.
 
-### Keybindings
+### Collection related keybindings
 
 - To create a new request, press <kbd>ctrl</kbd>+<kbd>n</kbd>.
 - To save changes to the currently open request, press <kbd>ctrl</kbd>+<kbd>s</kbd>.
