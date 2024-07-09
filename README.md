@@ -1,14 +1,10 @@
 # Posting.
 
-Posting is a powerful HTTP client which brings Postman-like functionality to your terminal. It works over SSH, stores collections in a Git-friendly format, and can be operated efficiently using both keyboard and mouse.
+**Posting is a powerful HTTP client which lives in your terminal.**
+
+It works over SSH, stores collections locally in a simple (and Git-friendly) YAML format, and can be operated efficiently using both keyboard and mouse.
 
 <img width="1337" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/77f50aa0-bc93-4e42-b06b-c209ec233fe8">
-
-## Important note
-
-Posting is still under development and not yet feature complete.
-
-Some notable missing features include pre/post-request scripts, and the ability to send files. Also, some of the existing features are still being fleshed out.
 
 ## Installation
 
