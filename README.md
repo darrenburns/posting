@@ -8,8 +8,6 @@ Posting is a powerful HTTP client which brings Postman-like functionality to you
 
 Posting is still under development and not yet feature complete.
 
-The UI, config, and request format is subject to change while the version specifier contains a `b` suffix.
-
 Some notable missing features include pre/post-request scripts, and the ability to send files. Also, some of the existing features are still being fleshed out.
 
 ## Installation
