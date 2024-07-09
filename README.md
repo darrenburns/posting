@@ -112,7 +112,9 @@ Many of these are documented below.
 | Previous directory | <kbd>shift</kbd>+<kbd>k</kbd> | When collection browser is focused |
 | Undo in request body | <kbd>ctrl</kbd>+<kbd>z</kbd> | When request body text area is focused |
 | Redo in request body | <kbd>ctrl</kbd>+<kbd>y</kbd> | When request body text area is focused |
-
+| Copy selection to clipboard | <kbd>y</kbd> or <kbd>c</kbd> | When response body text area is focused |
+| Open in pager | <kbd>f3</kbd> | When a text area is focused |
+| Open in external editor | <kbd>f4</kbd> | When a text area is focused |
 
 > [!NOTE]
 > This section is incomplete. Many keyboard shortcuts are not yet documented.

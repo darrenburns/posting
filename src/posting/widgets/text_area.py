@@ -1,4 +1,8 @@
 from dataclasses import dataclass
+import os
+import shlex
+import subprocess
+import tempfile
 from typing_extensions import Literal
 from textual import on
 from textual.app import ComposeResult
@@ -9,6 +13,7 @@ from textual.message import Message
 from textual.reactive import reactive, Reactive
 from textual.widgets import TextArea, Label, Select, Checkbox
 from textual.widgets.text_area import Selection, TextAreaTheme
+from posting.config import SETTINGS
 
 from posting.widgets.select import PostingSelect
 
@@ -195,6 +200,11 @@ class TextAreaFooter(Horizontal):
 
 
 class PostingTextArea(TextArea):
+    BINDINGS = [
+        Binding("f3", "open_in_pager", "Pager"),
+        Binding("f4", "open_in_editor", "Editor"),
+    ]
+
     def on_mount(self) -> None:
         self.indent_width = 2
         self.register_theme(POSTING_THEME)
@@ -222,6 +232,36 @@ class PostingTextArea(TextArea):
     def on_change(self, event: TextArea.Changed) -> None:
         empty = len(self.text) == 0
         self.set_class(empty, "empty")
+
+    def action_open_in_editor(self) -> None:
+        editor_command = SETTINGS.get().editor
+        self._open_as_tempfile(editor_command)
+
+    def action_open_in_pager(self) -> None:
+        pager_command = SETTINGS.get().pager
+        self._open_as_tempfile(pager_command)
+
+    def _open_as_tempfile(self, command: str | None) -> None:
+        if command is None:
+            return
+
+        editor_args: list[str] = shlex.split(command)
+
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file_name = temp_file.name
+            temp_file.write(self.text.encode("utf-8"))
+            temp_file.flush()
+
+        editor_args.append(temp_file_name)
+
+        with self.app.suspend():
+            subprocess.call(editor_args)
+
+        with open(temp_file_name, "r") as temp_file:
+            if not self.read_only:
+                self.text = temp_file.read()
+
+        os.remove(temp_file_name)
 
 
 class ReadOnlyTextArea(PostingTextArea):

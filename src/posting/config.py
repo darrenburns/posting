@@ -1,4 +1,5 @@
 from contextvars import ContextVar
+import os
 from typing import Type
 from pydantic import BaseModel, Field
 from pydantic_settings import (
@@ -70,11 +71,11 @@ class Settings(BaseSettings):
     url_bar: UrlBarSettings = Field(default_factory=UrlBarSettings)
     """Configuration for the URL bar."""
 
-    pager: str | None = Field(default=None)
-    """The command to use for paging. If `None`, the `PAGER` environment variable will be used."""
+    pager: str | None = Field(default=os.getenv("PAGER"))
+    """The command to use for paging."""
 
-    editor: str | None = Field(default=None)
-    """The command to use for editing. If `None`, the `EDITOR` environment variable will be used."""
+    editor: str | None = Field(default=os.getenv("EDITOR"))
+    """The command to use for editing."""
 
     @classmethod
     def settings_customise_sources(
