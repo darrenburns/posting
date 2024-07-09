@@ -66,7 +66,7 @@ This will recursively find and display requests in the sidebar.
 If you don't supply a directory, Posting will use the default collection directory.
 You can check where this is by running `posting locate collection`.
 
-### Keybindings
+### Collection related keybindings
 
 - To create a new request, press <kbd>ctrl</kbd>+<kbd>n</kbd>.
 - To save changes to the currently open request, press <kbd>ctrl</kbd>+<kbd>s</kbd>.
@@ -96,7 +96,7 @@ Where it makes sense, <kbd>up</kbd> and <kbd>down</kbd> will move between widget
 
 Important keyboard shortcuts are displayed at the bottom of the screen.
 
-> ![TIP]
+> [!TIP]
 > Many parts of the Posting UI support Vim keys for navigation.
 
 Some less important shortcuts are not shown in the footer.
@@ -114,7 +114,7 @@ Many of these are documented below.
 | Redo in request body | <kbd>ctrl</kbd>+<kbd>y</kbd> | When request body text area is focused |
 
 
-> ![NOTE]
+> [!NOTE]
 > This section is incomplete. Many keyboard shortcuts are not yet documented.
 
 <!-- TODO - document other shortcuts. -->
