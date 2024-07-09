@@ -129,7 +129,7 @@ You can use variables in the UI using the `${VARIABLE_NAME}` or `$VARIABLE_NAME`
 These variables will be substituted into outgoing requests.
 
 <p align="center">
-  <img src="https://github.com/darrenburns/posting/assets/5740731/c8e5e805-1ed2-41b2-acde-030a276bc132" alt="url-bar-environments-short">
+  <img src="https://github.com/darrenburns/posting/assets/5740731/24b64f58-747b-409e-9672-e354eb8994d8" alt="url-bar-environments-short">
 </p>
 
 `.env` files can be loaded using the `--env` option.
@@ -186,7 +186,11 @@ Some functionality in Posting doesn't warrant a dedicated keyboard shortcut (for
 
 To open the command palette, press <kbd>ctrl</kbd>+<kbd>p</kbd>.
 
-<img width="1327" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/2e9a28cb-af6e-454c-b368-6f7943a367a4">
+<p align="center">
+  <img src="https://github.com/darrenburns/posting/assets/5740731/945b585c-dcb8-48cd-8458-24ceed0f5efa" alt="command-palette-demo">
+</p>
+
+
 
 ## Configuration
 
