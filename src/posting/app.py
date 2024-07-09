@@ -310,11 +310,16 @@ class MainScreen(Screen[None]):
         # on disk, or the new location on disk which was assigned during the "new request flow"
         save_path = request_model.path
         if save_path is not None:
+            try:
+                path_to_display = str(save_path.resolve().relative_to(Path.cwd()))
+            except ValueError:
+                path_to_display = save_path.name
+
             request_model.save_to_disk(save_path)
             self.collection_browser.update_currently_open_node(request_model)
             self.notify(
                 title="Request saved",
-                message=f"{save_path.absolute().relative_to(Path.cwd())}",
+                message=path_to_display,
                 timeout=3,
             )
 
