@@ -70,6 +70,12 @@ class Settings(BaseSettings):
     url_bar: UrlBarSettings = Field(default_factory=UrlBarSettings)
     """Configuration for the URL bar."""
 
+    pager: str | None = Field(default=None)
+    """The command to use for paging. If `None`, the `PAGER` environment variable will be used."""
+
+    editor: str | None = Field(default=None)
+    """The command to use for editing. If `None`, the `EDITOR` environment variable will be used."""
+
     @classmethod
     def settings_customise_sources(
         cls,
