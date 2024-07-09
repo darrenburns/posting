@@ -1,6 +1,6 @@
 [project]
 name = "posting"
-version = "1.0.1"
+version = "1.0.2"
 description = "The modern API client that lives in your terminal."
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }
@@ -16,7 +16,7 @@ dependencies = [
     "textual[syntax]==0.72.0",
     "pydantic-settings==2.3.4",
     "python-dotenv==1.0.1",
-    "textual-autocomplete==3.0.0a8",
+    "textual-autocomplete>=3.0.0a9",
 ]
 readme = "README.md"
 requires-python = ">= 3.11"
