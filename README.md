@@ -1,6 +1,6 @@
 # Posting.
 
-**Posting is a powerful HTTP client which lives in your terminal.**
+**Posting is a powerful HTTP client that lives in your terminal.**
 
 It works over SSH, stores collections locally in a simple (and Git-friendly) YAML format, and can be operated efficiently using both keyboard and mouse.
 
@@ -125,23 +125,22 @@ This can also be done via the command palette options `view: expand request` and
 
 ## Environments
 
-You can refer to variables in the UI using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
-
-<p align="center">
-  <img src="https://github.com/darrenburns/posting/assets/5740731/c8e5e805-1ed2-41b2-acde-030a276bc132" alt="url-bar-environments-short" width="55%">
-</p>
-
+You can use variables in the UI using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
 These variables will be substituted into outgoing requests.
 
-Used in conjunction with dotenv (`.env`) files, this lets you define environment-specific variables.
+<p align="center">
+  <img src="https://github.com/darrenburns/posting/assets/5740731/c8e5e805-1ed2-41b2-acde-030a276bc132" alt="url-bar-environments-short">
+</p>
 
-You can load `.env` files into Posting from the command line using the `--env` option, and then refer to variables in these files within the UI.
+`.env` files can be loaded using the `--env` option.
+Variables from these files can then be used in the UI.
 
 ### Example
 
 Imagine you're testing an API which exists in both `dev` and `prod` environments.
 
-The `dev` and `prod` environments share some common variables, but differ in many ways too. We can model this by having a single `shared.env` file which contains variables which are shared between environments, and then a `dev.env` and `prod.env` file which contain environment specific variables.
+The `dev` and `prod` environments share some common variables, but differ in many ways too.
+We can model this by having a single `shared.env` file which contains variables which are shared between environments, and then a `dev.env` and `prod.env` file which contain environment specific variables.
 
 ```bash
 # file: shared.env
@@ -175,7 +174,7 @@ If you want to permit using environment variables that exist on the host machine
 
 #### Environment specific config
 
-Since all Posting configuration options can also be specified as environment variables, we can put environment specific config inside `.env` files. There's a dedicated "Configuration" section in this document which covers this in more detail.
+Since all Posting configuration options can also be specified as environment variables, we can also put environment specific config inside `.env` files. There's a dedicated "Configuration" section in this document which covers this in more detail.
 
 For example, if you wanted to use a light theme in the prod environment (as a subtle reminder that you're in production!), you could set the environment variable `POSTING_THEME=solarized-light` inside the `prod.env` file.
 
