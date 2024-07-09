@@ -96,7 +96,26 @@ Where it makes sense, <kbd>up</kbd> and <kbd>down</kbd> will move between widget
 
 Important keyboard shortcuts are displayed at the bottom of the screen.
 
-However, there are many other shortcuts available - these will be documented soon.
+> ![TIP]
+> Many parts of the Posting UI support Vim keys for navigation.
+
+Some less important shortcuts are not shown in the footer.
+Many of these are documented below.
+
+| Action | Shortcut | Context |
+|--------|----------|---------|
+| Focus the URL bar | <kbd>ctrl</kbd>+<kbd>l</kbd> | Global |
+| Toggle collection browser sidebar | <kbd>ctrl</kbd>+<kbd>b</kbd> | Global |
+| Expand request section | <kbd>ctrl</kbd>+<kbd>m</kbd> | When request section is focused |
+| Expand response section | <kbd>ctrl</kbd>+<kbd>m</kbd> | When response section is focused |
+| Next directory | <kbd>shift</kbd>+<kbd>j</kbd> | When collection browser is focused |
+| Previous directory | <kbd>shift</kbd>+<kbd>k</kbd> | When collection browser is focused |
+| Undo in request body | <kbd>ctrl</kbd>+<kbd>z</kbd> | When request body text area is focused |
+| Redo in request body | <kbd>ctrl</kbd>+<kbd>y</kbd> | When request body text area is focused |
+
+
+> ![NOTE]
+> This section is incomplete. Many keyboard shortcuts are not yet documented.
 
 <!-- TODO - document other shortcuts. -->
 
@@ -110,7 +129,7 @@ This can also be done via the command palette options `view: expand request` and
 
 ## Environments
 
-You can refer to variables in the UI using the `${env:VARIABLE_NAME}` or `$env:VARIABLE_NAME` syntax.
+You can refer to variables in the UI using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
 
 These variables will be substituted into outgoing requests.
 
@@ -149,9 +168,10 @@ posting --env shared.env --env dev.env
 This will load all of the shared variables from `shared.env`, and then load the variables from `dev.env`. Since `ENV_NAME` appears in both files, the value from the `dev.env` file will be used since that was the last one specified.
 
 Note that you do *not* need to restart to load changes made to these files,
-so you can open and edit  your env files in an editor of your choice alongside Posting.
+so you can open and edit your env files in an editor of your choice alongside Posting.
+However, autocompletion and variable highlighting will not update until Posting is restarted.
 
-If you want to permit using environment variables that exist on the host machine (i.e. those which are not defined in any `.env` files), you must set the `use_host_environment` config option to `true` (or set the environmnet variable `POSTING_USE_HOST_ENVIRONMENT=true`).
+If you want to permit using environment variables that exist on the host machine (i.e. those which are not defined in any `.env` files), you must set the `use_host_environment` config option to `true` (or set the environment variable `POSTING_USE_HOST_ENVIRONMENT=true`).
 
 #### Environment specific config
 
