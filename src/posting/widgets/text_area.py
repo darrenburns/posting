@@ -247,7 +247,14 @@ class PostingTextArea(TextArea):
 
         editor_args: list[str] = shlex.split(command)
 
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        if self.language in {"json", "html", "yaml"}:
+            suffix = f".{self.language}"
+        elif self.language == "python":
+            suffix = ".py"
+        else:
+            suffix = ""
+
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_file:
             temp_file_name = temp_file.name
             temp_file.write(self.text.encode("utf-8"))
             temp_file.flush()
