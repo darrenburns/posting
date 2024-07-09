@@ -42,11 +42,6 @@ class KeyValueInput(Horizontal):
     }
     """
 
-    BINDINGS = [
-        # TODO - textual-autocomplete is eating the up key.
-        Binding("up", "screen.focus_previous", "Focus previous"),
-    ]
-
     @dataclass
     class New(Message):
         key: str
