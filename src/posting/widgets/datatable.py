@@ -5,7 +5,7 @@ from textual import on
 from textual.binding import Binding
 from textual.message import Message
 from textual.widgets import DataTable
-from textual.widgets.data_table import CellKey, RowKey
+from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey
 
 
 class PostingDataTable(DataTable[str]):
@@ -104,6 +104,14 @@ PostingDataTable {
     @on(RowsAdded)
     def _on_rows_removed(self, event: RowsRemoved | RowsAdded) -> None:
         self.set_class(self.row_count == 0, "empty")
+
+    def action_remove_row(self) -> None:
+        try:
+            cursor_cell_key = self.coordinate_to_cell_key(self.cursor_coordinate)
+            cursor_row_key, _ = cursor_cell_key
+            self.remove_row(cursor_row_key)
+        except CellDoesNotExist:
+            pass
 
     def __rich_repr__(self):
         yield "id", self.id

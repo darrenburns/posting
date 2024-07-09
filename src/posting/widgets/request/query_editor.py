@@ -1,7 +1,6 @@
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
-from textual.widgets import Input
 from textual.widgets.data_table import CellDoesNotExist
 from posting.collection import QueryParam
 
@@ -43,14 +42,6 @@ class ParamsTable(PostingDataTable):
     def watch_has_focus(self, value: bool) -> None:
         self._scroll_cursor_into_view()
         return super().watch_has_focus(value)
-
-    def action_remove_row(self) -> None:
-        try:
-            cursor_cell_key = self.coordinate_to_cell_key(self.cursor_coordinate)
-            cursor_row_key, _ = cursor_cell_key
-            self.remove_row(cursor_row_key)
-        except CellDoesNotExist:
-            pass
 
     def to_model(self) -> list[QueryParam]:
         params: list[QueryParam] = []

@@ -62,7 +62,7 @@ class HeadersTable(PostingDataTable):
     """
 
     BINDINGS = [
-        Binding("backspace", action="remove_header", description="Remove header"),
+        Binding("backspace", action="remove_row", description="Remove header"),
     ]
 
     def on_mount(self):
@@ -82,14 +82,6 @@ class HeadersTable(PostingDataTable):
             row = self.get_row_at(row_index)
             headers[row[0]] = row[1]
         return headers
-
-    def action_remove_header(self) -> None:
-        try:
-            cursor_cell_key = self.coordinate_to_cell_key(self.cursor_coordinate)
-            cursor_row_key, _ = cursor_cell_key
-            self.remove_row(cursor_row_key)
-        except CellDoesNotExist:
-            pass
 
     def to_model(self) -> list[Header]:
         headers: list[Header] = []

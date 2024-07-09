@@ -1,7 +1,7 @@
 from typing import Iterable
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Vertical
-from textual.widgets import Input
 from posting.collection import FormItem
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
@@ -9,6 +9,10 @@ from posting.widgets.variable_input import VariableInput
 
 
 class FormTable(PostingDataTable):
+    BINDINGS = [
+        Binding("backspace", action="remove_row", description="Remove row"),
+    ]
+
     def on_mount(self):
         self.fixed_columns = 1
         self.show_header = False
