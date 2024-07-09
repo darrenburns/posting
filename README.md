@@ -96,7 +96,7 @@ Where it makes sense, <kbd>up</kbd> and <kbd>down</kbd> will move between widget
 
 Important keyboard shortcuts are displayed at the bottom of the screen.
 
-> ![TIP]
+> [!TIP]
 > Many parts of the Posting UI support Vim keys for navigation.
 
 Some less important shortcuts are not shown in the footer.
@@ -114,7 +114,7 @@ Many of these are documented below.
 | Redo in request body | <kbd>ctrl</kbd>+<kbd>y</kbd> | When request body text area is focused |
 
 
-> ![NOTE]
+> [!NOTE]
 > This section is incomplete. Many keyboard shortcuts are not yet documented.
 
 <!-- TODO - document other shortcuts. -->
