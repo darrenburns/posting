@@ -53,19 +53,18 @@ def cli() -> None:
     help="Path to the .env environment file(s)",
     multiple=True,
 )
-def default(collection: Path | None = None, env: tuple[Path, ...] = ()) -> None:
+def default(collection: str | None = None, env: tuple[str, ...] = ()) -> None:
     create_config_file()
     default_collection = create_default_collection()
 
-    if collection:
-        collection_tree = Collection.from_directory(str(collection))
-    else:
-        collection_tree = Collection.from_directory(str(default_collection))
+    collection_path = Path(collection) if collection else default_collection
+    collection_tree = Collection.from_directory(str(collection_path.resolve()))
 
+    env_paths = tuple(Path(e).resolve() for e in env)
     collection_specified = collection is not None
-    settings = Settings(_env_file=env)  # type: ignore[call-arg]
+    settings = Settings(_env_file=env_paths)  # type: ignore[call-arg]
 
-    app = Posting(settings, env, collection_tree, collection_specified)
+    app = Posting(settings, env_paths, collection_tree, collection_specified)
     app.run()
 
 
