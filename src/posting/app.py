@@ -733,7 +733,6 @@ class Posting(PostingApp):
 
     def command_theme(self, theme: str) -> None:
         self.theme = theme
-        self.refresh_css()
         self.notify(
             f"Theme is now [b]{theme!r}[/].", title="Theme updated", timeout=2.5
         )
