@@ -2,7 +2,7 @@
 
 **A powerful HTTP client that lives in your terminal.**
 
-Posting is an HTTP client, not unlike Postman and Insomnia. However, as a TUI application, it works over SSH and enables efficient keyboard-centric workflows. Your requests are stored locally in simple readable YAML files, meaning they're easy to read and version control.
+Posting is an HTTP client, not unlike Postman and Insomnia. However, as a TUI application, it can be used over SSH and enables efficient keyboard-centric workflows. Your requests are stored locally in simple YAML files, meaning they're easy to read and version control.
 
 <img width="1337" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/77f50aa0-bc93-4e42-b06b-c209ec233fe8">
 
