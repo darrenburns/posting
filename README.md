@@ -1,10 +1,14 @@
 # Posting.
 
-**Posting is a powerful HTTP client that lives in your terminal.**
+**A powerful HTTP client that lives in your terminal.**
 
-It works over SSH, stores collections locally in a simple (and Git-friendly) YAML format, and can be operated efficiently using both keyboard and mouse.
+Posting is an HTTP client, not unlike Postman and Insomnia. However, as a TUI application, it works over SSH and enables efficient keyboard-centric workflows. Your requests are stored locally in simple readable YAML files, meaning they're easy to read and version control.
 
 <img width="1337" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/77f50aa0-bc93-4e42-b06b-c209ec233fe8">
+
+Some notable features include: "jump mode" navigation, environments/variables system with autocompletion, syntax highlighting powered by tree-sitter, Vim keys, various builtin themes, a configuration system, "open in $EDITOR", and a command palette for quickly accessing functionality.
+
+Posting is built using Python and [Textual](https://github.com/textualize/textual).
 
 ## Installation
 
