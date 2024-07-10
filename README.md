@@ -99,7 +99,7 @@ Many of these are documented below.
 | Action | Shortcut | Context |
 |--------|----------|---------|
 | Focus the URL bar | <kbd>ctrl</kbd>+<kbd>l</kbd> | Global |
-| Toggle collection browser sidebar | <kbd>ctrl</kbd>+<kbd>b</kbd> | Global |
+| Toggle collection browser sidebar | <kbd>ctrl</kbd>+<kbd>h</kbd> | Global |
 | Expand request section | <kbd>ctrl</kbd>+<kbd>m</kbd> | When request section is focused |
 | Expand response section | <kbd>ctrl</kbd>+<kbd>m</kbd> | When response section is focused |
 | Next directory | <kbd>shift</kbd>+<kbd>j</kbd> | When collection browser is focused |
