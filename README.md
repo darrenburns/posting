@@ -77,7 +77,9 @@ Press <kbd>ctrl</kbd>+<kbd>o</kbd> to enter jump mode.
 
 A key overlay will appear on the screen, allowing you to jump to any widget by pressing the corresponding key.
 
-<img width="1327" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/0911e3da-7500-456f-a53f-ea5038498e13">
+<p align="center">
+  <img src="https://github.com/darrenburns/posting/assets/5740731/c4f09ca8-a228-449c-97b1-573f86d4ae6a" alt="url-bar-environments-short">
+</p>
 
 ### Tab navigation
 
