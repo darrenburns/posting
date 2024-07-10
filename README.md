@@ -107,6 +107,10 @@ Some additional keyboard shortcuts are shown in the table below.
 > [!TIP]
 > Many parts of the UI support Vim keys for navigation.
 
+### Exiting Posting TUI
+
+Press `Ctrl`+`c` to quit the TUI.
+
 ## Environments
 
 You can use variables in the UI using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
