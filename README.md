@@ -20,11 +20,9 @@ More installation methods (`brew`, etc) will be added soon.
 
 ## Collections
 
-Requests can be stored directly on your file system.
+Requests are stored directly on your file system as simple YAML files, suffixed with `.posting.yaml` - easy to read, understand, and version control!
 
-Each request is stored as a simple YAML file, suffixed with `.posting.yaml` - easy to read, understand, and version control!
-
-Here's a quick example of a `*.posting.yaml` file.
+Here's what they look like:
 
 ```yaml
 name: Create user
@@ -35,15 +33,11 @@ body:
   content: |-
     {
       "firstName": "John",
-      "lastName": "Doe",
       "email": "john.doe@example.com"
     }
 headers:
 - name: Content-Type
   value: application/json
-- name: Some-Header
-  value: Some value
-  enabled: false
 params:
 - name: sendWelcomeEmail
   value: 'true'
@@ -56,14 +50,8 @@ posting --collection path/to/collection
 ```
 
 This will recursively find and display requests in the sidebar.
-
 If you don't supply a directory, Posting will use the default collection directory.
 You can check where this is by running `posting locate collection`.
-
-### Collection related keybindings
-
-- To create a new request, press <kbd>ctrl</kbd>+<kbd>n</kbd>.
-- To save changes to the currently open request, press <kbd>ctrl</kbd>+<kbd>s</kbd>.
 
 ## Navigation
 
@@ -71,7 +59,7 @@ Posting can be navigated using either mouse or keyboard.
 
 ### Jump mode
 
-Jump mode is the fastest way to get around in Posting.
+Jump mode is the fastest way to get around.
 
 Press <kbd>ctrl</kbd>+<kbd>o</kbd> to enter jump mode.
 
@@ -91,13 +79,11 @@ Where it makes sense, <kbd>up</kbd> and <kbd>down</kbd> will move between widget
 ### Keyboard shortcuts
 
 Important keyboard shortcuts are displayed at the bottom of the screen.
+Some additional keyboard shortcuts are shown in the table below.
 
-> [!TIP]
-> Many parts of the Posting UI support Vim keys for navigation.
-
-Some less important shortcuts are not shown in the footer.
-Many of these are documented below.
-
+<details>
+  <summary>Click here to see keybinds</summary>
+  
 | Action | Shortcut | Context |
 |--------|----------|---------|
 | Focus the URL bar | <kbd>ctrl</kbd>+<kbd>l</kbd> | Global |
@@ -112,18 +98,10 @@ Many of these are documented below.
 | Open in pager | <kbd>f3</kbd> | When a text area is focused |
 | Open in external editor | <kbd>f4</kbd> | When a text area is focused |
 
-> [!NOTE]
-> This section is incomplete. Many keyboard shortcuts are not yet documented.
+</details>
 
-<!-- TODO - document other shortcuts. -->
-
-### Expanding/hiding the request/response sections
-
-Press <kbd>ctrl</kbd>+<kbd>m</kbd> to expand the section which currently has focus (the request or response section).
-
-Press it again to reset the UI.
-
-This can also be done via the command palette options `view: expand request` and `view: expand response`.
+> [!TIP]
+> Many parts of the UI support Vim keys for navigation.
 
 ## Environments
 
@@ -191,8 +169,6 @@ To open the command palette, press <kbd>ctrl</kbd>+<kbd>p</kbd>.
 <p align="center">
   <img src="https://github.com/darrenburns/posting/assets/5740731/945b585c-dcb8-48cd-8458-24ceed0f5efa" alt="command-palette-demo">
 </p>
-
-
 
 ## Configuration
 
