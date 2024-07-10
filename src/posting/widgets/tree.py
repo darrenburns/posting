@@ -32,7 +32,7 @@ class PostingTree(Tree[T]):
     def action_cursor_up_parent(self) -> None:
         """Move the cursor to the previous collapsible node."""
         start_line = max(self.cursor_line - 1, 0)
-        for line in range(start_line, 0, -1):
+        for line in range(start_line, -1, -1):
             node = self.get_node_at_line(line)
             if node and node.allow_expand:
                 self.cursor_line = line
@@ -42,7 +42,7 @@ class PostingTree(Tree[T]):
         """Move the cursor to the next collapsible node."""
         max_index = len(self._tree_lines) - 1
         start_line = min(self.cursor_line + 1, max_index)
-        for line in range(start_line, max_index):
+        for line in range(start_line, max_index + 1):
             node = self.get_node_at_line(line)
             if node and node.allow_expand:
                 self.cursor_line = line
