@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Literal
+import subprocess
 import httpx
 from rich.console import Group
 from rich.text import Text
@@ -706,10 +707,10 @@ class Posting(PostingApp):
     def try_to_add_xresources_theme(self) -> None:
         try:
             xrdb = subprocess.run(
-            ["xrdb", "-query"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
+                ["xrdb", "-query"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
         except FileNotFoundError:
             return
