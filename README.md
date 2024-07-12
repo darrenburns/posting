@@ -248,6 +248,22 @@ POSTING_HEADING__VISIBLE="false"
 | `pager_json` (`POSTING_PAGER_JSON`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | Command to use for opening files in an external editor. |
 
+### Xresources-based theme
+
+Posting supports using Xresources for theming. To use this, the `xrdb` executable has to be available in `$PATH` and `xrdb -query` has to return the following variables:
+
+| Xresources  | [Textual color](https://textual.textualize.io/guide/design/#base-colors) |
+|-------------|--------------------------------------------------------------------------|
+| *color0     | primary                                                                  |
+| *color8     | secondary                                                                |
+| *color1     | error                                                                    |
+| *color2     | success                                                                  |
+| *color3     | warning                                                                  |
+| *color4     | accent                                                                   |
+| *background | background                                                               |
+| *color7     | surface, panel                                                           |
+
+If these conditions are met, themes called `xresources-dark` and `xresources-light` are added to the list.
 
 ## Importing OpenAPI Specifications
 
