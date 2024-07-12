@@ -701,6 +701,52 @@ class Posting(PostingApp):
         )
         self.theme_change_signal = Signal[ColorSystem](self, "theme-changed")
         self.theme = self.settings.theme
+        self.try_to_add_xresources_theme()
+
+    def try_to_add_xresources_theme(self) -> None:
+        try:
+            xrdb = subprocess.run(
+            ["xrdb", "-query"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            )
+        except FileNotFoundError:
+            return
+
+        if xrdb.returncode == 0:
+            lines = xrdb.stdout.splitlines()
+            color_system_kwargs = {}
+            for line in lines:
+                if line.startswith("*"):
+                    parts = line.split(":")
+                    if len(parts) == 2:
+                        name, value = parts[0].strip("*").strip(), parts[1].strip()
+                        if name == "color0":
+                            color_system_kwargs["primary"] = value
+                        elif name == "color8":
+                            color_system_kwargs["secondary"] = value
+                        elif name == "color1":
+                            color_system_kwargs["error"] = value
+                        elif name == "color2":
+                            color_system_kwargs["success"] = value
+                        elif name == "color3":
+                            color_system_kwargs["warning"] = value
+                        elif name == "color4":
+                            color_system_kwargs["accent"] = value
+                        elif name == "background":
+                            color_system_kwargs["background"] = value
+                        elif name == "color7":
+                            color_system_kwargs["surface"] = value
+                            color_system_kwargs["panel"] = value
+
+            if len(color_system_kwargs) == 9:
+                self.themes["xresources-dark"] = ColorSystem(
+                    **color_system_kwargs, dark=True
+                )
+                self.themes['xresources-light'] = ColorSystem(
+                    **color_system_kwargs, dark=False
+                )
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(
