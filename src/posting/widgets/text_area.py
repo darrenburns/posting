@@ -271,6 +271,9 @@ class PostingTextArea(TextArea):
         os.remove(temp_file_name)
 
 
+BRACKETS = set("()[]{}")
+
+
 class ReadOnlyTextArea(PostingTextArea):
     """
     A read-only text area.
@@ -319,6 +322,7 @@ class ReadOnlyTextArea(PostingTextArea):
         ),
         Binding("g", "cursor_top", "Go to top", show=False),
         Binding("G", "cursor_bottom", "Go to bottom", show=False),
+        Binding("%", "cursor_to_matched_bracket", "Go to matched bracket", show=False),
     ]
 
     def __init__(
@@ -418,6 +422,23 @@ class ReadOnlyTextArea(PostingTextArea):
 
     def action_cursor_bottom(self) -> None:
         self.selection = Selection.cursor((self.document.line_count - 1, 0))
+
+    def action_cursor_to_matched_bracket(self) -> None:
+        # If we're already on a bracket which has a match, just jump to it and return.
+        if self._matching_bracket_location:
+            self.selection = Selection.cursor(self._matching_bracket_location)
+            return
+
+        # Look for a bracket on the rest of the cursor line.
+        # If we find a bracket, jump to its match.
+        row, column = self.selection.end
+        rest_of_line = self.document.get_line(row)[column:]
+        for column_index, char in enumerate(rest_of_line, start=column):
+            if char in BRACKETS:
+                matched_bracket = self.find_matching_bracket(char, (row, column_index))
+                if matched_bracket:
+                    self.selection = Selection.cursor(matched_bracket)
+                    break
 
 
 class TextEditor(Vertical):
