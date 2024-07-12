@@ -317,6 +317,8 @@ class ReadOnlyTextArea(PostingTextArea):
         Binding(
             "y,c", "copy_to_clipboard", description="Copy selection", key_display="y"
         ),
+        Binding("g", "cursor_top", "Go to top", show=False),
+        Binding("G", "cursor_bottom", "Go to bottom", show=False),
     ]
 
     def __init__(
@@ -410,6 +412,12 @@ class ReadOnlyTextArea(PostingTextArea):
 
         pyperclip.copy(text_to_copy)
         self.visual_mode = False
+
+    def action_cursor_top(self) -> None:
+        self.selection = Selection.cursor((0, 0))
+
+    def action_cursor_bottom(self) -> None:
+        self.selection = Selection.cursor((self.document.line_count - 1, 0))
 
 
 class TextEditor(Vertical):
