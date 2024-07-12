@@ -77,7 +77,9 @@ class ResponseArea(Vertical):
         response_settings = SETTINGS.get().response
         if response_text_area.language == "json" and response_settings.prettify_json:
             try:
-                response_text = json.dumps(json.loads(response_text), indent=2)
+                response_text = json.dumps(
+                    json.loads(response_text), indent=2, ensure_ascii=False
+                )
             except json.JSONDecodeError:
                 pass
 
