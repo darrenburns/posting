@@ -74,6 +74,18 @@ class Settings(BaseSettings):
     pager: str | None = Field(default=os.getenv("PAGER"))
     """The command to use for paging."""
 
+    pager_json: str | None = Field(default=None)
+    """The command to use for paging JSON.
+    
+    This will be used when the pager is opened from within a TextArea,
+    and the content within that TextArea can be inferred to be JSON.
+    
+    For example, the editor is set to JSON language, or the response content
+    type indicates JSON.
+
+    If this is unset, the standard `pager` config will be used.
+    """
+
     editor: str | None = Field(default=os.getenv("EDITOR"))
     """The command to use for editing."""
 

@@ -238,7 +238,15 @@ class PostingTextArea(TextArea):
         self._open_as_tempfile(editor_command)
 
     def action_open_in_pager(self) -> None:
-        pager_command = SETTINGS.get().pager
+        settings = SETTINGS.get()
+
+        # If the language is JSON and the user has declared they
+        # want to use a specific pager for JSON, let's use that.
+        if self.language == "json" and settings.pager_json:
+            pager_command = settings.pager_json
+        else:
+            pager_command = settings.pager
+
         self._open_as_tempfile(pager_command)
 
     def _open_as_tempfile(self, command: str | None) -> None:
