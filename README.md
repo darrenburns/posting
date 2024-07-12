@@ -244,6 +244,9 @@ POSTING_HEADING__VISIBLE="false"
 | `heading.visible` (`POSTING_HEADING__VISIBLE`) | `true`, `false` (Default: `true`) | Show/hide the app header. |
 | `heading.show_host` (`POSTING_HEADING__SHOW_HOST`) | `true`, `false` (Default: `true`) | Show/hide the hostname in the app header. |
 | `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show/hide the variable value preview below the URL bar. |
+| `pager` (`POSTING_PAGER`) | Command to use for paging text. |
+| `pager_json` (`POSTING_PAGER_JSON`) | Command to use for paging JSON. |
+| `editor` (`POSTING_EDITOR`) | Command to use for opening files in an external editor. |
 
 
 ## Importing OpenAPI Specifications
