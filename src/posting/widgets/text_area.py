@@ -238,7 +238,15 @@ class PostingTextArea(TextArea):
         self._open_as_tempfile(editor_command)
 
     def action_open_in_pager(self) -> None:
-        pager_command = SETTINGS.get().pager
+        settings = SETTINGS.get()
+
+        # If the language is JSON and the user has declared they
+        # want to use a specific pager for JSON, let's use that.
+        if self.language == "json" and settings.pager_json:
+            pager_command = settings.pager_json
+        else:
+            pager_command = settings.pager
+
         self._open_as_tempfile(pager_command)
 
     def _open_as_tempfile(self, command: str | None) -> None:
@@ -269,6 +277,9 @@ class PostingTextArea(TextArea):
                 self.text = temp_file.read()
 
         os.remove(temp_file_name)
+
+
+BRACKETS = set("()[]{}")
 
 
 class ReadOnlyTextArea(PostingTextArea):
@@ -317,6 +328,9 @@ class ReadOnlyTextArea(PostingTextArea):
         Binding(
             "y,c", "copy_to_clipboard", description="Copy selection", key_display="y"
         ),
+        Binding("g", "cursor_top", "Go to top", show=False),
+        Binding("G", "cursor_bottom", "Go to bottom", show=False),
+        Binding("%", "cursor_to_matched_bracket", "Go to matched bracket", show=False),
     ]
 
     def __init__(
@@ -410,6 +424,29 @@ class ReadOnlyTextArea(PostingTextArea):
 
         pyperclip.copy(text_to_copy)
         self.visual_mode = False
+
+    def action_cursor_top(self) -> None:
+        self.selection = Selection.cursor((0, 0))
+
+    def action_cursor_bottom(self) -> None:
+        self.selection = Selection.cursor((self.document.line_count - 1, 0))
+
+    def action_cursor_to_matched_bracket(self) -> None:
+        # If we're already on a bracket which has a match, just jump to it and return.
+        if self._matching_bracket_location:
+            self.selection = Selection.cursor(self._matching_bracket_location)
+            return
+
+        # Look for a bracket on the rest of the cursor line.
+        # If we find a bracket, jump to its match.
+        row, column = self.selection.end
+        rest_of_line = self.document.get_line(row)[column:]
+        for column_index, char in enumerate(rest_of_line, start=column):
+            if char in BRACKETS:
+                matched_bracket = self.find_matching_bracket(char, (row, column_index))
+                if matched_bracket:
+                    self.selection = Selection.cursor(matched_bracket)
+                    break
 
 
 class TextEditor(Vertical):
