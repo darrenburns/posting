@@ -306,6 +306,8 @@ class ReadOnlyTextArea(PostingTextArea):
         Binding("end,ctrl+e,$", "cursor_line_end", "cursor line end", show=False),
         Binding("pageup,ctrl+b", "cursor_page_up", "cursor page up", show=False),
         Binding("pagedown,ctrl+f", "cursor_page_down", "cursor page down", show=False),
+        Binding("ctrl+d", "cursor_half_page_down", "cursor half page down", show=False),
+        Binding("ctrl+u", "cursor_half_page_up", "cursor half page up", show=False),
         Binding(
             "ctrl+shift+left,B",
             "cursor_word_left(True)",
@@ -447,6 +449,28 @@ class ReadOnlyTextArea(PostingTextArea):
                 if matched_bracket:
                     self.selection = Selection.cursor(matched_bracket)
                     break
+
+    def action_cursor_half_page_down(self) -> None:
+        """Move the cursor and scroll down half of a page."""
+        half_height = self.content_size.height // 2
+        _, cursor_location = self.selection
+        target = self.navigator.get_location_at_y_offset(
+            cursor_location,
+            half_height,
+        )
+        self.scroll_relative(y=half_height, animate=False)
+        self.move_cursor(target)
+
+    def action_cursor_half_page_up(self) -> None:
+        """Move the cursor and scroll down half of a page."""
+        half_height = self.content_size.height // 2
+        _, cursor_location = self.selection
+        target = self.navigator.get_location_at_y_offset(
+            cursor_location,
+            -half_height,
+        )
+        self.scroll_relative(y=-half_height, animate=False)
+        self.move_cursor(target)
 
 
 class TextEditor(Vertical):
