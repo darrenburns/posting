@@ -106,7 +106,7 @@ class HelpScreen(ModalScreen[None]):
     """
 
     BINDINGS = [
-        Binding("escape", "app.pop_screen", "Close Help"),
+        Binding("escape", "dismiss('')", "Close Help"),
     ]
 
     def __init__(

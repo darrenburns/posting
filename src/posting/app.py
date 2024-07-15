@@ -802,12 +802,12 @@ class Posting(PostingApp):
         self.clear_notifications()
         await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
 
-    def action_help(self) -> None:
+    async def action_help(self) -> None:
         focused = self.focused
 
-        def reset_focus() -> None:
+        def reset_focus(_) -> None:
             if focused:
-                self.set_focus(focused)
+                self.screen.set_focus(focused)
 
         self.set_focus(None)
-        self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
+        await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
