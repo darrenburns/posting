@@ -22,7 +22,7 @@ class JumpOverlay(ModalScreen[str | Widget]):
     """
 
     BINDINGS = [
-        Binding("escape,ctrl+o", "dismiss_overlay", "Dismiss", show=False),
+        Binding("escape", "dismiss_overlay", "Dismiss", show=False),
     ]
 
     def __init__(
@@ -40,11 +40,19 @@ class JumpOverlay(ModalScreen[str | Widget]):
     def on_mount(self) -> None:
         self._sync()
 
-    def on_key(self, key: events.Key) -> None:
-        # If they press a key corresponding to a jump target,
-        # then we jump to it.
+    def on_key(self, key_event: events.Key) -> None:
+        # We need to stop the bubbling of these keys, because if they
+        # arrive at the parent after the overlay is closed, then the parent
+        # will handle the key event, resulting in the focus being shifted
+        # again (unexpectedly) after the jump target was focused.
+        if key_event.key == "tab" or key_event.key == "shift+tab":
+            key_event.stop()
+            key_event.prevent_default()
+
         if self.is_active:
-            target = self.keys_to_widgets.get(key.key)
+            # If they press a key corresponding to a jump target,
+            # then we jump to it.
+            target = self.keys_to_widgets.get(key_event.key)
             if target is not None:
                 self.dismiss(target)
                 return
@@ -72,3 +80,5 @@ class JumpOverlay(ModalScreen[str | Widget]):
             yield label
         with Center(id="textual-jump-info"):
             yield Label("Press a key to jump")
+        with Center(id="textual-jump-dismiss"):
+            yield Label("[b]ESC[/] to dismiss")

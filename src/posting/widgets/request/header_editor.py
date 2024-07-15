@@ -3,9 +3,9 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.widgets import Input
-from textual.widgets.data_table import CellDoesNotExist
 from textual_autocomplete import DropdownItem, AutoComplete
 from posting.collection import Header
+from posting.help_screen import HelpData
 
 from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
@@ -13,12 +13,24 @@ from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 from posting.widgets.variable_input import VariableInput
 
 
+class HeaderInput(Input):
+    help = HelpData(
+        title="HTTP Header Input",
+        description="""\
+An input field for entering HTTP headers.
+Press `up` and `down` to navigate the dropdown list when it's visible.
+Press `enter` to insert the selected header.
+Press `tab` to both insert *and* shift focus.
+""",
+    )
+
+
 class HeaderEditor(Vertical):
     def compose(self) -> ComposeResult:
         yield KeyValueEditor(
             HeadersTable(),
             KeyValueInput(
-                Input(placeholder="Name", id="header-key-input"),
+                HeaderInput(placeholder="Name", id="header-key-input"),
                 VariableInput(placeholder="Value", id="header-value-input"),
                 button_label="Add header",
             ),

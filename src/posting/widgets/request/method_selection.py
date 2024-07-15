@@ -6,11 +6,22 @@ from textual.binding import Binding
 from textual.message import Message
 from textual.widgets import Select
 from posting.collection import HttpRequestMethod
+from posting.help_screen import HelpData
 
 from posting.widgets.select import PostingSelect
 
 
 class MethodSelector(PostingSelect[str]):
+    help = HelpData(
+        title="Method Selector",
+        description="""\
+Select the HTTP method for the request.
+You can select a method by typing a single letter. For example, pressing `g`
+will set the method to `GET`.
+The dropdown does not need to be expanded in order to select a method.
+""",
+    )
+
     DEFAULT_CSS = """
 MethodSelector {
     background: $secondary;
