@@ -8,9 +8,9 @@ T = TypeVar("T")
 
 class PostingSelect(Select[T], inherit_bindings=False):
     BINDINGS = [
-        Binding("enter,space,l", "show_overlay", "Show Overlay"),
-        Binding("up,k", "cursor_up", "Cursor Up"),
-        Binding("down,j", "cursor_down", "Cursor Down"),
+        Binding("enter,space,l", "show_overlay", "Show Overlay", show=False),
+        Binding("up,k", "cursor_up", "Cursor Up", show=False),
+        Binding("down,j", "cursor_down", "Cursor Down", show=False),
     ]
 
     def action_cursor_up(self):

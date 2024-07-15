@@ -3,7 +3,7 @@ from typing import Protocol, runtime_checkable
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import VerticalScroll
+from textual.containers import Vertical, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widget import Widget
 from textual.widgets import Label, Markdown
@@ -51,6 +51,10 @@ class HelpModalFooter(Label):
     """
 
 
+class HelpModalFocusNote(Label):
+    """A note below the help screen."""
+
+
 class HelpScreen(ModalScreen[None]):
     DEFAULT_CSS = """
     HelpScreen {
@@ -76,12 +80,23 @@ class HelpScreen(ModalScreen[None]):
             width: 1fr;
             content-align: center middle;
         }
-        & HelpModalFooter {
+
+        #footer-area {
             dock: bottom;
-            width: 1fr;
-            content-align: center middle;
+            height: auto;
             margin-top: 1;
+            & HelpModalFocusNote {
+                width: 1fr;
+                content-align: center middle;
+                color: $text-muted 40%;
+            }
+
+            & HelpModalFooter {
+                width: 1fr;
+                content-align: center middle;
+            }
         }
+
 
         & #bindings-title {
             width: 1fr;
@@ -123,6 +138,29 @@ class HelpScreen(ModalScreen[None]):
         with VerticalScroll() as vs:
             vs.can_focus = False
             widget = self.widget
+            # If the widget has help text, render it.
+            if isinstance(widget, Helpable):
+                help = widget.help
+                help_title = help.title
+                vs.border_title = f"[not bold]Focused Widget Help ([b]{help_title}[/])"
+                if help_title:
+                    yield HelpModalHeader(f"[b]{help_title}[/]")
+                help_markdown = help.description
+
+                if help_markdown:
+                    help_markdown = help_markdown.strip()
+                    with VerticalScroll(id="help-description-wrapper") as vs:
+                        yield Markdown(help_markdown, id="help-description")
+                else:
+                    yield Label(
+                        f"No help available for {help.title}",
+                        id="help-description",
+                    )
+            else:
+                name = widget.__class__.__name__
+                vs.border_title = f"Focused Widget Help ([b]{name}[/])"
+                yield HelpModalHeader(f"[b]{name}[/] Help")
+
             bindings = widget._bindings
             keys: list[tuple[str, Binding]] = [
                 binding for binding in bindings.keys.items()
@@ -149,24 +187,8 @@ class HelpScreen(ModalScreen[None]):
                     )
                 yield table
 
-            # If the widget has help text, render it.
-            if isinstance(widget, Helpable):
-                help = widget.help
-                help_title = help.title
-                if help_title:
-                    yield HelpModalHeader(f"[b]{help_title}[/] Help")
-                help_markdown = help.description
-
-                if help_markdown:
-                    help_markdown = help_markdown.strip()
-                    with VerticalScroll(id="help-description-wrapper") as vs:
-                        yield Markdown(help_markdown, id="help-description")
-                else:
-                    yield Label(
-                        f"No help available for {help.title}",
-                        id="help-description",
-                    )
-            else:
-                yield HelpModalHeader(f"[b]{widget.__class__.__name__}[/] Help")
-
-            yield HelpModalFooter("Press [b]ESC[/] to dismiss.")
+            with Vertical(id="footer-area"):
+                yield HelpModalFooter("Press [b]ESC[/] to dismiss.")
+                yield HelpModalFocusNote(
+                    "[b]Note:[/] This page relates to the widget that is currently focused."
+                )

@@ -14,7 +14,12 @@ class RequestBodyTextArea(PostingTextArea):
 
     help = HelpData(
         title="Request Body Text Area",
-        description="The request body is the body of the request.",
+        description="""\
+A text area for entering the request body.
+Press `ESC` to focus the text area footer bar.
+
+Hold `shift` and move the cursor or click and drag to select text.
+""",
     )
 
     OPENING_BRACKETS = {

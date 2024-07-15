@@ -15,6 +15,10 @@ class ResponseTextArea(ReadOnlyTextArea):
         description="""\
 A *read-only* text area for displaying the response body.
 Supports several Vim keys (see table below).
+Hold `shift` and move the cursor or click and drag to select text.
+Press `v` to toggle *visual mode*, equivalent to keeping `shift` held down.
+Copy to the clipboard by pressing `y`. If no text is selected, the entire response body is copied.
+
 Open the response in your `$PAGER` by pressing `f3`. A custom pager (e.g. `fx`)
 can be used for JSON responses by setting the `pager_json` config to the command.
 """,
