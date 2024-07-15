@@ -22,7 +22,7 @@ class JumpOverlay(ModalScreen[str | Widget]):
     """
 
     BINDINGS = [
-        Binding("escape,ctrl+o", "dismiss_overlay", "Dismiss", show=False),
+        Binding("escape", "dismiss_overlay", "Dismiss", show=False),
     ]
 
     def __init__(
@@ -80,3 +80,5 @@ class JumpOverlay(ModalScreen[str | Widget]):
             yield label
         with Center(id="textual-jump-info"):
             yield Label("Press a key to jump")
+        with Center(id="textual-jump-dismiss"):
+            yield Label("ESC to dismiss")

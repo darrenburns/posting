@@ -372,6 +372,13 @@ Select {
   }
 }
 
+#textual-jump-dismiss {
+  dock: bottom;
+  height: 1;
+  background: transparent;
+  color: $text-muted 42%;
+}
+
 CollectionBrowser {
   &.section {
     border-title-align: left;
