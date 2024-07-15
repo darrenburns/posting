@@ -101,15 +101,23 @@ Some additional keyboard shortcuts are shown in the table below.
 | Copy selection to clipboard | <kbd>y</kbd> or <kbd>c</kbd> | When response body text area is focused |
 | Open in pager | <kbd>f3</kbd> | When a text area is focused |
 | Open in external editor | <kbd>f4</kbd> | When a text area is focused |
+| Show contextual help | <kbd>f1</kbd> or <kbd>ctrl</kbd>+<kbd>?</kbd> (or <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>/</kbd>) | When a widget is focused |
 
 </details>
 
 > [!TIP]
 > Many parts of the UI support Vim keys for navigation.
 
-### Exiting Posting TUI
+### Contextual help
 
-Press `Ctrl`+`c` to quit the TUI.
+Many widgets have additional bindings beyond those displayed in the footer. You can view the full list of keybindings for the currently
+focused widget, as well as additional usage information and tips, by pressing <kbd>f1</kbd> or <kbd>ctrl</kbd>+<kbd>?</kbd> (or <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>/</kbd>).
+
+
+
+### Exiting
+
+Press <kbd>ctrl</kbd>+<kbd>c</kbd> to quit Posting.
 
 ## Environments
 
