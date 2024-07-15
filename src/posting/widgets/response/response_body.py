@@ -11,7 +11,7 @@ class ResponseTextArea(ReadOnlyTextArea):
     """
 
     help = HelpData(
-        title="Response Body",
+        title="Response Body Text Area",
         description="""\
 A *read-only* text area for displaying the response body.
 Supports several Vim keys (see table below).

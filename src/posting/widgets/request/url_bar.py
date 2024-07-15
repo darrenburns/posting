@@ -34,8 +34,9 @@ class UrlInput(Input):
     help = HelpData(
         "Address Bar",
         """\
-Enter the URL to send a request to. You can also use variables here using `$variable` or `${variable}` syntax.
+Enter the URL to send a request to. Refer to variables from the environment (loaded via `--env`) using `$variable` or `${variable}` syntax.
 Resolved variables will be highlighted green. Move the cursor over a variable to preview the value.
+Base URL suggestions are loaded based on the URLs found in the currently open collection.
 Press `ctrl+l` to quickly focus this bar from elsewhere.""",
     )
 

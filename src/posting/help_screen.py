@@ -169,4 +169,4 @@ class HelpScreen(ModalScreen[None]):
             else:
                 yield HelpModalHeader(f"[b]{widget.__class__.__name__}[/] Help")
 
-            yield HelpModalFooter("Press [b]ESC[/] to close.")
+            yield HelpModalFooter("Press [b]ESC[/] to dismiss.")

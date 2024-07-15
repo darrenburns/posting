@@ -81,4 +81,4 @@ class JumpOverlay(ModalScreen[str | Widget]):
         with Center(id="textual-jump-info"):
             yield Label("Press a key to jump")
         with Center(id="textual-jump-dismiss"):
-            yield Label("ESC to dismiss")
+            yield Label("[b]ESC[/] to dismiss")
