@@ -16,6 +16,7 @@ from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
+from posting.help_screen import HelpData
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,
     NewRequestModal,
@@ -31,6 +32,16 @@ CollectionNode = Union[Collection, RequestModel]
 
 
 class CollectionTree(PostingTree[CollectionNode]):
+    HELP = HelpData(
+        title="Collection Browser",
+        description="""\
+Shows all `*.posting.yaml` request files resolved from the specified collection directory.
+Press `ctrl+n` to create a new request at the current cursor location.
+`j` and `k` can be used to navigate the tree.
+`J` and `K` jumps between sub-collections.
+""",
+    )
+
     COMPONENT_CLASSES = {
         "node-selected",
     }

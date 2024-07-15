@@ -32,11 +32,11 @@ class UrlInput(Input):
     """
 
     HELP = HelpData(
-        "URL Bar",
+        "Address Bar",
         """\
-Type in a URL to send a request to. You can also use variables here using `$variable` or `${variable}` syntax.
-You can also use the autocomplete dropdown to select a base URL from the list of saved base URLs. Resolved
-variables will be highlighted green. Move the cursor over a variable to preview the value.""",
+Enter the URL to send a request to. You can also use variables here using `$variable` or `${variable}` syntax.
+Resolved variables will be highlighted green. Move the cursor over a variable to preview the value.
+Press `ctrl+l` to quickly focus this bar from elsewhere.""",
     )
 
     DEFAULT_CSS = """\

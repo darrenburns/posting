@@ -6,7 +6,7 @@ from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
 from textual.widget import Widget
-from textual.widgets import DataTable, Label, Markdown
+from textual.widgets import Label, Markdown
 
 from posting.widgets.datatable import PostingDataTable
 
@@ -80,6 +80,7 @@ class HelpScreen(ModalScreen[None]):
             dock: bottom;
             width: 1fr;
             content-align: center middle;
+            margin-top: 1;
         }
 
         & #bindings-title {
@@ -91,8 +92,10 @@ class HelpScreen(ModalScreen[None]):
 
         & #help-description {
             dock: top;
-            margin-top: 1;
+            margin-top: 2;
             width: 1fr;
+            max-height: 50%;
+            overflow-y: auto;
         }
     }
     """
@@ -112,8 +115,7 @@ class HelpScreen(ModalScreen[None]):
         self.widget = widget
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll() as vs:
-            vs.can_focus = False
+        with VerticalScroll():
             widget = self.widget
             bindings = widget._bindings
             keys: list[tuple[str, Binding]] = [
@@ -121,7 +123,7 @@ class HelpScreen(ModalScreen[None]):
             ]
 
             if keys:
-                yield Label(" [b]Keybindings[/]", id="bindings-title")
+                yield Label(" [b]All Keybindings[/]", id="bindings-title")
                 table = PostingDataTable(
                     id="bindings-table",
                     cursor_type="row",
@@ -149,4 +151,4 @@ class HelpScreen(ModalScreen[None]):
             else:
                 yield HelpModalHeader(f"[b]{widget.__class__.__name__}[/] Help")
 
-            yield HelpModalFooter("Press ESC to close help.")
+            yield HelpModalFooter("Press [b]ESC[/] to close help.")
