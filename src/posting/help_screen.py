@@ -58,8 +58,8 @@ class HelpScreen(ModalScreen[None]):
         & > VerticalScroll {
             background: $background;
             padding: 1 2;
-            width: 50%;
-            height: 70%;
+            width: 65%;
+            height: 80%;
             border: wide $background-lighten-2;
             border-title-color: $text;
             border-title-background: $background;
