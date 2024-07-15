@@ -129,6 +129,7 @@ class HelpScreen(ModalScreen[None]):
                     cursor_type="row",
                     zebra_stripes=True,
                 )
+                table.cursor_vertical_escape = False
                 table.add_columns("Key", "Description")
                 for key, binding in keys:
                     table.add_row(

@@ -103,6 +103,7 @@ class AppBody(Vertical):
 
 
 class MainScreen(Screen[None]):
+    AUTO_FOCUS = "UrlInput"
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
         Binding("ctrl+t", "change_method", "Method"),
