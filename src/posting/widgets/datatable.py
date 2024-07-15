@@ -108,6 +108,8 @@ PostingDataTable {
                     self.cursor_coordinate = Coordinate(0, column)
                 else:
                     self.cursor_coordinate = self.cursor_coordinate.down()
+            else:
+                super().action_cursor_down()
 
     def action_cursor_up(self) -> None:
         self._set_hover_cursor(False)
@@ -121,6 +123,8 @@ PostingDataTable {
                     self.cursor_coordinate = Coordinate(self.row_count - 1, column)
                 else:
                     self.cursor_coordinate = self.cursor_coordinate.up()
+            else:
+                super().action_cursor_up()
 
     @on(RowsRemoved)
     @on(RowsAdded)
