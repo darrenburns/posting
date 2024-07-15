@@ -33,6 +33,7 @@ from posting.collection import (
 
 from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
+from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.types import PostingLayout
@@ -550,14 +551,13 @@ class Posting(PostingApp):
             "ctrl+p",
             "command_palette",
             description="Commands",
-            show=True,
         ),
         Binding(
             "ctrl+o",
             "toggle_jump_mode",
             description="Jump",
-            show=True,
         ),
+        Binding("f1,ctrl+question_mark", "help", "Help"),
     ]
 
     themes: dict[str, ColorSystem] = {
@@ -802,3 +802,7 @@ class Posting(PostingApp):
 
         self.clear_notifications()
         await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+
+    def action_help(self) -> None:
+        focused = self.focused
+        self.push_screen(HelpScreen(widget=focused))

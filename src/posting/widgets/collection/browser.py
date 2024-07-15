@@ -411,6 +411,7 @@ class CollectionBrowser(Vertical):
         add_collection_to_tree(tree.root, collection)
 
         tree.root.expand_all()
+        tree.cursor_line = 0
         yield tree
         yield RequestPreview()
 

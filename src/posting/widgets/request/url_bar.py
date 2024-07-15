@@ -13,6 +13,7 @@ from textual.widgets import Input, Button, Label
 from textual_autocomplete import DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
 from posting.config import SETTINGS
+from posting.help_screen import HelpData
 
 from posting.highlighters import VariablesAndUrlHighlighter
 from posting.variables import (
@@ -29,6 +30,14 @@ class UrlInput(Input):
     """
     The URL input.
     """
+
+    HELP = HelpData(
+        "URL Bar",
+        """\
+Type in a URL to send a request to. You can also use variables here using `$variable` or `${variable}` syntax.
+You can also use the autocomplete dropdown to select a base URL from the list of saved base URLs. Resolved
+variables will be highlighted green. Move the cursor over a variable to preview the value.""",
+    )
 
     DEFAULT_CSS = """\
     UrlInput {
