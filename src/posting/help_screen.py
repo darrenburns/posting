@@ -90,12 +90,17 @@ class HelpScreen(ModalScreen[None]):
             color: $text-muted;
         }
 
-        & #help-description {
+        & #help-description-wrapper {
             dock: top;
-            margin-top: 2;
-            width: 1fr;
             max-height: 50%;
-            overflow-y: auto;
+            margin-top: 1;
+            height: auto;
+            width: 1fr;
+            & #help-description {
+                margin: 0;
+                width: 1fr;
+                height: auto;
+            }
         }
     }
     """
@@ -115,7 +120,8 @@ class HelpScreen(ModalScreen[None]):
         self.widget = widget
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll():
+        with VerticalScroll() as vs:
+            vs.can_focus = False
             widget = self.widget
             bindings = widget._bindings
             keys: list[tuple[str, Binding]] = [
@@ -147,7 +153,9 @@ class HelpScreen(ModalScreen[None]):
                 help_markdown = help.description
 
                 if help_markdown:
-                    yield Markdown(help_markdown, id="help-description")
+                    help_markdown = help_markdown.strip()
+                    with VerticalScroll(id="help-description-wrapper") as vs:
+                        yield Markdown(help_markdown, id="help-description")
                 else:
                     yield Label(
                         f"No help available for {help.title}",
