@@ -8,3 +8,4 @@ class ResponseHeadersTable(PostingDataTable):
         self.zebra_stripes = True
         self.fixed_columns = 1
         self.add_columns(*["Header", "Value"])
+        self.cursor_vertical_escape = False

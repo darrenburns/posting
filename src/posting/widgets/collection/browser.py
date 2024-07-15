@@ -32,7 +32,7 @@ CollectionNode = Union[Collection, RequestModel]
 
 
 class CollectionTree(PostingTree[CollectionNode]):
-    HELP = HelpData(
+    help = HelpData(
         title="Collection Browser",
         description="""\
 Shows all `*.posting.yaml` request files resolved from the specified collection directory.
@@ -202,10 +202,16 @@ Press `ctrl+n` to create a new request at the current cursor location.
         root_path = self.root.data.path
         assert root_path is not None, "root should have a path"
 
+        # Take note of what was focused on this screen, so that we
+        # can focus it again when the modal is closed.
+        focused_before = self.screen.focused
+        self.screen.set_focus(None)
+
         def _handle_new_request_data(new_request_data: NewRequestData | None) -> None:
             """Get the new request data from the modal, and update the UI with it."""
             if new_request_data is None:
                 # Happens when the user presses `escape` while in the modal.
+                self.screen.set_focus(focused_before)
                 return
 
             # The user confirms the details in the modal, so use these details

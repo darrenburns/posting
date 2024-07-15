@@ -118,8 +118,6 @@ class MainScreen(Screen[None]):
         ),
     ]
 
-    AUTO_FOCUS = "UrlInput"
-
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     """The currently selected method of the request."""
     layout: Reactive[PostingLayout] = reactive("vertical", init=False)
@@ -805,4 +803,10 @@ class Posting(PostingApp):
 
     def action_help(self) -> None:
         focused = self.focused
-        self.push_screen(HelpScreen(widget=focused))
+
+        def reset_focus() -> None:
+            if focused:
+                self.set_focus(focused)
+
+        self.set_focus(None)
+        self.push_screen(HelpScreen(widget=focused), callback=reset_focus)

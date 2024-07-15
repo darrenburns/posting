@@ -26,7 +26,7 @@ class Helpable(Protocol):
     """Widgets which contain information to be displayed in the HelpScreen
     should implement this protocol."""
 
-    HELP: HelpData
+    help: HelpData
 
 
 class HelpModalHeader(Label):
@@ -131,24 +131,28 @@ class HelpScreen(ModalScreen[None]):
                 )
                 table.add_columns("Key", "Description")
                 for key, binding in keys:
-                    table.add_row(Text(key, style="bold"), binding.description)
+                    table.add_row(
+                        Text(key, style="bold", no_wrap=True, end=""),
+                        binding.description,
+                    )
                 yield table
 
             # If the widget has help text, render it.
             if isinstance(widget, Helpable):
-                help_title = widget.HELP.title
+                help = widget.help
+                help_title = help.title
                 if help_title:
                     yield HelpModalHeader(f"[b]{help_title}[/] Help")
-                help_markdown = widget.HELP.description
+                help_markdown = help.description
 
                 if help_markdown:
                     yield Markdown(help_markdown, id="help-description")
                 else:
                     yield Label(
-                        f"No help available for {widget.HELP.title}",
+                        f"No help available for {help.title}",
                         id="help-description",
                     )
             else:
                 yield HelpModalHeader(f"[b]{widget.__class__.__name__}[/] Help")
 
-            yield HelpModalFooter("Press [b]ESC[/] to close help.")
+            yield HelpModalFooter("Press [b]ESC[/] to close.")

@@ -31,7 +31,7 @@ class UrlInput(Input):
     The URL input.
     """
 
-    HELP = HelpData(
+    help = HelpData(
         "Address Bar",
         """\
 Enter the URL to send a request to. You can also use variables here using `$variable` or `${variable}` syntax.
