@@ -139,8 +139,13 @@ class HelpScreen(ModalScreen[None]):
                 table.add_columns("Key", "Description")
                 for key, binding in keys:
                     table.add_row(
-                        Text(key, style="bold", no_wrap=True, end=""),
-                        binding.description,
+                        Text(
+                            binding.key_display or self.app.get_key_display(key),
+                            style="bold",
+                            no_wrap=True,
+                            end="",
+                        ),
+                        binding.description.lower(),
                     )
                 yield table
 
