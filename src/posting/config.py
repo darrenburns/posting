@@ -89,6 +89,9 @@ class Settings(BaseSettings):
     editor: str | None = Field(default=os.getenv("EDITOR"))
     """The command to use for editing."""
 
+    use_xresources: bool = Field(default=False)
+    """If true, try to use Xresources to create dark and light themes."""
+
     @classmethod
     def settings_customise_sources(
         cls,

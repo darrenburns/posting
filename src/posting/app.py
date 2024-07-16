@@ -1,6 +1,7 @@
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Union
 import subprocess
+import itertools
 import httpx
 from rich.console import Group
 from rich.text import Text
@@ -680,6 +681,21 @@ class Posting(PostingApp):
         ),
     }
 
+    XRDB_MAPPING = {
+        "color0": ["primary"],
+        "color8": ["secondary"],
+        "color1": ["error"],
+        "color2": ["success"],
+        "color3": ["warning"],
+        "color4": ["accent"],
+        "background": ["background"],
+        "color7": ["surface", "panel"],
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.maybe_add_xresources_theme()
+
     theme: Reactive[str | None] = reactive("posting", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
 
@@ -702,9 +718,11 @@ class Posting(PostingApp):
         )
         self.theme_change_signal = Signal[ColorSystem](self, "theme-changed")
         self.theme = self.settings.theme
-        self.try_to_add_xresources_theme()
 
-    def try_to_add_xresources_theme(self) -> None:
+    def maybe_add_xresources_theme(self) -> None:
+        if self.settings.use_xresources is not True:
+            return
+
         try:
             xrdb = subprocess.run(
                 ["xrdb", "-query"],
@@ -713,41 +731,37 @@ class Posting(PostingApp):
                 text=True,
             )
         except FileNotFoundError:
-            return
+            raise RuntimeError("xrdb is not found. Check that xrdb -query works")
 
-        if xrdb.returncode == 0:
-            lines = xrdb.stdout.splitlines()
-            color_system_kwargs = {}
-            for line in lines:
-                if line.startswith("*"):
-                    parts = line.split(":")
-                    if len(parts) == 2:
-                        name, value = parts[0].strip("*").strip(), parts[1].strip()
-                        if name == "color0":
-                            color_system_kwargs["primary"] = value
-                        elif name == "color8":
-                            color_system_kwargs["secondary"] = value
-                        elif name == "color1":
-                            color_system_kwargs["error"] = value
-                        elif name == "color2":
-                            color_system_kwargs["success"] = value
-                        elif name == "color3":
-                            color_system_kwargs["warning"] = value
-                        elif name == "color4":
-                            color_system_kwargs["accent"] = value
-                        elif name == "background":
-                            color_system_kwargs["background"] = value
-                        elif name == "color7":
-                            color_system_kwargs["surface"] = value
-                            color_system_kwargs["panel"] = value
+        if xrdb.returncode != 0:
+            raise RuntimeError(
+                f"xrdb -query existed with code {xrdb.returncode}. Check that xrdb -query works"
+            )
 
-            if len(color_system_kwargs) == 9:
-                self.themes["xresources-dark"] = ColorSystem(
-                    **color_system_kwargs, dark=True
-                )
-                self.themes['xresources-light'] = ColorSystem(
-                    **color_system_kwargs, dark=False
-                )
+        lines = xrdb.stdout.splitlines()
+        color_kwargs = list(itertools.chain(*self.XRDB_MAPPING.values()))
+        color_kwargs_values: dict[str, Union[None, str]] = {kwarg: None for kwarg in color_kwargs}
+
+        for line in lines:
+            if line.startswith("*"):
+                parts = line.split(":")
+                if len(parts) == 2:
+                    name, value = parts[0].strip("*").strip(), parts[1].strip()
+                    for kwarg in self.XRDB_MAPPING.get(name, []):
+                        color_kwargs_values[kwarg] = value
+
+        unset_colors = [
+            kwarg for kwarg in color_kwargs if color_kwargs_values[kwarg] is None
+        ]
+        if len(unset_colors) > 0:
+            raise RuntimeError(f'xrdb -query did not return the following colors: {unset_colors}')
+
+        self.themes["xresources-dark"] = ColorSystem(
+            **color_kwargs_values, dark=True
+        )
+        self.themes["xresources-light"] = ColorSystem(
+            **color_kwargs_values, dark=False
+        )
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(
