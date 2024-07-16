@@ -577,6 +577,7 @@ class PostingApp(App[None]):
 
 
 class Posting(PostingApp):
+    AUTO_FOCUS = None
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
@@ -814,6 +815,10 @@ class Posting(PostingApp):
         self._jumping = not self._jumping
 
     async def watch__jumping(self, jumping: bool) -> None:
+        focused_before = self.focused
+        if focused_before is not None:
+            self.set_focus(None, scroll_visible=False)
+
         def handle_jump_target(target: str | Widget | None) -> None:
             if isinstance(target, str):
                 try:
@@ -832,6 +837,11 @@ class Posting(PostingApp):
 
             elif isinstance(target, Widget):
                 target.focus()
+            else:
+                # If there's no target (i.e. the user pressed ESC to dismiss)
+                # then re-focus the widget that was focused before we opened
+                # the jumper.
+                self.set_focus(focused_before, scroll_visible=False)
 
         self.clear_notifications()
         await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)

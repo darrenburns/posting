@@ -13,10 +13,10 @@ dependencies = [
     "pyperclip==1.8.2",
     "pydantic==2.7.3",
     "pyyaml==6.0.1",
-    "textual[syntax]==0.72.0",
     "pydantic-settings==2.3.4",
     "python-dotenv==1.0.1",
     "textual-autocomplete>=3.0.0a9",
+    "textual[syntax]==0.72.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.11"
