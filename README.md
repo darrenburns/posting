@@ -255,6 +255,10 @@ POSTING_HEADING__VISIBLE="false"
 | `pager` (`POSTING_PAGER`) | Command to use for paging text. |
 | `pager_json` (`POSTING_PAGER_JSON`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | Command to use for opening files in an external editor. |
+| `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | If enabled, SSL certificates will be verified. |
+| `ssl.certificate_file` (`POSTING_SSL__CERTIFICATE_FILE`) | Path to a `.pem` certificate bundle (file or dir). |
+| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Path to a keyfile. |
+| `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. |
 
 
 ## Importing OpenAPI Specifications

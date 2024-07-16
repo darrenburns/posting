@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 import httpx
 from rich.console import Group
 from rich.text import Text
@@ -36,7 +36,7 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.types import PostingLayout
+from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
 from posting.version import VERSION
@@ -161,9 +161,21 @@ class MainScreen(Screen[None]):
         proxy_url = request_options.proxy_url or None
         timeout = request_options.timeout
         auth = self.request_auth.to_httpx_auth()
+
+        ca_config = SETTINGS.get().certificate
+        cert_config: list[str] = []
+        if certificate_file := ca_config.certificate_file:
+            cert_config.append(certificate_file)
+        if key_file := ca_config.key_file:
+            cert_config.append(key_file)
+        if password := ca_config.password:
+            cert_config.append(password.get_secret_value())
+
+        cert = cast(CertTypes, tuple(cert_config))
         try:
             async with httpx.AsyncClient(
                 verify=verify_ssl,
+                cert=cert,
                 proxy=proxy_url,
                 timeout=timeout,
                 auth=auth,
