@@ -228,9 +228,10 @@ For example, to set the theme to `galaxy`, you can set the environment variable 
 
 ### dotenv (`.env`) files
 
-Posting also supports `.env` (dotenv) files, which are useful if you want to keep your configuration in a file rather than in your shell's environment variables.
+Posting also supports `.env` (dotenv) files, which are useful if you want to swap out environment variable values depending on the environment you're working in (for example, "dev" vs "prod").
 
-You can tell Posting to use a `.env` file using the `--env-file` option.
+You can tell Posting to use a `.env` file using the `--env` option.
+This option can be supplied multiple times to load multiple `.env` files.
 
 Here's an example `.env` file:
 
@@ -239,6 +240,8 @@ POSTING_THEME="cobalt"
 POSTING_LAYOUT="vertical"
 POSTING_HEADING__VISIBLE="false"
 ```
+
+Dotenv files are separate from collections, although you may wish to include them inside a collection to make it easy to version and share with others.
 
 ### Available configuration options
 
@@ -256,10 +259,39 @@ POSTING_HEADING__VISIBLE="false"
 | `pager_json` (`POSTING_PAGER_JSON`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | Command to use for opening files in an external editor. |
 | `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | If enabled, SSL certificates will be verified. |
-| `ssl.certificate_file` (`POSTING_SSL__CERTIFICATE_FILE`) | Path to a `.pem` certificate bundle (file or dir). |
+| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Path to a `.pem` (file or directory). |
 | `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Path to a keyfile. |
 | `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. |
 
+## Loading SSL certificates
+
+Posting can load SSL certificates from a `.pem` file or directory.
+
+The easiest way to do this is in your `config.yaml` file:
+
+```yaml
+ssl:
+  certificate_path: 'absolute/path/to/certificate.pem'
+  key_file: 'absolute/path/to/key.key'
+  password: '***********'
+```
+
+### Environment-specific certificates
+
+If the required CA bundle differs per environment, you can again use the principle that all configuration can be set as environment variables which can optionally be set and loaded using `--env` and `.env` files:
+
+```bash
+# dev.env
+POSTING_SSL__CERTIFICATE_PATH='/path/to/certificate.pem'
+POSTING_SSL__KEY_FILE='/path/to/key.key'
+POSTING_SSL__PASSWORD='***********'
+```
+
+Now load the `dev.env` file when working in the `dev` environment to ensure the dev environment certificate is used:
+
+```bash
+posting --env dev.env
+```
 
 ## Importing OpenAPI Specifications
 

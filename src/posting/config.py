@@ -41,8 +41,8 @@ class ResponseSettings(BaseModel):
 class CertificateSettings(BaseModel):
     """Configuration for SSL CA bundles"""
 
-    certificate_file: str | None = Field(default=None)
-    """Path to the certificate .pem file"""
+    certificate_path: str | None = Field(default=None)
+    """Path to the certificate .pem file or directory"""
     key_file: str | None = Field(default=None)
     """Path to the key file"""
     password: SecretStr | None = Field(default=None)

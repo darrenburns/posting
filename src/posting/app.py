@@ -162,10 +162,10 @@ class MainScreen(Screen[None]):
         timeout = request_options.timeout
         auth = self.request_auth.to_httpx_auth()
 
-        ca_config = SETTINGS.get().certificate
+        ca_config = SETTINGS.get().ssl
         cert_config: list[str] = []
-        if certificate_file := ca_config.certificate_file:
-            cert_config.append(certificate_file)
+        if certificate_path := ca_config.certificate_path:
+            cert_config.append(certificate_path)
         if key_file := ca_config.key_file:
             cert_config.append(key_file)
         if password := ca_config.password:
