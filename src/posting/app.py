@@ -383,11 +383,11 @@ class MainScreen(Screen[None]):
         self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
     ) -> None:
         """Update the parameters tab to indicate if there are any parameters."""
-        params_tab = self.query_one("#--content-tab-parameters-pane", ContentTab)
+        params_tab = self.query_one("#--content-tab-query-pane", ContentTab)
         if event.data_table.row_count:
-            params_tab.update("Parameters[cyan b]•[/]")
+            params_tab.update("Query[cyan b]•[/]")
         else:
-            params_tab.update("Parameters")
+            params_tab.update("Query")
 
     def build_httpx_request(
         self,
@@ -699,9 +699,9 @@ class Posting(PostingApp):
                 "collection-tree": "tab",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
-                "--content-tab-parameters-pane": "e",
+                "--content-tab-query-pane": "e",
                 "--content-tab-auth-pane": "r",
-                "--content-tab-metadata-pane": "t",
+                "--content-tab-info-pane": "t",
                 "--content-tab-options-pane": "y",
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
