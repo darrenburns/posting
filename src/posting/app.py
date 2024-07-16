@@ -719,6 +719,8 @@ class Posting(PostingApp):
     def on_mount(self) -> None:
         self.jumper = Jumper(
             {
+                "method-selector": "1",
+                "url-input": "2",
                 "collection-tree": "tab",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
