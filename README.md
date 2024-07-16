@@ -255,13 +255,15 @@ Dotenv files are separate from collections, although you may wish to include the
 | `heading.visible` (`POSTING_HEADING__VISIBLE`) | `true`, `false` (Default: `true`) | Show/hide the app header. |
 | `heading.show_host` (`POSTING_HEADING__SHOW_HOST`) | `true`, `false` (Default: `true`) | Show/hide the hostname in the app header. |
 | `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show/hide the variable value preview below the URL bar. |
-| `pager` (`POSTING_PAGER`) | Command to use for paging text. |
-| `pager_json` (`POSTING_PAGER_JSON`) | Command to use for paging JSON. |
-| `editor` (`POSTING_EDITOR`) | Command to use for opening files in an external editor. |
+| `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |
+| `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
+| `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
 | `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | If enabled, SSL certificates will be verified. |
-| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Path to a `.pem` (file or directory). |
-| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Path to a keyfile. |
-| `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. |
+| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Absolute path to a `.pem` (file or directory). (Default: `unset`) | Path to the SSL certificate file or directory. |
+| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Absolute path to a keyfile. (Default: `unset`) | Path to the keyfile. |
+| `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. (Default: `unset`) | Password to decrypt the SSL key file if it's encrypted. |
+| `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
+| `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
 
 ## Loading SSL certificates
 

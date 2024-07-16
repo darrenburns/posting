@@ -103,7 +103,6 @@ class AppBody(Vertical):
 
 
 class MainScreen(Screen[None]):
-    AUTO_FOCUS = "UrlInput"
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
         Binding("ctrl+t", "change_method", "Method"),
@@ -144,6 +143,20 @@ class MainScreen(Screen[None]):
 
     def on_mount(self) -> None:
         self.layout = self._initial_layout
+
+        # Set the initial focus based on the settings.
+        focus_on_startup = self.settings.focus.on_startup
+        if focus_on_startup == "url":
+            target = self.url_bar.url_input
+        elif focus_on_startup == "method":
+            target = self.method_selector
+        elif focus_on_startup == "collection":
+            target = self.collection_browser.collection_tree
+        else:
+            target = None
+
+        if target is not None:
+            self.set_focus(target)
 
     def compose(self) -> ComposeResult:
         yield AppHeader()
@@ -238,6 +251,15 @@ class MainScreen(Screen[None]):
     @on(HttpResponseReceived)
     def on_response_received(self, event: HttpResponseReceived) -> None:
         """Update the response area with the response."""
+
+        # If the config to automatically move the focus on receipt
+        # of a response has been set, move focus as required.
+        focus_on_response = self.settings.focus.on_response
+        if focus_on_response == "body":
+            self.response_area.text_editor.text_area.focus()
+        elif focus_on_response == "tabs":
+            self.response_area.content_tabs.focus()
+
         self.response_area.response = event.response
         self.cookies.update(event.response.cookies)
         self.response_trace.trace_complete()
