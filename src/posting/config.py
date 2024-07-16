@@ -1,7 +1,7 @@
 from contextvars import ContextVar
 import os
-from typing import Type
-from pydantic import BaseModel, Field
+from typing import Literal, Type
+from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -36,6 +36,29 @@ class ResponseSettings(BaseModel):
 
     prettify_json: bool = Field(default=True)
     """If enabled, JSON responses will be pretty-formatted."""
+
+
+class FocusSettings(BaseModel):
+    """Configuration relating to focus."""
+
+    on_startup: Literal["url", "method", "collection"] = Field(default="url")
+    """On startup, move focus to the URL bar, method, or collection browser."""
+
+    on_response: Literal["body", "tabs"] | None = Field(default=None)
+    """On receiving a response, move focus to the body or the response section (the tabs).
+    
+    If this value is unset, focus will not shift when a response is received."""
+
+
+class CertificateSettings(BaseModel):
+    """Configuration for SSL CA bundles"""
+
+    certificate_path: str | None = Field(default=None)
+    """Path to the certificate .pem file or directory"""
+    key_file: str | None = Field(default=None)
+    """Path to the key file"""
+    password: SecretStr | None = Field(default=None)
+    """Password for the key file."""
 
 
 class Settings(BaseSettings):
@@ -88,6 +111,12 @@ class Settings(BaseSettings):
 
     editor: str | None = Field(default=os.getenv("EDITOR"))
     """The command to use for editing."""
+
+    ssl: CertificateSettings = Field(default_factory=CertificateSettings)
+    """Configuration for SSL CA bundle."""
+
+    focus: FocusSettings = Field(default_factory=FocusSettings)
+    """Configuration for focus."""
 
     @classmethod
     def settings_customise_sources(

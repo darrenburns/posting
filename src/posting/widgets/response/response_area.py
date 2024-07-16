@@ -13,6 +13,7 @@ from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.reactive import Reactive, reactive
 from textual.widgets import TabPane
+from textual.widgets._tabbed_content import ContentTabs
 
 
 class ResponseTabbedContent(PostingTabbedContent):
@@ -123,6 +124,14 @@ class ResponseArea(Vertical):
     @property
     def cookies_table(self) -> CookiesTable:
         return self.query_one(CookiesTable)
+
+    @property
+    def tabbed_content(self) -> ResponseTabbedContent:
+        return self.query_one(ResponseTabbedContent)
+
+    @property
+    def content_tabs(self) -> ContentTabs:
+        return self.tabbed_content.query_one(ContentTabs)
 
 
 def content_type_to_language(content_type: str) -> str | None:

@@ -297,3 +297,8 @@ class UrlBar(Vertical):
     def variable_value_bar(self) -> Label:
         """Get the variable value bar."""
         return self.query_one("#variable-value-bar", Label)
+
+    @property
+    def url_input(self) -> UrlInput:
+        """Get the URL input."""
+        return self.query_one("#url-input", UrlInput)
