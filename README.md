@@ -259,9 +259,9 @@ Dotenv files are separate from collections, although you may wish to include the
 | `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
 | `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | If enabled, SSL certificates will be verified. |
-| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Absolute path to a `.pem` (file or directory). (Default: `unset`) | Path to the SSL certificate file or directory. |
-| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Absolute path to a keyfile. (Default: `unset`) | Path to the keyfile. |
-| `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. (Default: `unset`) | Password to decrypt the SSL key file if it's encrypted. |
+| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Absolute path (Default: `unset`) | Absolute path to the SSL certificate file or directory. |
+| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Absolute path (Default: `unset`) | Absolute path to the SSL key file. |
+| `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. (Default: `unset`) | Password to decrypt the key file if it's encrypted. |
 | `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
 | `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
 
