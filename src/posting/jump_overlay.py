@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     from posting.jumper import Jumper
 
 
-class JumpOverlay(ModalScreen[str | Widget]):
+class JumpOverlay(ModalScreen[str | Widget | None]):
     """Overlay showing the jump targets.
-    Returns the ID of the widget the jump was requested for on closing."""
+    Dismissed with the ID of the widget the jump was requested for on closing,
+    or a reference to the widget. Is dismissed with None if the user dismissed
+    the overlay without making a selection."""
 
+    AUTO_FOCUS = None
     DEFAULT_CSS = """\
     JumpOverlay {
         background: black 25%;
@@ -58,7 +61,7 @@ class JumpOverlay(ModalScreen[str | Widget]):
                 return
 
     def action_dismiss_overlay(self) -> None:
-        self.dismiss()
+        self.dismiss(None)
 
     async def on_resize(self) -> None:
         self._sync()
