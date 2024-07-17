@@ -175,19 +175,25 @@ class MainScreen(Screen[None]):
         timeout = request_options.timeout
         auth = self.request_auth.to_httpx_auth()
 
-        ca_config = SETTINGS.get().ssl
-        cert_config: list[str] = []
-        if certificate_path := ca_config.certificate_path:
-            cert_config.append(certificate_path)
-        if key_file := ca_config.key_file:
-            cert_config.append(key_file)
-        if password := ca_config.password:
-            cert_config.append(password.get_secret_value())
+        cert_config = SETTINGS.get().ssl
+        httpx_cert_config: list[str] = []
+        if certificate_path := cert_config.certificate_path:
+            httpx_cert_config.append(certificate_path)
+        if key_file := cert_config.key_file:
+            httpx_cert_config.append(key_file)
+        if password := cert_config.password:
+            httpx_cert_config.append(password.get_secret_value())
 
-        cert = cast(CertTypes, tuple(cert_config))
+        verify: str | bool = verify_ssl
+        if verify_ssl and cert_config.ca_bundle is not None:
+            # If verification is enabled and a CA bundle is supplied,
+            # use the CA bundle.
+            verify = cert_config.ca_bundle
+
+        cert = cast(CertTypes, tuple(httpx_cert_config))
         try:
             async with httpx.AsyncClient(
-                verify=verify_ssl,
+                verify=verify,
                 cert=cert,
                 proxy=proxy_url,
                 timeout=timeout,

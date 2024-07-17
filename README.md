@@ -230,24 +230,23 @@ Dotenv files are separate from collections, although you may wish to include the
 | `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |
 | `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
-| `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | If enabled, SSL certificates will be verified. |
-| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Absolute path (Default: `unset`) | Absolute path to the SSL certificate file or directory. |
-| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Absolute path (Default: `unset`) | Absolute path to the SSL key file. |
+| `ssl.ca_bundle` (`POSTING_SSL__CA_BUNDLE`) | Absolute path (Default: `unset`) | Absolute path to a CA bundle file/dir. If not set, the [Certifi](https://pypi.org/project/certifi/) CA bundle will be used. |
+| `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | Verify server identity. |
+| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Absolute path (Default: `unset`) | Absolute path to a client SSL certificate file or directory. |
+| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Absolute path (Default: `unset`) | Absolute path to a client SSL key file. |
 | `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. (Default: `unset`) | Password to decrypt the key file if it's encrypted. |
 | `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
 | `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
 
-## Loading SSL certificates
+## SSL certificate configuration
 
-Posting can load SSL certificates from a `.pem` file or directory.
+Posting can load custom CA bundles from a `.pem` file.
 
 The easiest way to do this is in your `config.yaml` file:
 
 ```yaml
 ssl:
-  certificate_path: 'absolute/path/to/certificate.pem'
-  key_file: 'absolute/path/to/key.key'
-  password: '***********'
+  ca_bundle: 'absolute/path/to/certificate.pem'
 ```
 
 ### Environment-specific certificates
@@ -256,15 +255,24 @@ If the required CA bundle differs per environment, you can again use the princip
 
 ```bash
 # dev.env
-POSTING_SSL__CERTIFICATE_PATH='/path/to/certificate.pem'
-POSTING_SSL__KEY_FILE='/path/to/key.key'
-POSTING_SSL__PASSWORD='***********'
+POSTING_SSL__CA_BUNDLE='/path/to/certificate.pem'
 ```
 
-Now load the `dev.env` file when working in the `dev` environment to ensure the dev environment certificate is used:
+Now load the `dev.env` file when working in the `dev` environment to ensure the dev environment CA bundle is used:
 
 ```bash
 posting --env dev.env
+```
+
+### Client-side certificates
+
+You can specify local certificates to use as a client-side certificate:
+
+```yaml
+ssl:
+  certificate_path: /path/to/certificate.pem
+  key_file: /path/to/key.key  # optional
+  password: '***********'  # optional password for key_file
 ```
 
 ## Importing OpenAPI Specifications

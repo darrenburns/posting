@@ -51,12 +51,14 @@ class FocusSettings(BaseModel):
 
 
 class CertificateSettings(BaseModel):
-    """Configuration for SSL CA bundles"""
+    """Configuration for SSL CA bundles and client certificates."""
 
+    ca_bundle: str | None = Field(default=None)
+    """Absolute path to the CA bundle file."""
     certificate_path: str | None = Field(default=None)
-    """Path to the certificate .pem file or directory"""
+    """Absolute path to the certificate .pem file or directory"""
     key_file: str | None = Field(default=None)
-    """Path to the key file"""
+    """Absolute path to the key file"""
     password: SecretStr | None = Field(default=None)
     """Password for the key file."""
 
@@ -113,7 +115,7 @@ class Settings(BaseSettings):
     """The command to use for editing."""
 
     ssl: CertificateSettings = Field(default_factory=CertificateSettings)
-    """Configuration for SSL CA bundle."""
+    """Configuration for SSL CA bundle and client certificates."""
 
     focus: FocusSettings = Field(default_factory=FocusSettings)
     """Configuration for focus."""

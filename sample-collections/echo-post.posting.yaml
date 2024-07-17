@@ -5,5 +5,23 @@ url: https://postman-echo.com/post
 body:
   content: |-
     {
-      "another": "$TERM_PROGRAM",
+      "term_program": "$TERM_PROGRAM",
     }
+headers:
+- name: Content-Type
+  value: application/json
+- name: Accept
+  value: '*'
+- name: Cache-Control
+  value: no-cache
+- name: Accept-Encoding
+  value: gzip
+params:
+- name: key1
+  value: value1
+- name: another-key
+  value: another-value
+- name: number
+  value: '123'
+options:
+  timeout: 0.2
