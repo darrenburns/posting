@@ -80,34 +80,6 @@ and <kbd>j</kbd>/<kbd>k</kbd>/<kbd>up</kbd>/<kbd>down</kbd> will move around wit
 
 Where it makes sense, <kbd>up</kbd> and <kbd>down</kbd> will move between widgets.
 
-### Keyboard shortcuts
-
-Important keyboard shortcuts are displayed at the bottom of the screen.
-Some additional keyboard shortcuts are shown in the table below.
-
-<details>
-  <summary>Click here to see keybinds</summary>
-  
-| Action | Shortcut | Context |
-|--------|----------|---------|
-| Focus the URL bar | <kbd>ctrl</kbd>+<kbd>l</kbd> | Global |
-| Toggle collection browser sidebar | <kbd>ctrl</kbd>+<kbd>h</kbd> | Global |
-| Expand request section | <kbd>ctrl</kbd>+<kbd>m</kbd> | When request section is focused |
-| Expand response section | <kbd>ctrl</kbd>+<kbd>m</kbd> | When response section is focused |
-| Next directory | <kbd>shift</kbd>+<kbd>j</kbd> | When collection browser is focused |
-| Previous directory | <kbd>shift</kbd>+<kbd>k</kbd> | When collection browser is focused |
-| Undo in request body | <kbd>ctrl</kbd>+<kbd>z</kbd> | When request body text area is focused |
-| Redo in request body | <kbd>ctrl</kbd>+<kbd>y</kbd> | When request body text area is focused |
-| Copy selection to clipboard | <kbd>y</kbd> or <kbd>c</kbd> | When response body text area is focused |
-| Open in pager | <kbd>f3</kbd> | When a text area is focused |
-| Open in external editor | <kbd>f4</kbd> | When a text area is focused |
-| Show contextual help | <kbd>f1</kbd> or <kbd>ctrl</kbd>+<kbd>?</kbd> (or <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>/</kbd>) | When a widget is focused |
-
-</details>
-
-> [!TIP]
-> Many parts of the UI support Vim keys for navigation.
-
 ### Contextual help
 
 Many widgets have additional bindings beyond those displayed in the footer. You can view the full list of keybindings for the currently
