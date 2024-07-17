@@ -271,10 +271,7 @@ class PostingTextArea(TextArea):
 
         self._open_as_tempfile(pager_command)
 
-    def _open_as_tempfile(self, command: str | None) -> None:
-        if command is None:
-            return
-
+    def _open_as_tempfile(self, command: str) -> None:
         editor_args: list[str] = shlex.split(command)
 
         if self.language in {"json", "html", "yaml"}:
@@ -292,7 +289,14 @@ class PostingTextArea(TextArea):
         editor_args.append(temp_file_name)
 
         with self.app.suspend():
-            subprocess.call(editor_args)
+            try:
+                subprocess.call(editor_args)
+            except OSError:
+                self.app.notify(
+                    severity="error",
+                    title="Can't run command",
+                    message=f"The command [b]{command}[/b] failed to run.",
+                )
 
         with open(temp_file_name, "r") as temp_file:
             if not self.read_only:
