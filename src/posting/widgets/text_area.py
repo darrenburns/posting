@@ -331,11 +331,14 @@ class ReadOnlyTextArea(PostingTextArea):
         Binding(
             "v",
             "toggle_visual_mode",
-            description="Select mode",
-            key_display="v",
+            description="Toggle visual mode",
+            show=False,
         ),
         Binding(
-            "y,c", "copy_to_clipboard", description="Copy selection", key_display="y"
+            "y,c",
+            "copy_to_clipboard",
+            description="Copy selection",
+            show=False,
         ),
         Binding("g", "cursor_top", "Go to top", show=False),
         Binding("G", "cursor_bottom", "Go to bottom", show=False),
