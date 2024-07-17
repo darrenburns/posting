@@ -201,8 +201,8 @@ class TextAreaFooter(Horizontal):
 
 class PostingTextArea(TextArea):
     BINDINGS = [
-        Binding("f3", "open_in_pager", "Pager"),
-        Binding("f4", "open_in_editor", "Editor"),
+        Binding("f3,ctrl+P", "open_in_pager", "Pager"),
+        Binding("f4,ctrl+E", "open_in_editor", "Editor"),
     ]
 
     def on_mount(self) -> None:
@@ -235,6 +235,13 @@ class PostingTextArea(TextArea):
 
     def action_open_in_editor(self) -> None:
         editor_command = SETTINGS.get().editor
+        if not editor_command:
+            self.app.notify(
+                severity="warning",
+                title="No editor configured",
+                message="Set the [b]$EDITOR[/b] environment variable.",
+            )
+            return
         self._open_as_tempfile(editor_command)
 
     def action_open_in_pager(self) -> None:
