@@ -242,6 +242,7 @@ class PostingTextArea(TextArea):
                 message="Set the [b]$EDITOR[/b] environment variable.",
             )
             return
+
         self._open_as_tempfile(editor_command)
 
     def action_open_in_pager(self) -> None:
@@ -251,8 +252,22 @@ class PostingTextArea(TextArea):
         # want to use a specific pager for JSON, let's use that.
         if self.language == "json" and settings.pager_json:
             pager_command = settings.pager_json
+            if not pager_command:
+                self.app.notify(
+                    severity="warning",
+                    title="No JSON pager configured",
+                    message="Set the [b]$POSTING_PAGER_JSON[/b] environment variable.",
+                )
+                return
         else:
             pager_command = settings.pager
+            if not pager_command:
+                self.app.notify(
+                    severity="warning",
+                    title="No pager configured",
+                    message="Set the [b]$POSTING_PAGER[/b] environment variable.",
+                )
+                return
 
         self._open_as_tempfile(pager_command)
 
