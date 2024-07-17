@@ -853,6 +853,7 @@ class Posting(PostingApp):
                 # If there's no target (i.e. the user pressed ESC to dismiss)
                 # then re-focus the widget that was focused before we opened
                 # the jumper.
+                print("focused before", focused_before)
                 self.set_focus(focused_before, scroll_visible=False)
 
         self.clear_notifications()
