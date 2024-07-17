@@ -80,11 +80,11 @@ class RequestEditor(Vertical):
                         yield FormEditor(
                             id="form-body-editor",
                         )
-                with TabPane("Parameters", id="parameters-pane"):
+                with TabPane("Query", id="query-pane"):
                     yield QueryStringEditor()
                 with TabPane("Auth", id="auth-pane"):
                     yield RequestAuth()
-                with TabPane("Metadata", id="metadata-pane"):
+                with TabPane("Info", id="info-pane"):
                     yield RequestMetadata()
                 with TabPane("Options", id="options-pane"):
                     yield RequestOptions()

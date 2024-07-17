@@ -1,7 +1,7 @@
 from contextvars import ContextVar
 import os
-from typing import Type
-from pydantic import BaseModel, Field
+from typing import Literal, Type
+from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -27,7 +27,7 @@ class UrlBarSettings(BaseModel):
     show_value_preview: bool = Field(default=True)
     """If enabled, the variable value bar will be displayed below the URL.
 
-    When your cursor is above a variable, the value will be displayed on 
+    When your cursor is above a variable, the value will be displayed on
     the line below the URL bar."""
 
 
@@ -36,6 +36,29 @@ class ResponseSettings(BaseModel):
 
     prettify_json: bool = Field(default=True)
     """If enabled, JSON responses will be pretty-formatted."""
+
+
+class FocusSettings(BaseModel):
+    """Configuration relating to focus."""
+
+    on_startup: Literal["url", "method", "collection"] = Field(default="url")
+    """On startup, move focus to the URL bar, method, or collection browser."""
+
+    on_response: Literal["body", "tabs"] | None = Field(default=None)
+    """On receiving a response, move focus to the body or the response section (the tabs).
+
+    If this value is unset, focus will not shift when a response is received."""
+
+
+class CertificateSettings(BaseModel):
+    """Configuration for SSL CA bundles"""
+
+    certificate_path: str | None = Field(default=None)
+    """Path to the certificate .pem file or directory"""
+    key_file: str | None = Field(default=None)
+    """Path to the key file"""
+    password: SecretStr | None = Field(default=None)
+    """Password for the key file."""
 
 
 class Settings(BaseSettings):
@@ -55,7 +78,7 @@ class Settings(BaseSettings):
     """Layout for the app."""
 
     use_host_environment: bool = Field(default=False)
-    """If enabled, you can use environment variables from the host machine in your requests 
+    """If enabled, you can use environment variables from the host machine in your requests
     using the `${VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
     defined in any `.env` files explicitly supplied via the `--env` option."""
 
@@ -76,10 +99,10 @@ class Settings(BaseSettings):
 
     pager_json: str | None = Field(default=None)
     """The command to use for paging JSON.
-    
+
     This will be used when the pager is opened from within a TextArea,
     and the content within that TextArea can be inferred to be JSON.
-    
+
     For example, the editor is set to JSON language, or the response content
     type indicates JSON.
 
@@ -91,6 +114,12 @@ class Settings(BaseSettings):
 
     use_xresources: bool = Field(default=False)
     """If true, try to use Xresources to create dark and light themes."""
+
+    ssl: CertificateSettings = Field(default_factory=CertificateSettings)
+    """Configuration for SSL CA bundle."""
+
+    focus: FocusSettings = Field(default_factory=FocusSettings)
+    """Configuration for focus."""
 
     @classmethod
     def settings_customise_sources(

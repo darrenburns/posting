@@ -1,11 +1,15 @@
 * {
   scrollbar-color: $accent 30%;
-  scrollbar-color-hover: $accent 50%;
+  scrollbar-color-hover: $accent 80%;
   scrollbar-color-active: $accent;
   scrollbar-background: $surface-darken-1;
   scrollbar-background-hover: $surface-darken-1;
   scrollbar-background-active: $surface-darken-1;
   scrollbar-size-vertical: 1;
+
+  &:focus {
+    scrollbar-color: $accent 55%;
+  }
 }
 
 AutoComplete {
@@ -370,6 +374,13 @@ Select {
     width: auto;
     padding: 0 1;
   }
+}
+
+#textual-jump-dismiss {
+  dock: bottom;
+  height: 1;
+  background: transparent;
+  color: $text-muted 42%;
 }
 
 CollectionBrowser {

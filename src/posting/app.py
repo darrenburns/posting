@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Literal, Union
+from typing import Any, Literal, Union, cast
 import subprocess
 import itertools
 import httpx
@@ -35,9 +35,10 @@ from posting.collection import (
 
 from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
+from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.types import PostingLayout
+from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
 from posting.version import VERSION
@@ -119,8 +120,6 @@ class MainScreen(Screen[None]):
         ),
     ]
 
-    AUTO_FOCUS = "UrlInput"
-
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     """The currently selected method of the request."""
     layout: Reactive[PostingLayout] = reactive("vertical", init=False)
@@ -147,6 +146,20 @@ class MainScreen(Screen[None]):
     def on_mount(self) -> None:
         self.layout = self._initial_layout
 
+        # Set the initial focus based on the settings.
+        focus_on_startup = self.settings.focus.on_startup
+        if focus_on_startup == "url":
+            target = self.url_bar.url_input
+        elif focus_on_startup == "method":
+            target = self.method_selector
+        elif focus_on_startup == "collection":
+            target = self.collection_browser.collection_tree
+        else:
+            target = None
+
+        if target is not None:
+            self.set_focus(target)
+
     def compose(self) -> ComposeResult:
         yield AppHeader()
         yield UrlBar()
@@ -163,9 +176,21 @@ class MainScreen(Screen[None]):
         proxy_url = request_options.proxy_url or None
         timeout = request_options.timeout
         auth = self.request_auth.to_httpx_auth()
+
+        ca_config = SETTINGS.get().ssl
+        cert_config: list[str] = []
+        if certificate_path := ca_config.certificate_path:
+            cert_config.append(certificate_path)
+        if key_file := ca_config.key_file:
+            cert_config.append(key_file)
+        if password := ca_config.password:
+            cert_config.append(password.get_secret_value())
+
+        cert = cast(CertTypes, tuple(cert_config))
         try:
             async with httpx.AsyncClient(
                 verify=verify_ssl,
+                cert=cert,
                 proxy=proxy_url,
                 timeout=timeout,
                 auth=auth,
@@ -228,6 +253,15 @@ class MainScreen(Screen[None]):
     @on(HttpResponseReceived)
     def on_response_received(self, event: HttpResponseReceived) -> None:
         """Update the response area with the response."""
+
+        # If the config to automatically move the focus on receipt
+        # of a response has been set, move focus as required.
+        focus_on_response = self.settings.focus.on_response
+        if focus_on_response == "body":
+            self.response_area.text_editor.text_area.focus()
+        elif focus_on_response == "tabs":
+            self.response_area.content_tabs.focus()
+
         self.response_area.response = event.response
         self.cookies.update(event.response.cookies)
         self.response_trace.trace_complete()
@@ -373,11 +407,11 @@ class MainScreen(Screen[None]):
         self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
     ) -> None:
         """Update the parameters tab to indicate if there are any parameters."""
-        params_tab = self.query_one("#--content-tab-parameters-pane", ContentTab)
+        params_tab = self.query_one("#--content-tab-query-pane", ContentTab)
         if event.data_table.row_count:
-            params_tab.update("Parameters[cyan b]•[/]")
+            params_tab.update("Query[cyan b]•[/]")
         else:
-            params_tab.update("Parameters")
+            params_tab.update("Query")
 
     def build_httpx_request(
         self,
@@ -545,6 +579,11 @@ class PostingApp(App[None]):
 
 
 class Posting(PostingApp):
+    # TODO - working around a Textual bug where the command palette
+    # doesnt auto focus the input by itself. When that bug is fixed,
+    # the AUTO_FOCUS setting should be set to None!!
+    # https://github.com/Textualize/textual/pull/4763
+    AUTO_FOCUS = "CommandInput"
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
@@ -552,14 +591,13 @@ class Posting(PostingApp):
             "ctrl+p",
             "command_palette",
             description="Commands",
-            show=True,
         ),
         Binding(
             "ctrl+o",
             "toggle_jump_mode",
             description="Jump",
-            show=True,
         ),
+        Binding("f1,ctrl+question_mark", "help", "Help"),
     ]
 
     themes: dict[str, ColorSystem] = {
@@ -702,12 +740,14 @@ class Posting(PostingApp):
     def on_mount(self) -> None:
         self.jumper = Jumper(
             {
+                "method-selector": "1",
+                "url-input": "2",
                 "collection-tree": "tab",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
-                "--content-tab-parameters-pane": "e",
+                "--content-tab-query-pane": "e",
                 "--content-tab-auth-pane": "r",
-                "--content-tab-metadata-pane": "t",
+                "--content-tab-info-pane": "t",
                 "--content-tab-options-pane": "y",
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
@@ -842,6 +882,10 @@ class Posting(PostingApp):
         self._jumping = not self._jumping
 
     async def watch__jumping(self, jumping: bool) -> None:
+        focused_before = self.focused
+        if focused_before is not None:
+            self.set_focus(None, scroll_visible=False)
+
         def handle_jump_target(target: str | Widget | None) -> None:
             if isinstance(target, str):
                 try:
@@ -860,6 +904,21 @@ class Posting(PostingApp):
 
             elif isinstance(target, Widget):
                 target.focus()
+            else:
+                # If there's no target (i.e. the user pressed ESC to dismiss)
+                # then re-focus the widget that was focused before we opened
+                # the jumper.
+                self.set_focus(focused_before, scroll_visible=False)
 
         self.clear_notifications()
         await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+
+    async def action_help(self) -> None:
+        focused = self.focused
+
+        def reset_focus(_) -> None:
+            if focused:
+                self.screen.set_focus(focused)
+
+        self.set_focus(None)
+        await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)

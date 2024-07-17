@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from typing import Iterable, Self
+from typing import Any, Iterable, Self
 from rich.text import Text
 from textual import on
 from textual.binding import Binding
+from textual.coordinate import Coordinate
 from textual.message import Message
 from textual.widgets import DataTable
 from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey
@@ -28,6 +29,10 @@ PostingDataTable {
         Binding("g,ctrl+home", "scroll_top", "Top", show=False),
         Binding("G,ctrl+end", "scroll_bottom", "Bottom", show=False),
     ]
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.cursor_vertical_escape = True
 
     @dataclass
     class RowsRemoved(Message):
@@ -89,16 +94,37 @@ PostingDataTable {
             )
 
     def action_cursor_down(self) -> None:
-        if self.cursor_coordinate.row == self.row_count - 1:
+        self._set_hover_cursor(False)
+        if (
+            self.cursor_coordinate.row == self.row_count - 1
+            and self.cursor_vertical_escape
+        ):
             self.screen.focus_next()
         else:
-            super().action_cursor_down()
+            cursor_type = self.cursor_type
+            if self.show_cursor and (cursor_type == "cell" or cursor_type == "row"):
+                row, column = self.cursor_coordinate
+                if row == self.row_count - 1:
+                    self.cursor_coordinate = Coordinate(0, column)
+                else:
+                    self.cursor_coordinate = self.cursor_coordinate.down()
+            else:
+                super().action_cursor_down()
 
     def action_cursor_up(self) -> None:
-        if self.cursor_coordinate.row == 0:
+        self._set_hover_cursor(False)
+        if self.cursor_coordinate.row == 0 and self.cursor_vertical_escape:
             self.screen.focus_previous()
         else:
-            super().action_cursor_up()
+            cursor_type = self.cursor_type
+            if self.show_cursor and (cursor_type == "cell" or cursor_type == "row"):
+                row, column = self.cursor_coordinate
+                if row == 0:
+                    self.cursor_coordinate = Coordinate(self.row_count - 1, column)
+                else:
+                    self.cursor_coordinate = self.cursor_coordinate.up()
+            else:
+                super().action_cursor_up()
 
     @on(RowsRemoved)
     @on(RowsAdded)

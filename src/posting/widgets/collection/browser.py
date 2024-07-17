@@ -16,6 +16,7 @@ from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
+from posting.help_screen import HelpData
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,
     NewRequestModal,
@@ -31,6 +32,16 @@ CollectionNode = Union[Collection, RequestModel]
 
 
 class CollectionTree(PostingTree[CollectionNode]):
+    help = HelpData(
+        title="Collection Browser",
+        description="""\
+Shows all `*.posting.yaml` request files resolved from the specified collection directory.
+Press `ctrl+n` to create a new request at the current cursor location.
+`j` and `k` can be used to navigate the tree.
+`J` and `K` jumps between sub-collections.
+""",
+    )
+
     COMPONENT_CLASSES = {
         "node-selected",
     }
@@ -191,10 +202,16 @@ class CollectionTree(PostingTree[CollectionNode]):
         root_path = self.root.data.path
         assert root_path is not None, "root should have a path"
 
+        # Take note of what was focused on this screen, so that we
+        # can focus it again when the modal is closed.
+        focused_before = self.screen.focused
+        self.screen.set_focus(None)
+
         def _handle_new_request_data(new_request_data: NewRequestData | None) -> None:
             """Get the new request data from the modal, and update the UI with it."""
             if new_request_data is None:
                 # Happens when the user presses `escape` while in the modal.
+                self.screen.set_focus(focused_before)
                 return
 
             # The user confirms the details in the modal, so use these details
@@ -411,6 +428,7 @@ class CollectionBrowser(Vertical):
         add_collection_to_tree(tree.root, collection)
 
         tree.root.expand_all()
+        tree.cursor_line = 0
         yield tree
         yield RequestPreview()
 
