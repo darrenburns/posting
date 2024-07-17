@@ -826,10 +826,13 @@ class Posting(PostingApp):
     def action_toggle_jump_mode(self) -> None:
         self._jumping = not self._jumping
 
-    async def watch__jumping(self, jumping: bool) -> None:
+    def watch__jumping(self, jumping: bool) -> None:
         focused_before = self.focused
         if focused_before is not None:
             self.set_focus(None, scroll_visible=False)
+            # TODO - the call below is working around a Textual bug
+            # that is fixed in https://github.com/Textualize/textual/pull/4771
+            self.screen._update_focus_styles(None, blurred=focused_before)
 
         def handle_jump_target(target: str | Widget | None) -> None:
             if isinstance(target, str):
@@ -841,23 +844,23 @@ class Posting(PostingApp):
                     )
                 else:
                     if target_widget.focusable:
-                        target_widget.focus()
+                        self.set_focus(target_widget)
                     else:
                         target_widget.post_message(
                             Click(0, 0, 0, 0, 0, False, False, False)
                         )
 
             elif isinstance(target, Widget):
-                target.focus()
+                self.set_focus(target)
             else:
                 # If there's no target (i.e. the user pressed ESC to dismiss)
                 # then re-focus the widget that was focused before we opened
                 # the jumper.
-                print("focused before", focused_before)
-                self.set_focus(focused_before, scroll_visible=False)
+                if focused_before is not None:
+                    self.set_focus(focused_before, scroll_visible=False)
 
         self.clear_notifications()
-        await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+        self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
 
     async def action_help(self) -> None:
         focused = self.focused
