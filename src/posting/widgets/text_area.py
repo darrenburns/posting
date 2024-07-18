@@ -464,8 +464,9 @@ class ReadOnlyTextArea(PostingTextArea):
 
     def action_cursor_to_matched_bracket(self) -> None:
         # If we're already on a bracket which has a match, just jump to it and return.
-        if self._matching_bracket_location:
-            self.selection = Selection.cursor(self._matching_bracket_location)
+        matching_bracket_location = self.matching_bracket_location
+        if matching_bracket_location:
+            self.selection = Selection.cursor(matching_bracket_location)
             return
 
         # Look for a bracket on the rest of the cursor line.
