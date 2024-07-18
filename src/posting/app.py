@@ -825,9 +825,6 @@ class Posting(PostingApp):
         focused_before = self.focused
         if focused_before is not None:
             self.set_focus(None, scroll_visible=False)
-            # TODO - the call below is working around a Textual bug
-            # that is fixed in https://github.com/Textualize/textual/pull/4771
-            self.screen._update_focus_styles(None, blurred=focused_before)
 
         def handle_jump_target(target: str | Widget | None) -> None:
             if isinstance(target, str):
