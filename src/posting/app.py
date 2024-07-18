@@ -583,11 +583,6 @@ class PostingApp(App[None]):
 
 
 class Posting(PostingApp):
-    # TODO - working around a Textual bug where the command palette
-    # doesnt auto focus the input by itself. When that bug is fixed,
-    # the AUTO_FOCUS setting should be set to None!!
-    # https://github.com/Textualize/textual/pull/4763
-    AUTO_FOCUS = "CommandInput"
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
