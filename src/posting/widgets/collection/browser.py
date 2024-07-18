@@ -273,7 +273,10 @@ Press `ctrl+n` to create a new request at the current cursor location.
             new_node = self.add_request(
                 new_request,
                 parent_node if pointer is self.root else pointer,
-                cursor_node,
+                after=None if parent_node == cursor_node else cursor_node,
+                before=0
+                if parent_node == cursor_node and len(parent_node.children) > 0
+                else None,
             )
             self.currently_open = new_node
 
@@ -313,11 +316,14 @@ Press `ctrl+n` to create a new request at the current cursor location.
         self,
         request: RequestModel,
         parent_node: TreeNode[CollectionNode],
-        cursor_node: TreeNode[CollectionNode] | None = None,
+        after: TreeNode[CollectionNode] | int | None = None,
+        before: TreeNode[CollectionNode] | int | None = None,
     ) -> TreeNode[CollectionNode]:
         """Add a new request to the tree, and cache data from it."""
         self.cache_request(request)
-        return parent_node.add_leaf(request.name, data=request, after=cursor_node)
+        return parent_node.add_leaf(
+            request.name, data=request, after=after, before=before
+        )
 
     def cache_request(self, request: RequestModel) -> None:
         def get_base_url(url: str) -> str | None:
