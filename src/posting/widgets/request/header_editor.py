@@ -59,6 +59,15 @@ class HeadersTable(PostingDataTable):
     The headers table.
     """
 
+    help = HelpData(
+        title="Headers Table",
+        description="""\
+A table of HTTP headers that will be sent with the request.
+
+Press `backspace` to delete a header.
+""",
+    )
+
     DEFAULT_CSS = """\
     HeadersTable {
         height: auto;
