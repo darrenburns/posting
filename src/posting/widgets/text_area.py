@@ -298,7 +298,7 @@ class PostingTextArea(TextArea):
                     message=f"The command [b]{command}[/b] failed to run.",
                 )
 
-        with open(temp_file_name, "r") as temp_file:
+        with open(temp_file_name, "r", encoding="utf-8") as temp_file:
             if not self.read_only:
                 self.text = temp_file.read()
 

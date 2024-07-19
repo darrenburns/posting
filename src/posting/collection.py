@@ -232,9 +232,8 @@ class RequestModel(BaseModel):
             sort_keys=False,
             allow_unicode=True,
         )
-        encoded_content = yaml_content.encode("ascii", errors="backslashreplace")
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(encoded_content)
+        path.write_text(yaml_content, encoding="utf-8")
 
 
 class Contact(BaseModel):

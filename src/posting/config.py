@@ -144,7 +144,10 @@ class Settings(BaseSettings):
         # If it's empty, we don't use it.
         # https://github.com/pydantic/pydantic-settings/issues/329
         try:
-            yaml_config = yaml.load(conf_file.read_bytes(), Loader=yaml.Loader)
+            yaml_config = yaml.load(
+                conf_file.read_bytes(),
+                Loader=yaml.Loader,
+            )
         except yaml.YAMLError:
             return default_sources
 
