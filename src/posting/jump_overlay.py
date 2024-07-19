@@ -17,7 +17,6 @@ class JumpOverlay(ModalScreen[str | Widget | None]):
     or a reference to the widget. Is dismissed with None if the user dismissed
     the overlay without making a selection."""
 
-    AUTO_FOCUS = None
     DEFAULT_CSS = """\
     JumpOverlay {
         background: black 25%;
