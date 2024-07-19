@@ -226,9 +226,15 @@ class RequestModel(BaseModel):
     def save_to_disk(self, path: Path) -> None:
         """Save the request model to a YAML file."""
         content = self.model_dump(exclude_defaults=True, exclude_none=True)
-        yaml_content = yaml.dump(content, None, sort_keys=False)
+        yaml_content = yaml.dump(
+            content,
+            None,
+            sort_keys=False,
+            allow_unicode=True,
+        )
+        encoded_content = yaml_content.encode("ascii", errors="backslashreplace")
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(yaml_content)
+        path.write_bytes(encoded_content)
 
 
 class Contact(BaseModel):
