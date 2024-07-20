@@ -228,3 +228,14 @@ class TestLoadingRequest:
             await pilot.press("ctrl+o", "w")  # jump to 'Body' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+
+    def test_request_loaded_into_view__query_params(self, snap_compare):
+        """Check that the request query params are loaded into the view."""
+
+        async def run_before(pilot: Pilot):
+            # Navigate to 'GET comments via query' and select it.
+            await pilot.press("J", "J", "J", "j", "j")
+            await pilot.press("enter")
+            await pilot.press("ctrl+o", "e")  # jump to 'Query Params' tab
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
