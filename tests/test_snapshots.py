@@ -245,8 +245,8 @@ class TestLoadingRequest:
 
         async def run_before(pilot: Pilot):
             # Navigate to 'GET comments via query' and select it.
-            await pilot.press("J", "J", "J", "j", "j")
+            await pilot.press("j")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "a")  # jump to 'Auth' tab
+            await pilot.press("ctrl+o", "r")  # jump to 'Auth' tab
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
