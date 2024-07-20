@@ -7,6 +7,11 @@ body:
     {
       "term_program": "$TERM_PROGRAM 🥺",
     }
+auth:
+  type: basic
+  basic:
+    username: darren
+    password: $domain
 headers:
 - name: Content-Type
   value: application/json

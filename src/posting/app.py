@@ -461,6 +461,7 @@ class MainScreen(Screen[None]):
             params=self.params_table.to_model(),
             headers=headers,
             options=request_options,
+            auth=self.request_auth.to_model(),
             cookies=(
                 Cookie.from_httpx(self.cookies)
                 if request_options.attach_cookies

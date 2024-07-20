@@ -39,13 +39,13 @@ class Auth(BaseModel):
 
 
 class BasicAuth(BaseModel):
-    username: SecretStr = Field(default="")
-    password: SecretStr = Field(default="")
+    username: str = Field(default="")
+    password: str = Field(default="")
 
 
 class DigestAuth(BaseModel):
-    username: SecretStr = Field(default="")
-    password: SecretStr = Field(default="")
+    username: str = Field(default="")
+    password: str = Field(default="")
 
 
 class Header(BaseModel):
@@ -138,7 +138,7 @@ class RequestModel(BaseModel):
     
     These are excluded because they should not be persisted to the request file."""
 
-    auth: Auth | None = Field(default=None, exclude=True)
+    auth: Auth | None = Field(default=None)
     """The auth information for the request."""
 
     posting_version: str = Field(default=VERSION)
