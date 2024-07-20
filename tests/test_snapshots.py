@@ -274,3 +274,14 @@ class TestLoadingRequest:
             await pilot.press("ctrl+o", "y")  # jump to 'Options' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
+
+
+@use_config("general.yaml")
+class TestHelpScreen:
+    def test_help_screen_appears(self, snap_compare):
+        """Check that the help screen appears."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+question_mark")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 42))
