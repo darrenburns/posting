@@ -143,7 +143,6 @@ class TestNewRequest:
         and that a notification is shown."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("J", "J", "ctrl+n")
             await pilot.press(*"foo")
             await pilot.press("tab", "tab")
@@ -165,5 +164,19 @@ name: foo
 description: bar
 """
             )
+
+            new_request_file.unlink()
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+class TestUserInterfaceShortcuts:
+    def test_hide_collection_browser(self, snap_compare):
+        """Check that we can hide the collection browser."""
+
+        async def run_before(pilot: Pilot):
+            no_cursor_blink(pilot)
+            await pilot.press("ctrl+h")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
