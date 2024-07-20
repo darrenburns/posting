@@ -5,15 +5,20 @@ from unittest import mock
 from textual.pilot import Pilot
 from textual.widgets import Input, TextArea
 
-SNAPSHOT_DIR = Path(__file__).parent
-CONFIG_DIR = SNAPSHOT_DIR / "sample-configs"
-POSTING_MAIN = SNAPSHOT_DIR / "posting_snapshot_app.py"
+TEST_DIR = Path(__file__).parent
+CONFIG_DIR = TEST_DIR / "sample-configs"
+SAMPLE_COLLECTIONS = TEST_DIR / "sample-collections"
+POSTING_MAIN = TEST_DIR / "posting_snapshot_app.py"
 
 
 def use_config(file_name: str):
     return mock.patch.dict(
         os.environ, {"POSTING_CONFIG_FILE": str(CONFIG_DIR / file_name)}
     )
+
+
+def patch_env(key: str, value: str):
+    return mock.patch.dict(os.environ, {key: value})
 
 
 def no_cursor_blink(pilot: Pilot):
@@ -111,5 +116,54 @@ class TestCommandPalette:
             await pilot.press("ctrl+p")
             await pilot.press(*"toggle collection")
             await pilot.press("enter", "enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestNewRequest:
+    def test_dialog_loads_and_can_be_used(self, snap_compare):
+        """Check that the new request dialog loads and is prefilled
+        with the data based on where the cursor is."""
+
+        async def run_before(pilot: Pilot):
+            no_cursor_blink(pilot)
+            await pilot.press("J", "J", "ctrl+n")
+            await pilot.press(*"foo")
+            await pilot.press("tab", "tab")
+            await pilot.press(*"bar")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_new_request_added_to_tree_correctly_and_notification_shown(
+        self, snap_compare
+    ):
+        """Check that the new request is added to the tree correctly
+        and that a notification is shown."""
+
+        async def run_before(pilot: Pilot):
+            no_cursor_blink(pilot)
+            await pilot.press("J", "J", "ctrl+n")
+            await pilot.press(*"foo")
+            await pilot.press("tab", "tab")
+            await pilot.press(*"bar")
+            await pilot.press("ctrl+n")
+
+            await pilot.pause()
+            # Check the file exists
+            new_request_file = (
+                SAMPLE_COLLECTIONS / "jsonplaceholder" / "posts" / "foo.posting.yaml"
+            )
+            assert new_request_file.exists()
+
+            # Check the file content
+            assert (
+                new_request_file.read_text("utf-8")
+                == """\
+name: foo
+description: bar
+"""
+            )
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
