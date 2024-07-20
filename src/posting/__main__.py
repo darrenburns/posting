@@ -56,15 +56,12 @@ def cli() -> None:
 def default(collection: str | None = None, env: tuple[str, ...] = ()) -> None:
     create_config_file()
     default_collection = create_default_collection()
-
     collection_path = Path(collection) if collection else default_collection
-    collection_tree = Collection.from_directory(str(collection_path.resolve()))
-
-    env_paths = tuple(Path(e).resolve() for e in env)
-    collection_specified = collection is not None
-    settings = Settings(_env_file=env_paths)  # type: ignore[call-arg]
-
-    app = Posting(settings, env_paths, collection_tree, collection_specified)
+    app = make_posting(
+        collection=collection_path,
+        env=env,
+        using_default_collection=collection is None,
+    )
     app.run()
 
 
@@ -117,3 +114,15 @@ def import_spec(spec_path: str, output: str | None) -> None:
     except Exception:
         console.print("An error occurred during the import process.", style="red")
         console.print_exception()
+
+
+def make_posting(
+    collection: Path, env: tuple[str, ...] = (), using_default_collection: bool = False
+) -> Posting:
+    """Return a Posting instance with the given collection and environment."""
+    collection_tree = Collection.from_directory(str(collection.resolve()))
+
+    env_paths = tuple(Path(e).resolve() for e in env)
+    settings = Settings(_env_file=env_paths)  # type: ignore[call-arg]
+
+    return Posting(settings, env_paths, collection_tree, not using_default_collection)

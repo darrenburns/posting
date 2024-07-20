@@ -51,6 +51,7 @@ managed = true
 dev-dependencies = [
     "textual-dev>=1.5.1",
     "pytest-textual-snapshot>=0.4.0",
+    "pytest>=8.2.2",
 ]
 
 [tool.hatch.metadata]
