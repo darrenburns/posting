@@ -117,7 +117,9 @@ def import_spec(spec_path: str, output: str | None) -> None:
 
 
 def make_posting(
-    collection: Path, env: tuple[str, ...] = (), using_default_collection: bool = False
+    collection: Path,
+    env: tuple[str, ...] = (),
+    using_default_collection: bool = False,
 ) -> Posting:
     """Return a Posting instance with the given collection and environment."""
     collection_tree = Collection.from_directory(str(collection.resolve()))

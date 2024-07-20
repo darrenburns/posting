@@ -1,5 +1,6 @@
 from contextvars import ContextVar
 import os
+from pathlib import Path
 from typing import Literal, Type
 from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import (
@@ -129,7 +130,12 @@ class Settings(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        conf_file = config_file()
+        config_from_env = os.getenv("POSTING_CONFIG_FILE")
+        if config_from_env:
+            conf_file = Path(config_from_env).resolve()
+        else:
+            conf_file = config_file()
+
         default_sources = (
             init_settings,
             env_settings,
