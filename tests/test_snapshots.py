@@ -191,3 +191,15 @@ class TestUserInterfaceShortcuts:
             await pilot.press("ctrl+m")  # expand request section
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_expand_then_reset(self, snap_compare):
+        """Check that we can expand the request section and then reset it."""
+
+        async def run_before(pilot: Pilot):
+            no_cursor_blink(pilot)
+            await pilot.press("ctrl+o")  # jump mode
+            await pilot.press("q")  # move focus to inside request section
+            await pilot.press("ctrl+m")  # expand request section
+            await pilot.press("ctrl+m")  # reset sections
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
