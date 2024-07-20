@@ -1,2 +1,3 @@
 heading:
   show_host: false
+  show_version: false

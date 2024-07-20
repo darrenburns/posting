@@ -85,7 +85,10 @@ class AppHeader(Horizontal):
 
     def compose(self) -> ComposeResult:
         settings = SETTINGS.get().heading
-        yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+        if settings.show_version:
+            yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+        else:
+            yield Label("Posting", id="app-title")
         if settings.show_host:
             yield Label(get_user_host_string(), id="app-user-host")
 

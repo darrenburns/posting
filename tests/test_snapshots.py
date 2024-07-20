@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from unittest import mock
+import pytest
 
 from textual.pilot import Pilot
 from textual.widgets import Input, TextArea
@@ -248,5 +249,28 @@ class TestLoadingRequest:
             await pilot.press("j")
             await pilot.press("enter")
             await pilot.press("ctrl+o", "r")  # jump to 'Auth' tab
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
+
+    @pytest.mark.skip(
+        reason="info tab contains a path, specific to the host the test runs on"
+    )
+    def test_request_loaded_into_view__info(self, snap_compare):
+        """Check that the request info is loaded into the view."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j")
+            await pilot.press("enter")
+            await pilot.press("ctrl+o", "t")  # jump to 'Info' tab
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
+
+    def test_request_loaded_into_view__options(self, snap_compare):
+        """Check that the request options are loaded into the view."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j")
+            await pilot.press("enter")
+            await pilot.press("ctrl+o", "y")  # jump to 'Options' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))

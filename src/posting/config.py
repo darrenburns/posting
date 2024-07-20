@@ -22,6 +22,8 @@ class HeadingSettings(BaseModel):
     """Whether this widget should be displayed or not."""
     show_host: bool = Field(default=True)
     """Whether or not to show the hostname in the app header."""
+    show_version: bool = Field(default=True)
+    """Whether or not to show the version in the app header."""
 
 
 class UrlBarSettings(BaseModel):
