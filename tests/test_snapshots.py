@@ -109,7 +109,7 @@ class TestCommandPalette:
         async def run_before(pilot: Pilot):
             no_cursor_blink(pilot)
             await pilot.press("ctrl+p")
-            await pilot.press(*"view toggle collection browser")
+            await pilot.press(*"toggle collection")
             await pilot.press("enter", "enter")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
