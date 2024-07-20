@@ -80,3 +80,36 @@ class TestUrlBar:
             await pilot.press(*"https://example.com/")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+class TestCommandPalette:
+    def test_loads_and_shows_discovery_options(self, snap_compare):
+        """Check that the command palette loads."""
+
+        async def run_before(pilot: Pilot):
+            no_cursor_blink(pilot)
+            await pilot.press("ctrl+p")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_can_type_to_filter_options(self, snap_compare):
+        """Check that we can run a command from the command palette."""
+
+        async def run_before(pilot: Pilot):
+            no_cursor_blink(pilot)
+            await pilot.press("ctrl+p")
+            await pilot.press(*"view")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_can_run_command__hide_collection_browser(self, snap_compare):
+        """Check that we can run a command from the command palette."""
+
+        async def run_before(pilot: Pilot):
+            no_cursor_blink(pilot)
+            await pilot.press("ctrl+p")
+            await pilot.press(*"view toggle collection browser")
+            await pilot.press("enter", "enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
