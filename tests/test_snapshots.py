@@ -285,3 +285,30 @@ class TestHelpScreen:
             await pilot.press("ctrl+question_mark")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 42))
+
+
+# TODO - test prepopulation of request. i.e. open ui, fill in info tab,
+# then press save.
+
+
+@use_config("general.yaml")
+class TestSave:
+    def test_no_request_selected__dialog_is_prefilled_correctly(self, snap_compare):
+        """Check that the save dialog appears when no request is selected.
+
+        We should confirm that the New Request dialogue is open, and that the
+        information is pre-filled. Ensure that the filename is also computed
+        correctly for the `*.posting.yaml` file.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "tab")  # select Collection Browser
+            await pilot.press(*"JJj")
+            await pilot.press("ctrl+o", "t")  # select 'Info' tab
+            await pilot.press("j")  # move down into 'Info' tab
+            await pilot.press(*"Foo: Bar")
+            await pilot.press("tab")
+            await pilot.press(*"baz")
+            await pilot.press("ctrl+s")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
