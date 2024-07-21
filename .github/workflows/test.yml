@@ -15,8 +15,8 @@ jobs:
             version: '0.35.0'
       - name: Configure Virtual Environment
         run: |
-            source .venv/bin/activate
             rye sync
+            source .venv/bin/activate
       - name: Run Tests
         run: make test
       - name: Attach Code Coverage
