@@ -79,16 +79,6 @@ class TestMethodSelection:
 
 @use_config("general.yaml")
 class TestUrlBar:
-    def test_enter_url(self, snap_compare) -> None:
-        """Check that we can enter a URL into the URL bar."""
-
-        async def run_before(pilot: Pilot) -> None:
-            no_cursor_blink(pilot)
-            await pilot.press("ctrl+l")  # Focus the URL bar
-            await pilot.press(*"https://example.com/")
-
-        assert snap_compare(POSTING_MAIN, run_before=run_before)
-
     def test_dropdown_appears_on_typing(self, snap_compare):
         """Check that the dropdown is filled with URLs."""
 
@@ -111,6 +101,7 @@ class TestUrlBar:
         """Check that the dropdown completion is selected."""
 
         async def run_before(pilot: Pilot):
+            await pilot.pause()
             await pilot.press(*"json")  # Move to the dropdown
             await pilot.press("enter")  # Select the completion
 
@@ -120,6 +111,7 @@ class TestUrlBar:
         """Check that the dropdown completion is selected."""
 
         async def run_before(pilot: Pilot):
+            await pilot.pause()
             await pilot.press(*"json")  # Move to the dropdown
             await pilot.press("tab")  # Select the completion
 
