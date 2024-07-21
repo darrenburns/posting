@@ -345,7 +345,7 @@ Press `ctrl+n` to create a new request at the current cursor location.
                 # TODO: We should sort these cached URLs on frequency instead
                 # of alphabetically. Bring the most used URLs to the top.
                 self.RequestCacheUpdated(
-                    cached_base_urls=sorted(self.cached_base_urls),
+                    cached_base_urls=list(self.cached_base_urls),
                     tree=self,
                 )
             )

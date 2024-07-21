@@ -284,7 +284,7 @@ class MainScreen(Screen[None]):
         self, event: CollectionTree.RequestCacheUpdated
     ) -> None:
         """Update the autocomplete suggestions when the request cache is updated."""
-        self.url_bar.cached_base_urls = event.cached_base_urls
+        self.url_bar.cached_base_urls = sorted(event.cached_base_urls)
 
     async def action_send_request(self) -> None:
         """Send the request."""
