@@ -1,6 +1,6 @@
 name: get one
 description: Retrieve one todo
-url: https://jsonplaceholder.typicode.com/todos/1
+url: https://jsonplaceholder.typicode.com/todos/$TODO_ID
 headers:
 - name: Content-Type
   value: application/json

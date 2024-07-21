@@ -5,9 +5,11 @@ import pytest
 
 from textual.pilot import Pilot
 from textual.widgets import Input, TextArea
+from posting.__main__ import make_posting
 
 TEST_DIR = Path(__file__).parent
 CONFIG_DIR = TEST_DIR / "sample-configs"
+ENV_DIR = TEST_DIR / "sample-envs"
 SAMPLE_COLLECTIONS = TEST_DIR / "sample-collections"
 POSTING_MAIN = TEST_DIR / "posting_snapshot_app.py"
 
@@ -404,3 +406,19 @@ class TestVariables:
         assert snap_compare(
             POSTING_MAIN, run_before=run_before, terminal_size=(118, 34)
         )
+
+    def test_resolved_variables_highlight_and_preview(self, snap_compare):
+        """Check that the resolved variables are highlighted in the URL
+        and the value is shown below."""
+
+        env_path = str((ENV_DIR / "sample_base.env").resolve())
+        app = make_posting(
+            collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
+            env=(env_path,),
+        )
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.press("ctrl+l")
+
+        assert snap_compare(app, run_before=run_before)
