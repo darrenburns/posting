@@ -50,8 +50,10 @@ posting = "posting.__main__:cli"
 managed = true
 dev-dependencies = [
     "textual-dev>=1.5.1",
-    "pytest-textual-snapshot>=0.4.0",
-    "pytest>=8.2.2",
+    "pytest>=8.3.1",
+    "jinja2>=3.1.4",
+    "syrupy>=4.6.1",
+    "pytest-xdist>=3.6.1",
 ]
 
 [tool.hatch.metadata]
