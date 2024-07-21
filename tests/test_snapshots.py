@@ -87,6 +87,42 @@ class TestUrlBar:
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
+    def test_dropdown_appears_on_typing(self, snap_compare):
+        """Check that the dropdown is filled with URLs."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.pause()
+            await pilot.press(*"http")  # Move to the dropdown
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_dropdown_filters_on_typing(self, snap_compare):
+        """Check that the dropdown filters on typing."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.pause()
+            await pilot.press(*"json")  # Move to the dropdown
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_dropdown_completion_selected_via_enter_key(self, snap_compare):
+        """Check that the dropdown completion is selected."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"json")  # Move to the dropdown
+            await pilot.press("enter")  # Select the completion
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_dropdown_completion_selected_via_tab_key(self, snap_compare):
+        """Check that the dropdown completion is selected."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"json")  # Move to the dropdown
+            await pilot.press("tab")  # Select the completion
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
 
 @use_config("general.yaml")
 class TestCommandPalette:
@@ -345,4 +381,25 @@ class TestConfig:
 
         assert snap_compare(
             POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestVariables:
+    def test_unresolved_variables_highlighted(self, snap_compare):
+        """Check that the unresolved variables are highlighted in the URL
+        and as a query parameter value."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"JJJJj")  # go to 'get one user'
+            await pilot.press("enter")  # press 'enter' to select
+            await pilot.press("ctrl+o", "e")  # go to 'Query' tab
+            await pilot.press("down")  # move down into 'Query' tab
+            await pilot.press(*"foo", "enter")  # pressing enter should shift to value
+            # The params typed below should be dimmed since they dont resolve
+            await pilot.press(*"$nope/${nope}")
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(118, 34)
         )
