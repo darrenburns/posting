@@ -13,10 +13,10 @@ jobs:
         uses: eifinger/setup-rye@v4
         with:
             version: '0.35.0'
-      - name: Configure Virtual Environment
-        run: |
-            rye sync
-            source .venv/bin/activate
+      - name: Install Dependencies
+        run: rye sync
+      - name: Activate Virtual Environment
+        run: source .venv/bin/activate
       - name: Run Tests
         run: make test
       - name: Attach Code Coverage
