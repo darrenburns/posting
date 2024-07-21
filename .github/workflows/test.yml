@@ -9,17 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          architecture: 'x64'
-      - name: Install a specific version
+      - name: Rye Python Setup
         uses: eifinger/setup-rye@v4
         with:
             version: '0.35.0'
-      - name: Run tests
-        run: rye run make test
-      - name: Code coverage comment
+            python-version: '3.11'
+            architecture: 'x64'
+      - name: Configure Virtual Environment
+        run: |
+            source .venv/bin/activate
+            rye sync
+      - name: Run Tests
+        run: make test
+      - name: Attach Code Coverage
         uses: py-cov-action/python-coverage-comment-action@v3.25
     
