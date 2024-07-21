@@ -21,4 +21,11 @@ jobs:
             make test
       - name: Attach Code Coverage
         uses: py-cov-action/python-coverage-comment-action@v3.25
+      - name: Save Snapshot Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: snapshot-report-posting
+          path: snapshot_report.html
+
     
