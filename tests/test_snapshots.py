@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 from textual.pilot import Pilot
-from textual.widgets import Input, TextArea
+from textual.widgets import Input
 from posting.__main__ import make_posting
 
 TEST_DIR = Path(__file__).parent
@@ -15,16 +15,22 @@ POSTING_MAIN = TEST_DIR / "posting_snapshot_app.py"
 
 
 def use_config(file_name: str):
+    """Specify which config file to use from the `sample-configs` directory."""
     return mock.patch.dict(
         os.environ, {"POSTING_CONFIG_FILE": str(CONFIG_DIR / file_name)}
     )
 
 
 def patch_env(key: str, value: str):
+    """Decorator to patch and environment variable."""
     return mock.patch.dict(os.environ, {key: value})
 
 
-async def disable_blink_for_active_cursors(pilot: Pilot):
+async def disable_blink_for_active_cursors(pilot: Pilot) -> None:
+    """Allows us to disable cursors which could not be disabled via config.
+    You'll probably want to use this if you open the command palette using a
+    test, as the config does not target that Input's cursor.
+    """
     await pilot.pause()
     pilot.app.screen.query_one(Input).cursor_blink = False
 
