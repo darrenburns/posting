@@ -15,10 +15,10 @@ jobs:
             version: '0.35.0'
       - name: Install Dependencies
         run: rye sync
-      - name: Activate Virtual Environment
-        run: source .venv/bin/activate
       - name: Run Tests
-        run: make test
+        run: |
+            source .venv/bin/activate
+            make test
       - name: Attach Code Coverage
         uses: py-cov-action/python-coverage-comment-action@v3.25
     
