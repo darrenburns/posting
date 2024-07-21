@@ -13,8 +13,6 @@ jobs:
         uses: eifinger/setup-rye@v4
         with:
             version: '0.35.0'
-            python-version: '3.11'
-            architecture: 'x64'
       - name: Configure Virtual Environment
         run: |
             source .venv/bin/activate
