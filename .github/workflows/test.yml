@@ -1,0 +1,25 @@
+name: Test
+
+on: [push, pull_request]
+env:
+    PYTEST_ADDOPTS: "--color=yes"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: 'x64'
+      - name: Install a specific version
+        uses: eifinger/setup-rye@v4
+        with:
+            version: '0.35.0'
+      - name: Run tests
+        run: rye run make test
+      - name: Code coverage comment
+        uses: py-cov-action/python-coverage-comment-action@v3.25
+    

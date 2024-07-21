@@ -67,3 +67,6 @@ packages = ["src/posting"]
 markers = [
     "serial",  # used to indicate tests must not run in parallel
 ]
+
+[tool.coverage.run]
+relative_files = true
