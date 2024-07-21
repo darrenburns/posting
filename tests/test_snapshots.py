@@ -287,11 +287,8 @@ class TestHelpScreen:
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 42))
 
 
-# TODO - test prepopulation of request. i.e. open ui, fill in info tab,
-# then press save.
-
-
 @use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 class TestSave:
     def test_no_request_selected__dialog_is_prefilled_correctly(self, snap_compare):
         """Check that the save dialog appears when no request is selected.
@@ -302,7 +299,6 @@ class TestSave:
         """
 
         async def run_before(pilot: Pilot):
-            await pilot.press("ctrl+o", "tab")  # select Collection Browser
             await pilot.press(*"JJj")
             await pilot.press("ctrl+o", "t")  # select 'Info' tab
             await pilot.press("j")  # move down into 'Info' tab
@@ -312,3 +308,41 @@ class TestSave:
             await pilot.press("ctrl+s")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestSendRequest:
+    def test_send_request(self, snap_compare):
+        """Check that we can send a request."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"JJj")  # select 'get one post'
+            await pilot.press("l")  # testing 'l' to select
+            await pilot.press("ctrl+j")  # send request
+            await pilot.app.workers.wait_for_complete()
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(88, 34))
+
+
+@use_config("modified_config.yaml")
+class TestConfig:
+    def test_config(self, snap_compare):
+        """Check that the config is loaded correctly.
+        The config loaded in this test class modifies the theme,
+        layout, focus on startup and response, and hides the header.
+
+        We should pay special attention to ensure the response body
+        is focused, as it should happen automatically when the response
+        is received based on this config.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"JJj")
+            await pilot.press("l")
+            await pilot.press("ctrl+j")
+            await pilot.app.workers.wait_for_complete()
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )

@@ -1,0 +1,8 @@
+theme: galaxy
+layout: horizontal
+use_host_environment: false
+focus:
+  on_startup: collection
+  on_response: body
+heading:
+  visible: false
