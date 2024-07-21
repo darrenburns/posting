@@ -251,7 +251,7 @@ class TestLoadingRequest:
 
         async def run_before(pilot: Pilot):
             # Navigate to 'get one post' and select it.
-            await pilot.press("J", "J", "j")
+            await pilot.press(*"Jj")
             await pilot.press("enter")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
@@ -261,7 +261,7 @@ class TestLoadingRequest:
 
         async def run_before(pilot: Pilot):
             # Navigate to 'POST one post' and select it.
-            await pilot.press("J", "J", "j", "j")
+            await pilot.press(*"JJjjj")
             await pilot.press("enter")
             await pilot.press("ctrl+o", "w")  # jump to 'Body' tab
 
@@ -272,7 +272,7 @@ class TestLoadingRequest:
 
         async def run_before(pilot: Pilot):
             # Navigate to 'GET comments via query' and select it.
-            await pilot.press("J", "J", "J", "j", "j")
+            await pilot.press(*"JJJjj")
             await pilot.press("enter")
             await pilot.press("ctrl+o", "e")  # jump to 'Query Params' tab
 
@@ -283,7 +283,7 @@ class TestLoadingRequest:
 
         async def run_before(pilot: Pilot):
             # Navigate to 'GET comments via query' and select it.
-            await pilot.press("j")
+            await pilot.press(*"jj")
             await pilot.press("enter")
             await pilot.press("ctrl+o", "r")  # jump to 'Auth' tab
 
@@ -306,7 +306,7 @@ class TestLoadingRequest:
         """Check that the request options are loaded into the view."""
 
         async def run_before(pilot: Pilot):
-            await pilot.press("j")
+            await pilot.press(*"jj")
             await pilot.press("enter")
             await pilot.press("ctrl+o", "y")  # jump to 'Options' tab
 
