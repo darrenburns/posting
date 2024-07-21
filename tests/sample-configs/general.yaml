@@ -1,4 +1,6 @@
 use_host_environment: false
+response:
+  show_size_and_time: false
 heading:
   show_host: false
   show_version: false

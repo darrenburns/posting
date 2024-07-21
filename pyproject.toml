@@ -54,6 +54,7 @@ dev-dependencies = [
     "jinja2>=3.1.4",
     "syrupy>=4.6.1",
     "pytest-xdist>=3.6.1",
+    "pytest-cov>=5.0.0",
 ]
 
 [tool.hatch.metadata]

@@ -40,6 +40,9 @@ class ResponseSettings(BaseModel):
     prettify_json: bool = Field(default=True)
     """If enabled, JSON responses will be pretty-formatted."""
 
+    show_size_and_time: bool = Field(default=True)
+    """If enabled, the size and time taken for the response will be displayed."""
+
 
 class FocusSettings(BaseModel):
     """Configuration relating to focus."""

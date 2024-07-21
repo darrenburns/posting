@@ -30,6 +30,8 @@ click==8.1.7
     # via textual-dev
 click-default-group==1.2.4
     # via posting
+coverage==7.6.0
+    # via pytest-cov
 execnet==2.1.1
     # via pytest-xdist
 frozenlist==1.4.1
@@ -81,8 +83,10 @@ pygments==2.18.0
 pyperclip==1.8.2
     # via posting
 pytest==8.3.1
+    # via pytest-cov
     # via pytest-xdist
     # via syrupy
+pytest-cov==5.0.0
 pytest-xdist==3.6.1
 python-dotenv==1.0.1
     # via posting
