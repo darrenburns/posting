@@ -24,11 +24,9 @@ def patch_env(key: str, value: str):
     return mock.patch.dict(os.environ, {key: value})
 
 
-def no_cursor_blink(pilot: Pilot):
-    for input in pilot.app.query(Input):
-        input.cursor_blink = False
-    for text_area in pilot.app.query(TextArea):
-        text_area.cursor_blink = False
+async def disable_blink_for_active_cursors(pilot: Pilot):
+    await pilot.pause()
+    pilot.app.screen.query_one(Input).cursor_blink = False
 
 
 @use_config("general.yaml")
@@ -37,7 +35,6 @@ class TestJumpMode:
         """Simple check that ctrl+o enters jump mode."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+o")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
@@ -46,7 +43,6 @@ class TestJumpMode:
         """Jump mode can target focusable widgets such as the collection tree."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+o")  # enter jump mode
             await pilot.press("tab")  # target collection tree
 
@@ -56,7 +52,6 @@ class TestJumpMode:
         """Jump mode can target widgets that are not focusable, such as tabs."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+o")  # enter jump mode
             await pilot.press("y")  # target "Options" tab
 
@@ -69,7 +64,6 @@ class TestMethodSelection:
         """Simple check that we can change the method."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+t")
             await pilot.press("p")
             await pilot.press("enter")
@@ -124,8 +118,8 @@ class TestCommandPalette:
         """Check that the command palette loads."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+p")
+            await disable_blink_for_active_cursors(pilot)
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -133,8 +127,8 @@ class TestCommandPalette:
         """Check that we can run a command from the command palette."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+p")
+            await disable_blink_for_active_cursors(pilot)
             await pilot.press(*"view")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
@@ -143,8 +137,8 @@ class TestCommandPalette:
         """Check that we can run a command from the command palette."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+p")
+            await disable_blink_for_active_cursors(pilot)
             await pilot.press(*"toggle collection")
             await pilot.press("enter", "enter")
 
@@ -159,7 +153,6 @@ class TestNewRequest:
         with the data based on where the cursor is."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("J", "J", "ctrl+n")
             await pilot.press(*"foo")
             await pilot.press("tab", "tab")
@@ -208,7 +201,6 @@ class TestUserInterfaceShortcuts:
         """Check that we can hide the collection browser."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+h")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
@@ -217,7 +209,6 @@ class TestUserInterfaceShortcuts:
         """Check that we can expand the request section."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+o")  # jump mode
             await pilot.press("q")  # move focus to inside request section
             await pilot.press("ctrl+m")  # expand request section
@@ -228,7 +219,6 @@ class TestUserInterfaceShortcuts:
         """Check that we can expand the request section and then reset it."""
 
         async def run_before(pilot: Pilot):
-            no_cursor_blink(pilot)
             await pilot.press("ctrl+o")  # jump mode
             await pilot.press("q")  # move focus to inside request section
             await pilot.press("ctrl+m")  # expand request section
