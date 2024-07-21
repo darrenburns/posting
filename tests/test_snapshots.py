@@ -173,10 +173,7 @@ class TestNewRequest:
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
-    # This runs in its own group because it creates a file.
-    # We don't want other tests to read this file as it would
-    # alter their output and the snapshots wouldn't match.
-    @pytest.mark.xdist_group(name="filesystem")
+    @pytest.mark.serial
     def test_new_request_added_to_tree_correctly_and_notification_shown(
         self, snap_compare
     ):

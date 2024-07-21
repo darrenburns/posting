@@ -1,11 +1,11 @@
-from textual.widgets import Input
 from posting.help_screen import HelpData
 from posting.highlighters import VariableHighlighter
+from posting.widgets.input import PostingInput
 
 from posting.widgets.variable_autocomplete import VariableAutoComplete
 
 
-class VariableInput(Input):
+class VariableInput(PostingInput):
     help = HelpData(
         title="Variable-Aware Input",
         description="""\

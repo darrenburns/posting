@@ -69,6 +69,13 @@ class CertificateSettings(BaseModel):
     """Password for the key file."""
 
 
+class TextInputSettings(BaseModel):
+    """Configuration for text input widgets."""
+
+    blinking_cursor: bool = Field(default=True)
+    """If enabled, the cursor will blink in input widgets and text areas."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -89,6 +96,9 @@ class Settings(BaseSettings):
     """If enabled, you can use environment variables from the host machine in your requests 
     using the `${VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
     defined in any `.env` files explicitly supplied via the `--env` option."""
+
+    text_input: TextInputSettings = Field(default_factory=TextInputSettings)
+    """General configuration for inputs and text area widgets."""
 
     animation: AnimationLevel = Field(default="none")
     """Controls the amount of animation permitted."""

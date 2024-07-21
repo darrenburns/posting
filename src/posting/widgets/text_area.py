@@ -207,6 +207,7 @@ class PostingTextArea(TextArea):
 
     def on_mount(self) -> None:
         self.indent_width = 2
+        self.cursor_blink = SETTINGS.get().text_input.blinking_cursor
         self.register_theme(POSTING_THEME)
         self.register_theme(MONOKAI_THEME)
         self.register_theme(GITHUB_LIGHT_THEME)

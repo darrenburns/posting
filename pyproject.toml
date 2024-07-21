@@ -62,3 +62,8 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/posting"]
+
+[tool.pytest.ini_options]
+markers = [
+    "serial",  # used to indicate tests must not run in parallel
+]

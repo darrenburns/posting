@@ -8,3 +8,5 @@ focus:
   on_response: body
 heading:
   visible: false
+text_input:
+  blinking_cursor: false

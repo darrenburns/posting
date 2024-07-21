@@ -4,3 +4,5 @@ response:
 heading:
   show_host: false
   show_version: false
+text_input:
+  blinking_cursor: false

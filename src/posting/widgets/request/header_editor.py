@@ -10,10 +10,11 @@ from posting.help_screen import HelpData
 from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
+from posting.widgets.input import PostingInput
 from posting.widgets.variable_input import VariableInput
 
 
-class HeaderInput(Input):
+class HeaderInput(PostingInput):
     help = HelpData(
         title="HTTP Header Input",
         description="""\
