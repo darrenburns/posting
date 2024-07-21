@@ -1,4 +1,5 @@
 from __future__ import annotations
+import inspect
 
 import os
 import pickle
@@ -178,7 +179,7 @@ def snap_compare(
 
         result = snapshot == actual_screenshot
         expected_svg_text = str(snapshot)
-        full_path, line_number, name = request.node.reportinfo()
+        full_path, line_number, name = node.reportinfo()
 
         data = (
             result,
@@ -188,6 +189,7 @@ def snap_compare(
             full_path,
             line_number,
             name,
+            inspect.getdoc(node.function) or "",
         )
         data_path = node_to_report_path(request.node)
         data_path.write_bytes(pickle.dumps(data))
@@ -210,6 +212,7 @@ class SvgSnapshotDiff:
     line_number: int
     app: App
     environment: dict
+    docstring: str
 
 
 def pytest_sessionstart(
@@ -253,9 +256,16 @@ def retrieve_svg_diffs(
 
     n = 0
     for data_path in Path(tempdir.name).iterdir():
-        (passed, expect_svg_text, svg_text, app, full_path, line_index, name) = (
-            pickle.loads(data_path.read_bytes())
-        )
+        (
+            passed,
+            expect_svg_text,
+            svg_text,
+            app,
+            full_path,
+            line_index,
+            name,
+            docstring,
+        ) = pickle.loads(data_path.read_bytes())
         pass_count += 1 if passed else 0
         if not passed:
             n += 1
@@ -268,6 +278,7 @@ def retrieve_svg_diffs(
                     line_number=line_index + 1,
                     app=app,
                     environment=dict(os.environ),
+                    docstring=docstring,
                 )
             )
     return diffs, pass_count
