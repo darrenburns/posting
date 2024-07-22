@@ -13,3 +13,11 @@ headers:
 params:
 - name: postId
   value: '1'
+- name: foo
+  value: bar
+- name: beep
+  value: boop
+- name: onetwothree
+  value: '123'
+- name: areallyreallyreallyreallylongkey
+  value: avalue

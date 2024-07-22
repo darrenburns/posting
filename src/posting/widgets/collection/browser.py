@@ -342,6 +342,8 @@ Press `ctrl+n` to create a new request at the current cursor location.
             # Post a message up to the screen so that it can inform
             # the URL bar that the autocomplete suggestions have changed.
             self.post_message(
+                # TODO: We should sort these cached URLs on frequency instead
+                # of alphabetically. Bring the most used URLs to the top.
                 self.RequestCacheUpdated(
                     cached_base_urls=list(self.cached_base_urls),
                     tree=self,

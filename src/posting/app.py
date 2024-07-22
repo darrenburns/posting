@@ -85,7 +85,10 @@ class AppHeader(Horizontal):
 
     def compose(self) -> ComposeResult:
         settings = SETTINGS.get().heading
-        yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+        if settings.show_version:
+            yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+        else:
+            yield Label("Posting", id="app-title")
         if settings.show_host:
             yield Label(get_user_host_string(), id="app-user-host")
 
@@ -281,7 +284,7 @@ class MainScreen(Screen[None]):
         self, event: CollectionTree.RequestCacheUpdated
     ) -> None:
         """Update the autocomplete suggestions when the request cache is updated."""
-        self.url_bar.cached_base_urls = event.cached_base_urls
+        self.url_bar.cached_base_urls = sorted(event.cached_base_urls)
 
     async def action_send_request(self) -> None:
         """Send the request."""
@@ -461,6 +464,7 @@ class MainScreen(Screen[None]):
             params=self.params_table.to_model(),
             headers=headers,
             options=request_options,
+            auth=self.request_auth.to_model(),
             cookies=(
                 Cookie.from_httpx(self.cookies)
                 if request_options.attach_cookies

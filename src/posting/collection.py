@@ -39,13 +39,13 @@ class Auth(BaseModel):
 
 
 class BasicAuth(BaseModel):
-    username: SecretStr = Field(default="")
-    password: SecretStr = Field(default="")
+    username: str = Field(default="")
+    password: str = Field(default="")
 
 
 class DigestAuth(BaseModel):
-    username: SecretStr = Field(default="")
-    password: SecretStr = Field(default="")
+    username: str = Field(default="")
+    password: str = Field(default="")
 
 
 class Header(BaseModel):
@@ -138,7 +138,7 @@ class RequestModel(BaseModel):
     
     These are excluded because they should not be persisted to the request file."""
 
-    auth: Auth | None = Field(default=None, exclude=True)
+    auth: Auth | None = Field(default=None)
     """The auth information for the request."""
 
     posting_version: str = Field(default=VERSION)
@@ -232,9 +232,8 @@ class RequestModel(BaseModel):
             sort_keys=False,
             allow_unicode=True,
         )
-        encoded_content = yaml_content.encode("ascii", errors="backslashreplace")
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(encoded_content)
+        path.write_text(yaml_content, encoding="utf-8")
 
 
 class Contact(BaseModel):
@@ -361,6 +360,22 @@ class Collection(BaseModel):
             except Exception as e:
                 print(f"Failed to load {file_path}: {e}")
 
+        # Sort the requests and children at all levels of the tree
+        def sort_collection(collection: Collection):
+            # Sort subcollections
+            collection.children.sort(key=lambda x: x.name)
+
+            # Sort requests
+            method_order = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}
+            collection.requests.sort(
+                key=lambda x: (method_order.get(x.method, 5), x.name)
+            )
+
+            # Recursively sort child collections
+            for child in collection.children:
+                sort_collection(child)
+
+        sort_collection(root_collection)
         return root_collection
 
     def save_to_disk(self, path: Path) -> None:

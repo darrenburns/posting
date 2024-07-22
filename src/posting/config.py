@@ -1,5 +1,6 @@
 from contextvars import ContextVar
 import os
+from pathlib import Path
 from typing import Literal, Type
 from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import (
@@ -21,6 +22,8 @@ class HeadingSettings(BaseModel):
     """Whether this widget should be displayed or not."""
     show_host: bool = Field(default=True)
     """Whether or not to show the hostname in the app header."""
+    show_version: bool = Field(default=True)
+    """Whether or not to show the version in the app header."""
 
 
 class UrlBarSettings(BaseModel):
@@ -36,6 +39,9 @@ class ResponseSettings(BaseModel):
 
     prettify_json: bool = Field(default=True)
     """If enabled, JSON responses will be pretty-formatted."""
+
+    show_size_and_time: bool = Field(default=True)
+    """If enabled, the size and time taken for the response will be displayed."""
 
 
 class FocusSettings(BaseModel):
@@ -63,6 +69,13 @@ class CertificateSettings(BaseModel):
     """Password for the key file."""
 
 
+class TextInputSettings(BaseModel):
+    """Configuration for text input widgets."""
+
+    blinking_cursor: bool = Field(default=True)
+    """If enabled, the cursor will blink in input widgets and text areas."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -83,6 +96,9 @@ class Settings(BaseSettings):
     """If enabled, you can use environment variables from the host machine in your requests 
     using the `${VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
     defined in any `.env` files explicitly supplied via the `--env` option."""
+
+    text_input: TextInputSettings = Field(default_factory=TextInputSettings)
+    """General configuration for inputs and text area widgets."""
 
     animation: AnimationLevel = Field(default="none")
     """Controls the amount of animation permitted."""
@@ -129,7 +145,12 @@ class Settings(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        conf_file = config_file()
+        config_from_env = os.getenv("POSTING_CONFIG_FILE")
+        if config_from_env:
+            conf_file = Path(config_from_env).resolve()
+        else:
+            conf_file = config_file()
+
         default_sources = (
             init_settings,
             env_settings,
@@ -144,7 +165,10 @@ class Settings(BaseSettings):
         # If it's empty, we don't use it.
         # https://github.com/pydantic/pydantic-settings/issues/329
         try:
-            yaml_config = yaml.load(conf_file.read_bytes(), Loader=yaml.Loader)
+            yaml_config = yaml.load(
+                conf_file.read_bytes(),
+                Loader=yaml.Loader,
+            )
         except yaml.YAMLError:
             return default_sources
 

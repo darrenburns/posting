@@ -7,6 +7,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Footer, Input, Label
 
 from posting.save_request import FILE_SUFFIX, generate_request_filename
+from posting.widgets.input import PostingInput
 from posting.widgets.text_area import PostingTextArea
 
 
@@ -93,7 +94,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
             vs.border_title = "New request"
 
             yield Label("Title")
-            yield Input(
+            yield PostingInput(
                 self._initial_title,
                 placeholder="Enter a title",
                 id="title-input",
@@ -101,7 +102,9 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
 
             yield Label("File name [dim]optional[/dim]")
             with Horizontal():
-                yield Input(placeholder="Enter a file name", id="file-name-input")
+                yield PostingInput(
+                    placeholder="Enter a file name", id="file-name-input"
+                )
                 yield Label(".posting.yaml", id="file-suffix-label")
 
             yield Label("Description [dim]optional[/dim]")
@@ -112,7 +115,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
             )
 
             yield Label("Directory")
-            yield Input(
+            yield PostingInput(
                 self._initial_directory,
                 placeholder="Enter a directory",
                 id="directory-input",

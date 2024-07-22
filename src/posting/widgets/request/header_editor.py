@@ -10,10 +10,11 @@ from posting.help_screen import HelpData
 from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
+from posting.widgets.input import PostingInput
 from posting.widgets.variable_input import VariableInput
 
 
-class HeaderInput(Input):
+class HeaderInput(PostingInput):
     help = HelpData(
         title="HTTP Header Input",
         description="""\
@@ -58,6 +59,16 @@ class HeadersTable(PostingDataTable):
     """
     The headers table.
     """
+
+    help = HelpData(
+        title="Headers Table",
+        description="""\
+A table of HTTP headers that will be sent with the request.
+Press `backspace` to delete a header.
+Posting will automatically attach a `User-Agent` header to outgoing requests in order to identify itself, and set the `Content-Type` depending on the content
+in the body tab. Setting a header in this table will override the default value in these cases.
+""",
+    )
 
     DEFAULT_CSS = """\
     HeadersTable {

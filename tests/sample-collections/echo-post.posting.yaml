@@ -5,8 +5,13 @@ url: https://postman-echo.com/post
 body:
   content: |-
     {
-      "term_program": "$TERM_PROGRAM",
+      "term_program": "$TERM_PROGRAM 🥺",
     }
+auth:
+  type: basic
+  basic:
+    username: darren
+    password: $domain
 headers:
 - name: Content-Type
   value: application/json

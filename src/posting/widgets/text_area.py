@@ -207,6 +207,7 @@ class PostingTextArea(TextArea):
 
     def on_mount(self) -> None:
         self.indent_width = 2
+        self.cursor_blink = SETTINGS.get().text_input.blinking_cursor
         self.register_theme(POSTING_THEME)
         self.register_theme(MONOKAI_THEME)
         self.register_theme(GITHUB_LIGHT_THEME)
@@ -298,7 +299,7 @@ class PostingTextArea(TextArea):
                     message=f"The command [b]{command}[/b] failed to run.",
                 )
 
-        with open(temp_file_name, "r") as temp_file:
+        with open(temp_file_name, "r", encoding="utf-8") as temp_file:
             if not self.read_only:
                 self.text = temp_file.read()
 

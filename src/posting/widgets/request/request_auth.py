@@ -1,12 +1,13 @@
 from typing import Protocol, runtime_checkable
 import httpx
+from pydantic import SecretStr
 from textual import on, log
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import ContentSwitcher, Input, Label, Select, Static
 
-from posting.collection import Auth
+from posting.collection import Auth, BasicAuth, DigestAuth
 from posting.widgets.select import PostingSelect
 from posting.widgets.variable_input import VariableInput
 
@@ -126,6 +127,30 @@ class RequestAuth(VerticalScroll):
             case _:
                 return None
 
+    def to_model(self) -> Auth | None:
+        form = self.current_form
+        if form is None:
+            return None
+
+        match form.id:
+            case "auth-form-basic":
+                form_values = form.get_values()
+                username = form_values["username"]
+                password = form_values["password"]
+                return Auth(
+                    type="basic", basic=BasicAuth(username=username, password=password)
+                )
+            case "auth-form-digest":
+                form_values = form.get_values()
+                username = form_values["username"]
+                password = form_values["password"]
+                return Auth(
+                    type="digest",
+                    digest=DigestAuth(username=username, password=password),
+                )
+            case _:
+                return None
+
     def load_auth(self, auth: Auth | None) -> None:
         if auth is None:
             self.query_one("#auth-type-select", Select).value = None
@@ -139,8 +164,8 @@ class RequestAuth(VerticalScroll):
                     )
                     return
                 self.query_one("#auth-form-basic", UserNamePasswordForm).set_values(
-                    auth.basic.username.get_secret_value(),
-                    auth.basic.password.get_secret_value(),
+                    auth.basic.username,
+                    auth.basic.password,
                 )
             case "digest":
                 if auth.digest is None:
@@ -150,8 +175,8 @@ class RequestAuth(VerticalScroll):
                     return
                 self.query_one("#auth-type-select", Select).value = "digest"
                 self.query_one("#auth-form-digest", UserNamePasswordForm).set_values(
-                    auth.digest.username.get_secret_value(),
-                    auth.digest.password.get_secret_value(),
+                    auth.digest.username,
+                    auth.digest.password,
                 )
             case _:
                 log.warning(f"Unknown auth type: {auth.type}")
