@@ -1,4 +1,51 @@
+from pydantic import BaseModel
 from textual.design import ColorSystem
+import yaml
+
+from posting.locations import themes_directory
+
+
+class Theme(BaseModel):
+    name: str
+    primary: str
+    secondary: str | None = None
+    background: str | None = None
+    surface: str | None = None
+    panel: str | None = None
+    warning: str | None = None
+    error: str | None = None
+    success: str | None = None
+    accent: str | None = None
+    primary_background: str | None = None
+    secondary_background: str | None = None
+    dark: bool = True
+
+    # Optional metadata
+    author: str | None = None
+    description: str | None = None
+    homepage: str | None = None
+
+    def to_color_system(self) -> ColorSystem:
+        return ColorSystem(**self.model_dump(exclude={"name"}))
+
+
+def load_user_themes() -> dict[str, ColorSystem]:
+    """Load user themes from "~/.config/posting/themes"."""
+    directory = themes_directory()
+    themes: dict[str, ColorSystem] = {}
+    for path in directory.iterdir():
+        if path.suffix == ".yaml":
+            with path.open() as theme_file:
+                theme_content = yaml.load(theme_file, Loader=yaml.FullLoader)
+                try:
+                    themes[theme_content["name"]] = Theme(
+                        **theme_content
+                    ).to_color_system()
+                except KeyError:
+                    raise ValueError(
+                        f"Invalid theme file {path}. A `name` is required."
+                    )
+    return themes
 
 
 BUILTIN_THEMES: dict[str, ColorSystem] = {

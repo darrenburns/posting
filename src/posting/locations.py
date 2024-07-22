@@ -14,6 +14,13 @@ def data_directory() -> Path:
     return _posting_directory(xdg_data_home())
 
 
+def themes_directory() -> Path:
+    """Return (possibly creating) the themes directory."""
+    themes_dir = data_directory() / "themes"
+    themes_dir.mkdir(exist_ok=True, parents=True)
+    return themes_dir
+
+
 def default_collection_directory() -> Path:
     """Return (possibly creating) the default collection directory."""
     return data_directory() / "default"

@@ -604,13 +604,13 @@ class Posting(App[None]):
         # TODO - load user themes from "~/.config/posting/themes"
 
         self.themes = available_themes
+        super().__init__()
+
         self.settings = settings
         self.environment_files = environment_files
         self.collection = collection
         self.collection_specified = collection_specified
         self.animation_level = settings.animation
-
-        super().__init__()
 
     theme: Reactive[str | None] = reactive("posting", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
