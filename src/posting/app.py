@@ -38,7 +38,7 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.themes import BUILTIN_THEMES
+from posting.themes import BUILTIN_THEMES, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
@@ -600,12 +600,11 @@ class Posting(App[None]):
         available_themes: dict[str, ColorSystem] = {**BUILTIN_THEMES}
         if settings.use_xresources:
             available_themes |= load_xresources_themes()
-
-        # TODO - load user themes from "~/.config/posting/themes"
+        available_themes |= load_user_themes()
 
         self.themes = available_themes
 
-        # We need to call this after the themes are loaded,
+        # We need to call super.__init__ after the themes are loaded,
         # because our `get_css_variables` override depends on
         # the themes dict being available.
         super().__init__()
