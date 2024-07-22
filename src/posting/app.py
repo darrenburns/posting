@@ -63,6 +63,7 @@ from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
+from posting.xresources import load_xresources_themes
 
 
 class AppHeader(Horizontal):
@@ -587,8 +588,6 @@ class Posting(App[None]):
         Binding("f1,ctrl+question_mark", "help", "Help"),
     ]
 
-
-
     def __init__(
         self,
         settings: Settings,
@@ -596,13 +595,11 @@ class Posting(App[None]):
         collection: Collection,
         collection_specified: bool = False,
     ) -> None:
-        super().__init__()
-
         SETTINGS.set(settings)
 
         available_themes: dict[str, ColorSystem] = {**BUILTIN_THEMES}
         if settings.use_xresources:
-            available_themes |= self.get_xresources_themes()
+            available_themes |= load_xresources_themes()
 
         # TODO - load user themes from "~/.config/posting/themes"
 
@@ -612,6 +609,8 @@ class Posting(App[None]):
         self.collection = collection
         self.collection_specified = collection_specified
         self.animation_level = settings.animation
+
+        super().__init__()
 
     theme: Reactive[str | None] = reactive("posting", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
