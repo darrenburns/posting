@@ -38,7 +38,7 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.themes import BUILTIN_THEMES, load_user_themes
+from posting.themes import BUILTIN_THEMES, Theme, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
@@ -597,7 +597,7 @@ class Posting(App[None]):
     ) -> None:
         SETTINGS.set(settings)
 
-        available_themes: dict[str, ColorSystem] = {**BUILTIN_THEMES}
+        available_themes: dict[str, Theme] = {**BUILTIN_THEMES}
         if settings.use_xresources:
             available_themes |= load_xresources_themes()
         available_themes |= load_user_themes()
@@ -637,7 +637,7 @@ class Posting(App[None]):
             },
             screen=self.screen,
         )
-        self.theme_change_signal = Signal[ColorSystem](self, "theme-changed")
+        self.theme_change_signal = Signal[Theme](self, "theme-changed")
         self.theme = self.settings.theme
 
     def get_default_screen(self) -> MainScreen:
@@ -657,14 +657,14 @@ class Posting(App[None]):
 
     def get_css_variables(self) -> dict[str, str]:
         if self.theme:
-            system = self.themes.get(self.theme)
-            if system:
-                theme = system.generate()
+            theme = self.themes.get(self.theme)
+            if theme:
+                color_system = theme.to_color_system().generate()
             else:
-                theme = {}
+                color_system = {}
         else:
-            theme = {}
-        return {**super().get_css_variables(), **theme}
+            color_system = {}
+        return {**super().get_css_variables(), **color_system}
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.layout = layout

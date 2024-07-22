@@ -12,7 +12,7 @@ from pydantic_settings import (
 from textual.types import AnimationLevel
 import yaml
 
-from posting.locations import config_file
+from posting.locations import config_file, themes_directory
 
 from posting.types import PostingLayout
 
@@ -88,6 +88,9 @@ class Settings(BaseSettings):
 
     theme: str = Field(default="posting")
     """The name of the theme to use."""
+
+    themes_directory: Path = Field(default=themes_directory())
+    """The directory containing user themes."""
 
     layout: PostingLayout = Field(default="vertical")
     """Layout for the app."""

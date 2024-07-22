@@ -239,6 +239,7 @@ Dotenv files are separate from collections, although you may wish to include the
 | `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
 | `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | If enabled, the cursor will blink in input widgets and text area widgets. |
 | `use_xresources` (`POSTING_USE_XRESOURCES`) | `true`, `false` (Default: `false`) | Try to create themes called `xresources-dark` and `xresources-light` (see the section below) |
+| `themes_directory` (`POSTING_THEMES_DIRECTORY`) | (Default: `${XDG_DATA_HOME}/posting/themes`) | The directory containing user themes. |
 
 ## SSL certificate configuration
 
@@ -277,19 +278,30 @@ ssl:
   password: '***********'  # optional password for key_file
 ```
 
-## Importing OpenAPI Specifications
+## Theming
 
-Note: this feature is highly experimental.
+Place custom themes in the themes directory and Posting will load them on startup. Theme files must be suffixed with `.yaml`, but the rest of the filename is unused by Posting.
 
-Posting can convert OpenAPI 3.x specs into collections.
+You can check where Posting will look for themes by running `posting locate themes` in your terminal.
 
-To import an OpenAPI Specification, use the `posting import path/to/openapi.yaml` command.
+Here's an example theme file:
 
-You can optionally supply an output directory.
+```yaml
+name: example  # use this name in your config file
+primary: '#4e78c4'
+secondary: '#f39c12'
+accent: '#e74c3c'
+background: '#0e1726'
+surface: '#17202a'
+error: '#e74c3c'
+syntax: 'dracula'  # auto-switch syntax highlighting theme
 
-If no output directory is supplied, the default collection directory will be used.
+# Optional metadata
+author: Darren Burns
+description: A dark theme with a blue primary color.
+homepage: https://github.com/darrenburns/posting
+```
 
-Posting will attempt to build a file structure in the collection that aligns with the URL structure of the imported API.
 
 ### X resources themes
 
@@ -309,3 +321,17 @@ It requires the `xrdb` executable on your `PATH` and `xrdb -query` must return t
 | *color7     | surface/panel color |
 
 If these conditions are met, themes called `xresources-dark` and `xresources-light` will be available for use.
+
+## Importing OpenAPI Specifications
+
+Note: this feature is highly experimental.
+
+Posting can convert OpenAPI 3.x specs into collections.
+
+To import an OpenAPI Specification, use the `posting import path/to/openapi.yaml` command.
+
+You can optionally supply an output directory.
+
+If no output directory is supplied, the default collection directory will be used.
+
+Posting will attempt to build a file structure in the collection that aligns with the URL structure of the imported API.

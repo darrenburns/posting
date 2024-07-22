@@ -8,7 +8,11 @@ from posting.app import Posting
 from posting.collection import Collection
 from posting.config import Settings
 from posting.importing.open_api import import_openapi_spec
-from posting.locations import config_file, default_collection_directory
+from posting.locations import (
+    config_file,
+    default_collection_directory,
+    themes_directory,
+)
 
 
 def create_config_file() -> None:
@@ -68,7 +72,6 @@ def default(collection: str | None = None, env: tuple[str, ...] = ()) -> None:
 @cli.command()
 @click.argument(
     "thing_to_locate",
-    type=click.Choice(["config", "collection"]),
 )
 def locate(thing_to_locate: str) -> None:
     if thing_to_locate == "config":
@@ -77,10 +80,13 @@ def locate(thing_to_locate: str) -> None:
     elif thing_to_locate == "collection":
         print("Default collection directory:")
         print(default_collection_directory())
+    elif thing_to_locate == "themes":
+        print("Themes directory:")
+        print(themes_directory())
     else:
         # This shouldn't happen because the type annotation should enforce that
         # the only valid options are "config" and "collection".
-        raise ValueError(f"Unknown thing to locate: {thing_to_locate}")
+        print(f"Unknown thing to locate: {thing_to_locate!r}")
 
 
 @cli.command(name="import")

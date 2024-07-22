@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from textual.design import ColorSystem
 import yaml
 
@@ -6,7 +6,7 @@ from posting.locations import themes_directory
 
 
 class Theme(BaseModel):
-    name: str
+    name: str = Field(exclude=True)
     primary: str
     secondary: str | None = None
     background: str | None = None
@@ -16,31 +16,31 @@ class Theme(BaseModel):
     error: str | None = None
     success: str | None = None
     accent: str | None = None
-    primary_background: str | None = None
-    secondary_background: str | None = None
     dark: bool = True
+    syntax: str = Field(default="posting", exclude=True)
+    """Posting can associate a syntax highlighting theme which will
+    be switched to automatically when the app theme changes."""
 
     # Optional metadata
-    author: str | None = None
-    description: str | None = None
-    homepage: str | None = None
+    author: str | None = Field(default=None, exclude=True)
+    description: str | None = Field(default=None, exclude=True)
+    homepage: str | None = Field(default=None, exclude=True)
 
     def to_color_system(self) -> ColorSystem:
-        return ColorSystem(**self.model_dump(exclude={"name"}))
+        return ColorSystem(**self.model_dump())
 
 
-def load_user_themes() -> dict[str, ColorSystem]:
+def load_user_themes() -> dict[str, Theme]:
     """Load user themes from "~/.config/posting/themes"."""
     directory = themes_directory()
-    themes: dict[str, ColorSystem] = {}
+    themes: dict[str, Theme] = {}
     for path in directory.iterdir():
-        if path.suffix == ".yaml":
+        path_suffix = path.suffix
+        if path_suffix == ".yaml" or path_suffix == ".yml":
             with path.open() as theme_file:
-                theme_content = yaml.load(theme_file, Loader=yaml.FullLoader)
+                theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
                 try:
-                    themes[theme_content["name"]] = Theme(
-                        **theme_content
-                    ).to_color_system()
+                    themes[theme_content["name"]] = Theme(**theme_content)
                 except KeyError:
                     raise ValueError(
                         f"Invalid theme file {path}. A `name` is required."
@@ -48,8 +48,9 @@ def load_user_themes() -> dict[str, ColorSystem]:
     return themes
 
 
-BUILTIN_THEMES: dict[str, ColorSystem] = {
-    "posting": ColorSystem(
+BUILTIN_THEMES: dict[str, Theme] = {
+    "posting": Theme(
+        name="posting",
         primary="#004578",
         secondary="#0178D4",
         warning="#ffa62b",
@@ -57,8 +58,10 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         success="#4EBF71",
         accent="#ffa62b",
         dark=True,
+        syntax="posting",
     ),
-    "monokai": ColorSystem(
+    "monokai": Theme(
+        name="monokai",
         primary="#F92672",  # Pink
         secondary="#66D9EF",  # Light Blue
         warning="#FD971F",  # Orange
@@ -69,8 +72,10 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         surface="#3E3D32",  # Slightly lighter gray-green
         panel="#3E3D32",  # Same as surface for consistency
         dark=True,
+        syntax="monokai",
     ),
-    "solarized-light": ColorSystem(
+    "solarized-light": Theme(
+        name="solarized-light",
         primary="#268bd2",
         secondary="#2aa198",
         warning="#cb4b16",
@@ -80,8 +85,10 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         background="#fdf6e3",
         surface="#eee8d5",
         panel="#eee8d5",
+        syntax="github_light",
     ),
-    "nautilus": ColorSystem(
+    "nautilus": Theme(
+        name="nautilus",
         primary="#0077BE",  # Ocean Blue
         secondary="#20B2AA",  # Light Sea Green
         warning="#FFD700",  # Gold (like sunlight on water)
@@ -92,8 +99,10 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         background="#001F3F",  # Dark Blue (deep ocean)
         surface="#003366",  # Navy Blue (shallower water)
         panel="#005A8C",  # Steel Blue (water surface)
+        syntax="posting",
     ),
-    "galaxy": ColorSystem(
+    "galaxy": Theme(
+        name="galaxy",
         primary="#8A2BE2",  # Improved Deep Magenta (Blueviolet)
         secondary="#9370DB",  # Softer Dusky Indigo (Medium Purple)
         warning="#FFD700",  # Gold, more visible than orange
@@ -104,8 +113,10 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         background="#0F0F1F",  # Very Dark Blue, almost black
         surface="#1E1E3F",  # Dark Blue-Purple
         panel="#2D2B55",  # Slightly Lighter Blue-Purple
+        syntax="posting-dracula",
     ),
-    "nebula": ColorSystem(
+    "nebula": Theme(
+        name="nebula",
         primary="#4169E1",  # Royal Blue, more vibrant than Midnight Blue
         secondary="#9400D3",  # Dark Violet, more vibrant than Indigo Dye
         warning="#FFD700",  # Kept Gold for warnings
@@ -116,8 +127,10 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         background="#0A0A23",  # Dark Navy, closer to a night sky
         surface="#1C1C3C",  # Dark Blue-Purple
         panel="#2E2E5E",  # Slightly Lighter Blue-Purple
+        syntax="posting-dracula",
     ),
-    "alpine": ColorSystem(
+    "alpine": Theme(
+        name="alpine",
         primary="#4A90E2",  # Clear Sky Blue
         secondary="#81A1C1",  # Misty Blue
         warning="#EBCB8B",  # Soft Sunlight
@@ -129,7 +142,8 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         surface="#3B4252",  # Darker Blue-Grey
         panel="#434C5E",  # Lighter Blue-Grey
     ),
-    "cobalt": ColorSystem(
+    "cobalt": Theme(
+        name="cobalt",
         primary="#334D5C",  # Deep Cobalt Blue
         secondary="#4878A6",  # Slate Blue
         warning="#FFAA22",  # Amber, suitable for warnings related to primary
@@ -141,7 +155,8 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         panel="#2D3E46",  # Storm Gray
         background="#1F262A",  # Charcoal
     ),
-    "twilight": ColorSystem(
+    "twilight": Theme(
+        name="twilight",
         primary="#367588",
         secondary="#5F9EA0",
         warning="#FFD700",
@@ -153,7 +168,8 @@ BUILTIN_THEMES: dict[str, ColorSystem] = {
         surface="#3B3B6D",
         panel="#4C516D",
     ),
-    "hacker": ColorSystem(
+    "hacker": Theme(
+        name="hacker",
         primary="#00FF00",  # Bright Green (Lime)
         secondary="#32CD32",  # Lime Green
         warning="#ADFF2F",  # Green Yellow

@@ -1,6 +1,7 @@
 import subprocess
 from typing import Any
-from textual.design import ColorSystem
+
+from posting.themes import Theme
 
 XRDB_MAPPING = {
     "color0": ["primary"],
@@ -14,7 +15,7 @@ XRDB_MAPPING = {
 }
 
 
-def load_xresources_themes() -> dict[str, ColorSystem]:
+def load_xresources_themes() -> dict[str, Theme]:
     """Runs xrdb -query and returns a dictionary of theme_name -> ColorSystem objects."""
     try:
         result = subprocess.run(
@@ -40,6 +41,14 @@ def load_xresources_themes() -> dict[str, ColorSystem]:
         raise RuntimeError(f"Missing colors from xrdb: {missing_colors_string}")
 
     return {
-        "xresources-dark": ColorSystem(**supplied_colors, dark=True),
-        "xresources-light": ColorSystem(**supplied_colors, dark=False),
+        "xresources-dark": Theme(
+            name="xresources-dark",
+            **supplied_colors,
+            dark=True,
+        ),
+        "xresources-light": Theme(
+            name="xresources-light",
+            **supplied_colors,
+            dark=False,
+        ),
     }
