@@ -215,6 +215,8 @@ POSTING_HEADING__VISIBLE="false"
 
 Dotenv files are separate from collections, although you may wish to include them inside a collection to make it easy to version and share with others.
 
+### Available configuration options
+
 | Config Key (Env Var) | Values (Default) | Description |
 |----------------------|------------------|-------------|
 | `theme` (`POSTING_THEME`) | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` (Default: `"posting"`) | Sets the theme of the application. |
