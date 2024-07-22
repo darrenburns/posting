@@ -288,12 +288,14 @@ Here's an example theme file:
 
 ```yaml
 name: example  # use this name in your config file
-primary: '#4e78c4'
-secondary: '#f39c12'
-accent: '#e74c3c'
-background: '#0e1726'
-surface: '#17202a'
-error: '#e74c3c'
+primary: '#4e78c4'  # buttons, fixed table columns
+secondary: '#f39c12'  # method selector, some minor labels
+accent: '#e74c3c'  # header text, scrollbars, cursors, focus highlights
+background: '#0e1726' # background colors
+surface: '#17202a'  # panels, etc
+error: '#e74c3c'  # error messages
+success: '#2ecc71'  # success messages
+warning: '#f1c40f'  # warning messages
 syntax: 'dracula'  # auto-switch syntax highlighting theme
 
 # Optional metadata
@@ -301,7 +303,6 @@ author: Darren Burns
 description: A dark theme with a blue primary color.
 homepage: https://github.com/darrenburns/posting
 ```
-
 
 ### X resources themes
 
