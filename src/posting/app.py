@@ -604,6 +604,10 @@ class Posting(App[None]):
         # TODO - load user themes from "~/.config/posting/themes"
 
         self.themes = available_themes
+
+        # We need to call this after the themes are loaded,
+        # because our `get_css_variables` override depends on
+        # the themes dict being available.
         super().__init__()
 
         self.settings = settings
