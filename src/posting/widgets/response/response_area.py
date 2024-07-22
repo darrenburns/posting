@@ -111,7 +111,9 @@ class ResponseArea(Vertical):
             f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
         )
 
-        self.border_subtitle = f"{human_readable_size(len(response.content))} in {response.elapsed.total_seconds() * 1000:.2f}[dim]ms[/]"
+        settings = SETTINGS.get()
+        if settings.response.show_size_and_time:
+            self.border_subtitle = f"{human_readable_size(len(response.content))} in {response.elapsed.total_seconds() * 1000:.2f}[dim]ms[/]"
 
     @property
     def text_editor(self) -> TextEditor:

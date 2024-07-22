@@ -8,3 +8,9 @@ wheels/
 
 # venv
 .venv
+
+# editor
+.vscode/
+.idea/
+
+snapshot_report.html

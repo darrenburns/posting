@@ -1,6 +1,6 @@
 name: get a user
 description: Retrieve a single user
-url: https://jsonplaceholder.typicode.com/users/1
+url: https://jsonplaceholder.typicode.com/users/${USER_ID_UNRESOLVED}/$ALSO_UNRESOLVED
 headers:
 - name: Content-Type
   value: application/json

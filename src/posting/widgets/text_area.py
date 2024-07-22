@@ -201,12 +201,13 @@ class TextAreaFooter(Horizontal):
 
 class PostingTextArea(TextArea):
     BINDINGS = [
-        Binding("f3", "open_in_pager", "Pager"),
-        Binding("f4", "open_in_editor", "Editor"),
+        Binding("f3,ctrl+P", "open_in_pager", "Pager"),
+        Binding("f4,ctrl+E", "open_in_editor", "Editor"),
     ]
 
     def on_mount(self) -> None:
         self.indent_width = 2
+        self.cursor_blink = SETTINGS.get().text_input.blinking_cursor
         self.register_theme(POSTING_THEME)
         self.register_theme(MONOKAI_THEME)
         self.register_theme(GITHUB_LIGHT_THEME)
@@ -235,6 +236,14 @@ class PostingTextArea(TextArea):
 
     def action_open_in_editor(self) -> None:
         editor_command = SETTINGS.get().editor
+        if not editor_command:
+            self.app.notify(
+                severity="warning",
+                title="No editor configured",
+                message="Set the [b]$EDITOR[/b] environment variable.",
+            )
+            return
+
         self._open_as_tempfile(editor_command)
 
     def action_open_in_pager(self) -> None:
@@ -244,15 +253,26 @@ class PostingTextArea(TextArea):
         # want to use a specific pager for JSON, let's use that.
         if self.language == "json" and settings.pager_json:
             pager_command = settings.pager_json
+            if not pager_command:
+                self.app.notify(
+                    severity="warning",
+                    title="No JSON pager configured",
+                    message="Set the [b]$POSTING_PAGER_JSON[/b] environment variable.",
+                )
+                return
         else:
             pager_command = settings.pager
+            if not pager_command:
+                self.app.notify(
+                    severity="warning",
+                    title="No pager configured",
+                    message="Set the [b]$POSTING_PAGER[/b] environment variable.",
+                )
+                return
 
         self._open_as_tempfile(pager_command)
 
-    def _open_as_tempfile(self, command: str | None) -> None:
-        if command is None:
-            return
-
+    def _open_as_tempfile(self, command: str) -> None:
         editor_args: list[str] = shlex.split(command)
 
         if self.language in {"json", "html", "yaml"}:
@@ -270,9 +290,16 @@ class PostingTextArea(TextArea):
         editor_args.append(temp_file_name)
 
         with self.app.suspend():
-            subprocess.call(editor_args)
+            try:
+                subprocess.call(editor_args)
+            except OSError:
+                self.app.notify(
+                    severity="error",
+                    title="Can't run command",
+                    message=f"The command [b]{command}[/b] failed to run.",
+                )
 
-        with open(temp_file_name, "r") as temp_file:
+        with open(temp_file_name, "r", encoding="utf-8") as temp_file:
             if not self.read_only:
                 self.text = temp_file.read()
 
@@ -324,11 +351,14 @@ class ReadOnlyTextArea(PostingTextArea):
         Binding(
             "v",
             "toggle_visual_mode",
-            description="Select mode",
-            key_display="v",
+            description="Toggle visual mode",
+            show=False,
         ),
         Binding(
-            "y,c", "copy_to_clipboard", description="Copy selection", key_display="y"
+            "y,c",
+            "copy_to_clipboard",
+            description="Copy selection",
+            show=False,
         ),
         Binding("g", "cursor_top", "Go to top", show=False),
         Binding("G", "cursor_bottom", "Go to bottom", show=False),
@@ -435,8 +465,9 @@ class ReadOnlyTextArea(PostingTextArea):
 
     def action_cursor_to_matched_bracket(self) -> None:
         # If we're already on a bracket which has a match, just jump to it and return.
-        if self._matching_bracket_location:
-            self.selection = Selection.cursor(self._matching_bracket_location)
+        matching_bracket_location = self.matching_bracket_location
+        if matching_bracket_location:
+            self.selection = Selection.cursor(matching_bracket_location)
             return
 
         # Look for a bracket on the rest of the cursor line.

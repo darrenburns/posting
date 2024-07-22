@@ -12,6 +12,7 @@ from posting.variables import (
     find_variable_end,
     find_variable_start,
     get_variable_at_cursor,
+    get_variables,
     is_cursor_within_variable,
 )
 
@@ -22,7 +23,8 @@ class VariableAutoComplete(AutoComplete):
         target: Input | TextArea | str,
         candidates: list[DropdownItem] | Callable[[TargetState], list[DropdownItem]],
         variable_candidates: list[DropdownItem]
-        | Callable[[TargetState], list[DropdownItem]],
+        | Callable[[TargetState], list[DropdownItem]]
+        | None = None,
         matcher_factory: MatcherFactoryType | None = None,
         prevent_default_enter: bool = True,
         prevent_default_tab: bool = True,
@@ -44,6 +46,10 @@ class VariableAutoComplete(AutoComplete):
             classes,
             disabled,
         )
+        if variable_candidates is None:
+            variable_candidates = [
+                DropdownItem(main=f"${variable}") for variable in get_variables()
+            ]
         self.variable_candidates = variable_candidates
 
     def get_candidates(self, target_state: TargetState) -> list[DropdownItem]:

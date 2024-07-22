@@ -21,12 +21,13 @@ from posting.variables import (
     get_variable_at_cursor,
     get_variables,
 )
+from posting.widgets.input import PostingInput
 from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
 from posting.widgets.variable_autocomplete import VariableAutoComplete
 
 
-class UrlInput(Input):
+class UrlInput(PostingInput):
     """
     The URL input.
     """

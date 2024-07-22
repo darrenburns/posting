@@ -215,60 +215,40 @@ POSTING_HEADING__VISIBLE="false"
 
 Dotenv files are separate from collections, although you may wish to include them inside a collection to make it easy to version and share with others.
 
-### Available configuration options
+| Config Key (Env Var) | Values (Default) | Description |
+|----------------------|------------------|-------------|
+| `theme` (`POSTING_THEME`) | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` (Default: `"posting"`) | Sets the theme of the application. |
+| `layout` (`POSTING_LAYOUT`) | `"vertical"`, `"horizontal"` (Default: `"horizontal"`) | Sets the layout of the application. |
+| `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
+| `animation` (`POSTING_ANIMATION`) | `"none"`, `"basic"`, `"full"` (Default: `"none"`) | Controls the animation level. |
+| `response.prettify_json` (`POSTING_RESPONSE__PRETTIFY_JSON`) | `true`, `false` (Default: `true`) | If enabled, JSON responses will be pretty-formatted. |
+| `response.show_size_and_time` (`POSTING_RESPONSE__SHOW_SIZE_AND_TIME`) | `true`, `false` (Default: `true`) | If enabled, the size and time taken for the response will be displayed in the response area border subtitle. |
+| `heading.visible` (`POSTING_HEADING__VISIBLE`) | `true`, `false` (Default: `true`) | Show/hide the app header. |
+| `heading.show_host` (`POSTING_HEADING__SHOW_HOST`) | `true`, `false` (Default: `true`) | Show/hide the hostname in the app header. |
+| `heading.show_version` (`POSTING_HEADING__SHOW_VERSION`) | `true`, `false` (Default: `true`) | Show/hide the version in the app header. |
+| `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show/hide the variable value preview below the URL bar. |
+| `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |
+| `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
+| `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
+| `ssl.ca_bundle` (`POSTING_SSL__CA_BUNDLE`) | Absolute path (Default: `unset`) | Absolute path to a CA bundle file/dir. If not set, the [Certifi](https://pypi.org/project/certifi/) CA bundle will be used. |
+| `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | Verify server identity. |
+| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Absolute path (Default: `unset`) | Absolute path to a client SSL certificate file or directory. |
+| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Absolute path (Default: `unset`) | Absolute path to a client SSL key file. |
+| `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. (Default: `unset`) | Password to decrypt the key file if it's encrypted. |
+| `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
+| `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
+| `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | If enabled, the cursor will blink in input widgets and text area widgets. |
+| `use_xresources` (`POSTING_USE_XRESOURCES`) | `true`, `false` (Default: `false`) | Try to create themes called `xresources-dark` and `xresources-light` (see the section below) |
 
-| Config Key (Env Var)                                                 | Values (Default)                                                                                                                                             | Description                                                                                                                                                                              |
-|----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `theme` (`POSTING_THEME`)                                            | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` (Default: `"posting"`) | Sets the theme of the application.                                                                                                                                                       |
-| `layout` (`POSTING_LAYOUT`)                                          | `"vertical"`, `"horizontal"` (Default: `"horizontal"`)                                                                                                       | Sets the layout of the application.                                                                                                                                                      |
-| `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`)              | `true`, `false` (Default: `false`)                                                                                                                           | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
-| `animation` (`POSTING_ANIMATION`)                                    | `"none"`, `"basic"`, `"full"` (Default: `"none"`)                                                                                                            | Controls the animation level.                                                                                                                                                            |
-| `response.prettify_json` (`POSTING_RESPONSE__PRETTIFY_JSON`)         | `true`, `false` (Default: `true`)                                                                                                                            | If enabled, JSON responses will be pretty-formatted.                                                                                                                                     |
-| `heading.visible` (`POSTING_HEADING__VISIBLE`)                       | `true`, `false` (Default: `true`)                                                                                                                            | Show/hide the app header.                                                                                                                                                                |
-| `heading.show_host` (`POSTING_HEADING__SHOW_HOST`)                   | `true`, `false` (Default: `true`)                                                                                                                            | Show/hide the hostname in the app header.                                                                                                                                                |
-| `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`)                                                                                                                            | Show/hide the variable value preview below the URL bar.                                                                                                                                  |
-| `pager` (`POSTING_PAGER`)                                            | (Default: `$PAGER`)                                                                                                                                          | Command to use for paging text.                                                                                                                                                          |
-| `pager_json` (`POSTING_PAGER_JSON`)                                  | (Default: `$PAGER`)                                                                                                                                          | Command to use for paging JSON.                                                                                                                                                          |
-| `editor` (`POSTING_EDITOR`)                                          | (Default: `$EDITOR`)                                                                                                                                         | Command to use for opening files in an external editor.                                                                                                                                  |
-| `ssl.verify` (`POSTING_SSL__VERIFY`)                                 | `true`, `false` (Default: `true`)                                                                                                                            | If enabled, SSL certificates will be verified.                                                                                                                                           |
-| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`)             | Absolute path (Default: `unset`)                                                                                                                             | Absolute path to the SSL certificate file or directory.                                                                                                                                  |
-| `ssl.key_file` (`POSTING_SSL__KEY_FILE`)                             | Absolute path (Default: `unset`)                                                                                                                             | Absolute path to the SSL key file.                                                                                                                                                       |
-| `ssl.password` (`POSTING_SSL__PASSWORD`)                             | Password for the key file. (Default: `unset`)                                                                                                                | Password to decrypt the key file if it's encrypted.                                                                                                                                      |
-| `use_xresources` (`POSTING_USE_XRESOURCES`)                          | `true`, `false` (Default: `false`)                                                                                                                           | Try to create themes caled `xresources-dark` and `xresources-light` (see the section below)                                                                                                                                                                                  |
-| `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`)                     | `"url"`, `"method", "collection"` (Default: `"url"`)                                                                                                         | Automatically focus the URL bar, method, or collection browser when the app starts.                                                                                                      |
-| `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`)                   | `"body"`, `"tabs"` (Default: `unset`)                                                                                                                        | Automatically focus the response tabs or response body text area when a response is received.                                                                                            |
+## SSL certificate configuration
 
-### Xresources-based theme
-
-Posting supports using Xresources for theming. To use this, enable the `use_xresources` option (see above).
-
-It requries the `xrdb` executable in `$PATH` and `xrdb -query` returning the following variables:
-
-| Xresources  | [Textual color](https://textual.textualize.io/guide/design/#base-colors) |
-|-------------|--------------------------------------------------------------------------|
-| *color0     | primary                                                                  |
-| *color8     | secondary                                                                |
-| *color1     | error                                                                    |
-| *color2     | success                                                                  |
-| *color3     | warning                                                                  |
-| *color4     | accent                                                                   |
-| *background | background                                                               |
-| *color7     | surface, panel                                                           |
-
-If these conditions are met, themes called `xresources-dark` and `xresources-light` are added to the list.
-
-
-## Loading SSL certificates
-
-Posting can load SSL certificates from a `.pem` file or directory.
+Posting can load custom CA bundles from a `.pem` file.
 
 The easiest way to do this is in your `config.yaml` file:
 
 ```yaml
 ssl:
-  certificate_path: 'absolute/path/to/certificate.pem'
-  key_file: 'absolute/path/to/key.key'
-  password: '***********'
+  ca_bundle: 'absolute/path/to/certificate.pem'
 ```
 
 ### Environment-specific certificates
@@ -277,15 +257,24 @@ If the required CA bundle differs per environment, you can again use the princip
 
 ```bash
 # dev.env
-POSTING_SSL__CERTIFICATE_PATH='/path/to/certificate.pem'
-POSTING_SSL__KEY_FILE='/path/to/key.key'
-POSTING_SSL__PASSWORD='***********'
+POSTING_SSL__CA_BUNDLE='/path/to/certificate.pem'
 ```
 
-Now load the `dev.env` file when working in the `dev` environment to ensure the dev environment certificate is used:
+Now load the `dev.env` file when working in the `dev` environment to ensure the dev environment CA bundle is used:
 
 ```bash
 posting --env dev.env
+```
+
+### Client-side certificates
+
+You can specify local certificates to use as a client-side certificate:
+
+```yaml
+ssl:
+  certificate_path: /path/to/certificate.pem
+  key_file: /path/to/key.key  # optional
+  password: '***********'  # optional password for key_file
 ```
 
 ## Importing OpenAPI Specifications
@@ -301,3 +290,22 @@ You can optionally supply an output directory.
 If no output directory is supplied, the default collection directory will be used.
 
 Posting will attempt to build a file structure in the collection that aligns with the URL structure of the imported API.
+
+### X resources themes
+
+Posting supports using X resources for theming. To use this, enable the `use_xresources` option (see above).
+
+It requires the `xrdb` executable on your `PATH` and `xrdb -query` must return the following variables:
+
+| Xresources  | Description |
+|-------------|-----------|
+| *color0     | primary color: used for button backgrounds and fixed table columns |
+| *color8     | secondary color: used in method selector and some minor labels |
+| *color1     | error color: used for error messages |
+| *color2     | success color: used for success messages |
+| *color3     | warning color: used for warning messages |
+| *color4     | accent color: used for header text, scrollbars, cursors, focus highlights |
+| *background | background color |
+| *color7     | surface/panel color |
+
+If these conditions are met, themes called `xresources-dark` and `xresources-light` will be available for use.

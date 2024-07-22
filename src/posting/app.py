@@ -38,6 +38,7 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.themes import BUILTIN_THEMES
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
@@ -87,7 +88,10 @@ class AppHeader(Horizontal):
 
     def compose(self) -> ComposeResult:
         settings = SETTINGS.get().heading
-        yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+        if settings.show_version:
+            yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+        else:
+            yield Label("Posting", id="app-title")
         if settings.show_host:
             yield Label(get_user_host_string(), id="app-user-host")
 
@@ -105,6 +109,7 @@ class AppBody(Vertical):
 
 
 class MainScreen(Screen[None]):
+    AUTO_FOCUS = None
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
         Binding("ctrl+t", "change_method", "Method"),
@@ -177,19 +182,25 @@ class MainScreen(Screen[None]):
         timeout = request_options.timeout
         auth = self.request_auth.to_httpx_auth()
 
-        ca_config = SETTINGS.get().ssl
-        cert_config: list[str] = []
-        if certificate_path := ca_config.certificate_path:
-            cert_config.append(certificate_path)
-        if key_file := ca_config.key_file:
-            cert_config.append(key_file)
-        if password := ca_config.password:
-            cert_config.append(password.get_secret_value())
+        cert_config = SETTINGS.get().ssl
+        httpx_cert_config: list[str] = []
+        if certificate_path := cert_config.certificate_path:
+            httpx_cert_config.append(certificate_path)
+        if key_file := cert_config.key_file:
+            httpx_cert_config.append(key_file)
+        if password := cert_config.password:
+            httpx_cert_config.append(password.get_secret_value())
 
-        cert = cast(CertTypes, tuple(cert_config))
+        verify: str | bool = verify_ssl
+        if verify_ssl and cert_config.ca_bundle is not None:
+            # If verification is enabled and a CA bundle is supplied,
+            # use the CA bundle.
+            verify = cert_config.ca_bundle
+
+        cert = cast(CertTypes, tuple(httpx_cert_config))
         try:
             async with httpx.AsyncClient(
-                verify=verify_ssl,
+                verify=verify,
                 cert=cert,
                 proxy=proxy_url,
                 timeout=timeout,
@@ -276,7 +287,7 @@ class MainScreen(Screen[None]):
         self, event: CollectionTree.RequestCacheUpdated
     ) -> None:
         """Update the autocomplete suggestions when the request cache is updated."""
-        self.url_bar.cached_base_urls = event.cached_base_urls
+        self.url_bar.cached_base_urls = sorted(event.cached_base_urls)
 
     async def action_send_request(self) -> None:
         """Send the request."""
@@ -456,6 +467,7 @@ class MainScreen(Screen[None]):
             params=self.params_table.to_model(),
             headers=headers,
             options=request_options,
+            auth=self.request_auth.to_model(),
             cookies=(
                 Cookie.from_httpx(self.cookies)
                 if request_options.attach_cookies
@@ -558,32 +570,7 @@ class MainScreen(Screen[None]):
         return self.query_one(ResponseTrace)
 
 
-class PostingApp(App[None]):
-    def __init__(
-        self,
-        settings: Settings,
-        environment_files: tuple[Path, ...],
-        collection: Collection,
-        collection_specified: bool = False,
-    ) -> None:
-        super().__init__()
-
-        SETTINGS.set(settings)
-
-        self.settings = settings
-        self.environment_files = environment_files
-        self.collection = collection
-        self.collection_specified = collection_specified
-
-        self.animation_level = settings.animation
-
-
-class Posting(PostingApp):
-    # TODO - working around a Textual bug where the command palette
-    # doesnt auto focus the input by itself. When that bug is fixed,
-    # the AUTO_FOCUS setting should be set to None!!
-    # https://github.com/Textualize/textual/pull/4763
-    AUTO_FOCUS = "CommandInput"
+class Posting(App[None]):
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
@@ -600,139 +587,31 @@ class Posting(PostingApp):
         Binding("f1,ctrl+question_mark", "help", "Help"),
     ]
 
-    themes: dict[str, ColorSystem] = {
-        "posting": ColorSystem(
-            primary="#004578",
-            secondary="#0178D4",
-            warning="#ffa62b",
-            error="#ba3c5b",
-            success="#4EBF71",
-            accent="#ffa62b",
-            dark=True,
-        ),
-        "monokai": ColorSystem(
-            primary="#F92672",  # Pink
-            secondary="#66D9EF",  # Light Blue
-            warning="#FD971F",  # Orange
-            error="#F92672",  # Pink (same as primary for consistency)
-            success="#A6E22E",  # Green
-            accent="#AE81FF",  # Purple
-            background="#272822",  # Dark gray-green
-            surface="#3E3D32",  # Slightly lighter gray-green
-            panel="#3E3D32",  # Same as surface for consistency
-            dark=True,
-        ),
-        "solarized-light": ColorSystem(
-            primary="#268bd2",
-            secondary="#2aa198",
-            warning="#cb4b16",
-            error="#dc322f",
-            success="#859900",
-            accent="#6c71c4",
-            background="#fdf6e3",
-            surface="#eee8d5",
-            panel="#eee8d5",
-        ),
-        "nautilus": ColorSystem(
-            primary="#0077BE",  # Ocean Blue
-            secondary="#20B2AA",  # Light Sea Green
-            warning="#FFD700",  # Gold (like sunlight on water)
-            error="#FF6347",  # Tomato (like a warning buoy)
-            success="#32CD32",  # Lime Green (like seaweed)
-            accent="#FF8C00",  # Dark Orange (like a sunset over water)
-            dark=True,
-            background="#001F3F",  # Dark Blue (deep ocean)
-            surface="#003366",  # Navy Blue (shallower water)
-            panel="#005A8C",  # Steel Blue (water surface)
-        ),
-        "galaxy": ColorSystem(
-            primary="#8A2BE2",  # Improved Deep Magenta (Blueviolet)
-            secondary="#9370DB",  # Softer Dusky Indigo (Medium Purple)
-            warning="#FFD700",  # Gold, more visible than orange
-            error="#FF4500",  # OrangeRed, vibrant but less harsh than pure red
-            success="#00FA9A",  # Medium Spring Green, kept for vibrancy
-            accent="#FF69B4",  # Hot Pink, for a pop of color
-            dark=True,
-            background="#0F0F1F",  # Very Dark Blue, almost black
-            surface="#1E1E3F",  # Dark Blue-Purple
-            panel="#2D2B55",  # Slightly Lighter Blue-Purple
-        ),
-        "nebula": ColorSystem(
-            primary="#4169E1",  # Royal Blue, more vibrant than Midnight Blue
-            secondary="#9400D3",  # Dark Violet, more vibrant than Indigo Dye
-            warning="#FFD700",  # Kept Gold for warnings
-            error="#FF1493",  # Deep Pink, more nebula-like than Crimson
-            success="#00FF7F",  # Spring Green, slightly more vibrant
-            accent="#FF00FF",  # Magenta, for a true neon accent
-            dark=True,
-            background="#0A0A23",  # Dark Navy, closer to a night sky
-            surface="#1C1C3C",  # Dark Blue-Purple
-            panel="#2E2E5E",  # Slightly Lighter Blue-Purple
-        ),
-        "alpine": ColorSystem(
-            primary="#4A90E2",  # Clear Sky Blue
-            secondary="#81A1C1",  # Misty Blue
-            warning="#EBCB8B",  # Soft Sunlight
-            error="#BF616A",  # Muted Red
-            success="#A3BE8C",  # Alpine Meadow Green
-            accent="#5E81AC",  # Mountain Lake Blue
-            dark=True,
-            background="#2E3440",  # Dark Slate Grey
-            surface="#3B4252",  # Darker Blue-Grey
-            panel="#434C5E",  # Lighter Blue-Grey
-        ),
-        "cobalt": ColorSystem(
-            primary="#334D5C",  # Deep Cobalt Blue
-            secondary="#4878A6",  # Slate Blue
-            warning="#FFAA22",  # Amber, suitable for warnings related to primary
-            error="#E63946",  # Red, universally recognized for errors
-            success="#4CAF50",  # Green, commonly used for success indication
-            accent="#D94E64",  # Candy Apple Red
-            dark=True,
-            surface="#27343B",  # Dark Lead
-            panel="#2D3E46",  # Storm Gray
-            background="#1F262A",  # Charcoal
-        ),
-        "twilight": ColorSystem(
-            primary="#367588",
-            secondary="#5F9EA0",
-            warning="#FFD700",
-            error="#FF6347",
-            success="#00FA9A",
-            accent="#FF7F50",
-            dark=True,
-            background="#191970",
-            surface="#3B3B6D",
-            panel="#4C516D",
-        ),
-        "hacker": ColorSystem(
-            primary="#00FF00",  # Bright Green (Lime)
-            secondary="#32CD32",  # Lime Green
-            warning="#ADFF2F",  # Green Yellow
-            error="#FF4500",  # Orange Red (for contrast)
-            success="#00FA9A",  # Medium Spring Green
-            accent="#39FF14",  # Neon Green
-            dark=True,
-            background="#0D0D0D",  # Almost Black
-            surface="#1A1A1A",  # Very Dark Gray
-            panel="#2A2A2A",  # Dark Gray
-        ),
-    }
 
-    XRDB_MAPPING = {
-        "color0": ["primary"],
-        "color8": ["secondary"],
-        "color1": ["error"],
-        "color2": ["success"],
-        "color3": ["warning"],
-        "color4": ["accent"],
-        "background": ["background"],
-        "color7": ["surface", "panel"],
-    }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.maybe_add_xresources_theme()
+    def __init__(
+        self,
+        settings: Settings,
+        environment_files: tuple[Path, ...],
+        collection: Collection,
+        collection_specified: bool = False,
+    ) -> None:
+        super().__init__()
+
+        SETTINGS.set(settings)
+
+        available_themes: dict[str, ColorSystem] = {**BUILTIN_THEMES}
+        if settings.use_xresources:
+            available_themes |= self.get_xresources_themes()
+
+        # TODO - load user themes from "~/.config/posting/themes"
+
+        self.themes = available_themes
+        self.settings = settings
+        self.environment_files = environment_files
+        self.collection = collection
+        self.collection_specified = collection_specified
+        self.animation_level = settings.animation
 
     theme: Reactive[str | None] = reactive("posting", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
@@ -758,50 +637,6 @@ class Posting(PostingApp):
         )
         self.theme_change_signal = Signal[ColorSystem](self, "theme-changed")
         self.theme = self.settings.theme
-
-    def maybe_add_xresources_theme(self) -> None:
-        if self.settings.use_xresources is not True:
-            return
-
-        try:
-            xrdb = subprocess.run(
-                ["xrdb", "-query"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
-        except FileNotFoundError:
-            raise RuntimeError("xrdb is not found. Check that xrdb -query works")
-
-        if xrdb.returncode != 0:
-            raise RuntimeError(
-                f"xrdb -query existed with code {xrdb.returncode}. Check that xrdb -query works"
-            )
-
-        lines = xrdb.stdout.splitlines()
-        color_kwargs = list(itertools.chain(*self.XRDB_MAPPING.values()))
-        color_kwargs_values: dict[str, Union[None, str]] = {kwarg: None for kwarg in color_kwargs}
-
-        for line in lines:
-            if line.startswith("*"):
-                parts = line.split(":")
-                if len(parts) == 2:
-                    name, value = parts[0].strip("*").strip(), parts[1].strip()
-                    for kwarg in self.XRDB_MAPPING.get(name, []):
-                        color_kwargs_values[kwarg] = value
-
-        unset_colors = [
-            kwarg for kwarg in color_kwargs if color_kwargs_values[kwarg] is None
-        ]
-        if len(unset_colors) > 0:
-            raise RuntimeError(f'xrdb -query did not return the following colors: {unset_colors}')
-
-        self.themes["xresources-dark"] = ColorSystem(
-            **color_kwargs_values, dark=True
-        )
-        self.themes["xresources-light"] = ColorSystem(
-            **color_kwargs_values, dark=False
-        )
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(
@@ -881,7 +716,7 @@ class Posting(PostingApp):
     def action_toggle_jump_mode(self) -> None:
         self._jumping = not self._jumping
 
-    async def watch__jumping(self, jumping: bool) -> None:
+    def watch__jumping(self, jumping: bool) -> None:
         focused_before = self.focused
         if focused_before is not None:
             self.set_focus(None, scroll_visible=False)
@@ -896,22 +731,23 @@ class Posting(PostingApp):
                     )
                 else:
                     if target_widget.focusable:
-                        target_widget.focus()
+                        self.set_focus(target_widget)
                     else:
                         target_widget.post_message(
                             Click(0, 0, 0, 0, 0, False, False, False)
                         )
 
             elif isinstance(target, Widget):
-                target.focus()
+                self.set_focus(target)
             else:
                 # If there's no target (i.e. the user pressed ESC to dismiss)
                 # then re-focus the widget that was focused before we opened
                 # the jumper.
-                self.set_focus(focused_before, scroll_visible=False)
+                if focused_before is not None:
+                    self.set_focus(focused_before, scroll_visible=False)
 
         self.clear_notifications()
-        await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+        self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
 
     async def action_help(self) -> None:
         focused = self.focused

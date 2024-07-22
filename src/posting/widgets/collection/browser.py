@@ -271,7 +271,12 @@ Press `ctrl+n` to create a new request at the current cursor location.
 
             # Attach to the relevant node
             new_node = self.add_request(
-                new_request, parent_node if pointer is self.root else pointer
+                new_request,
+                parent_node if pointer is self.root else pointer,
+                after=None if parent_node == cursor_node else cursor_node,
+                before=0
+                if parent_node == cursor_node and len(parent_node.children) > 0
+                else None,
             )
             self.currently_open = new_node
 
@@ -286,6 +291,7 @@ Press `ctrl+n` to create a new request at the current cursor location.
             )
 
             def post_new_request() -> None:
+                self.screen.set_focus(focused_before)
                 self.select_node(new_node)
                 self.scroll_to_node(new_node, animate=False)
 
@@ -307,11 +313,17 @@ Press `ctrl+n` to create a new request at the current cursor location.
         )
 
     def add_request(
-        self, request: RequestModel, parent_node: TreeNode[CollectionNode]
+        self,
+        request: RequestModel,
+        parent_node: TreeNode[CollectionNode],
+        after: TreeNode[CollectionNode] | int | None = None,
+        before: TreeNode[CollectionNode] | int | None = None,
     ) -> TreeNode[CollectionNode]:
         """Add a new request to the tree, and cache data from it."""
         self.cache_request(request)
-        return parent_node.add_leaf(request.name, data=request)
+        return parent_node.add_leaf(
+            request.name, data=request, after=after, before=before
+        )
 
     def cache_request(self, request: RequestModel) -> None:
         def get_base_url(url: str) -> str | None:
@@ -330,6 +342,8 @@ Press `ctrl+n` to create a new request at the current cursor location.
             # Post a message up to the screen so that it can inform
             # the URL bar that the autocomplete suggestions have changed.
             self.post_message(
+                # TODO: We should sort these cached URLs on frequency instead
+                # of alphabetically. Bring the most used URLs to the top.
                 self.RequestCacheUpdated(
                     cached_base_urls=list(self.cached_base_urls),
                     tree=self,
