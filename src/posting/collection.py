@@ -182,19 +182,15 @@ class RequestModel(BaseModel):
 
             if self.auth:
                 if self.auth.basic:
-                    template = Template(self.auth.basic.username.get_secret_value())
-                    self.auth.basic.username = SecretStr(template.substitute(variables))
-                    template = Template(self.auth.basic.password.get_secret_value())
-                    self.auth.basic.password = SecretStr(template.substitute(variables))
+                    template = Template(self.auth.basic.username)
+                    self.auth.basic.username = template.substitute(variables)
+                    template = Template(self.auth.basic.password)
+                    self.auth.basic.password = template.substitute(variables)
                 if self.auth.digest:
-                    template = Template(self.auth.digest.username.get_secret_value())
-                    self.auth.digest.username = SecretStr(
-                        template.substitute(variables)
-                    )
-                    template = Template(self.auth.digest.password.get_secret_value())
-                    self.auth.digest.password = SecretStr(
-                        template.substitute(variables)
-                    )
+                    template = Template(self.auth.digest.username)
+                    self.auth.digest.username = template.substitute(variables)
+                    template = Template(self.auth.digest.password)
+                    self.auth.digest.password = template.substitute(variables)
         except (KeyError, ValueError) as e:
             raise SubstitutionError(f"Variable not defined: {e}")
 
