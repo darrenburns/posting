@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from textual.design import ColorSystem
 import yaml
+from posting.config import SETTINGS
 
 from posting.locations import themes_directory
 
@@ -32,7 +33,7 @@ class Theme(BaseModel):
 
 def load_user_themes() -> dict[str, Theme]:
     """Load user themes from "~/.config/posting/themes"."""
-    directory = themes_directory()
+    directory = SETTINGS.get().themes_directory
     themes: dict[str, Theme] = {}
     for path in directory.iterdir():
         path_suffix = path.suffix
