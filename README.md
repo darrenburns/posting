@@ -220,6 +220,9 @@ Dotenv files are separate from collections, although you may wish to include the
 | Config Key (Env Var) | Values (Default) | Description |
 |----------------------|------------------|-------------|
 | `theme` (`POSTING_THEME`) | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` (Default: `"posting"`) | Sets the theme of the application. |
+| `load_user_themes` (`POSTING_LOAD_USER_THEMES`) | `true`, `false` (Default: `true`) | If enabled, load user themes from the theme directory, allowing them to be specified in config and selected via the command palette. |
+| `load_builtin_themes` (`POSTING_LOAD_BUILTIN_THEMES`) | `true`, `false` (Default: `true`) | If enabled, load builtin themes, allowing them to be specified in config and selected via the command palette. |
+| `theme_directory` (`POSTING_THEME_DIRECTORY`) | (Default: `${XDG_DATA_HOME}/posting/themes`) | The directory containing user themes. |
 | `layout` (`POSTING_LAYOUT`) | `"vertical"`, `"horizontal"` (Default: `"horizontal"`) | Sets the layout of the application. |
 | `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
 | `animation` (`POSTING_ANIMATION`) | `"none"`, `"basic"`, `"full"` (Default: `"none"`) | Controls the animation level. |
@@ -240,7 +243,6 @@ Dotenv files are separate from collections, although you may wish to include the
 | `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
 | `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
 | `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | If enabled, the cursor will blink in input widgets and text area widgets. |
-| `theme_directory` (`POSTING_THEME_DIRECTORY`) | (Default: `${XDG_DATA_HOME}/posting/themes`) | The directory containing user themes. |
 <!-- | `use_xresources` (`POSTING_USE_XRESOURCES`) | `true`, `false` (Default: `false`) | Try to create themes called `xresources-dark` and `xresources-light` (see the section below) | -->
 
 ## SSL certificate configuration

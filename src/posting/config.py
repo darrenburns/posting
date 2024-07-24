@@ -92,6 +92,14 @@ class Settings(BaseSettings):
     theme_directory: Path = Field(default=theme_directory())
     """The directory containing user themes."""
 
+    load_user_themes: bool = Field(default=True)
+    """If enabled, load user themes from the theme directory, allowing them
+    to be specified in config and selected via the command palette."""
+
+    load_builtin_themes: bool = Field(default=True)
+    """If enabled, load builtin themes, allowing them to be specified
+    in config and selected via the command palette."""
+
     layout: PostingLayout = Field(default="vertical")
     """Layout for the app."""
 
