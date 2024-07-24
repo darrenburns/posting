@@ -220,6 +220,9 @@ Dotenv files are separate from collections, although you may wish to include the
 | Config Key (Env Var) | Values (Default) | Description |
 |----------------------|------------------|-------------|
 | `theme` (`POSTING_THEME`) | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` (Default: `"posting"`) | Sets the theme of the application. |
+| `load_user_themes` (`POSTING_LOAD_USER_THEMES`) | `true`, `false` (Default: `true`) | If enabled, load user themes from the theme directory, allowing them to be specified in config and selected via the command palette. |
+| `load_builtin_themes` (`POSTING_LOAD_BUILTIN_THEMES`) | `true`, `false` (Default: `true`) | If enabled, load builtin themes, allowing them to be specified in config and selected via the command palette. |
+| `theme_directory` (`POSTING_THEME_DIRECTORY`) | (Default: `${XDG_DATA_HOME}/posting/themes`) | The directory containing user themes. |
 | `layout` (`POSTING_LAYOUT`) | `"vertical"`, `"horizontal"` (Default: `"horizontal"`) | Sets the layout of the application. |
 | `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
 | `animation` (`POSTING_ANIMATION`) | `"none"`, `"basic"`, `"full"` (Default: `"none"`) | Controls the animation level. |
@@ -240,6 +243,7 @@ Dotenv files are separate from collections, although you may wish to include the
 | `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
 | `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
 | `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | If enabled, the cursor will blink in input widgets and text area widgets. |
+<!-- | `use_xresources` (`POSTING_USE_XRESOURCES`) | `true`, `false` (Default: `false`) | Try to create themes called `xresources-dark` and `xresources-light` (see the section below) | -->
 
 ## SSL certificate configuration
 
@@ -277,6 +281,51 @@ ssl:
   key_file: /path/to/key.key  # optional
   password: '***********'  # optional password for key_file
 ```
+
+## Theming
+
+Place custom themes in the themes directory and Posting will load them on startup. Theme files must be suffixed with `.yaml`, but the rest of the filename is unused by Posting.
+
+You can check where Posting will look for themes by running `posting locate themes` in your terminal.
+
+Here's an example theme file:
+
+```yaml
+name: example  # use this name in your config file
+primary: '#4e78c4'  # buttons, fixed table columns
+secondary: '#f39c12'  # method selector, some minor labels
+accent: '#e74c3c'  # header text, scrollbars, cursors, focus highlights
+background: '#0e1726' # background colors
+surface: '#17202a'  # panels, etc
+error: '#e74c3c'  # error messages
+success: '#2ecc71'  # success messages
+warning: '#f1c40f'  # warning messages
+syntax: 'dracula'  # auto-switch syntax highlighting theme
+
+# Optional metadata
+author: Darren Burns
+description: A dark theme with a blue primary color.
+homepage: https://github.com/darrenburns/posting
+```
+
+### X resources themes
+
+Posting supports using X resources for theming. To use this, enable the `use_xresources` option (see above).
+
+It requires the `xrdb` executable on your `PATH` and `xrdb -query` must return the following variables:
+
+| Xresources  | Description |
+|-------------|-----------|
+| *color0     | primary color: used for button backgrounds and fixed table columns |
+| *color8     | secondary color: used in method selector and some minor labels |
+| *color1     | error color: used for error messages |
+| *color2     | success color: used for success messages |
+| *color3     | warning color: used for warning messages |
+| *color4     | accent color: used for header text, scrollbars, cursors, focus highlights |
+| *background | background color |
+| *color7     | surface/panel color |
+
+If these conditions are met, themes called `xresources-dark` and `xresources-light` will be available for use.
 
 ## Importing OpenAPI Specifications
 

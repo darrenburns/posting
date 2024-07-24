@@ -14,6 +14,7 @@ from textual.reactive import reactive, Reactive
 from textual.widgets import TextArea, Label, Select, Checkbox
 from textual.widgets.text_area import Selection, TextAreaTheme
 from posting.config import SETTINGS
+from posting.themes import Theme
 
 from posting.widgets.select import PostingSelect
 
@@ -217,16 +218,8 @@ class PostingTextArea(TextArea):
         self.on_theme_change(self.app.themes[self.app.theme])
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
-    def on_theme_change(self, theme: ColorSystem) -> None:
-        app_theme = self.app.theme
-        if app_theme == "monokai":
-            self.theme = "posting-monokai"
-        elif app_theme == "galaxy" or app_theme == "nebula":
-            self.theme = "posting-dracula"
-        elif not theme._dark:
-            self.theme = "github_light"
-        else:
-            self.theme = "posting"
+    def on_theme_change(self, theme: Theme) -> None:
+        self.theme = theme.syntax
         self.refresh()
 
     @on(TextArea.Changed)
@@ -411,7 +404,7 @@ class ReadOnlyTextArea(PostingTextArea):
         self.visual_mode = not self.visual_mode
 
     def watch_visual_mode(self, value: bool) -> None:
-        self.cursor_blink = not value
+        self.cursor_blink = SETTINGS.get().text_input.blinking_cursor and not value
         if not value:
             self.selection = Selection.cursor(self.selection.end)
 

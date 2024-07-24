@@ -126,7 +126,8 @@ Press `ctrl+n` to create a new request at the current cursor location.
                 base_style + TOGGLE_STYLE,
             )
             node_label.append("/")
-            node_label.stylize(Style(dim=True, bold=True))
+            if self._cursor_node is not node:
+                node_label.stylize(Style(dim=True, bold=True))
         else:
             method = (
                 f"{'█ ' if node is self.currently_open else ' '}{node.data.method[:3]} "

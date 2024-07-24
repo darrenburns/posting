@@ -10,6 +10,7 @@ from posting.__main__ import make_posting
 TEST_DIR = Path(__file__).parent
 CONFIG_DIR = TEST_DIR / "sample-configs"
 ENV_DIR = TEST_DIR / "sample-envs"
+THEME_DIR = TEST_DIR / "sample-themes"
 SAMPLE_COLLECTIONS = TEST_DIR / "sample-collections"
 POSTING_MAIN = TEST_DIR / "posting_snapshot_app.py"
 
@@ -127,7 +128,9 @@ class TestCommandPalette:
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before)
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
 
     def test_can_type_to_filter_options(self, snap_compare):
         """Check that we can run a command from the command palette."""
@@ -410,3 +413,17 @@ class TestVariables:
             await pilot.press("ctrl+l")
 
         assert snap_compare(app, run_before=run_before)
+
+
+@use_config("custom_theme.yaml")
+@patch_env("POSTING_THEME_DIRECTORY", str(THEME_DIR.resolve()))
+class TestCustomTheme:
+    def test_theme_set_on_startup_and_in_command_palette(self, snap_compare):
+        """Check that the theme is set on startup and available in the command palette."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+p")
+            await disable_blink_for_active_cursors(pilot)
+            await pilot.press(*"anothertest")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
