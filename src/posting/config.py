@@ -76,6 +76,13 @@ class TextInputSettings(BaseModel):
     """If enabled, the cursor will blink in input widgets and text areas."""
 
 
+class CommandPaletteSettings(BaseModel):
+    """Configuration for the command palette."""
+
+    theme_preview: bool = Field(default=False)
+    """If enabled, the command palette will display a preview of the selected theme when the cursor is over it."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -122,6 +129,11 @@ class Settings(BaseSettings):
 
     url_bar: UrlBarSettings = Field(default_factory=UrlBarSettings)
     """Configuration for the URL bar."""
+
+    command_palette: CommandPaletteSettings = Field(
+        default_factory=CommandPaletteSettings
+    )
+    """Configuration for the command palette."""
 
     pager: str | None = Field(default=os.getenv("PAGER"))
     """The command to use for paging."""

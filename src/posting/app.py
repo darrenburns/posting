@@ -683,6 +683,11 @@ class Posting(App[None]):
 
     @on(CommandPalette.Opened)
     def palette_opened(self) -> None:
+        # If the theme preview is disabled, don't record the theme being used
+        # before the palette is opened.
+        if not self.settings.command_palette.theme_preview:
+            return
+
         # Record the theme being used before the palette is opened.
         self._original_theme = self.theme
 
@@ -690,6 +695,11 @@ class Posting(App[None]):
     def palette_option_highlighted(
         self, event: CommandPalette.OptionHighlighted
     ) -> None:
+        # If the theme preview is disabled, don't update the theme when an option
+        # is highlighted.
+        if not self.settings.command_palette.theme_preview:
+            return
+
         prompt: Group = event.highlighted_event.option.prompt
         # TODO: This is making quite a lot of assumptions. Fragile, but the only
         # way I can think of doing it given the current Textual APIs.
@@ -712,6 +722,8 @@ class Posting(App[None]):
         # If we closed with a result, that will be handled by the command
         # being triggered. However, if we closed the palette with no result
         # then make sure we revert the theme back.
+        if not self.settings.command_palette.theme_preview:
+            return
         if not event.option_selected:
             self.theme = self._original_theme
 
