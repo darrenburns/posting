@@ -6,7 +6,7 @@ Posting is an HTTP client, not unlike Postman and Insomnia. As a TUI application
 
 <img width="1337" alt="image" src="https://github.com/darrenburns/posting/assets/5740731/77f50aa0-bc93-4e42-b06b-c209ec233fe8">
 
-Some notable features include: "jump mode" navigation, environments/variables system with autocompletion, syntax highlighting powered by tree-sitter, Vim keys, various builtin themes, a configuration system, "open in $EDITOR", and a command palette for quickly accessing functionality.
+Some notable features include: "jump mode" navigation, environments/variables system with autocompletion, syntax highlighting powered by tree-sitter, Vim keys, user-defined themes, configuration, "open in $EDITOR", and a command palette for quickly accessing functionality.
 
 Posting was built with [Textual](https://github.com/textualize/textual).
 
