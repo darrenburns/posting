@@ -600,6 +600,7 @@ class Posting(App[None]):
         available_themes: dict[str, Theme] = {**BUILTIN_THEMES}
         if settings.use_xresources:
             available_themes |= load_xresources_themes()
+
         available_themes |= load_user_themes()
 
         self.themes = available_themes

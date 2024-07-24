@@ -128,7 +128,9 @@ class TestCommandPalette:
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before)
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
 
     def test_can_type_to_filter_options(self, snap_compare):
         """Check that we can run a command from the command palette."""
