@@ -11,7 +11,7 @@ from posting.importing.open_api import import_openapi_spec
 from posting.locations import (
     config_file,
     default_collection_directory,
-    themes_directory,
+    theme_directory,
 )
 
 
@@ -82,7 +82,7 @@ def locate(thing_to_locate: str) -> None:
         print(default_collection_directory())
     elif thing_to_locate == "themes":
         print("Themes directory:")
-        print(themes_directory())
+        print(theme_directory())
     else:
         # This shouldn't happen because the type annotation should enforce that
         # the only valid options are "config" and "collection".

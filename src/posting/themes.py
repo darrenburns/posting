@@ -3,7 +3,7 @@ from textual.design import ColorSystem
 import yaml
 from posting.config import SETTINGS
 
-from posting.locations import themes_directory
+from posting.locations import theme_directory
 
 
 class Theme(BaseModel):
@@ -33,7 +33,7 @@ class Theme(BaseModel):
 
 def load_user_themes() -> dict[str, Theme]:
     """Load user themes from "~/.config/posting/themes"."""
-    directory = SETTINGS.get().themes_directory
+    directory = SETTINGS.get().theme_directory
     themes: dict[str, Theme] = {}
     for path in directory.iterdir():
         path_suffix = path.suffix

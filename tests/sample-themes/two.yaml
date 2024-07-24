@@ -1,0 +1,10 @@
+name: serene_ocean
+primary: '#1E88E5'  # Ocean Blue
+secondary: '#00ACC1'  # Teal
+accent: '#D32F2F'  # Crimson Red
+background: '#E3F2FD'  # Light Sky Blue
+surface: '#FFFFFF'  # White
+error: '#D32F2F'  # Crimson Red
+success: '#43A047'  # Forest Green
+text: '#212121'  # Almost Black
+dark: false

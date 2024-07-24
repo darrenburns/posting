@@ -1,0 +1,10 @@
+# Use a user-defined theme from the themes dir.
+theme: serene_ocean  # corresponds to two.yaml
+use_host_environment: false
+response:
+  show_size_and_time: false
+heading:
+  show_host: false
+  show_version: false
+text_input:
+  blinking_cursor: false

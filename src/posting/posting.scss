@@ -242,6 +242,8 @@ TextArea {
 
 Tree {
   & > .tree--cursor {
+    text-style: not dim;
+    color: $text;
     background: $panel-lighten-1 70%;
   }
   &:focus > .tree--cursor {
