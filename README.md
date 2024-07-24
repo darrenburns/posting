@@ -243,7 +243,7 @@ Dotenv files are separate from collections, although you may wish to include the
 | `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
 | `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
 | `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | If enabled, the cursor will blink in input widgets and text area widgets. |
-<!-- | `use_xresources` (`POSTING_USE_XRESOURCES`) | `true`, `false` (Default: `false`) | Try to create themes called `xresources-dark` and `xresources-light` (see the section below) | -->
+| `use_xresources` (`POSTING_USE_XRESOURCES`) | `true`, `false` (Default: `false`) | Try to create themes called `xresources-dark` and `xresources-light` (see the section below) |
 
 ## SSL certificate configuration
 
