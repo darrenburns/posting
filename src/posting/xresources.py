@@ -1,3 +1,4 @@
+import itertools
 import subprocess
 from typing import Any
 
@@ -33,11 +34,11 @@ def load_xresources_themes() -> dict[str, Theme]:
             for kwarg in XRDB_MAPPING.get(name.strip(), []):
                 supplied_colors[kwarg] = value.strip()
 
-    missing_colors = set(XRDB_MAPPING.values()) - supplied_colors.keys()
+    missing_colors = (
+        set(itertools.chain(*XRDB_MAPPING.values())) - supplied_colors.keys()
+    )
     if missing_colors:
-        missing_colors_string = ", ".join(
-            [", ".join(color) for color in missing_colors]
-        )
+        missing_colors_string = ", ".join(missing_colors)
         raise RuntimeError(f"Missing colors from xrdb: {missing_colors_string}")
 
     return {
