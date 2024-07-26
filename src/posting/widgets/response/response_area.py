@@ -25,6 +25,10 @@ class ResponseArea(Vertical):
     The response area.
     """
 
+    COMPONENT_CLASSES = {
+        "border-title-status",
+    }
+
     DEFAULT_CSS = """\
     ResponseArea {
         border-subtitle-color: $text-muted;
@@ -36,6 +40,20 @@ class ResponseArea(Vertical):
                 display: none;
             }
         }
+        &.success .border-title-status {
+            color: $text;
+            background: $success;
+        }
+        &.warning .border-title-status {
+            color: $text;
+            background: $warning;
+        }
+        &.error .border-title-status {
+            color: $text;
+            background: $error;
+        }
+
+
     }
     """
     response: Reactive[httpx.Response | None] = reactive(None)
@@ -100,13 +118,15 @@ class ResponseArea(Vertical):
             [(name, value) for name, value in response.cookies.items()]
         )
 
+        self.remove_class("success", "warning", "error")
         if response.status_code < 300:
-            style = "#ecfccb on #4d7c0f"
+            self.add_class("success")
         elif response.status_code < 400:
-            style = "black on yellow"
+            self.add_class("warning")
         else:
-            style = "black on red"
+            self.add_class("error")
 
+        style = self.get_component_rich_style("border-title-status")
         self.border_title = (
             f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
         )
