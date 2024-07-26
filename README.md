@@ -56,8 +56,8 @@
 | src/posting/widgets/tree.py                           |       22 |        6 |     73% |     34-39 |
 | src/posting/widgets/variable\_autocomplete.py         |       38 |        6 |     84% |     71-78 |
 | src/posting/widgets/variable\_input.py                |       10 |        0 |    100% |           |
-| src/posting/xresources.py                             |       22 |       17 |     23% |     20-43 |
-|                                             **TOTAL** | **3098** |  **757** | **76%** |           |
+| src/posting/xresources.py                             |       23 |       17 |     26% |     21-44 |
+|                                             **TOTAL** | **3099** |  **757** | **76%** |           |
 
 
 ## Setup coverage badge
