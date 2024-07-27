@@ -60,6 +60,7 @@ class ResponseArea(Vertical):
 
     def on_mount(self) -> None:
         self.border_title = "Response"
+        self._latest_response: httpx.Response | None = None
         self.add_class("section")
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
@@ -79,9 +80,11 @@ class ResponseArea(Vertical):
                 yield ResponseTrace()
 
     def on_theme_change(self, _) -> None:
-        self.refresh()
+        if self._latest_response:
+            self.border_title = self._make_border_title(self._latest_response)
 
     def watch_response(self, response: httpx.Response | None) -> None:
+        self._latest_response = response
         if response is None:
             return
         else:
@@ -130,14 +133,15 @@ class ResponseArea(Vertical):
         else:
             self.add_class("error")
 
-        style = self.get_component_rich_style("border-title-status")
-        self.border_title = (
-            f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
-        )
+        self.border_title = self._make_border_title(response)
 
         settings = SETTINGS.get()
         if settings.response.show_size_and_time:
             self.border_subtitle = f"{human_readable_size(len(response.content))} in {response.elapsed.total_seconds() * 1000:.2f}[dim]ms[/]"
+
+    def _make_border_title(self, response: httpx.Response) -> str:
+        style = self.get_component_rich_style("border-title-status")
+        return f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
 
     @property
     def text_editor(self) -> TextEditor:
