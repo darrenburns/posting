@@ -221,6 +221,7 @@ class PostingTextArea(TextArea):
     def on_theme_change(self, theme: Theme) -> None:
         self.theme = theme.syntax
         self.refresh()
+        print("self.theme", self.theme)
 
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
@@ -569,7 +570,6 @@ MONOKAI_THEME = TextAreaTheme(
 GITHUB_LIGHT = TextAreaTheme.get_builtin_theme("github_light")
 GITHUB_LIGHT_THEME = TextAreaTheme(
     name="github_light",
-    base_style=None,
     syntax_styles={
         # "json.error": Style.parse("u #dc2626"),
         **(GITHUB_LIGHT.syntax_styles if GITHUB_LIGHT else {}),
