@@ -8,7 +8,6 @@ from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.design import ColorSystem
 from textual.message import Message
 from textual.reactive import reactive, Reactive
 from textual.widgets import TextArea, Label, Select, Checkbox
@@ -209,6 +208,9 @@ class PostingTextArea(TextArea):
     def on_mount(self) -> None:
         self.indent_width = 2
         self.cursor_blink = SETTINGS.get().text_input.blinking_cursor
+
+        # Replace the default themes with CSS-aware versions. These themes will
+        # use their parent containers background color etc.
         self.register_theme(POSTING_THEME)
         self.register_theme(MONOKAI_THEME)
         self.register_theme(GITHUB_LIGHT_THEME)
@@ -220,7 +222,7 @@ class PostingTextArea(TextArea):
 
     def on_theme_change(self, theme: Theme) -> None:
         self.theme = theme.syntax
-        self.refresh()
+        self.call_after_refresh(self.refresh)
 
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
@@ -559,7 +561,7 @@ POSTING_THEME = TextAreaTheme(
 )
 MONOKAI = TextAreaTheme.get_builtin_theme("monokai")
 MONOKAI_THEME = TextAreaTheme(
-    name="posting-monokai",
+    name="monokai",
     syntax_styles={
         # "json.error": Style.parse("u #dc2626"),
         **(MONOKAI.syntax_styles if MONOKAI else {}),
@@ -569,7 +571,6 @@ MONOKAI_THEME = TextAreaTheme(
 GITHUB_LIGHT = TextAreaTheme.get_builtin_theme("github_light")
 GITHUB_LIGHT_THEME = TextAreaTheme(
     name="github_light",
-    base_style=None,
     syntax_styles={
         # "json.error": Style.parse("u #dc2626"),
         **(GITHUB_LIGHT.syntax_styles if GITHUB_LIGHT else {}),
@@ -578,7 +579,7 @@ GITHUB_LIGHT_THEME = TextAreaTheme(
 
 DRACULA = TextAreaTheme.get_builtin_theme("dracula")
 DRACULA_THEME = TextAreaTheme(
-    name="posting-dracula",
+    name="dracula",
     syntax_styles={
         # "json.error": Style.parse("u #dc2626"),
         **(DRACULA.syntax_styles if DRACULA else {}),

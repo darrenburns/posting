@@ -2,13 +2,11 @@ import re
 from rich.highlighter import Highlighter
 from rich.text import Text
 from textual.widgets import Input
-from textual.geometry import clamp
 
 from posting.variables import (
     find_variable_end,
     find_variable_start,
     find_variables,
-    get_variable_at_cursor,
     get_variables,
     is_cursor_within_variable,
 )

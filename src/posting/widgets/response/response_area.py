@@ -61,6 +61,7 @@ class ResponseArea(Vertical):
     def on_mount(self) -> None:
         self.border_title = "Response"
         self.add_class("section")
+        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
     def compose(self) -> ComposeResult:
         with ResponseTabbedContent(disabled=self.response is None):
@@ -76,6 +77,9 @@ class ResponseArea(Vertical):
                 yield CookiesTable()
             with TabPane("Trace", id="response-trace-pane"):
                 yield ResponseTrace()
+
+    def on_theme_change(self, _) -> None:
+        self.refresh()
 
     def watch_response(self, response: httpx.Response | None) -> None:
         if response is None:
