@@ -1,6 +1,5 @@
 from typing import Protocol, runtime_checkable
 import httpx
-from pydantic import SecretStr
 from textual import on, log
 from textual.app import ComposeResult
 from textual.binding import Binding

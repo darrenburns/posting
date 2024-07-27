@@ -1,7 +1,6 @@
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
-from textual.widgets.data_table import CellDoesNotExist
 from posting.collection import QueryParam
 
 from posting.widgets.datatable import PostingDataTable

@@ -3,7 +3,6 @@ from textual.design import ColorSystem
 import yaml
 from posting.config import SETTINGS
 
-from posting.locations import theme_directory
 
 
 class Theme(BaseModel):

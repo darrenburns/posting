@@ -6,7 +6,6 @@ import re
 import os
 from pathlib import Path
 from dotenv import dotenv_values
-from textual_autocomplete import TargetState
 
 
 _VARIABLES_PATTERN = re.compile(

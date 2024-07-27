@@ -8,7 +8,6 @@ from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.design import ColorSystem
 from textual.message import Message
 from textual.reactive import reactive, Reactive
 from textual.widgets import TextArea, Label, Select, Checkbox

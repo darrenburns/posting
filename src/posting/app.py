@@ -1,14 +1,11 @@
 from pathlib import Path
-from typing import Any, Literal, Union, cast
-import subprocess
-import itertools
+from typing import Any, Literal, cast
 import httpx
 from rich.console import Group
 from rich.text import Text
 from textual import on, log, work
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
-from textual.design import ColorSystem
 from textual.events import Click
 from textual.reactive import Reactive, reactive
 from textual.app import App, ComposeResult

@@ -3,7 +3,7 @@ from pathlib import Path
 from string import Template
 from typing import Any, Literal, get_args
 import httpx
-from pydantic import BaseModel, Field, HttpUrl, SecretStr
+from pydantic import BaseModel, Field, HttpUrl
 import rich
 import yaml
 import os
