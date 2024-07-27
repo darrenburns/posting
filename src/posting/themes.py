@@ -4,7 +4,6 @@ import yaml
 from posting.config import SETTINGS
 
 
-
 class Theme(BaseModel):
     name: str = Field(exclude=True)
     primary: str
@@ -113,7 +112,7 @@ BUILTIN_THEMES: dict[str, Theme] = {
         background="#0F0F1F",  # Very Dark Blue, almost black
         surface="#1E1E3F",  # Dark Blue-Purple
         panel="#2D2B55",  # Slightly Lighter Blue-Purple
-        syntax="posting-dracula",
+        syntax="dracula",
     ),
     "nebula": Theme(
         name="nebula",
@@ -127,7 +126,7 @@ BUILTIN_THEMES: dict[str, Theme] = {
         background="#0A0A23",  # Dark Navy, closer to a night sky
         surface="#1C1C3C",  # Dark Blue-Purple
         panel="#2E2E5E",  # Slightly Lighter Blue-Purple
-        syntax="posting-dracula",
+        syntax="dracula",
     ),
     "alpine": Theme(
         name="alpine",
