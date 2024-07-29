@@ -22,13 +22,6 @@ The dropdown does not need to be expanded in order to select a method.
 """,
     )
 
-    DEFAULT_CSS = """
-MethodSelector {
-    background: $secondary;
-    width: 11;
-}
-"""
-
     BINDINGS = [
         Binding("g", "select_method('GET')", "GET", show=False),
         Binding("p", "select_method('POST')", "POST", show=False),

@@ -141,6 +141,49 @@ Tabs {
   }
 }
 
+UrlBar {
+  height: 3;
+  padding: 1 3 0 3;
+
+  & #method-selector {
+      background: $secondary;
+      width: 11;
+  }
+
+  & #trace-markers {
+      padding: 0 1;
+      display: none;
+      background: $surface;
+
+      &.has-events {
+          display: block;
+          width: auto;
+      }
+  }
+  & #variable-value-bar {
+      width: 1fr;
+      color: $text-muted;
+      text-align: center;
+      height: 1;
+  }
+  & .complete-marker {
+      color: $success;
+      background: $surface;
+  }
+  & .failed-marker {
+      color: $error;
+      background: $surface;
+  }
+  & .started-marker {
+      color: $warning;
+      background: $surface;
+  }
+  & .not-started-marker {
+      color: $text-muted 30%;
+      background: $surface;
+  }
+}
+
 
 TabPane {
   padding: 0;
