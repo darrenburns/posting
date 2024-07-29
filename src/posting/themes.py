@@ -56,7 +56,7 @@ class SyntaxTheme(BaseModel):
             "string": Style.parse(self.json_string or fallback_theme.primary),
             "number": Style.parse(self.json_number or fallback_theme.accent),
             "boolean": Style.parse(self.json_boolean or fallback_theme.accent),
-            "null": Style.parse(self.json_null or fallback_theme.secondary),
+            "json.null": Style.parse(self.json_null or fallback_theme.secondary),
             "json.label": (
                 Style.parse(self.json_key or fallback_theme.primary) + Style(bold=True)
             ),
