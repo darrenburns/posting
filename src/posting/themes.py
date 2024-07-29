@@ -73,6 +73,14 @@ class VariableStyles(BaseModel):
     unresolved: str | None = Field(default="dim")
     """The style to apply to unresolved variables."""
 
+    def fill_with_defaults(self, theme: "Theme") -> "VariableStyles":
+        """Return a new VariableStyles object with `None` values filled
+        with reasonable defaults from the given theme."""
+        return VariableStyles(
+            resolved=self.resolved or theme.success,
+            unresolved=self.unresolved or theme.secondary,
+        )
+
 
 class UrlStyles(BaseModel):
     """The style to apply to URL input fields."""
@@ -83,8 +91,17 @@ class UrlStyles(BaseModel):
     protocol: str | None = Field(default=None)
     """The style to apply to the URL protocol."""
 
-    separator: str | None = Field(default="dim b")
+    separator: str | None = Field(default="dim")
     """The style to apply to URL separators e.g. `/`."""
+
+    def fill_with_defaults(self, theme: "Theme") -> "UrlStyles":
+        """Return a new UrlStyles object with `None` values filled
+        with reasonable defaults from the given theme."""
+        return UrlStyles(
+            base=self.base or theme.secondary,
+            protocol=self.protocol or theme.accent,
+            separator=self.separator or "dim",
+        )
 
 
 class Theme(BaseModel):

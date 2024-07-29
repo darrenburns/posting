@@ -301,11 +301,11 @@ Tree {
 Input {
   padding: 0 1;
   height: 1;
-  background: $surface;
+  background: $surface 80%;
   border: none;
 
   &:focus {
-    background: $surface-lighten-1;
+    background: $surface;
     padding-left: 0;
     border-left: outer $surface-lighten-2;
 

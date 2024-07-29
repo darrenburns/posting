@@ -36,5 +36,6 @@ Press `tab` to both insert *and* shift focus.
             theme: The new app theme.
         """
         super().on_theme_change(theme)
-        self.highlighter.variable_styles = theme.variable
-        self.refresh()
+        if theme.variable:
+            self.highlighter.variable_styles = theme.variable.fill_with_defaults(theme)
+            self.refresh()

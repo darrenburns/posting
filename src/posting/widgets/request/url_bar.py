@@ -100,9 +100,9 @@ Press `ctrl+l` to quickly focus this bar from elsewhere.""",
     def on_theme_change(self, theme: Theme) -> None:
         super().on_theme_change(theme)
         if theme.variable:
-            self.highlighter.variable_styles = theme.variable
+            self.highlighter.variable_styles = theme.variable.fill_with_defaults(theme)
         if theme.url:
-            self.highlighter.url_styles = theme.url
+            self.highlighter.url_styles = theme.url.fill_with_defaults(theme)
 
 
 class SendRequestButton(Button, can_focus=False):
