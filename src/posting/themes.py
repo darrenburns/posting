@@ -67,7 +67,7 @@ class SyntaxTheme(BaseModel):
 class VariableStyles(BaseModel):
     """The style to apply to variables."""
 
-    resolved: str | None = Field(default="green")
+    resolved: str | None = Field(default="green bold")
     """The style to apply to resolved variables."""
 
     unresolved: str | None = Field(default="dim")
