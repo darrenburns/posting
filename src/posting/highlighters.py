@@ -24,12 +24,12 @@ def highlight_url(text: Text, styles: UrlStyles) -> None:
         separator_start, separator_end = protocol_end, protocol_end + 3
 
         text.stylize(styles.protocol or "#818cf8", protocol_start, protocol_end)
-        text.stylize("dim", separator_start, separator_end)
+        text.stylize(styles.separator or "dim b", separator_start, separator_end)
         text.stylize(styles.base or "#00C168", base_start, base_end)
 
     for index, char in enumerate(text.plain):
         if char == "/":
-            text.stylize("dim b", index, index + 1)
+            text.stylize(styles.separator or "dim b", index, index + 1)
 
 
 def highlight_variables(text: Text, styles: VariableStyles) -> None:

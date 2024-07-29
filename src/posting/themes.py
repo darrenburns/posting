@@ -80,10 +80,10 @@ class UrlStyles(BaseModel):
     base: str | None = Field(default=None)
     """The style to apply to the base of the URL."""
 
-    protocol: str = Field(default=None)
+    protocol: str | None = Field(default=None)
     """The style to apply to the URL protocol."""
 
-    separator: str = Field(default="dim b")
+    separator: str | None = Field(default="dim b")
     """The style to apply to URL separators e.g. `/`."""
 
 
