@@ -67,10 +67,10 @@ class SyntaxTheme(BaseModel):
 class VariableStyles(BaseModel):
     """The style to apply to variables."""
 
-    resolved: str | None = Field(default="green bold")
+    resolved: str | None = Field(default=None)
     """The style to apply to resolved variables."""
 
-    unresolved: str | None = Field(default="dim")
+    unresolved: str | None = Field(default=None)
     """The style to apply to unresolved variables."""
 
     def fill_with_defaults(self, theme: "Theme") -> "VariableStyles":
@@ -78,7 +78,7 @@ class VariableStyles(BaseModel):
         with reasonable defaults from the given theme."""
         return VariableStyles(
             resolved=self.resolved or theme.success,
-            unresolved=self.unresolved or theme.secondary,
+            unresolved=self.unresolved or theme.error,
         )
 
 
