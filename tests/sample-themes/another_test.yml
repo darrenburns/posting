@@ -8,7 +8,6 @@ error: '#e74c3c'
 warning: '#f39c12'
 success: '#27ae60'
 panel: '#95a5a6'
-dark: true
 
 # Extended properties
 text_area:
