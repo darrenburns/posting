@@ -449,6 +449,25 @@ class TestCustomThemeSimple:
 
         assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
 
+    def test_theme_sensible_defaults__json(self, snap_compare):
+        """This theme doesn't explicitly declare JSON highlighting,
+        so lets ensure that sensible defaults are used.
+        """
+
+        env_path = str((ENV_DIR / "sample_base.env").resolve())
+        app = make_posting(
+            collection=SAMPLE_COLLECTIONS / "jsonplaceholder",
+            env=(env_path,),
+        )
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"jjj", "enter")
+            await pilot.press("ctrl+o", "w")
+            await pilot.press(*"jj")
+            await pilot.press("shift+down")
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
+
 
 @use_config("custom_theme2.yaml")
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
