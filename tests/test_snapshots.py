@@ -416,6 +416,7 @@ class TestVariables:
 
 
 @use_config("custom_theme.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 @patch_env("POSTING_THEME_DIRECTORY", str(THEME_DIR.resolve()))
 class TestCustomThemeSimple:
     def test_theme_set_on_startup_and_in_command_palette(self, snap_compare):
@@ -427,6 +428,26 @@ class TestCustomThemeSimple:
             await pilot.press(*"anothertest")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_theme_sensible_defaults__url(self, snap_compare):
+        """This theme doesn't specify explicit values for the URL
+        or variable highlights, so we should expect sensible
+        defaults to be used. These defaults should be drawn from the
+        semantic colours defined in the theme.
+        """
+
+        env_path = str((ENV_DIR / "sample_base.env").resolve())
+        app = make_posting(
+            collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
+            env=(env_path,),
+        )
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.press("ctrl+l", *"/$lol/")
+            await pilot.press("ctrl+o", "w")
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
 
 
 @use_config("custom_theme2.yaml")
@@ -450,7 +471,7 @@ class TestCustomThemeComplex:
 
         async def run_before(pilot: Pilot):
             await pilot.press("j", "j", "enter")
-            await pilot.press("ctrl+l", *"$lol")
+            await pilot.press("ctrl+l", *"/$lol/")
             await pilot.press("ctrl+o", "w")
 
         assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))

@@ -32,8 +32,8 @@ url:
   separator: 'dim red u'
 
 variable:
-  resolved: '#27ae60'
-  unresolved: '#e74c3c'
+  resolved: 'black on #00ff00'
+  unresolved: 'black on #ff0000'
 
 # Optional metadata
 author: "Your Name"
