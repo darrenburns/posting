@@ -161,6 +161,7 @@ class Theme(BaseModel):
         return TextAreaTheme(
             name=uuid.uuid4().hex,
             syntax_styles=syntax_styles,
+            gutter_style=Style.parse(text_area.gutter) if text_area.gutter else None,
             cursor_style=Style.parse(text_area.cursor) if text_area.cursor else None,
             cursor_line_style=Style.parse(text_area.cursor_line)
             if text_area.cursor_line

@@ -417,7 +417,7 @@ class TestVariables:
 
 @use_config("custom_theme.yaml")
 @patch_env("POSTING_THEME_DIRECTORY", str(THEME_DIR.resolve()))
-class TestCustomTheme:
+class TestCustomThemeSimple:
     def test_theme_set_on_startup_and_in_command_palette(self, snap_compare):
         """Check that the theme is set on startup and available in the command palette."""
 
@@ -427,3 +427,53 @@ class TestCustomTheme:
             await pilot.press(*"anothertest")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("custom_theme2.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+@patch_env("POSTING_THEME_DIRECTORY", str(THEME_DIR.resolve()))
+class TestCustomThemeComplex:
+    def test_highlighting_applied_from_custom_theme__url(self, snap_compare):
+        """Ensure custom theme is applied correctly in the URL bar.
+
+        Resolved and unresolved variables should be highlighted based on the
+        theme. The chosen theme has some funky choices for the URL, so it should
+        be clear that the URL protocol, base, and separators are being highlighted
+        as expected.
+        """
+
+        env_path = str((ENV_DIR / "sample_base.env").resolve())
+        app = make_posting(
+            collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
+            env=(env_path,),
+        )
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.press("ctrl+l", *"$lol")
+            await pilot.press("ctrl+o", "w")
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
+
+    def test_highlighting_applied_from_custom_theme__json(self, snap_compare):
+        """Ensure custom theme is applied correctly to TextAreas.
+        Ensure the gutter is coloured both foreground and background.
+        The cursor line and selection should also be coloured.
+        Ensure the JSON is being highlighted as expected - we would
+        expect the colours of JSON keys and values to match those of the
+        overall theme.
+        """
+
+        env_path = str((ENV_DIR / "sample_base.env").resolve())
+        app = make_posting(
+            collection=SAMPLE_COLLECTIONS / "jsonplaceholder",
+            env=(env_path,),
+        )
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"jjj", "enter")
+            await pilot.press("ctrl+o", "w")
+            await pilot.press(*"jj")
+            await pilot.press("shift+down")
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
