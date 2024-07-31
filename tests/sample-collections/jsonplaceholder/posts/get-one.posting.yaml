@@ -1,6 +1,6 @@
 name: get one
 description: Retrieve one post
-url: https://jsonplaceholder.typicode.com/posts/1
+url: https://jsonplaceholder.typicode.com/posts/$POST_ID/
 headers:
 - name: Content-Type
   value: application/json
