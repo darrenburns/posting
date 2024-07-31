@@ -1,0 +1,40 @@
+name: anothertest
+primary: '#2ecc71'
+secondary: '#3498db'
+accent: '#9b59b6'
+background: '#ecf0f1'
+surface: '#bdc3c7'
+error: '#e74c3c'
+warning: '#f39c12'
+success: '#27ae60'
+panel: '#95a5a6'
+
+# Extended properties
+text_area:
+  gutter: 'black on red'
+  cursor: 'reverse'
+  cursor_line: 'italic'
+  cursor_line_gutter: 'black on blue'
+  matched_bracket: 'underline #f1c40f'
+  selection: 'on #3498db'
+
+syntax:
+  json_key: '#8e44ad'
+  json_string: '#27ae60'
+  json_number: '#e67e22'
+  json_boolean: '#e74c3c'
+  json_null: '#95a5a6'
+
+url:
+  base: 'italic #3498db on green'
+  protocol: 'u bold #9b59b6 on magenta'
+  separator: 'dim red u'
+
+variable:
+  resolved: 'black on #00ff00'
+  unresolved: 'black on #ff0000'
+
+# Optional metadata
+author: "Your Name"
+description: "A vibrant and colorful theme with extended properties"
+homepage: "https://github.com/yourusername/posting-themes"

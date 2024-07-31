@@ -16,6 +16,7 @@ from posting.config import SETTINGS
 from posting.help_screen import HelpData
 
 from posting.highlighters import VariablesAndUrlHighlighter
+from posting.themes import Theme
 from posting.variables import (
     extract_variable_name,
     get_variable_at_cursor,
@@ -83,6 +84,8 @@ Press `ctrl+l` to quickly focus this bar from elsewhere.""",
 
     def on_mount(self):
         self.highlighter = VariablesAndUrlHighlighter(self)
+        self.on_theme_change(self.app.themes[self.app.theme])
+        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
@@ -93,6 +96,13 @@ Press `ctrl+l` to quickly focus this bar from elsewhere.""",
 
     def watch_cursor_position(self, cursor_position: int) -> None:
         self.post_message(self.CursorMoved(cursor_position, self.value, self))
+
+    def on_theme_change(self, theme: Theme) -> None:
+        super().on_theme_change(theme)
+        if theme.variable:
+            self.highlighter.variable_styles = theme.variable.fill_with_defaults(theme)
+        if theme.url:
+            self.highlighter.url_styles = theme.url.fill_with_defaults(theme)
 
 
 class SendRequestButton(Button, can_focus=False):
@@ -122,46 +132,6 @@ class SendRequestButton(Button, can_focus=False):
 class UrlBar(Vertical):
     """
     The URL bar.
-    """
-
-    DEFAULT_CSS = """\
-    UrlBar {
-        height: 3;
-        padding: 1 3 0 3;
-
-        & #trace-markers {
-            padding: 0 1;
-            display: none;
-            background: $surface;
-
-            &.has-events {
-                display: block;
-                width: auto;
-            }
-        }
-        & #variable-value-bar {
-            width: 1fr;
-            color: $text-muted;
-            text-align: center;
-            height: 1;
-        }
-        & .complete-marker {
-            color: $success;
-            background: $surface;
-        }
-        & .failed-marker {
-            color: $error;
-            background: $surface;
-        }
-        & .started-marker {
-            color: $warning;
-            background: $surface;
-        }
-        & .not-started-marker {
-            color: $text-muted 30%;
-            background: $surface;
-        }
-    }
     """
 
     COMPONENT_CLASSES = {
@@ -202,6 +172,8 @@ class UrlBar(Vertical):
             variable_candidates=self._get_variable_candidates,
         )
         self.screen.mount(self.auto_complete)
+
+        self.on_theme_change(self.app.themes[self.app.theme])
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
     @on(Input.Changed)
@@ -246,6 +218,8 @@ class UrlBar(Vertical):
     def on_theme_change(self, theme: ColorSystem) -> None:
         markers = self._build_markers()
         self.trace_markers.update(markers)
+        self.url_input.notify_style_update()
+        self.url_input.refresh()
 
     def log_event(self, event: Event, info: dict[str, Any]) -> None:
         """Log an event to the request trace."""

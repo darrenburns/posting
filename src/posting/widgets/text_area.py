@@ -13,7 +13,7 @@ from textual.reactive import reactive, Reactive
 from textual.widgets import TextArea, Label, Select, Checkbox
 from textual.widgets.text_area import Selection, TextAreaTheme
 from posting.config import SETTINGS
-from posting.themes import Theme
+from posting.themes import SyntaxTheme, Theme
 
 from posting.widgets.select import PostingSelect
 
@@ -209,19 +209,29 @@ class PostingTextArea(TextArea):
         self.indent_width = 2
         self.cursor_blink = SETTINGS.get().text_input.blinking_cursor
 
-        # Replace the default themes with CSS-aware versions. These themes will
-        # use their parent containers background color etc.
         self.register_theme(POSTING_THEME)
         self.register_theme(MONOKAI_THEME)
         self.register_theme(GITHUB_LIGHT_THEME)
         self.register_theme(DRACULA_THEME)
+
         empty = len(self.text) == 0
         self.set_class(empty, "empty")
+
         self.on_theme_change(self.app.themes[self.app.theme])
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
 
     def on_theme_change(self, theme: Theme) -> None:
-        self.theme = theme.syntax
+        syntax_theme = theme.syntax
+        if isinstance(syntax_theme, str):
+            # A builtin theme was requested
+            self.theme = syntax_theme
+        else:  # isinstance(syntax_theme, SyntaxTheme)
+            # A custom theme has been specified.
+            # Register the theme and immediately apply it.
+            text_area_theme = theme.to_text_area_theme()
+            self.register_theme(text_area_theme)
+            self.theme = text_area_theme.name
+
         self.call_after_refresh(self.refresh)
 
     @on(TextArea.Changed)

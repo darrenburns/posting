@@ -309,6 +309,33 @@ description: A dark theme with a blue primary color.
 homepage: https://github.com/darrenburns/posting
 ```
 
+### Syntax highlighting
+
+Syntax highlighted elements such as the URL bar, text areas, and fields which contain variables will be colored based on the semantic colors defined in the theme (`primary`, `secondary`, etc).
+
+If you'd like more control over the syntax highlighting, you can specify a custom syntax highlighting theme in the theme file.
+The example below illustrates some of the options available when it comes to customizing syntax highlighting.
+
+```yaml
+text_area:
+  cursor: 'reverse'  # style the block cursor
+  cursor_line: 'underline'  # style the line the cursor is on
+  selection: 'reverse'  # style the selected text
+  gutter: 'bold #50e3c2'  # style the gutter
+  matched_bracket: 'black on green'  # style the matched bracket
+url:
+  base: 'italic #50e3c2'  # style the 'base' of the url
+  protocol: 'bold #b8e986'  # style the protocol
+syntax:
+  json_key: 'italic #4a90e2'  # style json keys
+  json_number: '#50e3c2'  # style json numbers
+  json_string: '#b8e986'  # style json strings
+  json_boolean: '#b8e986'  # style json booleans
+  json_null: 'underline #b8e986'  # style json null values
+```
+
+
+
 ### X resources themes
 
 Posting supports using X resources for theming. To use this, enable the `use_xresources` option (see above).

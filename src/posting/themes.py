@@ -1,7 +1,107 @@
+import uuid
 from pydantic import BaseModel, Field
+from rich.style import Style
 from textual.design import ColorSystem
+from textual.widgets.text_area import TextAreaTheme
 import yaml
 from posting.config import SETTINGS
+
+
+class PostingTextAreaTheme(BaseModel):
+    gutter: str | None = Field(default=None)
+    """The style to apply to the gutter."""
+
+    cursor: str | None = Field(default=None)
+    """The style to apply to the cursor."""
+
+    cursor_line: str | None = Field(default=None)
+    """The style to apply to the line the cursor is on."""
+
+    cursor_line_gutter: str | None = Field(default=None)
+    """The style to apply to the gutter of the line the cursor is on."""
+
+    matched_bracket: str | None = Field(default=None)
+    """The style to apply to bracket matching."""
+
+    selection: str | None = Field(default=None)
+    """The style to apply to the selected text."""
+
+
+class SyntaxTheme(BaseModel):
+    """Colours used in highlighting syntax in text areas and
+    URL input fields."""
+
+    json_key: str | None = Field(default=None)
+    """The style to apply to JSON keys."""
+
+    json_string: str | None = Field(default=None)
+    """The style to apply to JSON strings."""
+
+    json_number: str | None = Field(default=None)
+    """The style to apply to JSON numbers."""
+
+    json_boolean: str | None = Field(default=None)
+    """The style to apply to JSON booleans."""
+
+    json_null: str | None = Field(default=None)
+    """The style to apply to JSON null values."""
+
+    def to_text_area_syntax_styles(self, fallback_theme: "Theme") -> dict[str, Style]:
+        """Convert this theme to a TextAreaTheme.
+
+        If a fallback theme is provided, it will be used to fill in any missing
+        styles.
+        """
+        syntax_styles = {
+            "string": Style.parse(self.json_string or fallback_theme.primary),
+            "number": Style.parse(self.json_number or fallback_theme.accent),
+            "boolean": Style.parse(self.json_boolean or fallback_theme.accent),
+            "json.null": Style.parse(self.json_null or fallback_theme.secondary),
+            "json.label": (
+                Style.parse(self.json_key or fallback_theme.primary) + Style(bold=True)
+            ),
+        }
+        return syntax_styles
+
+
+class VariableStyles(BaseModel):
+    """The style to apply to variables."""
+
+    resolved: str | None = Field(default=None)
+    """The style to apply to resolved variables."""
+
+    unresolved: str | None = Field(default=None)
+    """The style to apply to unresolved variables."""
+
+    def fill_with_defaults(self, theme: "Theme") -> "VariableStyles":
+        """Return a new VariableStyles object with `None` values filled
+        with reasonable defaults from the given theme."""
+        return VariableStyles(
+            resolved=self.resolved or theme.success,
+            unresolved=self.unresolved or theme.error,
+        )
+
+
+class UrlStyles(BaseModel):
+    """The style to apply to URL input fields."""
+
+    base: str | None = Field(default=None)
+    """The style to apply to the base of the URL."""
+
+    protocol: str | None = Field(default=None)
+    """The style to apply to the URL protocol."""
+
+    separator: str | None = Field(default="dim")
+    """The style to apply to URL separators e.g. `/`."""
+
+    def fill_with_defaults(self, theme: "Theme") -> "UrlStyles":
+        """Return a new UrlStyles object with `None` values filled
+        with reasonable defaults from the given theme."""
+        return UrlStyles(
+            base=self.base or theme.secondary,
+            protocol=self.protocol or theme.accent,
+            separator=self.separator or "dim",
+        )
 
 
 class Theme(BaseModel):
@@ -16,9 +116,22 @@ class Theme(BaseModel):
     success: str | None = None
     accent: str | None = None
     dark: bool = True
-    syntax: str = Field(default="posting", exclude=True)
+
+    text_area: PostingTextAreaTheme = Field(default_factory=PostingTextAreaTheme)
+    """Styling to apply to TextAreas."""
+
+    syntax: str | SyntaxTheme = Field(default="posting", exclude=True)
     """Posting can associate a syntax highlighting theme which will
-    be switched to automatically when the app theme changes."""
+    be switched to automatically when the app theme changes.
+    
+    This can either be a custom SyntaxTheme or a pre-defined Textual theme
+    such as monokai, dracula, github_light, or vscode_dark."""
+
+    url: UrlStyles | None = Field(default_factory=UrlStyles)
+    """Styling to apply to URL input fields."""
+
+    variable: VariableStyles | None = Field(default_factory=VariableStyles)
+    """The style to apply to variables."""
 
     # Optional metadata
     author: str | None = Field(default=None, exclude=True)
@@ -26,11 +139,51 @@ class Theme(BaseModel):
     homepage: str | None = Field(default=None, exclude=True)
 
     def to_color_system(self) -> ColorSystem:
-        return ColorSystem(**self.model_dump())
+        """Convert this theme to a ColorSystem."""
+        return ColorSystem(
+            **self.model_dump(
+                exclude={
+                    "text_area",
+                    "syntax",
+                    "variable",
+                    "url",
+                }
+            )
+        )
+
+    def to_text_area_theme(self) -> TextAreaTheme:
+        """Retrieve the TextAreaTheme corresponding to this theme."""
+        syntax_styles: dict[str, Style] = {}
+        if isinstance(self.syntax, SyntaxTheme):
+            syntax_styles = self.syntax.to_text_area_syntax_styles(self)
+
+        text_area = self.text_area
+        return TextAreaTheme(
+            name=uuid.uuid4().hex,
+            syntax_styles=syntax_styles,
+            gutter_style=Style.parse(text_area.gutter) if text_area.gutter else None,
+            cursor_style=Style.parse(text_area.cursor) if text_area.cursor else None,
+            cursor_line_style=Style.parse(text_area.cursor_line)
+            if text_area.cursor_line
+            else None,
+            cursor_line_gutter_style=Style.parse(text_area.cursor_line_gutter)
+            if text_area.cursor_line_gutter
+            else None,
+            bracket_matching_style=Style.parse(text_area.matched_bracket)
+            if text_area.matched_bracket
+            else None,
+            selection_style=Style.parse(text_area.selection)
+            if text_area.selection
+            else None,
+        )
 
 
 def load_user_themes() -> dict[str, Theme]:
-    """Load user themes from "~/.config/posting/themes"."""
+    """Load user themes from "~/.config/posting/themes".
+
+    Returns:
+        A dictionary mapping theme names to theme objects.
+    """
     directory = SETTINGS.get().theme_directory
     themes: dict[str, Theme] = {}
     for path in directory.iterdir():
