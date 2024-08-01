@@ -1,1 +1,6 @@
-site_name: My Docs
+site_name: Posting
+site_url: https://posting.sh
+theme:
+  name: material
+  palette:
+    primary: teal
