@@ -583,6 +583,7 @@ class Posting(App[None]):
             description="Jump",
         ),
         Binding("f1,ctrl+question_mark", "help", "Help"),
+        Binding("f8", "save_screenshot", "Save screenshot", show=False),
     ]
 
     def __init__(
@@ -677,6 +678,11 @@ class Posting(App[None]):
         self.notify(
             f"Theme is now [b]{theme!r}[/].", title="Theme updated", timeout=2.5
         )
+
+    def action_save_screenshot(
+        self,
+    ) -> str:
+        return self.save_screenshot()
 
     @on(CommandPalette.Opened)
     def palette_opened(self) -> None:

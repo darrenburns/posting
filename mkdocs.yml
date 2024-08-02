@@ -1,0 +1,34 @@
+site_name: Posting
+site_url: https://posting.sh
+repo_url: https://github.com/darrenburns/posting
+repo_name: darrenburns/posting
+theme:
+  name: material
+  palette:
+    # Dark Mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to Light Mode
+  custom_dir: docs/overrides
+  features:
+    - search.suggest
+    - search.highlight
+    - header.autohide
+extra_css:
+  - stylesheets/extra.css
+plugins:
+  - search
+  - tags
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - toc:
+      permalink: true
+  - footnotes
+  - tables
+  - pymdownx.keys
