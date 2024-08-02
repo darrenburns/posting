@@ -44,14 +44,14 @@ a.posting-button {
     color: whitesmoke;
     padding: 0.7rem 1.4rem;
     background-color: hsl(287deg 100% 10%);
-    border: 4px solid hsl(287deg 100% 30%);
+    border: 3px solid hsl(287deg 100% 30%);
     border-radius: 2px;
     font-family: "Roboto Mono", monospace;
     
     &:hover {
         color: whitesmoke;
         font-weight: 600;
-        border: 4px solid hsl(287deg 100% 40%);
+        border: 3px solid rgba(255, 100, 203, 1);
     }
 }
 
