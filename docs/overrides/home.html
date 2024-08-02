@@ -26,20 +26,22 @@
       color: #f0f0f0;
     }
     #home-title {
-      font-weight: 800;
-      margin: 0 0 0rem 0;
+      font-weight: 400;
+      margin: 0 0 0.3rem 0;
     }
     #home-subtitle {
       font-family: "Roboto Mono", monospace;
       font-size: 1.2rem;
+      line-height: 1.7rem;
       opacity: 92%;
-      margin: 0 0 0.4rem 0;
+      margin: 0 0 1rem 0;
       color: #f0f0f0;
+      word-spacing: -0.05em;
     }
     #home-intro {
       font-size: 0.85rem;
       opacity: 86%;
-      margin: 0 0 0.8rem 0;
+      margin: 0 0 1.6rem 0;
       color: #f0f0f0;
     }
     .button-bar {
@@ -53,6 +55,20 @@
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+    }
+    .subtle-purple-glow {
+      position: relative;
+      z-index: 1;
+    }
+    .subtle-purple-glow::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: -1;
+      color: rgba(255, 100, 203, 1); /* Very light pink/purple */
+      filter: blur(8px);
+      -webkit-filter: blur(8px);
     }
   </style>
   <section class="mdx-container">
@@ -1415,16 +1431,14 @@
         
         </div>
         <div class="hero-text">
-          <h1 id="home-title">Posting</h1>
-          <p id="home-subtitle">The modern API client that lives in your terminal.</p>
+          <h1 id="home-title">A powerful API client that lives in your terminal.</h1>
+          <p id="home-subtitle">Posting is a beautiful, <strong class="gradient-text subtle-purple-glow" data-text="open-source">open-source</strong> terminal app for developing and testing APIs.</p>
           <p id="home-intro">
-            Posting is an <strong class="gradient-text">open-source</strong> terminal app for developing and testing APIs.
-            <br>
             It offers a simple but powerful <strong class="gradient-text">keyboard-centric</strong> interface.
             <br>
-            It <strong class="gradient-text">works flawlessly over SSH</strong>, and can be easily installed on remote machines.
+            It <strong class="gradient-text">works flawlessly over SSH</strong>, and can be easily installed on remote machines and containers.
             <br>
-            Save and share requests using a simple <strong class="gradient-text">version-control friendly</strong> format.
+            It stores requests using a simple, readable, and <strong class="gradient-text">version-control friendly</strong> format.
           </p>
           <div class="button-bar">
               <a href="{{ page.next_page.url | url }}" title="{{ page.next_page.title | e }}" class="posting-button">
