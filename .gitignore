@@ -16,3 +16,5 @@ wheels/
 snapshot_report.html
 *.afdesign
 *.afdesign*
+*.afphoto
+*.afphoto*

@@ -4,9 +4,13 @@
   <style>
     /* hide the main content on the home page.
     we're gonna do it all ourself. */
-    .md-main{display:none;}
-    .md-content{display:none}
-    .md-dialog{display:none}
+    .md-main{
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    /* .md-content{display:none} */
+    .md-dialog{display:none;}
+    .md-sidebar{display: none;}
     .hero-text {
       padding: 1.4rem; /* Changed from 6rem 0 */
       text-align: left;
@@ -19,14 +23,14 @@
       max-width: 1000px; /* Maximum width of SVG */
       display: block; /* Center SVG */
       margin: 0 auto; /* Center SVG */
-      padding: 2rem 1.2rem 0 1.2rem;
+      padding: 3rem 1.2rem 1rem 1.2rem;
     }
     .hero-text h1 {
       font-size: 2rem;
       color: #f0f0f0;
     }
     #home-title {
-      font-weight: 400;
+      font-weight: 600;
       margin: 0 0 0.3rem 0;
     }
     #home-subtitle {
@@ -39,7 +43,7 @@
       word-spacing: -0.05em;
     }
     #home-intro {
-      font-size: 0.85rem;
+      font-size: 1rem;
       opacity: 86%;
       margin: 0 0 1.6rem 0;
       color: #f0f0f0;
@@ -59,6 +63,8 @@
     .subtle-purple-glow {
       position: relative;
       z-index: 1;
+      white-space: nowrap;
+      display: inline-block;
     }
     .subtle-purple-glow::after {
       content: attr(data-text);
@@ -69,7 +75,45 @@
       color: rgba(255, 100, 203, 1); /* Very light pink/purple */
       filter: blur(8px);
       -webkit-filter: blur(8px);
+      white-space: nowrap;
     }
+    .features-section {
+        padding: 2rem 1.4rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .feature-row {
+        display: flex;
+        align-items: space-between;
+        margin-bottom: 3rem;
+      }
+      .feature-row:nth-child(even) {
+        flex-direction: row-reverse;
+      }
+      .feature-text {
+        flex: 1;
+        padding: 0rem 1rem;
+      }
+      .feature-image {
+        flex: 2;
+      }
+      .feature-image img, .feature-image video {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        border: solid 2px #444;
+      }
+      h2.feature-title {
+        font-size: 1.4rem;
+        font-weight: 550;
+        color: #f0f0f0;
+        margin-bottom: 0.5rem;
+        margin-top: 0.5rem;
+      }
+      .feature-description {
+        font-size: 0.92rem;
+        color: #d0d0d0;
+      }
   </style>
   <section class="mdx-container">
     <div class="md-grid md-typeset">
@@ -1433,7 +1477,7 @@
 
         <div class="hero-text">
           <h1 id="home-title">The API client that lives in your terminal.</h1>
-          <p id="home-subtitle">Posting is a beautiful <span class="gradient-text subtle-purple-glow" data-text="open-source">open-source</span> terminal app for developing and testing APIs.</p>
+          <p id="home-subtitle">Posting is a beautiful <strong class="gradient-text subtle-purple-glow" data-text="open-source">open-source</strong> terminal app for developing and testing APIs.</p>
           <p id="home-intro">
             It offers a simple but powerful <strong class="gradient-text">keyboard-centric</strong> interface.
             <br>
@@ -1452,7 +1496,57 @@
           </div>
       </div> <!-- end of .hero-text -->
 
-      
+    <div class="features-section">
+
+      <div class="feature-row">
+        <div class="feature-text">
+          <h2 class="feature-title">Efficient workflows</h2>
+          <p class="feature-description">
+            Quickly navigate the interface with your keyboard using <span data-text="jump mode" class="gradient-text subtle-purple-glow">jump mode</span>.
+          </p>
+          
+          <p class="feature-description">
+            Edit requests and view responses using your favorite <span data-text="editor" class="gradient-text subtle-purple-glow">text editor</span> and <span data-text="pager" class="gradient-text subtle-purple-glow">pager</span>, 
+            or use the powerful built-in editor.
+          </p>
+          
+          <p class="feature-description">
+            After saving a request, check it into <span data-text="version control" class="gradient-text subtle-purple-glow">version control</span> - requests live on your file system, in diffable and easy to read YAML files.
+          </p>
+        </div>
+        <div class="feature-image">
+          <video src="assets/jumpmode.mp4" alt="Posting's jump mode feature in action" autoplay loop muted></video>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-text">
+          <h2 class="feature-title">Colorful & customizable</h2>
+          <p class="feature-description">
+            Create your own <span data-text="themes" class="gradient-text subtle-purple-glow">themes</span>, or choose from a selection of built-in options.
+          <p class="feature-description">
+            <span data-text="Syntax highlighting" class="gradient-text subtle-purple-glow">Syntax highlighting</span> is powered by the popular tree-sitter library.
+          </p>
+          <p class="feature-description">
+            Adjust the user interface to your liking through config and at runtime. Show and hide elements, change the layout, and more.
+          </p>  
+        </div>
+        <div class="feature-image">
+          <img src="assets/themes.png" alt="A selection of Posting's themes stacked on top of each other.">
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-text">
+          <h2 class="feature-title">Feature 3</h2>
+          <p class="feature-description">Description of feature 3 goes here. Explain how it sets your product apart from others in the market.</p>
+        </div>
+        <div class="feature-image">
+          <img src="path/to/feature3-image.jpg" alt="Feature 3">
+        </div>
+      </div>
+
+    </div> <!-- end of .features-section -->
 
 
     </div>

@@ -5,14 +5,11 @@ repo_name: darrenburns/posting
 theme:
   name: material
   palette:
-    # Dark Mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: custom
-      toggle:
-        icon: material/toggle-switch
-        name: Switch to Light Mode
+    scheme: slate
+    primary: custom
   custom_dir: docs/overrides
+  icon:
+    logo: fontawesome/solid/paper-plane
   features:
     - search.suggest
     - search.highlight

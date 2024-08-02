@@ -1,14 +1,7 @@
-
-@font-face {
-    font-family: "Inter", sans-serif;
-    font-optical-sizing: auto;
-    font-style: normal;
-    src: url(https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap format("truetype");
-  }
-
 h1, h2, h3, h4, h5, h6 {
-    font-family: "Inter", sans-serif;
-    font-weight: 550;
+    font-weight: 700;
+    font-style: normal;
+    font-optical-sizing: auto;
 }
 
 body {
@@ -28,8 +21,8 @@ body {
         hsl(329deg 100% 50%) 100%
       );
     background-repeat: no-repeat;
-    background-size: cover;
     background-attachment: fixed;
+    background-size: auto;
 }
 
 .md-header{position:initial;background-color: rgba(0,0,0,0);}
@@ -53,6 +46,10 @@ a.posting-button {
         font-weight: 600;
         border: 3px solid rgba(255, 100, 203, 1);
     }
+}
+
+.monospace {
+    font-family: "Roboto Mono", monospace;
 }
 
 :root {
