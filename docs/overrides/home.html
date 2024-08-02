@@ -1430,25 +1430,31 @@
         </svg>
         
         </div>
+
         <div class="hero-text">
           <h1 id="home-title">The API client that lives in your terminal.</h1>
           <p id="home-subtitle">Posting is a beautiful <span class="gradient-text subtle-purple-glow" data-text="open-source">open-source</span> terminal app for developing and testing APIs.</p>
           <p id="home-intro">
             It offers a simple but powerful <strong class="gradient-text">keyboard-centric</strong> interface.
             <br>
-            It can <strong class="gradient-text">run over  SSH</strong>, and can easily be installed on remote machines and containers.
+            It can <strong class="gradient-text">run over SSH</strong>, and can easily be installed on remote machines and containers.
             <br>
             It stores requests using a simple, readable, and <strong class="gradient-text">version-control friendly</strong> format.
           </p>
+          
           <div class="button-bar">
-              <a href="{{ page.next_page.url | url }}" title="{{ page.next_page.title | e }}" class="posting-button">
-                Features
-              </a>
-              <a href="{{ 'documentation/' | url }}" title="Posting Documentation" class="posting-button">
-                Get Started
-              </a>
-        </div>
-      </div>
+            <a href="{{ page.next_page.url | url }}" title="{{ page.next_page.title | e }}" class="posting-button">
+              Features
+            </a>
+            <a href="{{ 'documentation/' | url }}" title="Posting Documentation" class="posting-button">
+              Get Started
+            </a>
+          </div>
+      </div> <!-- end of .hero-text -->
+
+      
+
+
     </div>
   </section>
 {% endblock %}
