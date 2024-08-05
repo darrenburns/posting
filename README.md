@@ -6,7 +6,7 @@
 |------------------------------------------------------ | -------: | -------: | ------: | --------: |
 | src/posting/\_\_init\_\_.py                           |        0 |        0 |    100% |           |
 | src/posting/\_\_main\_\_.py                           |       73 |       44 |     40% |19-26, 30-39, 61-69, 77-89, 103-122 |
-| src/posting/app.py                                    |      436 |       74 |     83% |157, 161, 186, 188, 190, 196, 228-240, 260, 272, 313-314, 324, 329-333, 349-365, 437-439, 495-500, 603, 653, 667-669, 673, 676-677, 689, 700-715, 724-725, 745-746, 757-764, 773-774 |
+| src/posting/app.py                                    |      437 |       74 |     83% |157, 161, 186, 188, 190, 196, 228-240, 260, 272, 313-314, 324, 329-333, 349-365, 437-439, 495-500, 604, 654, 668-670, 674, 677-678, 690, 701-716, 725-726, 746-747, 758-765, 774-775 |
 | src/posting/collection.py                             |      251 |       74 |     71% |22-25, 92-100, 162-170, 178-181, 184-195, 271-272, 278-311, 326-327, 356-357, 379-386 |
 | src/posting/commands.py                               |       45 |        4 |     91% |7, 27, 62, 64 |
 | src/posting/config.py                                 |       98 |        4 |     96% |178, 198-199, 209 |
@@ -30,7 +30,7 @@
 | src/posting/widgets/\_\_init\_\_.py                   |        0 |        0 |    100% |           |
 | src/posting/widgets/center\_middle.py                 |        3 |        0 |    100% |           |
 | src/posting/widgets/collection/browser.py             |      219 |       24 |     89% |77, 86, 118, 193, 201, 215-216, 225, 233, 255, 269-271, 337-338, 416, 472-480 |
-| src/posting/widgets/collection/new\_request\_modal.py |       72 |        4 |     94% |129, 147, 161, 165 |
+| src/posting/widgets/collection/new\_request\_modal.py |       73 |        4 |     95% |130, 148, 162, 166 |
 | src/posting/widgets/datatable.py                      |       91 |       31 |     66% |67, 70-73, 97-112, 115-127, 135-140 |
 | src/posting/widgets/input.py                          |       61 |        2 |     97% |    33, 74 |
 | src/posting/widgets/key\_value.py                     |       94 |       16 |     83% |52, 103-106, 109, 115-123, 175-177, 184 |
@@ -57,7 +57,7 @@
 | src/posting/widgets/variable\_autocomplete.py         |       38 |        6 |     84% |     71-78 |
 | src/posting/widgets/variable\_input.py                |       16 |        0 |    100% |           |
 | src/posting/xresources.py                             |       23 |       17 |     26% |     21-44 |
-|                                             **TOTAL** | **3241** |  **746** | **77%** |           |
+|                                             **TOTAL** | **3243** |  **746** | **77%** |           |
 
 
 ## Setup coverage badge
