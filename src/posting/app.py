@@ -569,6 +569,7 @@ class MainScreen(Screen[None]):
 
 
 class Posting(App[None]):
+    AUTO_FOCUS = None
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
