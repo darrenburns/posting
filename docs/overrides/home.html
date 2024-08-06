@@ -13,9 +13,9 @@
     .md-dialog{display:none;}
     .md-sidebar{display: none;}
     .hero-text {
-      padding: 0.4rem 1.4rem; /* Changed from 6rem 0 */
+      padding: 0.4rem 1.8rem;
       text-align: left;
-      max-width: 950px;
+      max-width: 900px;
       margin: 0 auto;
     }
     .hero-image svg {
@@ -56,13 +56,6 @@
       justify-content: flex-start;
       gap: 1rem;
     }
-    .fa-icon-header {
-      width: 22px;
-      height: 22px;
-      fill: #f0f0f0;
-      opacity: 80%;
-      margin-right: 0.3rem;
-    }
     .gradient-text {
       background: linear-gradient(to left, #fbb3ff, #ee66bf);
       -webkit-background-clip: text;
@@ -97,18 +90,34 @@
         color: #f0f0f0;
         margin-bottom: 0.5rem;
         margin-top: 0.5rem;
-        margin-left: 0.3rem;
+    }
+
+    .feature-title-text {
+        max-width: 80%;
+    }
+
+    .feature-title-svg {
+        max-width: 20%;
     }
 
     #features-section {
         padding: 6rem 1.4rem;
+        display: flex;
+        flex-direction: column;
+        gap: 4rem;
     }
 
+    .feature-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
     .feature-image img, .feature-image video {
         width: 100%;
         height: auto;
         border-radius: 8px;
         border: solid 2px #444;
+        margin-top: 0.8rem;
     }
 
     .feature-description {
@@ -116,7 +125,11 @@
         font-size: 0.9rem;
     }
 
-    @media (min-width: 900px) {
+
+    @media (min-width: 1024px) {
+        .hero-text {
+            padding: 0.4rem 2.4rem;
+        }
         .hero-text h1 {
             font-size: 2rem;
             color: #f0f0f0;
@@ -135,7 +148,6 @@
         .feature-row {
             display: flex;
             align-items: space-between;
-            margin-bottom: 3rem;
             gap: 2rem;
         }
         .feature-row:nth-child(even) {
@@ -147,9 +159,12 @@
         .feature-image {
             flex: 2;
         }
+        .feature-image img, .feature-image video {
+            margin-top: 0rem;
+        }
     }
 
-    @media (min-width: 1200px) {
+    @media (min-width: 1080px) {
         .feature-description {
             font-size: 1rem;
         }
@@ -1528,7 +1543,7 @@
           
           <div class="button-bar">
             <a href="#feature-title-1" title="Scroll to Features" class="posting-button">
-              Features
+              Discover Features
             </a>
             <a href="{{ 'documentation/' | url }}" title="Posting Documentation" class="posting-button">
               Get Started
@@ -1541,20 +1556,23 @@
       <div class="feature-row">
         <div class="feature-text">
           <h2 id="feature-title-1" class="feature-title">
-            <svg class="fa-icon-header xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM288 96a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zM256 416c35.3 0 64-28.7 64-64c0-17.4-6.9-33.1-18.1-44.6L366 161.7c5.3-12.1-.2-26.3-12.3-31.6s-26.3 .2-31.6 12.3L257.9 288c-.6 0-1.3 0-1.9 0c-35.3 0-64 28.7-64 64s28.7 64 64 64zM176 144a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zM96 288a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm352-32a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>
-            <span class="subtle-purple-glow" data-text="Efficient workflows">Efficient workflows</span>
+            <span class="feature-title-text" data-text="Designed for workflow efficiency">Designed for workflow efficiency</span>
           </h2>
           <p class="feature-description">
-            Quickly navigate the interface with your keyboard using <span data-text="jump mode" class="gradient-text subtle-purple-glow">jump mode</span>.
+            Navigate efficiently with the keyboard using <span data-text="jump mode" class="gradient-text subtle-purple-glow">jump mode</span>.
           </p>
           
           <p class="feature-description">
-            Edit requests and view responses using your favorite <span data-text="editor" class="gradient-text subtle-purple-glow">text editor</span> and <span data-text="pager" class="gradient-text subtle-purple-glow">pager</span>, 
-            or use the powerful built-in editor.
+            Use your favorite <span data-text="text editor" class="gradient-text subtle-purple-glow">text editor</span> and <span data-text="pager" class="gradient-text subtle-purple-glow">pager</span>, 
+            or the powerful built-in editor.
           </p>
         
           <p class="feature-description">
             Access commands from anywhere using the built-in <span data-text="command palette" class="gradient-text subtle-purple-glow">command palette</span>.
+          </p>
+
+          <p class="feature-description">
+            Build requests quickly with powerful <span data-text="autocompletion" class="gradient-text subtle-purple-glow">autocompletion</span>.
           </p>
 
           <!-- move the version control text to a different section -->
@@ -1563,20 +1581,34 @@
           </p> -->
         </div>
         <div class="feature-image">
-          <video src="assets/jumpmode.mp4" alt="Posting's jump mode feature in action" autoplay loop muted></video>
+          <video src="assets/home-efficiency-video.mp4" alt="Posting's jump mode feature in action" autoplay loop muted></video>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-text">
+          <h2 class="feature-title">Environments</h2>
+            <p class="feature-description">
+                Share common data across requests and with others using <span data-text="environments" class="gradient-text subtle-purple-glow">environments</span>.
+            </p>
+            <p class="feature-description">
+                Load variables from one or more <span data-text="dotenv" class="gradient-text subtle-purple-glow">dotenv</span> environment files, or allow access to <span data-text="environment variables" class="gradient-text subtle-purple-glow">environment variables</span>.
+            </p>
+        </div>
+        <div class="feature-image">
+          <video src="assets/environments.mp4" alt="Environments in action in the URL bar" autoplay loop muted></video>
         </div>
       </div>
 
       <div class="feature-row">
         <div class="feature-text">
           <h2 class="feature-title">
-            <svg class="fa-icon-header" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M339.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L568.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S517.7-4.4 499.1 9.6L262.4 187.2c-24 18-38.2 46.1-38.4 76.1L339.3 367.1zm-19.6 25.4l-116-104.4C143.9 290.3 96 339.6 96 400c0 3.9 .2 7.8 .6 11.6C98.4 429.1 86.4 448 68.8 448L64 448c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg>
-            <span class="subtle-purple-glow" data-text="Colorful & customizable">Colorful & customizable</span>
+              <span class="feature-title-text" data-text="Colorful & customizable">Colorful & customizable</span>
           </h2>
           <p class="feature-description">
             Create your own <span data-text="themes" class="gradient-text subtle-purple-glow">themes</span>, or choose from a selection of built-in options.
           <p class="feature-description">
-            <span data-text="Syntax highlighting" class="gradient-text subtle-purple-glow">Syntax highlighting</span> is powered by the popular tree-sitter library.
+            Gorgeous <span data-text="Syntax highlighting" class="gradient-text subtle-purple-glow">syntax highlighting</span> powered by the popular tree-sitter library.
           </p>
           <p class="feature-description">
             Adjust the user interface to your liking through the <span data-text="configuration system" class="gradient-text subtle-purple-glow">configuration system</span> or at runtime.
@@ -1584,16 +1616,6 @@
         </div>
         <div class="feature-image">
           <img src="assets/themes.png" alt="A selection of Posting's themes stacked on top of each other.">
-        </div>
-      </div>
-
-      <div class="feature-row">
-        <div class="feature-text">
-          <h2 class="feature-title">Import from OpenAPI</h2>
-          <p class="feature-description">Import your OpenAPI spec and Posting will generate a collection of requests for you.</p>
-        </div>
-        <div class="feature-image">
-          <img src="path/to/feature3-image.jpg" alt="Feature 3">
         </div>
       </div>
 
