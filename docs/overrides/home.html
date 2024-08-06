@@ -116,13 +116,15 @@
         width: 100%;
         height: auto;
         border-radius: 8px;
-        border: solid 2px #444;
+        border: solid 2px rgba(255, 100, 203, 0.33);
         margin-top: 0.8rem;
     }
 
     .feature-description {
         color: #d0d0d0;
         font-size: 0.9rem;
+        border-left: solid 2px rgba(255, 100, 203, 0.33);
+        padding-left: 12px;
     }
 
 
@@ -1532,13 +1534,10 @@
 
         <div class="hero-text">
           <h1 id="home-title">The API client that lives in your terminal.</h1>
-          <p id="home-subtitle">Posting is a beautiful <strong class="gradient-text subtle-purple-glow" data-text="open-source">open-source</strong> terminal app for developing and testing APIs.</p>
+          <p id="home-subtitle">Posting is a beautiful <span class="subtle-purple-glow" data-text="open-source">open-source</span> terminal app for developing and testing APIs.</p>
           <p id="home-intro">
-            It offers a simple but powerful <strong class="gradient-text">keyboard-centric</strong> interface.
-            <br>
-            It can <strong class="gradient-text">run over SSH</strong>, and can easily be installed on remote machines and containers.
-            <br>
-            It stores requests using a simple, readable, and <strong class="gradient-text">version-control friendly</strong> format.
+            Fly through your API workflow with an approachable yet powerful <strong class="gradient-text">keyboard-centric</strong> interface. Run it locally or <strong class="gradient-text">over SSH</strong> on remote machines and containers.
+            Save your requests in a readable and <strong class="gradient-text">version-control friendly</strong> format.
           </p>
           
           <div class="button-bar">
@@ -1563,8 +1562,8 @@
           </p>
           
           <p class="feature-description">
-            Use your favorite <span data-text="text editor" class="gradient-text subtle-purple-glow">text editor</span> and <span data-text="pager" class="gradient-text subtle-purple-glow">pager</span>, 
-            or the powerful built-in editor.
+            Want to edit a request body in <span data-text="nvim" class="gradient-text subtle-purple-glow monospace">nvim</span> or browse a JSON response in <span data-text="fx" class="gradient-text subtle-purple-glow monospace">fx</span>? No problem!
+            Posting lets you use the tools you love.
           </p>
         
           <p class="feature-description">
