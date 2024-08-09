@@ -127,6 +127,69 @@
         padding-left: 12px;
     }
 
+    .feature-columns {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        padding: 2rem 1.4rem;
+    }
+    .feature-columns {
+        position: relative;
+    }
+
+    .feature-column {
+        position: relative;
+        z-index: 1;
+    }
+
+    .feature-column::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at top, rgba(230, 32, 240, 0.34) 0%, rgba(160, 32, 240, 0) 70%);
+        filter: blur(20px);
+        opacity: 0.7;
+        z-index: -1;
+        transition: opacity 0.3s ease;
+    }
+
+    .feature-column:hover::before {
+        opacity: 1;
+    }
+
+
+    .feature-column {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 100, 203, 0.2);
+    }
+
+    h3.feature-column-title {
+        font-size: 1.2rem;
+        font-weight: 550;
+        color: #f0f0f0;
+        margin: 0;
+    }
+
+    .feature-column-description {
+        color: #d0d0d0;
+        font-size: 0.9rem;
+    }
+
+    @media (min-width: 768px) {
+        .feature-columns {
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .feature-column {
+            flex-basis: calc(33.333% - 1.33rem);
+        }
+    }
 
     @media (min-width: 1024px) {
         .hero-text {
@@ -163,6 +226,14 @@
         }
         .feature-image img, .feature-image video {
             margin-top: 0rem;
+        }
+        .feature-columns {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2.4rem;
+        }
+        .feature-column-description {
+            font-size: 1rem;
         }
     }
 
@@ -1555,25 +1626,24 @@
       <div class="feature-row">
         <div class="feature-text">
           <h2 id="feature-title-1" class="feature-title">
-            <span class="feature-title-text" data-text="Designed for workflow efficiency">Designed for workflow efficiency</span>
+            <span class="feature-title-text" data-text="Designed for efficient workflows">Designed for efficient workflows</span>
           </h2>
           <p class="feature-description">
             Navigate efficiently with the keyboard using <span data-text="jump mode" class="gradient-text subtle-purple-glow">jump mode</span>.
           </p>
+          <p class="feature-description">
+              Access commands from anywhere using the built-in <span data-text="command palette" class="gradient-text subtle-purple-glow">command palette</span>.
+            </p>
+            
+            <p class="feature-description">
+                Build requests quickly with powerful <span data-text="autocompletion" class="gradient-text subtle-purple-glow">autocompletion</span>.
+            </p>
+            
+            <p class="feature-description">
+              Want to edit a request body in <span data-text="nvim" class="gradient-text subtle-purple-glow monospace">nvim</span> or browse a JSON response in <span data-text="fx" class="gradient-text subtle-purple-glow monospace">fx</span>? No problem!
+              Posting lets you use the tools you love.
+            </p>
           
-          <p class="feature-description">
-            Want to edit a request body in <span data-text="nvim" class="gradient-text subtle-purple-glow monospace">nvim</span> or browse a JSON response in <span data-text="fx" class="gradient-text subtle-purple-glow monospace">fx</span>? No problem!
-            Posting lets you use the tools you love.
-          </p>
-        
-          <p class="feature-description">
-            Access commands from anywhere using the built-in <span data-text="command palette" class="gradient-text subtle-purple-glow">command palette</span>.
-          </p>
-
-          <p class="feature-description">
-            Build requests quickly with powerful <span data-text="autocompletion" class="gradient-text subtle-purple-glow">autocompletion</span>.
-          </p>
-
           <!-- move the version control text to a different section -->
           <!-- <p class="feature-description">
             After saving a request, check it into <span data-text="version control" class="gradient-text subtle-purple-glow">version control</span> - requests live on your file system, in diffable and easy to read YAML files.
@@ -1620,6 +1690,27 @@
 
     </div> <!-- end of #features-section -->
 
+    <div class="feature-columns">
+      <div class="feature-column">
+        <h3 class="feature-column-title">Version Control</h3>
+        <p class="feature-column-description">
+          Save requests as diffable YAML files, perfect for tracking changes and collaborating with your team using version control systems.
+        </p>
+      </div>
+      <div class="feature-column">
+        <h3 class="feature-column-title">Scripting</h3>
+        <span class="feature-tag">Coming Soon!</span>
+        <p class="feature-column-description">
+          Enhance your workflow with custom scripts, allowing you to automate repetitive tasks and extend Posting's functionality.
+        </p>
+      </div>
+      <div class="feature-column">
+        <h3 class="feature-column-title">Cross-platform</h3>
+        <p class="feature-column-description">
+          Posting is available on macOS, Windows, and Linux, providing a consistent experience across all platforms.
+        </p>
+      </div>
+    </div>
 
     </div>
   </section>
