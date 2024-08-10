@@ -601,7 +601,7 @@ class Posting(App[None], inherit_bindings=False):
     ) -> None:
         SETTINGS.set(settings)
 
-        available_themes: dict[str, Theme] = {"posting": BUILTIN_THEMES["posting"]}
+        available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 
         if settings.load_builtin_themes:
             available_themes |= BUILTIN_THEMES
@@ -625,7 +625,7 @@ class Posting(App[None], inherit_bindings=False):
         self.collection_specified = collection_specified
         self.animation_level = settings.animation
 
-    theme: Reactive[str | None] = reactive("posting", init=False)
+    theme: Reactive[str | None] = reactive("galaxy", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
 
     def on_mount(self) -> None:

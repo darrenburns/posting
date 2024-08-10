@@ -93,7 +93,7 @@ class Settings(BaseSettings):
         extra="allow",
     )
 
-    theme: str = Field(default="posting")
+    theme: str = Field(default="galaxy")
     """The name of the theme to use."""
 
     theme_directory: Path = Field(default=theme_directory())
