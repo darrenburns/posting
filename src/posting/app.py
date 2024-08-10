@@ -584,7 +584,7 @@ class Posting(App[None], inherit_bindings=False):
             description="Jump",
         ),
         Binding(
-            "ctrl+q",
+            "ctrl+c",
             "app.quit",
             description="Quit",
         ),
