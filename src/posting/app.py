@@ -568,7 +568,7 @@ class MainScreen(Screen[None]):
         return self.query_one(ResponseTrace)
 
 
-class Posting(App[None]):
+class Posting(App[None], inherit_bindings=False):
     AUTO_FOCUS = None
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
@@ -582,6 +582,11 @@ class Posting(App[None]):
             "ctrl+o",
             "toggle_jump_mode",
             description="Jump",
+        ),
+        Binding(
+            "ctrl+q",
+            "app.quit",
+            description="Quit",
         ),
         Binding("f1,ctrl+question_mark", "help", "Help"),
         Binding("f8", "save_screenshot", "Save screenshot", show=False),
