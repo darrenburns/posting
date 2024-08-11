@@ -16,7 +16,7 @@ dependencies = [
     "pydantic-settings==2.3.4",
     "python-dotenv==1.0.1",
     "textual-autocomplete==3.0.0a9",
-    "textual[syntax]==0.74.0",
+    "textual[syntax]==0.76.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.11"
