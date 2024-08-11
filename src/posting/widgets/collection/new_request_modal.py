@@ -187,6 +187,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                         "A request with this name already exists.",
                         severity="error",
                     )
+                    return
 
         self.dismiss(
             NewRequestData(
