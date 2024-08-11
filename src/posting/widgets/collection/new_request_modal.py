@@ -1,14 +1,20 @@
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
 from textual.screen import ModalScreen
+from textual.validation import ValidationResult, Validator
 from textual.widgets import Button, Footer, Input, Label
+from textual.widgets.tree import TreeNode
 
 from posting.save_request import FILE_SUFFIX, generate_request_filename
 from posting.widgets.input import PostingInput
 from posting.widgets.text_area import PostingTextArea
+
+if TYPE_CHECKING:
+    from posting.widgets.collection.browser import CollectionNode
 
 
 @dataclass
@@ -79,6 +85,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         initial_directory: str,
         initial_title: str = "",
         initial_description: str = "",
+        parent_node: TreeNode["CollectionNode"] | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -88,6 +95,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         self._initial_description = initial_description
         self._initial_directory = initial_directory
         self._generated_filename = ""
+        self._parent_node = parent_node
 
     def compose(self) -> ComposeResult:
         with VerticalScroll() as vs:
@@ -164,6 +172,29 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         title = self.query_one("#title-input", Input).value
         if not title:
             title = generated_filename
+
+        # Check if a request with the same name already exists in the collection.
+        if self._parent_node is not None:
+            parent_path = (
+                self._parent_node.data.path if self._parent_node.data else None
+            )
+            if parent_path is not None:
+                for path in parent_path.iterdir():
+                    stem = path.stem
+                    i = stem.rfind(".")
+                    if 0 < i < len(stem) - 1:
+                        name = stem[:i]
+                        new_file_stem = file_name[: len(file_name) - len(FILE_SUFFIX)]
+                        print(name, new_file_stem)
+                        if name == new_file_stem:
+                            # Don't create duplicates. Notify and return.
+                            self.notify(
+                                "A request with this name already exists.",
+                                severity="error",
+                            )
+                            return
+                    else:
+                        continue
 
         self.dismiss(
             NewRequestData(

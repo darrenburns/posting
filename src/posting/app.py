@@ -587,6 +587,7 @@ class Posting(App[None], inherit_bindings=False):
             "ctrl+c",
             "app.quit",
             description="Quit",
+            priority=True,
         ),
         Binding("f1,ctrl+question_mark", "help", "Help"),
         Binding("f8", "save_screenshot", "Save screenshot", show=False),

@@ -8,6 +8,7 @@ from rich.style import Style
 from rich.text import Text, TextType
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.geometry import Region
 from textual.message import Message
@@ -38,10 +39,15 @@ class CollectionTree(PostingTree[CollectionNode]):
         description="""\
 Shows all `*.posting.yaml` request files resolved from the specified collection directory.
 Press `ctrl+n` to create a new request at the current cursor location.
+Press `d` to duplicate the request under the cursor.
 `j` and `k` can be used to navigate the tree.
 `J` and `K` jumps between sub-collections.
 """,
     )
+
+    BINDINGS = [
+        Binding("d", "duplicate_request", "Duplicate Request"),
+    ]
 
     COMPONENT_CLASSES = {
         "node-selected",
@@ -190,11 +196,11 @@ Press `ctrl+n` to create a new request at the current cursor location.
             self._clear_line_cache()
             self.refresh()
 
-    async def new_request_flow(self, initial_request: RequestModel | None) -> None:
+    async def new_request_flow(self, templated_from: RequestModel | None) -> None:
         """Start the flow to create a new request.
 
         Args:
-            initial_request: If the user has already started filling out request info
+            templated_from: If the user has already started filling out request info
             in the UI, then we can pre-fill the modal with that info.
         """
         # Determine where in the tree the new request will live.
@@ -238,10 +244,10 @@ Press `ctrl+n` to create a new request at the current cursor location.
             file_name = new_request_data.file_name
             final_path = root_path / request_directory / f"{file_name}"
 
-            if initial_request is not None:
+            if templated_from is not None:
                 # Ensure that any data which was filled by the user in the UI is included in the
                 # node data, alongside the typed title and filename from the modal.
-                new_request = initial_request.model_copy(
+                new_request = templated_from.model_copy(
                     update={
                         "name": request_name,
                         "description": request_description,
@@ -305,21 +311,23 @@ Press `ctrl+n` to create a new request at the current cursor location.
             def post_new_request() -> None:
                 self.screen.set_focus(focused_before)
                 self.select_node(new_node)
-                self.scroll_to_node(new_node, animate=False)
+                if new_node is not None:
+                    self.scroll_to_node(new_node, animate=False)
 
             self.call_after_refresh(post_new_request)
 
-        parent_path = parent_node.data.path
+        parent_path = parent_node.data.path if parent_node.data else None
         assert parent_path is not None, "parent should have a path"
         await self.app.push_screen(
             NewRequestModal(
                 initial_directory=str(
                     parent_path.resolve().relative_to(root_path.resolve())
                 ),
-                initial_title="" if initial_request is None else initial_request.name,
+                initial_title="" if templated_from is None else templated_from.name,
                 initial_description=""
-                if initial_request is None
-                else initial_request.description,
+                if templated_from is None
+                else templated_from.description,
+                parent_node=parent_node,
             ),
             callback=_handle_new_request_data,
         )
@@ -347,6 +355,17 @@ Press `ctrl+n` to create a new request at the current cursor location.
         else:
             self.post_message(self.RequestAdded(request, parent_node, self))
             return added_node
+
+    async def action_duplicate_request(self) -> None:
+        currently_open = self.cursor_node
+        if currently_open is None:
+            return
+
+        current_request = currently_open.data
+        if not isinstance(current_request, RequestModel):
+            return
+
+        await self.new_request_flow(templated_from=current_request)
 
     def cache_request(self, request: RequestModel) -> None:
         def get_base_url(url: str) -> str | None:
