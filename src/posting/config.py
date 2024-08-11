@@ -83,6 +83,13 @@ class CommandPaletteSettings(BaseModel):
     """If enabled, the command palette will display a preview of the selected theme when the cursor is over it."""
 
 
+class CollectionBrowserSettings(BaseModel):
+    """Configuration for the collection browser."""
+
+    position: Literal["left", "right"] = Field(default="left")
+    """The position of the collection browser on screen."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -129,6 +136,11 @@ class Settings(BaseSettings):
 
     url_bar: UrlBarSettings = Field(default_factory=UrlBarSettings)
     """Configuration for the URL bar."""
+
+    collection_browser: CollectionBrowserSettings = Field(
+        default_factory=CollectionBrowserSettings
+    )
+    """Configuration for the collection browser."""
 
     command_palette: CommandPaletteSettings = Field(
         default_factory=CommandPaletteSettings

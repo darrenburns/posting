@@ -16,6 +16,7 @@ from textual.widgets import Label, Static, Tree
 from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
+from posting.config import SETTINGS
 from posting.help_screen import HelpData
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,
@@ -435,6 +436,7 @@ class CollectionBrowser(Vertical):
         self.collection = collection
 
     def compose(self) -> ComposeResult:
+        self.styles.dock = SETTINGS.get().collection_browser.position
         self.border_title = "Collection"
         self.add_class("section")
         collection = self.collection

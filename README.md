@@ -232,6 +232,7 @@ Dotenv files are separate from collections, although you may wish to include the
 | `heading.show_host` (`POSTING_HEADING__SHOW_HOST`) | `true`, `false` (Default: `true`) | Show/hide the hostname in the app header. |
 | `heading.show_version` (`POSTING_HEADING__SHOW_VERSION`) | `true`, `false` (Default: `true`) | Show/hide the version in the app header. |
 | `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show/hide the variable value preview below the URL bar. |
+| `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `"left"`, `"right"` (Default: `"left"`) | The position of the collection browser on screen. |
 | `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |
 | `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
