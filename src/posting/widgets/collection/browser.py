@@ -396,9 +396,6 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
 
         new_name = cursor_request.name
         new_filename = generate_request_filename(new_name) + ".posting.yaml"
-
-        print("new_filename", new_filename)
-
         new_filename = get_unique_request_filename(new_filename, original_path.parent)
 
         new_path = (

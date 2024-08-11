@@ -14,5 +14,4 @@ def slugify(text: str) -> str:
 
 def generate_request_filename(request_title: str) -> str:
     """Generate a filename for a request, NOT including the file suffix."""
-    print("generating request filename for title", request_title)
     return slugify(request_title)
