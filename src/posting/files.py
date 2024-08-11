@@ -68,7 +68,6 @@ def get_unique_request_filename(file_name: str, parent_directory: Path) -> str:
         # get the highest number
         try:
             candidate_stem, _ = get_request_file_stem_and_suffix(candidate_name)
-            print("candidate_stem", candidate_stem)
         except ValueError:
             # Not a request file.
             continue

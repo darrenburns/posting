@@ -56,7 +56,7 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
             # tooltip="Duplicate the request under the cursor and show the 'New Request' modal to change the name/description.",
         ),
         Binding(
-            "x",
+            "D",
             "quick_duplicate_request",
             "Quick Dupe",
             # tooltip="Duplicate the request and automatically assign a unique name.",
@@ -382,7 +382,6 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
         await self.new_request_flow(templated_from=current_request)
 
     def action_quick_duplicate_request(self) -> None:
-        print("===== ===== == foo")
         cursor_node = self.cursor_node
         if cursor_node is None:
             return
