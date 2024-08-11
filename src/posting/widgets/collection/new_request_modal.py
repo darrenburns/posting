@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 from textual import on
 from textual.app import ComposeResult
@@ -180,23 +181,12 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 self._parent_node.data.path if self._parent_node.data else None
             )
             if parent_path is not None:
-                for path in parent_path.iterdir():
-                    stem = path.stem
-                    i = stem.rfind(".")
-                    if 0 < i < len(stem) - 1:
-                        name = stem[:i]
-                        new_file_stem = file_name[: len(file_name) - len(FILE_SUFFIX)]
-                        print(name, new_file_stem)
-                        if name == new_file_stem:
-                            # Don't create duplicates. Notify and return.
-                            self.notify(
-                                "A request with this name already exists.",
-                                severity="error",
-                            )
-                            file_name_input.focus()
-                            return
-                    else:
-                        continue
+                exists = self._file_exists(file_name, parent_path)
+                if exists:
+                    self.notify(
+                        "A request with this name already exists.",
+                        severity="error",
+                    )
 
         self.dismiss(
             NewRequestData(
@@ -206,3 +196,18 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 directory=directory,
             )
         )
+
+    def _file_exists(self, file_name: str, parent_directory: Path) -> bool:
+        for path in parent_directory.iterdir():
+            stem = path.stem
+            i = stem.rfind(".")
+            if 0 < i < len(stem) - 1:
+                name = stem[:i]
+                new_file_stem = file_name[: len(file_name) - len(FILE_SUFFIX)]
+                if name == new_file_stem:
+                    # Don't create duplicates. Notify and return.
+                    return True
+            else:
+                continue
+
+        return False
