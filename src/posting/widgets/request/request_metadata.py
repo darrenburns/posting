@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.reactive import Reactive, reactive
-from textual.widgets import Input, Label
+from textual.widgets import Input, Label, Static
 
 from posting.collection import RequestModel
 from posting.widgets.text_area import PostingTextArea
@@ -50,7 +50,7 @@ class RequestMetadata(VerticalScroll):
         yield Label("Description [dim]optional[/dim]")
         yield PostingTextArea(id="description-textarea")
 
-        yield Label("", id="request-path")
+        yield Static("", id="request-path")
 
     @property
     def request_name_input(self) -> Input:
@@ -61,8 +61,8 @@ class RequestMetadata(VerticalScroll):
         return self.query_one("#description-textarea", PostingTextArea)
 
     @property
-    def request_path_label(self) -> Label:
-        return self.query_one("#request-path", Label)
+    def request_path_label(self) -> Static:
+        return self.query_one("#request-path", Static)
 
     @property
     def request_name(self) -> str:
