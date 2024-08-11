@@ -12,7 +12,7 @@ from textual.containers import Vertical, VerticalScroll
 from textual.geometry import Region
 from textual.message import Message
 from textual.reactive import Reactive, reactive
-from textual.widgets import Static, Tree
+from textual.widgets import Label, Static, Tree
 from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
@@ -65,6 +65,16 @@ Press `ctrl+n` to create a new request at the current cursor location.
             disabled=disabled,
         )
         self.cached_base_urls: set[str] = set()
+
+    @dataclass
+    class RequestAdded(Message):
+        request: RequestModel
+        node: TreeNode[CollectionNode]
+        tree: "CollectionTree"
+
+        @property
+        def control(self) -> "CollectionTree":
+            return self.tree
 
     @dataclass
     class RequestSelected(Message):
@@ -319,12 +329,23 @@ Press `ctrl+n` to create a new request at the current cursor location.
         parent_node: TreeNode[CollectionNode],
         after: TreeNode[CollectionNode] | int | None = None,
         before: TreeNode[CollectionNode] | int | None = None,
-    ) -> TreeNode[CollectionNode]:
+    ) -> TreeNode[CollectionNode] | None:
         """Add a new request to the tree, and cache data from it."""
         self.cache_request(request)
-        return parent_node.add_leaf(
-            request.name, data=request, after=after, before=before
-        )
+        try:
+            added_node = parent_node.add_leaf(
+                request.name, data=request, after=after, before=before
+            )
+        except Exception as e:
+            self.notify(
+                title="Error adding request.",
+                message=f"{e}",
+                timeout=3,
+            )
+            return None
+        else:
+            self.post_message(self.RequestAdded(request, parent_node, self))
+            return added_node
 
     def cache_request(self, request: RequestModel) -> None:
         def get_base_url(url: str) -> str | None:
@@ -393,6 +414,11 @@ class CollectionBrowser(Vertical):
             background: transparent;
         }
 
+        #empty-collection-label {
+           color: $text-muted;
+           padding: 1 2;
+        }
+
 
     }
     """
@@ -412,8 +438,11 @@ class CollectionBrowser(Vertical):
         self.border_title = "Collection"
         self.add_class("section")
         collection = self.collection
-        if collection is None:
-            return
+
+        yield Static(
+            "[i]Collection is empty.[/]\nPress [b]ctrl+s[/b] to save the current request.",
+            id="empty-collection-label",
+        )
 
         tree = CollectionTree(
             label=collection.name,
@@ -446,6 +475,12 @@ class CollectionBrowser(Vertical):
         tree.cursor_line = 0
         yield tree
         yield RequestPreview()
+
+    @on(CollectionTree.RequestAdded)
+    def on_request_added(self, event: CollectionTree.RequestAdded) -> None:
+        self.query_one("#empty-collection-label").display = (
+            len(event.tree.root.children) == 0
+        )
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
