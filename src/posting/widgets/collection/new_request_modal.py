@@ -159,7 +159,8 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         self.create_request()
 
     def create_request(self) -> None:
-        file_name = self.query_one("#file-name-input", Input).value
+        file_name_input = self.query_one("#file-name-input", Input)
+        file_name = file_name_input.value
         directory = self.query_one("#directory-input", Input).value
         description = self.query_one("#description-textarea", PostingTextArea).text
 
@@ -192,6 +193,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                                 "A request with this name already exists.",
                                 severity="error",
                             )
+                            file_name_input.focus()
                             return
                     else:
                         continue
