@@ -38,10 +38,11 @@ class CollectionTree(PostingTree[CollectionNode]):
         title="Collection Browser",
         description="""\
 Shows all `*.posting.yaml` request files resolved from the specified collection directory.
-Press `ctrl+n` to create a new request at the current cursor location.
-Press `d` to duplicate the request under the cursor.
-`j` and `k` can be used to navigate the tree.
-`J` and `K` jumps between sub-collections.
+- Press `ctrl+n` to create a new request at the current cursor location.
+- Press `d` to quickly duplicate the request under the cursor (without showing the request info modal).
+- Press `D` (`shift`+`d`) to duplicate the request under the cursor (showing the request info modal so you can edit title/description/directory).
+- `j` and `k` can be used to navigate the tree.
+- `J` and `K` jumps between sub-collections.
 """,
     )
 
