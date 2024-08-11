@@ -18,7 +18,9 @@ from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
 from posting.config import SETTINGS
+from posting.files import get_unique_request_filename
 from posting.help_screen import HelpData
+from posting.save_request import generate_request_filename
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,
     NewRequestModal,
@@ -39,15 +41,26 @@ class CollectionTree(PostingTree[CollectionNode]):
         description="""\
 Shows all `*.posting.yaml` request files resolved from the specified collection directory.
 - Press `ctrl+n` to create a new request at the current cursor location.
-- Press `d` to quickly duplicate the request under the cursor (without showing the request info modal).
-- Press `D` (`shift`+`d`) to duplicate the request under the cursor (showing the request info modal so you can edit title/description/directory).
+- Press `d` to duplicate the request under the cursor (showing the request info modal so you can edit title/description/directory).
+- Press `D` (`shift`+`d`) to quickly duplicate the request under the cursor (without showing the request info modal).
 - `j` and `k` can be used to navigate the tree.
 - `J` and `K` jumps between sub-collections.
 """,
     )
 
     BINDINGS = [
-        Binding("d", "duplicate_request", "Duplicate Request"),
+        Binding(
+            "d",
+            "duplicate_request",
+            "Dupe",
+            # tooltip="Duplicate the request under the cursor and show the 'New Request' modal to change the name/description.",
+        ),
+        Binding(
+            "x",
+            "quick_duplicate_request",
+            "Quick Dupe",
+            # tooltip="Duplicate the request and automatically assign a unique name.",
+        ),
     ]
 
     COMPONENT_CLASSES = {
@@ -358,15 +371,51 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
             return added_node
 
     async def action_duplicate_request(self) -> None:
-        currently_open = self.cursor_node
-        if currently_open is None:
+        cursor_node = self.cursor_node
+        if cursor_node is None:
             return
 
-        current_request = currently_open.data
+        current_request = cursor_node.data
         if not isinstance(current_request, RequestModel):
             return
 
         await self.new_request_flow(templated_from=current_request)
+
+    def action_quick_duplicate_request(self) -> None:
+        print("===== ===== == foo")
+        cursor_node = self.cursor_node
+        if cursor_node is None:
+            return
+
+        cursor_request = cursor_node.data
+        if not isinstance(cursor_request, RequestModel):
+            return
+
+        original_path = cursor_request.path if cursor_request.path is not None else None
+        if not original_path:
+            return
+
+        new_name = cursor_request.name
+        new_filename = generate_request_filename(new_name) + ".posting.yaml"
+
+        print("new_filename", new_filename)
+
+        new_filename = get_unique_request_filename(new_filename, original_path.parent)
+
+        new_path = (
+            (original_path.parent / new_filename)
+            if original_path
+            else Path(new_filename)
+        )
+        cursor_request_copy = cursor_request.model_copy(
+            update={"name": new_name, "path": new_path}
+        )
+        cursor_request_copy.save_to_disk(new_path)
+        self.add_request(
+            request=cursor_request_copy,
+            parent_node=cursor_node.parent if cursor_node.parent else self.root,
+            after=cursor_node,
+        )
 
     def cache_request(self, request: RequestModel) -> None:
         def get_base_url(url: str) -> str | None:

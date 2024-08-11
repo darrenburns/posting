@@ -6,9 +6,9 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
 from textual.screen import ModalScreen
-from textual.validation import ValidationResult, Validator
 from textual.widgets import Button, Footer, Input, Label
 from textual.widgets.tree import TreeNode
+from posting.files import request_file_exists
 
 from posting.save_request import FILE_SUFFIX, generate_request_filename
 from posting.widgets.input import PostingInput
@@ -181,8 +181,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 self._parent_node.data.path if self._parent_node.data else None
             )
             if parent_path is not None:
-                exists = self._file_exists(file_name, parent_path)
-                if exists:
+                if request_file_exists(file_name, parent_path):
                     self.notify(
                         "A request with this name already exists.",
                         severity="error",
@@ -197,18 +196,3 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 directory=directory,
             )
         )
-
-    def _file_exists(self, file_name: str, parent_directory: Path) -> bool:
-        for path in parent_directory.iterdir():
-            stem = path.stem
-            i = stem.rfind(".")
-            if 0 < i < len(stem) - 1:
-                name = stem[:i]
-                new_file_stem = file_name[: len(file_name) - len(FILE_SUFFIX)]
-                if name == new_file_stem:
-                    # Don't create duplicates. Notify and return.
-                    return True
-            else:
-                continue
-
-        return False
