@@ -1,3 +1,4 @@
+import bisect
 from dataclasses import dataclass
 from functools import partial
 import os
@@ -13,10 +14,10 @@ from textual.containers import Vertical, VerticalScroll
 from textual.geometry import Region
 from textual.message import Message
 from textual.reactive import Reactive, reactive
-from textual.widgets import Label, Static, Tree
+from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
-from posting.collection import Collection, RequestModel
+from posting.collection import Collection, RequestModel, request_sort_key
 from posting.config import SETTINGS
 from posting.files import get_unique_request_filename
 from posting.help_screen import HelpData
@@ -301,14 +302,44 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
                     pointer = pointer.add(part, data=new_collection)
                     pointer.expand()
 
-            # Attach to the relevant node
+            new_request_parent = pointer
+            parent_collection = new_request_parent.data
+            sibling_requests: list[RequestModel] = (
+                parent_collection.requests
+                if isinstance(parent_collection, Collection)
+                else []
+            )
+
+            # Find where to insert the new request amongst its new siblings.
+            if sibling_requests:
+                index = bisect.bisect_left(
+                    sibling_requests,
+                    new_request,
+                )
+                if index == len(sibling_requests):
+                    before = None
+                else:
+                    before = index
+            else:
+                before = None
+
+            if before:
+                sibling_requests.insert(before, new_request)
+            else:
+                sibling_requests.append(new_request)
+
+            parent_collection.requests = sibling_requests
+            # If the cursor and the newly added node have the same parent, then the cursor node
+            # and the newly added node are siblings, so we should insert the newly added node
+            # in an appropriate position relative to the cursor node.
+            # Find where to insert the new request.
+
+            # Attach to the relevant node. Note that the cursor node is not relevant here.
+            # The only thing that matters is the directory path specified by the user.
             new_node = self.add_request(
                 new_request,
-                parent_node if pointer is self.root else pointer,
-                after=None if parent_node == cursor_node else cursor_node,
-                before=0
-                if parent_node == cursor_node and len(parent_node.children) > 0
-                else None,
+                new_request_parent,
+                before=before,
             )
             self.currently_open = new_node
 

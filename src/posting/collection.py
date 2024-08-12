@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import total_ordering
 from pathlib import Path
 from string import Template
 from typing import Any, Literal, get_args
@@ -100,6 +101,12 @@ class RequestBody(BaseModel):
         return httpx_args
 
 
+def request_sort_key(request: RequestModel) -> tuple[int, str]:
+    method_order = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}
+    return (method_order.get(request.method, 5), request.name)
+
+
+@total_ordering
 class RequestModel(BaseModel):
     name: str = Field(default="")
     """The name of the request. This is used to identify the request in the UI.
@@ -231,6 +238,14 @@ class RequestModel(BaseModel):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(yaml_content, encoding="utf-8")
 
+    def __lt__(self, other: RequestModel) -> bool:
+        return request_sort_key(self) < request_sort_key(other)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, RequestModel):
+            return request_sort_key(self) == request_sort_key(other)
+        return NotImplemented
+
 
 class Contact(BaseModel):
     name: str | None = None
@@ -361,11 +376,8 @@ class Collection(BaseModel):
             # Sort subcollections
             collection.children.sort(key=lambda x: x.name)
 
-            # Sort requests
-            method_order = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}
-            collection.requests.sort(
-                key=lambda x: (method_order.get(x.method, 5), x.name)
-            )
+            # Sort requests in this collection
+            collection.requests.sort(key=request_sort_key)
 
             # Recursively sort child collections
             for child in collection.children:
