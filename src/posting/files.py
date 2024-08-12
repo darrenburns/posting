@@ -3,6 +3,58 @@ from pathlib import Path
 from posting.save_request import FILE_SUFFIX
 
 
+import os
+import re
+
+
+def is_valid_filename(filename: str) -> bool:
+    # Check if the filename is empty or None
+    if not filename or filename.strip() == "":
+        return False
+
+    # Ensure the filename doesn't contain path separators
+    if os.path.sep in filename or (os.path.altsep and os.path.altsep in filename):
+        return False
+
+    # Check if the filename is too long (255 characters is a common limit)
+    if len(filename) > 255:
+        return False
+
+    # Check for reserved names (Windows)
+    reserved_names = [
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "COM1",
+        "COM2",
+        "COM3",
+        "COM4",
+        "COM5",
+        "COM6",
+        "COM7",
+        "COM8",
+        "COM9",
+        "LPT1",
+        "LPT2",
+        "LPT3",
+        "LPT4",
+        "LPT5",
+        "LPT6",
+        "LPT7",
+        "LPT8",
+        "LPT9",
+    ]
+    name_without_ext = os.path.splitext(filename)[0].upper()
+    if name_without_ext in reserved_names:
+        return False
+
+    if re.search(r"\.\.", filename) or filename.startswith("."):
+        return False
+
+    return True
+
+
 def get_request_file_stem_and_suffix(file_name: str) -> tuple[str, str]:
     if file_name.endswith(FILE_SUFFIX) or file_name.endswith("posting.yml"):
         file_name_parts = file_name.split(".")

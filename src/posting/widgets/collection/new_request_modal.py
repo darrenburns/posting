@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING
 from textual import on
 from textual.app import ComposeResult
