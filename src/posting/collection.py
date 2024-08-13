@@ -38,6 +38,15 @@ class Auth(BaseModel):
     basic: BasicAuth | None = Field(default=None)
     digest: DigestAuth | None = Field(default=None)
 
+    def to_httpx_auth(self) -> httpx.Auth | None:
+        if self.type == "basic":
+            assert self.basic is not None
+            return httpx.BasicAuth(self.basic.username, self.basic.password)
+        elif self.type == "digest":
+            assert self.digest is not None
+            return httpx.DigestAuth(self.digest.username, self.digest.password)
+        return None
+
 
 class BasicAuth(BaseModel):
     username: str = Field(default="")
@@ -187,13 +196,13 @@ class RequestModel(BaseModel):
                 template = Template(param.value)
                 param.value = template.substitute(variables)
 
-            if self.auth:
-                if self.auth.basic:
+            if self.auth is not None:
+                if self.auth.basic is not None:
                     template = Template(self.auth.basic.username)
                     self.auth.basic.username = template.substitute(variables)
                     template = Template(self.auth.basic.password)
                     self.auth.basic.password = template.substitute(variables)
-                if self.auth.digest:
+                if self.auth.digest is not None:
                     template = Template(self.auth.digest.username)
                     self.auth.digest.username = template.substitute(variables)
                     template = Template(self.auth.digest.password)

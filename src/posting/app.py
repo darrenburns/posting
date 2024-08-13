@@ -175,10 +175,6 @@ class MainScreen(Screen[None]):
     async def send_request(self) -> None:
         self.url_bar.clear_events()
         request_options = self.request_options.to_model()
-        verify_ssl = request_options.verify_ssl
-        proxy_url = request_options.proxy_url or None
-        timeout = request_options.timeout
-        auth = self.request_auth.to_httpx_auth()
 
         cert_config = SETTINGS.get().ssl
         httpx_cert_config: list[str] = []
@@ -189,24 +185,32 @@ class MainScreen(Screen[None]):
         if password := cert_config.password:
             httpx_cert_config.append(password.get_secret_value())
 
-        verify: str | bool = verify_ssl
-        if verify_ssl and cert_config.ca_bundle is not None:
-            # If verification is enabled and a CA bundle is supplied,
-            # use the CA bundle.
-            verify = cert_config.ca_bundle
-
         cert = cast(CertTypes, tuple(httpx_cert_config))
         try:
+            # We must apply the template before we can do anything else.
+            request_model = self.build_request_model(request_options)
+            variables = get_variables()
+            try:
+                request_model.apply_template(variables)
+            except SubstitutionError as e:
+                log.error(e)
+                raise
+
+            verify_ssl = request_model.options.verify_ssl
+            verify: str | bool = verify_ssl
+            if verify_ssl and cert_config.ca_bundle is not None:
+                # If verification is enabled and a CA bundle is supplied,
+                # use the CA bundle.
+                verify = cert_config.ca_bundle
+
             async with httpx.AsyncClient(
                 verify=verify,
                 cert=cert,
-                proxy=proxy_url,
-                timeout=timeout,
-                auth=auth,
+                proxy=request_model.options.proxy_url or None,
+                timeout=request_model.options.timeout,
+                auth=request_model.auth.to_httpx_auth() if request_model.auth else None,
             ) as client:
-                request = self.build_httpx_request(
-                    request_options, client, apply_template=True
-                )
+                request = self.build_httpx_request(request_model, client)
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
@@ -216,9 +220,9 @@ class MainScreen(Screen[None]):
                 print("follow redirects =", request_options.follow_redirects)
                 print("verify =", request_options.verify_ssl)
                 print("attach cookies =", request_options.attach_cookies)
-                print("proxy =", proxy_url)
-                print("timeout =", timeout)
-                print("auth =", auth)
+                print("proxy =", request_model.options.proxy_url)
+                print("timeout =", request_model.options.timeout)
+                print("auth =", request_model.auth)
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
@@ -424,21 +428,13 @@ class MainScreen(Screen[None]):
 
     def build_httpx_request(
         self,
-        request_options: Options,
+        request_model: RequestModel,
         client: httpx.AsyncClient,
-        apply_template: bool,
     ) -> httpx.Request:
         """Build an httpx request from the UI."""
-        request_model = self.build_request_model(request_options)
-        if apply_template:
-            variables = get_variables()
-            try:
-                request_model.apply_template(variables)
-            except SubstitutionError as e:
-                log.error(e)
-                raise
         request = request_model.to_httpx(client)
         request.extensions = {"trace": self.log_request_trace_event}
+
         return request
 
     async def log_request_trace_event(self, event: Event, info: dict[str, Any]) -> None:
