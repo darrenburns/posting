@@ -17,7 +17,7 @@ from textual.reactive import Reactive, reactive
 from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
-from posting.collection import Collection, RequestModel, request_sort_key
+from posting.collection import Collection, RequestModel
 from posting.config import SETTINGS
 from posting.files import get_unique_request_filename
 from posting.help_screen import HelpData
