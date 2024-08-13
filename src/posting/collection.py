@@ -112,7 +112,7 @@ class RequestBody(BaseModel):
 
 def request_sort_key(request: RequestModel) -> tuple[int, str]:
     method_order = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}
-    return (method_order.get(request.method, 5), request.name)
+    return (method_order.get(request.method.upper(), 5), request.name)
 
 
 @total_ordering

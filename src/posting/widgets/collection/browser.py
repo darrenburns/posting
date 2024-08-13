@@ -312,7 +312,7 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
 
             # Find where to insert the new request amongst its new siblings.
             if sibling_requests:
-                index = bisect.bisect_left(
+                index = bisect.bisect_right(
                     sibling_requests,
                     new_request,
                 )
@@ -323,7 +323,7 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
             else:
                 before = None
 
-            if before:
+            if before is not None:
                 sibling_requests.insert(before, new_request)
             else:
                 sibling_requests.append(new_request)
