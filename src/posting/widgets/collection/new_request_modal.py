@@ -135,11 +135,15 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
 
             yield Label("File name [dim]optional[/dim]")
             with Horizontal():
-                yield PostingInput(
+                filename_input = PostingInput(
                     placeholder="Enter a file name",
                     id="file-name-input",
                     validators=[FileNameValidator()],
                 )
+                # Empty is valid, because we'll generate a filename if the user leaves
+                # the file name input blank.
+                filename_input.valid_empty = True
+                yield filename_input
                 yield Label(".posting.yaml", id="file-suffix-label")
 
             yield Label("Description [dim]optional[/dim]")
