@@ -41,6 +41,20 @@ class FileNameValidator(Validator):
         )
 
 
+class DirectoryValidator(Validator):
+    def validate(self, value: str) -> ValidationResult:
+        def is_valid_directory(value: str) -> bool:
+            if not value or ".." in value or value.startswith("/") or ":" in value:
+                return False
+            return True
+
+        return (
+            self.success()
+            if is_valid_directory(value)
+            else self.failure("Invalid directory")
+        )
+
+
 class NewRequestModal(ModalScreen[NewRequestData | None]):
     """A modal for saving a request to disk if it has not already been saved.
 
@@ -140,6 +154,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 self._initial_directory,
                 placeholder="Enter a directory",
                 id="directory-input",
+                validators=[DirectoryValidator()],
             )
 
             yield Button.success("Create request", id="create-button")
@@ -158,7 +173,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         """
         value = event.value
         self._generated_filename = generate_request_filename(value)
-        file_name_input = self.query_one("#file-name-input", Input)
+        file_name_input = self.file_name_input
         file_name_input.value = self._generated_filename
         file_name_input.placeholder = self._generated_filename
         file_name_input.cursor_position = len(self._generated_filename)
@@ -167,24 +182,37 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
     @on(Input.Submitted)
     @on(Button.Pressed, selector="#create-button")
     def on_create(self, event: Input.Submitted | Button.Pressed) -> None:
-        file_name_input = self.query_one("#file-name-input", Input)
-        if not file_name_input.is_valid:
-            self.notify("Invalid file name", severity="error")
-            return
-        self.create_request()
+        self.validate_and_create_request()
 
     def action_create_request(self) -> None:
-        file_name_input = self.query_one("#file-name-input", Input)
-        if not file_name_input.is_valid:
-            self.notify("Invalid file name", severity="error")
-            return
-        self.create_request()
+        self.validate_and_create_request()
 
-    def create_request(self) -> None:
-        file_name_input = self.query_one("#file-name-input", Input)
+    def validate_and_create_request(
+        self,
+    ) -> None:
+        title_input = self.title_input
+        file_name_input = self.file_name_input
+        description_textarea = self.description_textarea
+        directory_input = self.directory_input
+
+        if not directory_input.is_valid:
+            self.notify(
+                "Directory must be relative to the collection root.",
+                severity="error",
+            )
+            return
+
+        if not file_name_input.is_valid:
+            self.notify(
+                "Invalid file name.",
+                severity="error",
+            )
+            return
+
         file_name = file_name_input.value
-        directory = self.query_one("#directory-input", Input).value
-        description = self.query_one("#description-textarea", PostingTextArea).text
+        title = title_input.value
+        description = description_textarea.text
+        directory = directory_input.value
 
         generated_filename = self._generated_filename
         if not file_name:
@@ -192,7 +220,6 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         else:
             file_name += FILE_SUFFIX
 
-        title = self.query_one("#title-input", Input).value
         if not title:
             title = generated_filename
 
@@ -217,3 +244,19 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 directory=directory,
             )
         )
+
+    @property
+    def file_name_input(self) -> Input:
+        return self.query_one("#file-name-input", Input)
+
+    @property
+    def title_input(self) -> Input:
+        return self.query_one("#title-input", Input)
+
+    @property
+    def description_textarea(self) -> PostingTextArea:
+        return self.query_one("#description-textarea", PostingTextArea)
+
+    @property
+    def directory_input(self) -> Input:
+        return self.query_one("#directory-input", Input)
