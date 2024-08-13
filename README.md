@@ -1,4 +1,4 @@
-# Posting.
+# Posting
 
 **A powerful HTTP client that lives in your terminal.**
 

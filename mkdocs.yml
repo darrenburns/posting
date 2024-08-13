@@ -14,8 +14,23 @@ theme:
     - search.suggest
     - search.highlight
     - header.autohide
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.footer
+
 extra_css:
   - stylesheets/extra.css
+nav:
+  - Home: "index.md"
+  - Guide:
+    - "Getting Started": "guide/index.md"
+    - "Navigation": "guide/navigation.md"
+    - "Requests": "guide/requests.md"
+    - "Collections": "guide/collections.md"
+    - "Configuration": "guide/configuration.md"
+    - "Environments": "guide/environments.md"
+    - "Command Palette": "guide/command_palette.md"
+  - Roadmap: "roadmap.md"
 plugins:
   - search
   - tags
@@ -29,3 +44,15 @@ markdown_extensions:
   - footnotes
   - tables
   - pymdownx.keys
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.superfences
+extra:
+  social:
+    - icon: fontawesome/brands/mastodon 
+      link: https://fosstodon.org/@darrenburns
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/_darrenburns
+    - icon: fontawesome/brands/github
+      link: https://github.com/darrenburns
+copyright: Copyright &copy; 2024 Darren Burns
