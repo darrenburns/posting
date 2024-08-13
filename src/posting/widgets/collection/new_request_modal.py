@@ -5,9 +5,10 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
 from textual.screen import ModalScreen
+from textual.validation import ValidationResult, Validator
 from textual.widgets import Button, Footer, Input, Label
 from textual.widgets.tree import TreeNode
-from posting.files import request_file_exists
+from posting.files import is_valid_filename, request_file_exists
 
 from posting.save_request import FILE_SUFFIX, generate_request_filename
 from posting.widgets.input import PostingInput
@@ -29,6 +30,15 @@ class NewRequestData:
     """The description of the request."""
     directory: str
     """The directory of the request."""
+
+
+class FileNameValidator(Validator):
+    def validate(self, value: str) -> ValidationResult:
+        return (
+            self.success()
+            if is_valid_filename(value)
+            else self.failure("File name cannot be empty")
+        )
 
 
 class NewRequestModal(ModalScreen[NewRequestData | None]):
@@ -112,7 +122,9 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
             yield Label("File name [dim]optional[/dim]")
             with Horizontal():
                 yield PostingInput(
-                    placeholder="Enter a file name", id="file-name-input"
+                    placeholder="Enter a file name",
+                    id="file-name-input",
+                    validators=[FileNameValidator()],
                 )
                 yield Label(".posting.yaml", id="file-suffix-label")
 
@@ -147,15 +159,25 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         value = event.value
         self._generated_filename = generate_request_filename(value)
         file_name_input = self.query_one("#file-name-input", Input)
+        file_name_input.value = self._generated_filename
         file_name_input.placeholder = self._generated_filename
+        file_name_input.cursor_position = len(self._generated_filename)
         file_name_input.refresh()
 
     @on(Input.Submitted)
     @on(Button.Pressed, selector="#create-button")
     def on_create(self, event: Input.Submitted | Button.Pressed) -> None:
+        file_name_input = self.query_one("#file-name-input", Input)
+        if not file_name_input.is_valid:
+            self.notify("Invalid file name", severity="error")
+            return
         self.create_request()
 
     def action_create_request(self) -> None:
+        file_name_input = self.query_one("#file-name-input", Input)
+        if not file_name_input.is_valid:
+            self.notify("Invalid file name", severity="error")
+            return
         self.create_request()
 
     def create_request(self) -> None:
