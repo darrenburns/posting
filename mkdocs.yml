@@ -36,6 +36,7 @@ nav:
     - "Themes": "guide/themes.md"
     - "Importing": "guide/importing.md"
   - Roadmap: "roadmap.md"
+  - Changelog: "CHANGELOG.md"
 plugins:
   - search
   - tags
