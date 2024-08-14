@@ -32,6 +32,7 @@ nav:
     - "Command Palette": "guide/command_palette.md"
     - "Help System": "guide/help_system.md"
     - "Themes": "guide/themes.md"
+    - "Importing": "guide/importing.md"
   - Roadmap: "roadmap.md"
 plugins:
   - search
