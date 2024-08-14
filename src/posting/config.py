@@ -62,7 +62,7 @@ class CertificateSettings(BaseModel):
     ca_bundle: str | None = Field(default=None)
     """Absolute path to the CA bundle file."""
     certificate_path: str | None = Field(default=None)
-    """Absolute path to the certificate .pem file or directory"""
+    """Absolute path to the client certificate .pem file or directory"""
     key_file: str | None = Field(default=None)
     """Absolute path to the key file"""
     password: SecretStr | None = Field(default=None)

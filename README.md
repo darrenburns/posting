@@ -93,7 +93,7 @@ Press <kbd>ctrl</kbd>+<kbd>c</kbd> to quit Posting.
 
 ## Environments
 
-You can use variables in the UI using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
+You can use variables in inputs fields and text areas using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
 These variables will be substituted into outgoing requests.
 
 <p align="center">

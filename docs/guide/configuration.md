@@ -1,3 +1,5 @@
+## Overview
+
 Posting can be configured using a configuration file, environment variables, and/or `.env` files.
 
 Configuration values are loaded in the following order of precedence (highest to lowest):
@@ -5,8 +7,6 @@ Configuration values are loaded in the following order of precedence (highest to
 1. Configuration file
 2. Environment variables
 3. `.env` files
-
-The range of available configuration will be greatly expanded in the future.
 
 ## Configuration file
 
@@ -36,7 +36,7 @@ For nested configuration values, use `__` as the delimiter. So to set `heading.v
 
 For example, to set the theme to `galaxy`, you can set the environment variable `POSTING_THEME=galaxy`.
 
-## dotenv (`.env`) files
+### dotenv (`.env`) files
 
 Posting also supports `.env` (dotenv) files, which are useful if you want to swap out environment variable values depending on the environment you're working in (for example, "dev" vs "prod").
 
@@ -52,6 +52,51 @@ POSTING_HEADING__VISIBLE="false"
 ```
 
 Dotenv files are separate from collections, although you may wish to include them inside a collection to make it easy to version and share with others.
+
+## Configuring SSL
+
+Posting verifies SSL certificates by default using the CA bundle provided by the `certifi` package.
+
+### SSL certificate configuration
+
+Posting can load custom CA bundles from a `.pem` file.
+
+The easiest way to do this is in your `config.yaml` file:
+
+```yaml
+ssl:
+  ca_bundle: 'absolute/path/to/certificate.pem'
+```
+
+### Environment-specific certificates
+
+If the required CA bundle differs per environment, you can again use the principle that all configuration can be set as environment variables which can optionally be set and loaded using `--env` and `.env` files:
+
+```bash
+# dev.env
+POSTING_SSL__CA_BUNDLE='/path/to/certificate.pem'
+```
+
+Now load the `dev.env` file when working in the `dev` environment to ensure the dev environment CA bundle is used:
+
+```bash
+posting --env dev.env
+```
+
+### Disabling SSL verification
+
+SSL verification can be disabled on a per-request basis in the "Options" tab.
+
+### Client-side certificates
+
+You can specify local certificates to use as a client-side certificate:
+
+```yaml
+ssl:
+  certificate_path: /path/to/certificate.pem
+  key_file: /path/to/key.key  # optional
+  password: '***********'  # optional password for key_file
+```
 
 ## Full configuration reference
 
@@ -77,7 +122,6 @@ The table below lists all available configuration options and their environment 
 | `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
 | `ssl.ca_bundle` (`POSTING_SSL__CA_BUNDLE`) | Absolute path (Default: `unset`) | Absolute path to a CA bundle file/dir. If not set, the [Certifi](https://pypi.org/project/certifi/) CA bundle will be used. |
-| `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | Verify server identity. |
 | `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Absolute path (Default: `unset`) | Absolute path to a client SSL certificate file or directory. |
 | `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Absolute path (Default: `unset`) | Absolute path to a client SSL key file. |
 | `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. (Default: `unset`) | Password to decrypt the key file if it's encrypted. |
@@ -86,40 +130,3 @@ The table below lists all available configuration options and their environment 
 | `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | If enabled, the cursor will blink in input widgets and text area widgets. |
 | `command_palette.theme_preview` (`POSTING_COMMAND_PALETTE__THEME_PREVIEW`) | `true`, `false` (Default: `false`) | If enabled, the command palette will display a preview of the selected theme when the cursor is over it. This will slow down cursor movement and so is disabled by default. |
 | `use_xresources` (`POSTING_USE_XRESOURCES`) | `true`, `false` (Default: `false`) | Try to create themes called `xresources-dark` and `xresources-light` (see the section below) |
-
-## SSL certificate configuration
-
-Posting can load custom CA bundles from a `.pem` file.
-
-The easiest way to do this is in your `config.yaml` file:
-
-```yaml
-ssl:
-  ca_bundle: 'absolute/path/to/certificate.pem'
-```
-
-## Environment-specific certificates
-
-If the required CA bundle differs per environment, you can again use the principle that all configuration can be set as environment variables which can optionally be set and loaded using `--env` and `.env` files:
-
-```bash
-# dev.env
-POSTING_SSL__CA_BUNDLE='/path/to/certificate.pem'
-```
-
-Now load the `dev.env` file when working in the `dev` environment to ensure the dev environment CA bundle is used:
-
-```bash
-posting --env dev.env
-```
-
-## Client-side certificates
-
-You can specify local certificates to use as a client-side certificate:
-
-```yaml
-ssl:
-  certificate_path: /path/to/certificate.pem
-  key_file: /path/to/key.key  # optional
-  password: '***********'  # optional password for key_file
-```

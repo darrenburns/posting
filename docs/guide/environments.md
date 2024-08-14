@@ -1,16 +1,46 @@
 ## Overview
 
-You can use variables in the UI using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
+You can use *variables* in input fields and text areas using the `${VARIABLE_NAME}` or `$VARIABLE_NAME` syntax.
 These variables will be substituted into outgoing requests.
 
 <p align="center">
   <img src="https://github.com/darrenburns/posting/assets/5740731/24b64f58-747b-409e-9672-e354eb8994d8" alt="url-bar-environments-short">
 </p>
 
-`.env` files can be loaded using the `--env` option.
-Variables from these files can then be used in the UI.
+## Loading variables
 
-## Example
+Variables are stored in `.env` files, and loaded using the `--env` option.
+
+Here's what a `.env` file might look like:
+
+```bash
+# file: dev.env
+API_KEY="dev-api-key"
+ENV_NAME="dev"
+BASE_URL="https://${ENV_NAME}.example.com"
+```
+
+To make these variables available in the UI, you can load them using the `--env` option:
+
+```bash
+posting --env dev.env
+```
+
+You can load multiple `.env` files by specifying the `--env` option multiple times:
+
+```bash
+posting --env dev.env --env shared.env
+```
+
+This allows you to build up a set of variables which are common to all environments, and then override them for specific environments.
+
+## Using environment variables
+
+By default, Posting will only use variables defined in `.env` files that have been explicitly loaded using the `--env` option.
+
+If you want to permit using environment variables that exist on the host machine (i.e. those which are not defined in any `.env` files), you must set the `use_host_environment` config option to `true` (or set the environment variable `POSTING_USE_HOST_ENVIRONMENT=true`).
+
+## Practical example
 
 Imagine you're testing an API which exists in both `dev` and `prod` environments.
 
@@ -44,8 +74,6 @@ This will load all of the shared variables from `shared.env`, and then load the 
 Note that you do *not* need to restart to load changes made to these files,
 so you can open and edit your env files in an editor of your choice alongside Posting.
 However, autocompletion and variable highlighting will not update until Posting is restarted.
-
-If you want to permit using environment variables that exist on the host machine (i.e. those which are not defined in any `.env` files), you must set the `use_host_environment` config option to `true` (or set the environment variable `POSTING_USE_HOST_ENVIRONMENT=true`).
 
 ### Environment specific config
 

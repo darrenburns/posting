@@ -30,6 +30,8 @@ nav:
     - "Configuration": "guide/configuration.md"
     - "Environments": "guide/environments.md"
     - "Command Palette": "guide/command_palette.md"
+    - "Help System": "guide/help_system.md"
+    - "Themes": "guide/themes.md"
   - Roadmap: "roadmap.md"
 plugins:
   - search
