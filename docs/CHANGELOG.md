@@ -31,3 +31,10 @@
 - Upgrade to Textual version 0.76.0
 - Change logic to render bindings in help modal to reflect new Textual API.
 - Sort order of requests in the tree improved.
+
+
+---
+
+!!! note
+    Changes prior to 1.11.0 are not documented here.
+    Please see the [Releases page](https://github.com/darrenburns/posting/releases) on GitHub for information on changes prior to 1.11.0.
