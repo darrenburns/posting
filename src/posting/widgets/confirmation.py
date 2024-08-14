@@ -1,5 +1,6 @@
 """A modal screen for confirming a destructive action."""
 
+from typing import Literal
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
@@ -31,6 +32,7 @@ class ConfirmationModal(ModalScreen[bool]):
         confirm_binding: str = "y",
         cancel_text: str = "No \[n]",
         cancel_binding: str = "n",
+        auto_focus: Literal["confirm", "cancel"] | None = "confirm",
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -41,11 +43,14 @@ class ConfirmationModal(ModalScreen[bool]):
         self.confirm_binding = confirm_binding
         self.cancel_text = cancel_text
         self.cancel_binding = cancel_binding
+        self.auto_focus = auto_focus
 
     def on_mount(self) -> None:
         self._bindings.bind(self.confirm_binding, "screen.dismiss(True)")
         self._bindings.bind(self.cancel_binding, "screen.dismiss(False)")
         self._bindings.bind("escape", "screen.dismiss(False)")
+        if self.auto_focus is not None:
+            self.query_one(f"#{self.auto_focus}-button").focus()
 
     def compose(self) -> ComposeResult:
         with Vertical(id="confirmation-screen", classes="modal-body") as container:

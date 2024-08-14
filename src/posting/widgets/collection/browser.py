@@ -496,7 +496,7 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
             )
 
             await self.app.push_screen(
-                ConfirmationModal(confirmation_message),
+                ConfirmationModal(confirmation_message, auto_focus="confirm"),
                 callback=deletion_callback,
             )
 
