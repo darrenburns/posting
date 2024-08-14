@@ -35,6 +35,18 @@ ModalScreen {
   background: black 30%;
 }
 
+.modal-body {
+  background: $background;
+  padding: 1 2;
+  width: 50%;
+  height: auto;
+  max-height: 70%;
+  border: wide $background-lighten-2;
+  border-title-color: $text;
+  border-title-background: $background;
+  border-title-style: bold;
+}
+
 .section {
   border: round $accent 35%;
   border-title-color: $text;

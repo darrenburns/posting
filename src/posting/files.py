@@ -49,7 +49,11 @@ def is_valid_filename(filename: str) -> bool:
     if name_without_ext in reserved_names:
         return False
 
-    if re.search(r"\.\.", filename) or filename.startswith("."):
+    if (
+        re.search(r"\.\.", filename)
+        or filename.startswith(".")
+        or filename.endswith(".")
+    ):
         return False
 
     return True

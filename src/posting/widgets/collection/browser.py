@@ -481,10 +481,22 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
                     cursor_node.remove()
 
         if isinstance(cursor_node.data, RequestModel):
+            cursor_path = cursor_node.data.path
+            collection_root_path = self.root.data.path if self.root.data else None
+            if not cursor_path or not collection_root_path:
+                return
+
+            if not cursor_path.is_relative_to(collection_root_path):
+                path_to_display = cursor_path
+            else:
+                path_to_display = cursor_path.relative_to(collection_root_path)
+
+            confirmation_message = (
+                f"[b]Do you want to delete this request?[/]\n[i]{path_to_display}[/]"
+            )
+
             await self.app.push_screen(
-                ConfirmationModal(
-                    f"[b]Do you want to delete this request?[/]\n[dim]{cursor_node.data.path}[/]",
-                ),
+                ConfirmationModal(confirmation_message),
                 callback=deletion_callback,
             )
 

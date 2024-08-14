@@ -65,17 +65,6 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
     CSS = """
     NewRequestModal {
         align: center middle;
-        & > VerticalScroll {
-            background: $background;
-            padding: 1 2;
-            width: 50%;
-            height: 70%;
-            border: wide $background-lighten-2;
-            border-title-color: $text;
-            border-title-background: $background;
-            border-title-style: bold;
-        }
-
         & Input, & PostingTextArea {
             margin-bottom: 1;
             width: 1fr;
@@ -122,7 +111,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         self._parent_node = parent_node
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll() as vs:
+        with VerticalScroll(classes="modal-body") as vs:
             vs.can_focus = False
             vs.border_title = "New request"
 
