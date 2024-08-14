@@ -419,9 +419,11 @@ class TestVariables:
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 @patch_env("POSTING_THEME_DIRECTORY", str(THEME_DIR.resolve()))
 class TestCustomThemeSimple:
+    @pytest.mark.skip(reason="cursor blink is not working in textual 0.76")
     def test_theme_set_on_startup_and_in_command_palette(self, snap_compare):
         """Check that the theme is set on startup and available in the command palette."""
 
+        @pytest.mark.skip(reason="cursor blink is not working in textual 0.76")
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
