@@ -62,6 +62,12 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
             "Quick Dupe",
             # tooltip="Duplicate the request and automatically assign a unique name.",
         ),
+        Binding(
+            "backspace",
+            "delete_request",
+            "Delete",
+            # tooltip="Delete the request under the cursor.",
+        ),
     ]
 
     COMPONENT_CLASSES = {
@@ -443,6 +449,16 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
             parent_node=cursor_node.parent if cursor_node.parent else self.root,
             after=cursor_node,
         )
+
+    def action_delete_request(self) -> None:
+        cursor_node = self.cursor_node
+        if cursor_node is None:
+            return
+
+        if isinstance(cursor_node.data, RequestModel):
+            cursor_request = cursor_node.data
+            cursor_request.delete_from_disk()
+            cursor_node.remove()
 
     def cache_request(self, request: RequestModel) -> None:
         def get_base_url(url: str) -> str | None:

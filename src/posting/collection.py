@@ -247,6 +247,10 @@ class RequestModel(BaseModel):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(yaml_content, encoding="utf-8")
 
+    def delete_from_disk(self) -> None:
+        if self.path:
+            self.path.unlink()
+
     def __lt__(self, other: RequestModel) -> bool:
         return request_sort_key(self) < request_sort_key(other)
 
