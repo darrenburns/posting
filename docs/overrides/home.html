@@ -30,7 +30,8 @@
         background-size: auto;
     }
     h1, h2, h3, h4, h5, h6 {
-      font-family: "Roboto", sans-serif;
+      font-family: "Open Sans", sans-serif;
+      font-weight: 800 !important;
     }
     /* .md-content{display:none} */
     .md-dialog{display:none;}
@@ -49,13 +50,11 @@
       margin: 0 auto; /* Center SVG */
       padding: 1rem 1.2rem 1rem 1.2rem;
     }
-    .hero-text h1 {
-      font-size: 1.6rem;
-      color: #f0f0f0;
-    }
     #home-title {
-      font-weight: 600;
       margin: 0 0 0.3rem 0;
+    }
+    p#home-intro {
+      font-size: 0.9rem;
     }
     #home-subtitle {
       font-family: "Roboto Mono", monospace;
@@ -65,12 +64,6 @@
       margin: 0 0 1rem 0;
       color: #f0f0f0;
       word-spacing: -0.05em;
-    }
-    #home-intro {
-      font-size: 0.85rem;
-      opacity: 86%;
-      margin: 0 0 1.6rem 0;
-      color: #f0f0f0;
     }
     .button-bar {
       display: flex;
@@ -107,10 +100,12 @@
     }
 
     h2.feature-title {
+        font-family: "Roboto Mono", monospace;
         font-size: 1.4rem;
         font-weight: 550;
         color: #f0f0f0;
         margin-bottom: 0.5rem;
+        margin-left: 0.65rem;
         margin-top: 0.5rem;
     }
 
@@ -142,28 +137,30 @@
         margin-top: 0.8rem;
     }
 
-    .feature-description {
+    #features-section .feature-description {
         color: #d0d0d0;
-        font-size: 0.9rem;
+        font-size: 0.84rem;
         border-left: solid 2px rgba(255, 100, 203, 0.33);
         padding-left: 12px;
     }
-
+    
     .feature-columns {
         display: flex;
         flex-direction: column;
         gap: 2rem;
         padding: 2rem 1.4rem;
-    }
-    .feature-columns {
         position: relative;
-    }
 
-    .feature-column {
-        position: relative;
-        z-index: 1;
+        & .feature-column {
+            position: relative;
+            z-index: 1;
+            & .feature-column-description {
+                color: #d0d0d0;
+                font-size: 0.9rem;
+            }
+        }
     }
-
+    
     .feature-column::before {
         content: '';
         position: absolute;
@@ -197,10 +194,6 @@
         margin: 0;
     }
 
-    .feature-column-description {
-        color: #d0d0d0;
-        font-size: 0.9rem;
-    }
 
     @media (min-width: 768px) {
         .feature-columns {

@@ -10,6 +10,8 @@ theme:
   custom_dir: docs/overrides
   icon:
     logo: fontawesome/solid/paper-plane
+  font:
+    text: Open Sans
   features:
     - search.suggest
     - search.highlight
@@ -17,7 +19,7 @@ theme:
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.footer
-
+    - toc.integrate
 extra_css:
   - stylesheets/extra.css
 nav:
