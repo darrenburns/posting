@@ -64,9 +64,16 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
         ),
         Binding(
             "backspace",
-            "delete_request",
+            "delete_request_with_confirmation",
             "Delete",
             # tooltip="Delete the request under the cursor.",
+        ),
+        Binding(
+            "shift+backspace",
+            "delete_request",
+            "Delete",
+            show=False,
+            # tooltip="Delete the collection under the cursor.",
         ),
     ]
 
