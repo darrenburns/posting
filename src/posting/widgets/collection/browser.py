@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import partial
 import os
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 from urllib.parse import urlparse
 from rich.style import Style
 from rich.text import Text, TextType
@@ -26,6 +26,7 @@ from posting.widgets.collection.new_request_modal import (
     NewRequestData,
     NewRequestModal,
 )
+from posting.widgets.confirmation import ConfirmationModal
 from posting.widgets.tree import PostingTree
 
 
@@ -466,6 +467,26 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
             cursor_request = cursor_node.data
             cursor_request.delete_from_disk()
             cursor_node.remove()
+
+    async def action_delete_request_with_confirmation(self) -> None:
+        cursor_node = self.cursor_node
+        if cursor_node is None:
+            return
+
+        def deletion_callback(confirmed: bool | None) -> None:
+            if confirmed is True:
+                if cursor_node and isinstance(cursor_node.data, RequestModel):
+                    cursor_request = cursor_node.data
+                    cursor_request.delete_from_disk()
+                    cursor_node.remove()
+
+        if isinstance(cursor_node.data, RequestModel):
+            await self.app.push_screen(
+                ConfirmationModal(
+                    f"[b]Do you want to delete this request?[/]\n[dim]{cursor_node.data.path}[/]",
+                ),
+                callback=deletion_callback,
+            )
 
     def cache_request(self, request: RequestModel) -> None:
         def get_base_url(url: str) -> str | None:
