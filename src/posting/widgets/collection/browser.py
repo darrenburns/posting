@@ -46,7 +46,8 @@ Shows all `*.posting.yaml` request files resolved from the specified collection 
 - Press `d` to duplicate the request under the cursor (showing the request info modal so you can edit title/description/directory).
 - Press `D` (`shift`+`d`) to quickly duplicate the request under the cursor (without showing the request info modal).
 - `j` and `k` can be used to navigate the tree.
-- `J` and `K` (that is shift+j and shift+k) jumps between sub-collections.
+- `J` and `K` (shift+j and shift+k) jumps between sub-collections.
+- `g` and `G` jumps to the top and bottom of the tree, respectively.
 - `backspace` deletes the request under the cursor.
 - `shift+backspace` deletes the request under the cursor, skipping the confirmation dialog.
 Sub-collections cannot be deleted from the UI yet.
