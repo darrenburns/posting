@@ -28,7 +28,7 @@ A guide to contributing is coming soon.
 
 ### How was Posting built?
 
-Posting is built using Textual, a Python framework for building terminal-based applications.
+Posting is built using [Textual](https://textual.textualize.io/), a Python framework for building terminal-based applications.
 
 ### Who is the original creator of Posting?
 
