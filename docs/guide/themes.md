@@ -62,6 +62,22 @@ syntax:
   json_null: 'underline #b8e986'  # style json null values
 ```
 
+#### Method styles
+
+You can also specify custom styles for methods in the collection tree.
+
+Here's an example:
+
+```yaml
+method:
+  get: 'underline #50e3c2'
+  post: 'italic #b8e986'
+  put: 'bold #b8e986'
+  delete: 'strikethrough #b8e986'
+```
+
+
+
 ### X resources themes
 
 Posting supports using X resources for theming. To use this, enable the `use_xresources` option (see above).
