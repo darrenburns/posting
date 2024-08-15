@@ -17,6 +17,7 @@ class PostingProvider(Provider):
 
         commands_to_show: list[tuple[str, IgnoreReturnCallbackType, str]] = [
             *self.get_theme_commands(),
+            ("app: quit", app.action_quit, "Quit Posting"),
         ]
 
         from posting.app import MainScreen

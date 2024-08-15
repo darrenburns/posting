@@ -9,7 +9,7 @@ from textual.widgets import DataTable
 from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey
 
 
-class PostingDataTable(DataTable[str]):
+class PostingDataTable(DataTable[str | Text]):
     DEFAULT_CSS = """\
 PostingDataTable {
     &.empty {
@@ -54,7 +54,7 @@ PostingDataTable {
 
     def add_row(
         self,
-        *cells: str,
+        *cells: str | Text,
         height: int | None = 1,
         key: str | None = None,
         label: str | Text | None = None,

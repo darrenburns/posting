@@ -62,7 +62,7 @@ class CertificateSettings(BaseModel):
     ca_bundle: str | None = Field(default=None)
     """Absolute path to the CA bundle file."""
     certificate_path: str | None = Field(default=None)
-    """Absolute path to the certificate .pem file or directory"""
+    """Absolute path to the client certificate .pem file or directory"""
     key_file: str | None = Field(default=None)
     """Absolute path to the key file"""
     password: SecretStr | None = Field(default=None)
@@ -83,6 +83,13 @@ class CommandPaletteSettings(BaseModel):
     """If enabled, the command palette will display a preview of the selected theme when the cursor is over it."""
 
 
+class CollectionBrowserSettings(BaseModel):
+    """Configuration for the collection browser."""
+
+    position: Literal["left", "right"] = Field(default="left")
+    """The position of the collection browser on screen."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -93,7 +100,7 @@ class Settings(BaseSettings):
         extra="allow",
     )
 
-    theme: str = Field(default="posting")
+    theme: str = Field(default="galaxy")
     """The name of the theme to use."""
 
     theme_directory: Path = Field(default=theme_directory())
@@ -129,6 +136,11 @@ class Settings(BaseSettings):
 
     url_bar: UrlBarSettings = Field(default_factory=UrlBarSettings)
     """Configuration for the URL bar."""
+
+    collection_browser: CollectionBrowserSettings = Field(
+        default_factory=CollectionBrowserSettings
+    )
+    """Configuration for the collection browser."""
 
     command_palette: CommandPaletteSettings = Field(
         default_factory=CommandPaletteSettings

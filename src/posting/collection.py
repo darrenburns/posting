@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import total_ordering
 from pathlib import Path
 from string import Template
 from typing import Any, Literal, get_args
@@ -36,6 +37,15 @@ class Auth(BaseModel):
     type: Literal["basic", "digest"] | None = Field(default=None)
     basic: BasicAuth | None = Field(default=None)
     digest: DigestAuth | None = Field(default=None)
+
+    def to_httpx_auth(self) -> httpx.Auth | None:
+        if self.type == "basic":
+            assert self.basic is not None
+            return httpx.BasicAuth(self.basic.username, self.basic.password)
+        elif self.type == "digest":
+            assert self.digest is not None
+            return httpx.DigestAuth(self.digest.username, self.digest.password)
+        return None
 
 
 class BasicAuth(BaseModel):
@@ -100,6 +110,12 @@ class RequestBody(BaseModel):
         return httpx_args
 
 
+def request_sort_key(request: RequestModel) -> tuple[int, str]:
+    method_order = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}
+    return (method_order.get(request.method.upper(), 5), request.name)
+
+
+@total_ordering
 class RequestModel(BaseModel):
     name: str = Field(default="")
     """The name of the request. This is used to identify the request in the UI.
@@ -180,13 +196,13 @@ class RequestModel(BaseModel):
                 template = Template(param.value)
                 param.value = template.substitute(variables)
 
-            if self.auth:
-                if self.auth.basic:
+            if self.auth is not None:
+                if self.auth.basic is not None:
                     template = Template(self.auth.basic.username)
                     self.auth.basic.username = template.substitute(variables)
                     template = Template(self.auth.basic.password)
                     self.auth.basic.password = template.substitute(variables)
-                if self.auth.digest:
+                if self.auth.digest is not None:
                     template = Template(self.auth.digest.username)
                     self.auth.digest.username = template.substitute(variables)
                     template = Template(self.auth.digest.password)
@@ -230,6 +246,18 @@ class RequestModel(BaseModel):
         )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(yaml_content, encoding="utf-8")
+
+    def delete_from_disk(self) -> None:
+        if self.path:
+            self.path.unlink()
+
+    def __lt__(self, other: RequestModel) -> bool:
+        return request_sort_key(self) < request_sort_key(other)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, RequestModel):
+            return request_sort_key(self) == request_sort_key(other)
+        return NotImplemented
 
 
 class Contact(BaseModel):
@@ -361,11 +389,8 @@ class Collection(BaseModel):
             # Sort subcollections
             collection.children.sort(key=lambda x: x.name)
 
-            # Sort requests
-            method_order = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}
-            collection.requests.sort(
-                key=lambda x: (method_order.get(x.method, 5), x.name)
-            )
+            # Sort requests in this collection
+            collection.requests.sort(key=request_sort_key)
 
             # Recursively sort child collections
             for child in collection.children:

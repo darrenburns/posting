@@ -256,7 +256,7 @@ BUILTIN_THEMES: dict[str, Theme] = {
     "galaxy": Theme(
         name="galaxy",
         primary="#8A2BE2",  # Improved Deep Magenta (Blueviolet)
-        secondary="#9370DB",  # Softer Dusky Indigo (Medium Purple)
+        secondary="#a684e8",
         warning="#FFD700",  # Gold, more visible than orange
         error="#FF4500",  # OrangeRed, vibrant but less harsh than pure red
         success="#00FA9A",  # Medium Spring Green, kept for vibrancy
@@ -265,7 +265,7 @@ BUILTIN_THEMES: dict[str, Theme] = {
         background="#0F0F1F",  # Very Dark Blue, almost black
         surface="#1E1E3F",  # Dark Blue-Purple
         panel="#2D2B55",  # Slightly Lighter Blue-Purple
-        syntax="dracula",
+        syntax="monokai",
     ),
     "nebula": Theme(
         name="nebula",

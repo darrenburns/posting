@@ -35,6 +35,18 @@ ModalScreen {
   background: black 30%;
 }
 
+.modal-body {
+  background: $background;
+  padding: 1 2;
+  width: 50%;
+  height: auto;
+  max-height: 70%;
+  border: wide $background-lighten-2;
+  border-title-color: $text;
+  border-title-background: $background;
+  border-title-style: bold;
+}
+
 .section {
   border: round $accent 35%;
   border-title-color: $text;
@@ -303,11 +315,18 @@ Input {
   height: 1;
   background: $surface;
   border: none;
+  &.-invalid {
+    padding-left: 0;
+    border-left: outer $error;
+  }
 
   &:focus {
     background: $surface-lighten-1;
     padding-left: 0;
     border-left: outer $surface-lighten-2;
+    &.-invalid {
+      border-left: outer $error;
+    }
 
     & .input--cursor {
       color: $text;

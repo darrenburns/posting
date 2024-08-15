@@ -107,7 +107,7 @@ class RequestOptions(VerticalScroll):
                 value=str(self.options.timeout),
                 id="timeout",
                 type="number",
-                validate_on=["changed"],
+                validate_on={"changed"},
             )
 
         # A panel which the description of the option will be

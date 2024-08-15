@@ -162,9 +162,9 @@ class HelpScreen(ModalScreen[None]):
                 yield HelpModalHeader(f"[b]{name}[/] Help")
 
             bindings = widget._bindings
-            keys: list[tuple[str, Binding]] = [
-                binding for binding in bindings.keys.items()
-            ]
+            keys: list[tuple[str, list[Binding]]] = list(
+                bindings.key_to_bindings.items()
+            )
 
             if keys:
                 yield Label(" [b]All Keybindings[/]", id="bindings-title")
@@ -175,15 +175,20 @@ class HelpScreen(ModalScreen[None]):
                 )
                 table.cursor_vertical_escape = False
                 table.add_columns("Key", "Description")
-                for key, binding in keys:
+                for key, bindings in keys:
                     table.add_row(
                         Text(
-                            binding.key_display or self.app.get_key_display(key),
+                            ", ".join(
+                                binding.key_display
+                                if binding.key_display
+                                else self.app.get_key_display(key)
+                                for binding in bindings
+                            ),
                             style="bold",
                             no_wrap=True,
                             end="",
                         ),
-                        binding.description.lower(),
+                        bindings[0].description.lower(),
                     )
                 yield table
 

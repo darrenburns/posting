@@ -1,13 +1,15 @@
+import bisect
 from dataclasses import dataclass
 from functools import partial
 import os
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 from urllib.parse import urlparse
 from rich.style import Style
 from rich.text import Text, TextType
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.geometry import Region
 from textual.message import Message
@@ -16,11 +18,15 @@ from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
+from posting.config import SETTINGS
+from posting.files import get_unique_request_filename
 from posting.help_screen import HelpData
+from posting.save_request import generate_request_filename
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,
     NewRequestModal,
 )
+from posting.widgets.confirmation import ConfirmationModal
 from posting.widgets.tree import PostingTree
 
 
@@ -36,11 +42,46 @@ class CollectionTree(PostingTree[CollectionNode]):
         title="Collection Browser",
         description="""\
 Shows all `*.posting.yaml` request files resolved from the specified collection directory.
-Press `ctrl+n` to create a new request at the current cursor location.
-`j` and `k` can be used to navigate the tree.
-`J` and `K` jumps between sub-collections.
+- Press `ctrl+n` to create a new request at the current cursor location.
+- Press `d` to duplicate the request under the cursor (showing the request info modal so you can edit title/description/directory).
+- Press `D` (`shift`+`d`) to quickly duplicate the request under the cursor (without showing the request info modal).
+- `j` and `k` can be used to navigate the tree.
+- `J` and `K` (shift+j and shift+k) jumps between sub-collections.
+- `g` and `G` jumps to the top and bottom of the tree, respectively.
+- `backspace` deletes the request under the cursor.
+- `shift+backspace` deletes the request under the cursor, skipping the confirmation dialog.
+Sub-collections cannot be deleted from the UI yet.
 """,
     )
+
+    BINDINGS = [
+        Binding(
+            "d",
+            "duplicate_request",
+            "Dupe",
+            # tooltip="Duplicate the request under the cursor and show the 'New Request' modal to change the name/description.",
+        ),
+        Binding(
+            "D",
+            "quick_duplicate_request",
+            "Quick Dupe",
+            show=False,
+            # tooltip="Duplicate the request and automatically assign a unique name.",
+        ),
+        Binding(
+            "backspace",
+            "delete_request_with_confirmation",
+            "Delete",
+            # tooltip="Delete the request under the cursor.",
+        ),
+        Binding(
+            "shift+backspace",
+            "delete_request",
+            "Delete",
+            show=False,
+            # tooltip="Delete the collection under the cursor.",
+        ),
+    ]
 
     COMPONENT_CLASSES = {
         "node-selected",
@@ -65,6 +106,16 @@ Press `ctrl+n` to create a new request at the current cursor location.
             disabled=disabled,
         )
         self.cached_base_urls: set[str] = set()
+
+    @dataclass
+    class RequestAdded(Message):
+        request: RequestModel
+        node: TreeNode[CollectionNode]
+        tree: "CollectionTree"
+
+        @property
+        def control(self) -> "CollectionTree":
+            return self.tree
 
     @dataclass
     class RequestSelected(Message):
@@ -179,11 +230,11 @@ Press `ctrl+n` to create a new request at the current cursor location.
             self._clear_line_cache()
             self.refresh()
 
-    async def new_request_flow(self, initial_request: RequestModel | None) -> None:
+    async def new_request_flow(self, templated_from: RequestModel | None) -> None:
         """Start the flow to create a new request.
 
         Args:
-            initial_request: If the user has already started filling out request info
+            templated_from: If the user has already started filling out request info
             in the UI, then we can pre-fill the modal with that info.
         """
         # Determine where in the tree the new request will live.
@@ -227,10 +278,10 @@ Press `ctrl+n` to create a new request at the current cursor location.
             file_name = new_request_data.file_name
             final_path = root_path / request_directory / f"{file_name}"
 
-            if initial_request is not None:
+            if templated_from is not None:
                 # Ensure that any data which was filled by the user in the UI is included in the
                 # node data, alongside the typed title and filename from the modal.
-                new_request = initial_request.model_copy(
+                new_request = templated_from.model_copy(
                     update={
                         "name": request_name,
                         "description": request_description,
@@ -270,14 +321,44 @@ Press `ctrl+n` to create a new request at the current cursor location.
                     pointer = pointer.add(part, data=new_collection)
                     pointer.expand()
 
-            # Attach to the relevant node
+            new_request_parent = pointer
+            parent_collection = new_request_parent.data
+            sibling_requests: list[RequestModel] = (
+                parent_collection.requests
+                if isinstance(parent_collection, Collection)
+                else []
+            )
+
+            # Find where to insert the new request amongst its new siblings.
+            if sibling_requests:
+                index = bisect.bisect_right(
+                    sibling_requests,
+                    new_request,
+                )
+                if index == len(sibling_requests):
+                    before = None
+                else:
+                    before = index
+            else:
+                before = None
+
+            if before is not None:
+                sibling_requests.insert(before, new_request)
+            else:
+                sibling_requests.append(new_request)
+
+            parent_collection.requests = sibling_requests
+            # If the cursor and the newly added node have the same parent, then the cursor node
+            # and the newly added node are siblings, so we should insert the newly added node
+            # in an appropriate position relative to the cursor node.
+            # Find where to insert the new request.
+
+            # Attach to the relevant node. Note that the cursor node is not relevant here.
+            # The only thing that matters is the directory path specified by the user.
             new_node = self.add_request(
                 new_request,
-                parent_node if pointer is self.root else pointer,
-                after=None if parent_node == cursor_node else cursor_node,
-                before=0
-                if parent_node == cursor_node and len(parent_node.children) > 0
-                else None,
+                new_request_parent,
+                before=before,
             )
             self.currently_open = new_node
 
@@ -294,21 +375,23 @@ Press `ctrl+n` to create a new request at the current cursor location.
             def post_new_request() -> None:
                 self.screen.set_focus(focused_before)
                 self.select_node(new_node)
-                self.scroll_to_node(new_node, animate=False)
+                if new_node is not None:
+                    self.scroll_to_node(new_node, animate=False)
 
             self.call_after_refresh(post_new_request)
 
-        parent_path = parent_node.data.path
+        parent_path = parent_node.data.path if parent_node.data else None
         assert parent_path is not None, "parent should have a path"
         await self.app.push_screen(
             NewRequestModal(
                 initial_directory=str(
                     parent_path.resolve().relative_to(root_path.resolve())
                 ),
-                initial_title="" if initial_request is None else initial_request.name,
+                initial_title="" if templated_from is None else templated_from.name,
                 initial_description=""
-                if initial_request is None
-                else initial_request.description,
+                if templated_from is None
+                else templated_from.description,
+                parent_node=parent_node,
             ),
             callback=_handle_new_request_data,
         )
@@ -319,12 +402,108 @@ Press `ctrl+n` to create a new request at the current cursor location.
         parent_node: TreeNode[CollectionNode],
         after: TreeNode[CollectionNode] | int | None = None,
         before: TreeNode[CollectionNode] | int | None = None,
-    ) -> TreeNode[CollectionNode]:
+    ) -> TreeNode[CollectionNode] | None:
         """Add a new request to the tree, and cache data from it."""
         self.cache_request(request)
-        return parent_node.add_leaf(
-            request.name, data=request, after=after, before=before
+        try:
+            added_node = parent_node.add_leaf(
+                request.name, data=request, after=after, before=before
+            )
+        except Exception as e:
+            self.notify(
+                title="Error adding request.",
+                message=f"{e}",
+                timeout=3,
+            )
+            return None
+        else:
+            self.post_message(self.RequestAdded(request, parent_node, self))
+            return added_node
+
+    async def action_duplicate_request(self) -> None:
+        cursor_node = self.cursor_node
+        if cursor_node is None:
+            return
+
+        current_request = cursor_node.data
+        if not isinstance(current_request, RequestModel):
+            return
+
+        await self.new_request_flow(templated_from=current_request)
+
+    def action_quick_duplicate_request(self) -> None:
+        cursor_node = self.cursor_node
+        if cursor_node is None:
+            return
+
+        cursor_request = cursor_node.data
+        if not isinstance(cursor_request, RequestModel):
+            return
+
+        original_path = cursor_request.path if cursor_request.path is not None else None
+        if not original_path:
+            return
+
+        new_name = cursor_request.name
+        new_filename = generate_request_filename(new_name) + ".posting.yaml"
+        new_filename = get_unique_request_filename(new_filename, original_path.parent)
+
+        new_path = (
+            (original_path.parent / new_filename)
+            if original_path
+            else Path(new_filename)
         )
+        cursor_request_copy = cursor_request.model_copy(
+            update={"name": new_name, "path": new_path}
+        )
+        cursor_request_copy.save_to_disk(new_path)
+        self.add_request(
+            request=cursor_request_copy,
+            parent_node=cursor_node.parent if cursor_node.parent else self.root,
+            after=cursor_node,
+        )
+
+    def action_delete_request(self) -> None:
+        cursor_node = self.cursor_node
+        if cursor_node is None:
+            return
+
+        if isinstance(cursor_node.data, RequestModel):
+            cursor_request = cursor_node.data
+            cursor_request.delete_from_disk()
+            cursor_node.remove()
+
+    async def action_delete_request_with_confirmation(self) -> None:
+        cursor_node = self.cursor_node
+        if cursor_node is None:
+            return
+
+        def deletion_callback(confirmed: bool | None) -> None:
+            if confirmed is True:
+                if cursor_node and isinstance(cursor_node.data, RequestModel):
+                    cursor_request = cursor_node.data
+                    cursor_request.delete_from_disk()
+                    cursor_node.remove()
+
+        if isinstance(cursor_node.data, RequestModel):
+            cursor_path = cursor_node.data.path
+            collection_root_path = self.root.data.path if self.root.data else None
+            if not cursor_path or not collection_root_path:
+                return
+
+            if not cursor_path.is_relative_to(collection_root_path):
+                path_to_display = cursor_path
+            else:
+                path_to_display = cursor_path.relative_to(collection_root_path)
+
+            confirmation_message = (
+                f"[b]Do you want to delete this request?[/]\n[i]{path_to_display}[/]"
+            )
+
+            await self.app.push_screen(
+                ConfirmationModal(confirmation_message, auto_focus="confirm"),
+                callback=deletion_callback,
+            )
 
     def cache_request(self, request: RequestModel) -> None:
         def get_base_url(url: str) -> str | None:
@@ -393,6 +572,11 @@ class CollectionBrowser(Vertical):
             background: transparent;
         }
 
+        #empty-collection-label {
+           color: $text-muted;
+           padding: 1 2;
+        }
+
 
     }
     """
@@ -409,11 +593,15 @@ class CollectionBrowser(Vertical):
         self.collection = collection
 
     def compose(self) -> ComposeResult:
+        self.styles.dock = SETTINGS.get().collection_browser.position
         self.border_title = "Collection"
         self.add_class("section")
         collection = self.collection
-        if collection is None:
-            return
+
+        yield Static(
+            "[i]Collection is empty.[/]\nPress [b]ctrl+s[/b] to save the current request.",
+            id="empty-collection-label",
+        )
 
         tree = CollectionTree(
             label=collection.name,
@@ -446,6 +634,12 @@ class CollectionBrowser(Vertical):
         tree.cursor_line = 0
         yield tree
         yield RequestPreview()
+
+    @on(CollectionTree.RequestAdded)
+    def on_request_added(self, event: CollectionTree.RequestAdded) -> None:
+        self.query_one("#empty-collection-label").display = (
+            len(event.tree.root.children) == 0
+        )
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
