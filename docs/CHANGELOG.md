@@ -3,6 +3,7 @@
 ### Added
 
 - Colour-coding of methods in the collection browser.
+- Added FAQ to website.
 
 ## 1.11.0 [15th August 2024]
 
