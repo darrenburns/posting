@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for src/posting/widgets/text_area.py: 62%</title>
+    <title>Coverage for src/posting/widgets/text_area.py: 65%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>src/posting/widgets/text_area.py</b>:
-            <span class="pc_cov">62%</span>
+            <span class="pc_cov">65%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">258 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">159<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">99<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">167<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">91<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_a2c894eb3a2bef33_tree_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-08-10 14:00 +0000
+            created at 2024-08-15 07:11 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -200,7 +200,7 @@
     <p class="pln"><span class="n"><a id="t118" href="#t118">118</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t119" href="#t119">119</a></span><span class="t">        <span class="op">@</span><span class="nam">property</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t120" href="#t120">120</a></span><span class="t">        <span class="key">def</span> <span class="nam">control</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-></span> <span class="str">"TextAreaFooter"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t121" href="#t121">121</a></span><span class="t">            <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">footer</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t121" href="#t121">121</a></span><span class="t">            <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">footer</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t122" href="#t122">122</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t123" href="#t123">123</a></span><span class="t">    <span class="nam">language</span><span class="op">:</span> <span class="nam">Reactive</span><span class="op">[</span><span class="nam">str</span> <span class="op">|</span> <span class="key">None</span><span class="op">]</span> <span class="op">=</span> <span class="nam">reactive</span><span class="op">(</span><span class="str">"json"</span><span class="op">,</span> <span class="nam">init</span><span class="op">=</span><span class="key">False</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t124" href="#t124">124</a></span><span class="t">    <span class="nam">soft_wrap</span><span class="op">:</span> <span class="nam">Reactive</span><span class="op">[</span><span class="nam">bool</span><span class="op">]</span> <span class="op">=</span> <span class="nam">reactive</span><span class="op">(</span><span class="key">True</span><span class="op">,</span> <span class="nam">init</span><span class="op">=</span><span class="key">False</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -235,9 +235,9 @@
     <p class="mis show_mis"><span class="n"><a id="t153" href="#t153">153</a></span><span class="t">        <span class="nam">label</span><span class="op">.</span><span class="nam">update</span><span class="op">(</span><span class="str">"Visual"</span> <span class="key">if</span> <span class="nam">value</span> <span class="key">else</span> <span class="str">""</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t154" href="#t154">154</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t155" href="#t155">155</a></span><span class="t">    <span class="key">def</span> <span class="nam">watch_read_only</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">value</span><span class="op">:</span> <span class="nam">bool</span><span class="op">)</span> <span class="op">-></span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t156" href="#t156">156</a></span><span class="t">        <span class="nam">label</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">query_one</span><span class="op">(</span><span class="str">"#rw-label"</span><span class="op">,</span> <span class="nam">Label</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t157" href="#t157">157</a></span><span class="t">        <span class="nam">label</span><span class="op">.</span><span class="nam">set_class</span><span class="op">(</span><span class="nam">value</span><span class="op">,</span> <span class="str">"read-only"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t158" href="#t158">158</a></span><span class="t">        <span class="nam">label</span><span class="op">.</span><span class="nam">update</span><span class="op">(</span><span class="str">"read-only"</span> <span class="key">if</span> <span class="nam">value</span> <span class="key">else</span> <span class="str">""</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t156" href="#t156">156</a></span><span class="t">        <span class="nam">label</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">query_one</span><span class="op">(</span><span class="str">"#rw-label"</span><span class="op">,</span> <span class="nam">Label</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t157" href="#t157">157</a></span><span class="t">        <span class="nam">label</span><span class="op">.</span><span class="nam">set_class</span><span class="op">(</span><span class="nam">value</span><span class="op">,</span> <span class="str">"read-only"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t158" href="#t158">158</a></span><span class="t">        <span class="nam">label</span><span class="op">.</span><span class="nam">update</span><span class="op">(</span><span class="str">"read-only"</span> <span class="key">if</span> <span class="nam">value</span> <span class="key">else</span> <span class="str">""</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t159" href="#t159">159</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t160" href="#t160">160</a></span><span class="t">    <span class="key">def</span> <span class="nam">compose</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-></span> <span class="nam">ComposeResult</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t161" href="#t161">161</a></span><span class="t">        <span class="key">yield</span> <span class="nam">Label</span><span class="op">(</span><span class="str">""</span><span class="op">,</span> <span class="nam">id</span><span class="op">=</span><span class="str">"mode-label"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -269,9 +269,9 @@
     <p class="pln"><span class="n"><a id="t187" href="#t187">187</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t188" href="#t188">188</a></span><span class="t">    <span class="op">@</span><span class="nam">on</span><span class="op">(</span><span class="nam">Checkbox</span><span class="op">.</span><span class="nam">Changed</span><span class="op">,</span> <span class="nam">selector</span><span class="op">=</span><span class="str">"#wrap-checkbox"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t189" href="#t189">189</a></span><span class="t">    <span class="key">def</span> <span class="nam">update_soft_wrap</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">event</span><span class="op">:</span> <span class="nam">Checkbox</span><span class="op">.</span><span class="nam">Changed</span><span class="op">)</span> <span class="op">-></span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t190" href="#t190">190</a></span><span class="t">        <span class="nam">event</span><span class="op">.</span><span class="nam">stop</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t191" href="#t191">191</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">soft_wrap</span> <span class="op">=</span> <span class="nam">event</span><span class="op">.</span><span class="nam">value</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t192" href="#t192">192</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">post_message</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">SoftWrapChanged</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">soft_wrap</span><span class="op">,</span> <span class="nam">self</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t190" href="#t190">190</a></span><span class="t">        <span class="nam">event</span><span class="op">.</span><span class="nam">stop</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t191" href="#t191">191</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">soft_wrap</span> <span class="op">=</span> <span class="nam">event</span><span class="op">.</span><span class="nam">value</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t192" href="#t192">192</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">post_message</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">SoftWrapChanged</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">soft_wrap</span><span class="op">,</span> <span class="nam">self</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t193" href="#t193">193</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t194" href="#t194">194</a></span><span class="t">    <span class="op">@</span><span class="nam">property</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t195" href="#t195">195</a></span><span class="t">    <span class="key">def</span> <span class="nam">cursor_location_label</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-></span> <span class="nam">Label</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -636,7 +636,7 @@
     <p class="pln"><span class="n"><a id="t554" href="#t554">554</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t555" href="#t555">555</a></span><span class="t">    <span class="op">@</span><span class="nam">on</span><span class="op">(</span><span class="nam">TextAreaFooter</span><span class="op">.</span><span class="nam">SoftWrapChanged</span><span class="op">,</span> <span class="nam">selector</span><span class="op">=</span><span class="str">"TextAreaFooter"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t556" href="#t556">556</a></span><span class="t">    <span class="key">def</span> <span class="nam">update_soft_wrap</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">event</span><span class="op">:</span> <span class="nam">TextAreaFooter</span><span class="op">.</span><span class="nam">SoftWrapChanged</span><span class="op">)</span> <span class="op">-></span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t557" href="#t557">557</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">soft_wrap</span> <span class="op">=</span> <span class="nam">event</span><span class="op">.</span><span class="nam">value</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t557" href="#t557">557</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">soft_wrap</span> <span class="op">=</span> <span class="nam">event</span><span class="op">.</span><span class="nam">value</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t558" href="#t558">558</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t559" href="#t559">559</a></span><span class="t">    <span class="op">@</span><span class="nam">property</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t560" href="#t560">560</a></span><span class="t">    <span class="key">def</span> <span class="nam">text</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-></span> <span class="nam">str</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -686,7 +686,7 @@
             <a class="nav" href="z_a2c894eb3a2bef33_tree_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-08-10 14:00 +0000
+            created at 2024-08-15 07:11 +0000
         </p>
     </div>
 </footer>
