@@ -145,7 +145,7 @@ class Theme(BaseModel):
     variable: VariableStyles | None = Field(default_factory=VariableStyles)
     """The style to apply to variables."""
 
-    methods: MethodStyles | None = Field(default_factory=MethodStyles)
+    method: MethodStyles | None = Field(default_factory=MethodStyles)
     """The style to apply to HTTP methods in the sidebar."""
 
     # Optional metadata
@@ -162,6 +162,7 @@ class Theme(BaseModel):
                     "syntax",
                     "variable",
                     "url",
+                    "method",
                 }
             )
         )
