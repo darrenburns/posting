@@ -30,6 +30,8 @@ pipx install posting
 rye install posting
 ```
 
+Both of these methods will install Posting in an isolated environment.
+
 ## Learn More
 
 Learn more about Posting at [https://posting.sh](https://posting.sh).
