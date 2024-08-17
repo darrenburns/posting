@@ -622,7 +622,7 @@ class Posting(App[None], inherit_bindings=False):
         self.collection_specified = collection_specified
         self.animation_level = settings.animation
 
-    theme: Reactive[str | None] = reactive("galaxy", init=False)
+    theme: Reactive[str] = reactive("galaxy", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
 
     def on_mount(self) -> None:
@@ -738,6 +738,10 @@ class Posting(App[None], inherit_bindings=False):
         self.screen._update_styles()
         if theme:
             self.theme_change_signal.publish(self.themes[theme])
+
+    @property
+    def theme_object(self) -> Theme:
+        return self.themes[self.theme]
 
     def action_toggle_jump_mode(self) -> None:
         self._jumping = not self._jumping

@@ -1,4 +1,11 @@
-## 1.11.0 [August 2024]
+## 1.12.0 [15th August 2024]
+
+### Added
+
+- Colour-coding of methods in the collection browser.
+- Added FAQ to website.
+
+## 1.11.0 [15th August 2024]
 
 ### Added
 

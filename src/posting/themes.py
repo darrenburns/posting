@@ -104,6 +104,18 @@ class UrlStyles(BaseModel):
         )
 
 
+class MethodStyles(BaseModel):
+    """The style to apply to HTTP methods in the sidebar."""
+
+    get: str | None = Field(default="#0ea5e9")
+    post: str | None = Field(default="#22c55e")
+    put: str | None = Field(default="#f59e0b")
+    delete: str | None = Field(default="#ef4444")
+    patch: str | None = Field(default="#14b8a6")
+    options: str | None = Field(default="#8b5cf6")
+    head: str | None = Field(default="#d946ef")
+
+
 class Theme(BaseModel):
     name: str = Field(exclude=True)
     primary: str
@@ -133,6 +145,9 @@ class Theme(BaseModel):
     variable: VariableStyles | None = Field(default_factory=VariableStyles)
     """The style to apply to variables."""
 
+    method: MethodStyles | None = Field(default_factory=MethodStyles)
+    """The style to apply to HTTP methods in the sidebar."""
+
     # Optional metadata
     author: str | None = Field(default=None, exclude=True)
     description: str | None = Field(default=None, exclude=True)
@@ -147,6 +162,7 @@ class Theme(BaseModel):
                     "syntax",
                     "variable",
                     "url",
+                    "method",
                 }
             )
         )
