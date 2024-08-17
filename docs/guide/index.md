@@ -1,14 +1,45 @@
 ## Installation
 
-Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/):
+Posting can be installed in a matter of seconds on MacOS, Linux, and Windows.
+
+### Rye (recommended)
+
+Rye is recommended, as it is faster than Homebrew and `pipx` by several orders of magnitude:
+
+```bash
+# Install Rye (on MacOS/Linux only - Windows users see below)
+curl -sSf https://rye.astral.sh/get | bash
+
+# install Posting
+rye install posting
+```
+
+Windows users should follow the guide [Rye](https://rye-up.com/guide/installation) to learn how to install Rye.
+
+### pipx
+
+If you prefer, you can install Posting via [`pipx`](https://pipx.pypa.io/stable/).
 
 ```bash
 pipx install posting
 ```
 
-Python 3.11 or later is required.
+---
 
-More installation methods (`brew`, etc) will be added soon.
+The methods above will both install Posting globally, in an isolated environment. Do *not* attempt to install Posting with `pip`.
+
+??? failure "Homebrew is not supported"
+
+    Installing via Homebrew is not supported, as some of Posting's Rust and C dependencies can take over 10 minutes to compile. When using Rye, installation time is measured in tens of milliseconds, and with `pipx` it's just a few seconds.
+
+<!-- 
+On MacOS, you can also install Posting via Homebrew:
+
+```bash
+brew install darrenburns/homebrew/posting
+```
+
+Note that the Homebrew installation method requires compiling some Rust dependencies, and may take a few minutes to complete. -->
 
 ## A quick introduction
 
@@ -34,11 +65,9 @@ Now, any requests you create will be saved in the `my-collection` directory as s
 
 ### Creating a request
 
-When you launch Posting, no request is open.
+When you launch Posting, no request is open, so the UI will look rather empty.
 
-You can immediately start creating a request, and then save it to disk with ++ctrl+s++.
-Let's do just that.
-We'll create a simple POST request to the [JSONPlaceholder](https://jsonplaceholder.typicode.com/) mock API to create a new user.
+Let's create a simple POST request to the [JSONPlaceholder](https://jsonplaceholder.typicode.com/) mock API to create a new user.
 
 Press ++ctrl+t++ to open the request method dropdown, then press ++p++ to quickly select the `POST` method.
 
