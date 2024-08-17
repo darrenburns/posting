@@ -22,15 +22,13 @@ Visit the [website](https://posting.sh) for more information, the roadmap, and t
 
 ## Installation
 
-Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/):
+Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/) or Homebrew:
 
 ```bash
 pipx install posting
+# OR
+brew install darrenburns/homebrew/posting
 ```
-
-Python 3.11 or later is required.
-
-More installation methods (`brew`, etc) will be added soon.
 
 ## Learn More
 

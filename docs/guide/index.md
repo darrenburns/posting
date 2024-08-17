@@ -1,14 +1,20 @@
 ## Installation
 
-Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/):
+Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/) or [Rye](https://rye-up.com/guide/installation) on MacOS, Linux, and Windows:
 
 ```bash
 pipx install posting
+# or
+rye install posting
 ```
 
-Python 3.11 or later is required.
+On MacOS, you can also install Posting via Homebrew:
 
-More installation methods (`brew`, etc) will be added soon.
+```bash
+brew install darrenburns/homebrew/posting
+```
+
+Note that the Homebrew installation method requires compiling some Rust dependencies, and may take a few minutes to complete.
 
 ## A quick introduction
 
