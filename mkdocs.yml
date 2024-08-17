@@ -53,6 +53,7 @@ markdown_extensions:
   - pymdownx.highlight:
       use_pygments: true
   - pymdownx.superfences
+  - pymdownx.details
 extra:
   social:
     - icon: fontawesome/brands/mastodon 

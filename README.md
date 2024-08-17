@@ -30,7 +30,20 @@ pipx install posting
 rye install posting
 ```
 
-Both of these methods will install Posting in an isolated environment.
+### Rye is recommended
+
+Rye is recommended, as it is significantly faster than Homebrew and `pipx`, and can install Posting in under a second.
+
+```bash
+# quick install on MacOS/Linux
+curl -sSf https://rye.astral.sh/get | bash
+
+# install Posting
+rye install posting
+```
+
+Windows users should follow the guide [Rye](https://rye-up.com/guide/installation) to learn how to install Rye.
+
 
 ## Learn More
 
