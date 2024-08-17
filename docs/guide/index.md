@@ -1,12 +1,23 @@
 ## Installation
 
-Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/) or [Rye](https://rye-up.com/guide/installation) on MacOS, Linux, and Windows:
+Posting can be installed via [Rye](https://rye-up.com/guide/installation) or [`pipx`](https://pipx.pypa.io/stable/) on MacOS, Linux, and Windows.
+
+Rye is recommended, as it is faster than Homebrew and `pipx` by several orders of magnitude:
+
+```bash
+curl -sSf https://rye.astral.sh/get | bash  # install if needed
+rye install posting
+```
+
+Alternatively, you can install Posting via `pipx`.
 
 ```bash
 pipx install posting
-# or
-rye install posting
 ```
+
+### Homebrew?
+
+Installing via Homebrew is not supported, as some of Posting's Rust and C dependencies can take over 10 minutes to compile. When using Rye, installation time is measured in tens of milliseconds, and with `pipx` it's just a few seconds.
 
 <!-- 
 On MacOS, you can also install Posting via Homebrew:
