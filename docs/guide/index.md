@@ -8,13 +8,14 @@ pipx install posting
 rye install posting
 ```
 
+<!-- 
 On MacOS, you can also install Posting via Homebrew:
 
 ```bash
 brew install darrenburns/homebrew/posting
 ```
 
-Note that the Homebrew installation method requires compiling some Rust dependencies, and may take a few minutes to complete.
+Note that the Homebrew installation method requires compiling some Rust dependencies, and may take a few minutes to complete. -->
 
 ## A quick introduction
 

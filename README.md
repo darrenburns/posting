@@ -22,12 +22,12 @@ Visit the [website](https://posting.sh) for more information, the roadmap, and t
 
 ## Installation
 
-Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/) or Homebrew:
+Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/) or [Rye](https://rye-up.com/guide/installation) on MacOS, Linux, and Windows:
 
 ```bash
 pipx install posting
-# OR
-brew install darrenburns/homebrew/posting
+# or
+rye install posting
 ```
 
 ## Learn More
