@@ -32,7 +32,7 @@
 | src/posting/widgets/center\_middle.py                 |        3 |        0 |    100% |           |
 | src/posting/widgets/collection/browser.py             |      312 |       79 |     75% |118, 128, 137, 169, 251, 259, 273-274, 283, 291, 313, 327-329, 346, 350, 355, 419-425, 431-439, 442-467, 474-481, 484-510, 523-524, 673-681 |
 | src/posting/widgets/collection/new\_request\_modal.py |      122 |       12 |     90% |18, 48, 158, 178, 192-196, 199-203, 212, 217, 226-230 |
-| src/posting/widgets/confirmation.py                   |       28 |       18 |     36% |40-46, 49-53, 56-61 |
+| src/posting/widgets/confirmation.py                   |       35 |       20 |     43% |41-47, 50-54, 57-62, 66, 70 |
 | src/posting/widgets/datatable.py                      |       91 |       31 |     66% |67, 70-73, 97-112, 115-127, 135-140 |
 | src/posting/widgets/input.py                          |       61 |        2 |     97% |    33, 74 |
 | src/posting/widgets/key\_value.py                     |       94 |       16 |     83% |52, 103-106, 109, 115-123, 175-177, 184 |
@@ -59,7 +59,7 @@
 | src/posting/widgets/variable\_autocomplete.py         |       38 |        6 |     84% |     71-78 |
 | src/posting/widgets/variable\_input.py                |       16 |        0 |    100% |           |
 | src/posting/xresources.py                             |       23 |       17 |     26% |     21-44 |
-|                                             **TOTAL** | **3513** |  **892** | **75%** |           |
+|                                             **TOTAL** | **3520** |  **894** | **75%** |           |
 
 
 ## Setup coverage badge
