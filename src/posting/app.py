@@ -170,7 +170,7 @@ class MainScreen(Screen[None]):
             yield CollectionBrowser(collection=self.collection)
             yield RequestEditor()
             yield ResponseArea()
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     async def send_request(self) -> None:
         self.url_bar.clear_events()
