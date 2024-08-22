@@ -11,13 +11,13 @@ class PostingProvider(Provider):
     @property
     def commands(
         self,
-    ) -> tuple[tuple[str, IgnoreReturnCallbackType, str], ...]:
+    ) -> tuple[tuple[str, IgnoreReturnCallbackType, str, bool], ...]:
         app = self.posting
         screen = self.screen
 
-        commands_to_show: list[tuple[str, IgnoreReturnCallbackType, str]] = [
+        commands_to_show: list[tuple[str, IgnoreReturnCallbackType, str, bool]] = [
             *self.get_theme_commands(),
-            ("app: quit", app.action_quit, "Quit Posting"),
+            ("app: quit", app.action_quit, "Quit Posting", True),
         ]
 
         from posting.app import MainScreen
@@ -30,6 +30,7 @@ class PostingProvider(Provider):
                         "layout: vertical",
                         partial(app.command_layout, "vertical"),
                         "Change layout to vertical",
+                        True,
                     ),
                 )
             elif screen.layout == "vertical":
@@ -38,6 +39,7 @@ class PostingProvider(Provider):
                         "layout: horizontal",
                         partial(app.command_layout, "horizontal"),
                         "Change layout to horizontal",
+                        True,
                     ),
                 )
 
@@ -48,16 +50,19 @@ class PostingProvider(Provider):
                 "view: reset",
                 partial(screen.maximize_section, None),
                 "Reset section sizes to default",
+                True,
             )
             expand_request_command = (
                 "view: expand request",
                 partial(screen.maximize_section, "request"),
                 "Expand the request section",
+                True,
             )
             expand_response_command = (
                 "view: expand response",
                 partial(screen.maximize_section, "response"),
                 "Expand the response section",
+                True,
             )
             if maximized == "request":
                 commands_to_show.extend([reset_command, expand_response_command])
@@ -73,6 +78,7 @@ class PostingProvider(Provider):
                     "view: toggle collection browser",
                     screen.action_toggle_collection_browser,
                     "Toggle the collection browser",
+                    True,
                 ),
             )
 
@@ -84,12 +90,13 @@ class PostingProvider(Provider):
         Yields:
             Commands that can be discovered.
         """
-        for name, runnable, help_text in self.commands:
-            yield DiscoveryHit(
-                name,
-                runnable,
-                help=help_text,
-            )
+        for name, runnable, help_text, show_discovery in self.commands:
+            if show_discovery:
+                yield DiscoveryHit(
+                    name,
+                    runnable,
+                    help=help_text,
+                )
 
     async def search(self, query: str) -> Hits:
         """Handle a request to search for commands that match the query.
@@ -101,7 +108,7 @@ class PostingProvider(Provider):
             Command hits for use in the command palette.
         """
         matcher = self.matcher(query)
-        for name, runnable, help_text in self.commands:
+        for name, runnable, help_text, _ in self.commands:
             if (match := matcher.match(name)) > 0:
                 yield Hit(
                     match,
@@ -112,17 +119,18 @@ class PostingProvider(Provider):
 
     def get_theme_commands(
         self,
-    ) -> tuple[tuple[str, IgnoreReturnCallbackType, str], ...]:
+    ) -> tuple[tuple[str, IgnoreReturnCallbackType, str, bool], ...]:
         posting = self.posting
         return tuple(self.get_theme_command(theme) for theme in posting.themes)
 
     def get_theme_command(
         self, theme_name: str
-    ) -> tuple[str, IgnoreReturnCallbackType, str]:
+    ) -> tuple[str, IgnoreReturnCallbackType, str, bool]:
         return (
             f"theme: {theme_name}",
             partial(self.posting.command_theme, theme_name),
             f"Set the theme to {theme_name}",
+            False,
         )
 
     @property
