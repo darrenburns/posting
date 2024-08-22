@@ -7,6 +7,7 @@ from textual import on, log, work
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.events import Click
+from textual.keys import format_key
 from textual.reactive import Reactive, reactive
 from textual.app import App, ComposeResult
 from textual.binding import Binding
