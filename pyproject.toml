@@ -46,8 +46,7 @@ build-backend = "hatchling.build"
 [project.scripts]
 posting = "posting.__main__:cli"
 
-[tool.rye]
-managed = true
+[tool.uv]
 dev-dependencies = [
     "textual-dev>=1.5.1",
     "pytest>=8.3.1",
