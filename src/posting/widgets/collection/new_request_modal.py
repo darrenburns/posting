@@ -152,7 +152,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
 
             yield Button.success("Create request", id="create-button")
 
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     def action_close_screen(self) -> None:
         self.dismiss(None)

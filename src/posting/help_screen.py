@@ -181,7 +181,7 @@ class HelpScreen(ModalScreen[None]):
                             ", ".join(
                                 binding.key_display
                                 if binding.key_display
-                                else self.app.get_key_display(key)
+                                else self.app.get_key_display(binding)
                                 for binding in bindings
                             ),
                             style="bold",
