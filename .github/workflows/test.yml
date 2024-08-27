@@ -17,16 +17,18 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - name: Rye Python Setup
-        uses: eifinger/setup-rye@v4
+      - name: Set up uv
+        # Install a specific uv version using the installer
+        run: curl -LsSf https://astral.sh/uv/0.3.3/install.sh | sh
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-            version: '0.35.0'
+          python-version-file: ".python-version"
       - name: Install Dependencies
-        run: rye sync
+        run: uv sync --all-extras --dev
       - name: Run Tests
         run: |
-            source .venv/bin/activate
-            make test
+            uv run make test
       - name: Attach Code Coverage
         uses: py-cov-action/python-coverage-comment-action@v3.25
         with:
