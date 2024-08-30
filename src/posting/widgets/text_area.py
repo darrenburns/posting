@@ -1,20 +1,21 @@
-from dataclasses import dataclass
 import os
 import shlex
 import subprocess
 import tempfile
-from typing_extensions import Literal
+from dataclasses import dataclass
+
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
-from textual.reactive import reactive, Reactive
-from textual.widgets import TextArea, Label, Select, Checkbox
+from textual.reactive import Reactive, reactive
+from textual.widgets import Checkbox, Label, Select, TextArea
 from textual.widgets.text_area import Selection, TextAreaTheme
+from typing_extensions import Literal
+
 from posting.config import SETTINGS
 from posting.themes import SyntaxTheme, Theme
-
 from posting.widgets.select import PostingSelect
 
 
@@ -29,7 +30,7 @@ class TextAreaFooter(Horizontal):
         dock: bottom;
         height: 1;
         width: 1fr;
-        
+
         &:focus-within {
             background: $primary 55%;
         }
@@ -37,7 +38,7 @@ class TextAreaFooter(Horizontal):
         &:disabled {
             background: transparent;
         }
-        
+
         & Select {
             width: 8;
             margin-left: 1;
@@ -48,7 +49,7 @@ class TextAreaFooter(Horizontal):
                 width: 16;
             }
         }
-        
+
         & Checkbox {
             margin: 0 1;
             height: 1;
@@ -451,15 +452,26 @@ class ReadOnlyTextArea(PostingTextArea):
         text_to_copy = self.selected_text
         if text_to_copy:
             message = f"Copied {len(text_to_copy)} characters."
-            self.notify(message, title="Selection copied")
+            title = "Selection copied"
         else:
             text_to_copy = self.text
             message = f"Copied ({len(text_to_copy)} characters)."
-            self.notify(message, title="Response copied")
+            title = "Response copied"
 
-        import pyperclip
+        try:
+            import pyperclip
 
-        pyperclip.copy(text_to_copy)
+            pyperclip.copy(text_to_copy)
+        except pyperclip.PyperclipException as exc:
+            self.notify(
+                str(exc),
+                title="Clipboard error",
+                severity="error",
+                timeout=10,
+            )
+        else:
+            self.notify(message, title=title)
+
         self.visual_mode = False
 
     def action_cursor_top(self) -> None:
