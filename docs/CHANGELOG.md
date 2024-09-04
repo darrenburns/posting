@@ -1,8 +1,12 @@
-## 1.12.2 [4th September 2024]
+## 1.12.3 [4th September 2024]
 
 ### Fixed
 
 - Fixed crash when no clipboard tool installed
+
+## 1.12.2 [4th September 2024]
+
+*This release was yanked. It's functionally identical to 1.12.1.*
 
 ## 1.12.1 [21st August 2024]
 
