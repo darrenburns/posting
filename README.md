@@ -54,12 +54,12 @@
 | src/posting/widgets/response/response\_trace.py       |       38 |        5 |     87% | 63, 75-78 |
 | src/posting/widgets/select.py                         |       18 |        5 |     72% |17-20, 24, 30 |
 | src/posting/widgets/tabbed\_content.py                |       12 |        6 |     50% |14-16, 19-21 |
-| src/posting/widgets/text\_area.py                     |      258 |       91 |     65% |151-153, 199, 243-252, 255-278, 281-311, 411, 416, 419-424, 427, 430, 433, 436, 439, 442, 445, 448, 451-463, 466, 469, 473-487, 491-498, 502-509, 549, 561 |
+| src/posting/widgets/text\_area.py                     |      262 |       95 |     64% |152-154, 200, 244-253, 256-279, 282-312, 412, 417, 420-425, 428, 431, 434, 437, 440, 443, 446, 449, 452-475, 478, 481, 485-499, 503-510, 514-521, 561, 573 |
 | src/posting/widgets/tree.py                           |       22 |        6 |     73% |     34-39 |
 | src/posting/widgets/variable\_autocomplete.py         |       38 |        6 |     84% |     71-78 |
 | src/posting/widgets/variable\_input.py                |       16 |        0 |    100% |           |
 | src/posting/xresources.py                             |       23 |       17 |     26% |     21-44 |
-|                                             **TOTAL** | **3522** |  **895** | **75%** |           |
+|                                             **TOTAL** | **3526** |  **899** | **75%** |           |
 
 
 ## Setup coverage badge
