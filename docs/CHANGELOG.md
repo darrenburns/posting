@@ -1,3 +1,16 @@
+## 1.12.2 [4th September 2024]
+
+### Fixed
+
+- Fixed crash when no clipboard tool installed
+
+## 1.12.1 [21st August 2024]
+
+### Fixed
+
+- Fix "invalid escape sequence" warnings on Python 3.12+
+- Fix buttons in request deletion confirmation modal not being usable with the enter key.
+
 ## 1.12.0 [17th August 2024]
 
 ### Added
