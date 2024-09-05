@@ -8,6 +8,12 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 
 ## The Roadmap
 
+- Watching environment files for changes & updating the UI.
+- Editing key/value editor rows without having to delete/re-add them.
+- Saving recently used environments to a file.
+- Saving recently used collections to a file.
+- Viewing the currently loaded environment keys/values in a popup.
+- Changing the environment at runtime - probably via command palette - push a new command palette screen where you can search for and select one of the previously used environments.
 - Variable completion autocompletion TextAreas.
 - Variable resolution highlighting in TextAreas.
 - Bearer token auth (can be done now by adding header).
