@@ -22,6 +22,7 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
+from textual.widgets.text_area import TextAreaTheme
 from posting.collection import (
     Collection,
     Cookie,
@@ -743,7 +744,25 @@ class Posting(App[None], inherit_bindings=False):
         self.refresh_css(animate=False)
         self.screen._update_styles()
         if theme:
-            self.theme_change_signal.publish(self.themes[theme])
+            theme_object = self.themes[theme]
+            if syntax := getattr(theme_object, "syntax", None):
+                if isinstance(syntax, str):
+                    valid_themes = {
+                        theme.name for theme in TextAreaTheme.builtin_themes()
+                    }
+                    valid_themes.add("posting")
+                    if syntax not in valid_themes:
+                        # Default to the posting theme for text areas
+                        # if the specified theme is invalid.
+                        theme_object.syntax = "posting"
+                        self.notify(
+                            f"Theme {theme!r} has an invalid value for 'syntax': {syntax!r}. Defaulting to 'posting'.",
+                            title="Invalid theme",
+                            severity="warning",
+                            timeout=7,
+                        )
+
+            self.theme_change_signal.publish(theme_object)
 
     @property
     def theme_object(self) -> Theme:

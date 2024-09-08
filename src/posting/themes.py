@@ -137,7 +137,8 @@ class Theme(BaseModel):
     be switched to automatically when the app theme changes.
     
     This can either be a custom SyntaxTheme or a pre-defined Textual theme
-    such as monokai, dracula, github_light, or vscode_dark."""
+    such as monokai, dracula, github_light, or vscode_dark. It can also be 'posting'
+    which will use the posting theme as defined in themes.py."""
 
     url: UrlStyles | None = Field(default_factory=UrlStyles)
     """Styling to apply to URL input fields."""
