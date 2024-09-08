@@ -7,7 +7,6 @@ from textual import on, log, work
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.events import Click
-from textual.keys import format_key
 from textual.reactive import Reactive, reactive
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -115,7 +114,7 @@ class MainScreen(Screen[None]):
         Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
         Binding("ctrl+s", "save_request", "Save"),
         Binding("ctrl+n", "new_request", "New"),
-        Binding("ctrl+m", "toggle_maximized", "Expand section", show=False),
+        Binding("ctrl+m", "toggle_expanded", "Expand section", show=False),
         Binding(
             "ctrl+h",
             "toggle_collection_browser",
@@ -128,10 +127,10 @@ class MainScreen(Screen[None]):
     """The currently selected method of the request."""
     layout: Reactive[PostingLayout] = reactive("vertical", init=False)
     """The current layout of the app."""
-    maximized: Reactive[Literal["request", "response"] | None] = reactive(
+    expanded_section: Reactive[Literal["request", "response"] | None] = reactive(
         None, init=False
     )
-    """The currently maximized section of the main screen."""
+    """The currently expanded section of the main screen."""
 
     def __init__(
         self,
@@ -235,7 +234,7 @@ class MainScreen(Screen[None]):
             self.notify(
                 severity="error",
                 title="Connect timeout",
-                message=f"Couldn't connect within {timeout} seconds.",
+                message=f"Couldn't connect within {connect_timeout} seconds.",
             )
         except Exception as e:
             log.error("Error sending request", e)
@@ -307,19 +306,23 @@ class MainScreen(Screen[None]):
         collection_browser = self.collection_browser
         collection_browser.display = not collection_browser.display
 
-    def action_toggle_maximized(self) -> None:
-        """Toggle the maximized state of the app."""
-        if self.maximized in {"request", "response"}:
-            self.maximize_section(None)
-        elif self.focused:
-            # Maximize the currently focused section.
-            if self.focus_within_request():
-                self.maximize_section("request")
-            elif self.focus_within_response():
-                self.maximize_section("response")
+    def action_toggle_expanded(self) -> None:
+        """Toggle the current expanded section.
 
-    def maximize_section(self, section: Literal["request", "response"] | None) -> None:
-        self.maximized = section
+        If a section is currently expanded, it will be collapsed.
+        If no section is currently expanded, the currently focused section will be expanded.
+        """
+        if self.expanded_section in {"request", "response"}:
+            self.expand_section(None)
+        elif self.focused:
+            # Expand the currently focused section.
+            if self.focus_within_request():
+                self.expand_section("request")
+            elif self.focus_within_response():
+                self.expand_section("response")
+
+    def expand_section(self, section: Literal["request", "response"] | None) -> None:
+        self.expanded_section = section
 
     def focus_within_request(self, focused: Widget | None = None) -> bool:
         """Whether the focus is within the request editor."""
@@ -384,15 +387,17 @@ class MainScreen(Screen[None]):
         self.app_body.add_class(f"layout-{layout}")
         self.app_body.remove_class(f"layout-{other_class}")
 
-    def watch_maximized(self, maximized: Literal["request", "response"] | None) -> None:
-        """Hide the non-maximized section."""
+    def watch_expanded_section(
+        self, section: Literal["request", "response"] | None
+    ) -> None:
+        """Hide the non-expanded section."""
         request_editor = self.request_editor
         response_area = self.response_area
 
-        # Hide the request editor if the response area is currently maximized,
+        # Hide the request editor if the response area is currently expanded,
         # and vice-versa.
-        request_editor.set_class(maximized == "response", "hidden")
-        response_area.set_class(maximized == "request", "hidden")
+        request_editor.set_class(section == "response", "hidden")
+        response_area.set_class(section == "request", "hidden")
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:
