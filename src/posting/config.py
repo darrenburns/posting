@@ -196,21 +196,7 @@ class Settings(BaseSettings):
             file_secret_settings,
         )
 
-        # TODO - this is working around a crash in pydantic-settings
-        # where the yaml settings source seems to crash if the file
-        # is empty.
-        # This workaround conditionally loads the yaml config file.
-        # If it's empty, we don't use it.
-        # https://github.com/pydantic/pydantic-settings/issues/329
-        try:
-            yaml_config = yaml.load(
-                conf_file.read_bytes(),
-                Loader=yaml.Loader,
-            )
-        except yaml.YAMLError:
-            return default_sources
-
-        if conf_file.exists() and yaml_config:
+        if conf_file.exists():
             return (
                 init_settings,
                 YamlConfigSettingsSource(settings_cls, conf_file),
