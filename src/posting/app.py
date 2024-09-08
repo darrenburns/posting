@@ -673,7 +673,8 @@ class Posting(App[None], inherit_bindings=False):
         )
         self.theme_change_signal = Signal[Theme](self, "theme-changed")
         self.theme = self.settings.theme
-        self.watch_environment_files()
+        if self.settings.watch_env_files:
+            self.watch_environment_files()
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(

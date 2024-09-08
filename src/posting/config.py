@@ -125,6 +125,9 @@ class Settings(BaseSettings):
     using the `${VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
     defined in any `.env` files explicitly supplied via the `--env` option."""
 
+    watch_env_files: bool = Field(default=True)
+    """If enabled, automatically reload environment files when they change."""
+
     text_input: TextInputSettings = Field(default_factory=TextInputSettings)
     """General configuration for inputs and text area widgets."""
 

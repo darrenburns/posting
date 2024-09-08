@@ -110,6 +110,7 @@ The table below lists all available configuration options and their environment 
 | `theme_directory` (`POSTING_THEME_DIRECTORY`) | (Default: `${XDG_DATA_HOME}/posting/themes`) | The directory containing user themes. |
 | `layout` (`POSTING_LAYOUT`) | `"vertical"`, `"horizontal"` (Default: `"horizontal"`) | Sets the layout of the application. |
 | `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
+| `watch_env_files` (`POSTING_WATCH_ENV_FILES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload environment files when they change. |
 | `animation` (`POSTING_ANIMATION`) | `"none"`, `"basic"`, `"full"` (Default: `"none"`) | Controls the animation level. |
 | `response.prettify_json` (`POSTING_RESPONSE__PRETTIFY_JSON`) | `true`, `false` (Default: `true`) | If enabled, JSON responses will be pretty-formatted. |
 | `response.show_size_and_time` (`POSTING_RESPONSE__SHOW_SIZE_AND_TIME`) | `true`, `false` (Default: `true`) | If enabled, the size and time taken for the response will be displayed in the response area border subtitle. |
