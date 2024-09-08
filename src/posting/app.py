@@ -147,7 +147,7 @@ class MainScreen(Screen[None]):
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
 
-    async def on_mount(self) -> None:
+    def on_mount(self) -> None:
         self.layout = self._initial_layout
 
         # Set the initial focus based on the settings.
