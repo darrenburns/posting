@@ -11,7 +11,7 @@ from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.reactive import Reactive, reactive
 from textual.widgets import Checkbox, Label, Select, TextArea
-from textual.widgets.text_area import Selection, TextAreaTheme
+from textual.widgets.text_area import Selection, TextAreaTheme, ThemeDoesNotExist
 from typing_extensions import Literal
 
 from posting.config import SETTINGS
