@@ -7,7 +7,7 @@
 
 ### Changed
 
-- Upgraded all dependencies
+- Upgraded all dependencies.
 - Remove `pydantic-settings` crash workaround on empty config files.
 - Renaming `App.maximized` as it now clashes with a Textual concept.
 - Removed "using default collection" message from startup.
