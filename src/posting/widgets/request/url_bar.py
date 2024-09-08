@@ -208,7 +208,6 @@ class UrlBar(Vertical):
         variable_at_cursor = get_variable_at_cursor(cursor_position, value)
 
         variables = get_variables()
-        print("got variables", variables)
         try:
             variable_bar = self.variable_value_bar
         except NoMatches:
