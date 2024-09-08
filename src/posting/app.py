@@ -168,7 +168,11 @@ class MainScreen(Screen[None]):
         yield AppHeader()
         yield UrlBar()
         with AppBody():
-            yield CollectionBrowser(collection=self.collection)
+            collection_browser = CollectionBrowser(collection=self.collection)
+            collection_browser.display = (
+                self.settings.collection_browser.show_on_startup
+            )
+            yield collection_browser
             yield RequestEditor()
             yield ResponseArea()
         yield Footer(show_command_palette=False)
@@ -677,13 +681,6 @@ class Posting(App[None], inherit_bindings=False):
             layout=self.settings.layout,
             environment_files=self.environment_files,
         )
-        if not self.collection_specified:
-            self.notify(
-                "Using the default collection directory.",
-                title="No collection specified",
-                severity="warning",
-                timeout=7,
-            )
         return self.main_screen
 
     def get_css_variables(self) -> dict[str, str]:

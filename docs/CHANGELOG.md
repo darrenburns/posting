@@ -1,5 +1,10 @@
 ## 1.13.0 [8th September 2024]
 
+### Added
+
+- New `collection_browser.show_on_startup` config to control whether the collection browser is shown on startup.
+- Watch for changes to loaded dotenv files and reload UI elements that depend on them when they change.
+
 ### Changed
 
 - Upgraded all dependencies

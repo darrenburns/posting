@@ -49,7 +49,7 @@ This introduction will show you how to create a simple POST request to the [JSON
 
 A *collection* is simply a directory which may contain requests saved by Posting.
 
-If you launch Posting without specifying a collection, any requests you create will be saved in the "default" collection.
+If you launch Posting without specifying a collection, any requests you create will be saved in the `"default"` collection.
 This is a directory reserved by Posting on your filesystem, and unrelated to the directory you launched Posting from.
 
 This is fine for quick throwaway requests, but you'll probably want to create a new collection for each project you work on so that you can check it into version control.

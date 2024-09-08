@@ -89,6 +89,9 @@ class CollectionBrowserSettings(BaseModel):
     position: Literal["left", "right"] = Field(default="left")
     """The position of the collection browser on screen."""
 
+    show_on_startup: bool = Field(default=True)
+    """If enabled, the collection browser will be shown on startup."""
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(

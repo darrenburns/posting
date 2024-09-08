@@ -118,6 +118,7 @@ The table below lists all available configuration options and their environment 
 | `heading.show_version` (`POSTING_HEADING__SHOW_VERSION`) | `true`, `false` (Default: `true`) | Show/hide the version in the app header. |
 | `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show/hide the variable value preview below the URL bar. |
 | `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `"left"`, `"right"` (Default: `"left"`) | The position of the collection browser on screen. |
+| `collection_browser.show_on_startup` (`POSTING_COLLECTION_BROWSER__SHOW_ON_STARTUP`) | `true`, `false` (Default: `true`) | Show/hide the collection browser on startup. Can always be toggled using the command palette. |
 | `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |
 | `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
