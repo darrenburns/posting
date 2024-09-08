@@ -6,31 +6,45 @@ import re
 import os
 from pathlib import Path
 from dotenv import dotenv_values
+from asyncio import Lock
 
 
 _VARIABLES_PATTERN = re.compile(
     r"\$(?:([a-zA-Z_][a-zA-Z0-9_]*)|{([a-zA-Z_][a-zA-Z0-9_]*)})"
 )
 
-_initial_variables: dict[str, str | None] = {}
-VARIABLES: ContextVar[dict[str, str | None]] = ContextVar(
-    "variables", default=_initial_variables
-)
+
+class SharedVariables:
+    def __init__(self):
+        self._variables: dict[str, str | None] = {}
+        self._lock = Lock()
+
+    def get(self) -> dict[str, str | None]:
+        return self._variables.copy()
+
+    async def set(self, variables: dict[str, str | None]) -> None:
+        async with self._lock:
+            self._variables = variables
+
+
+VARIABLES = SharedVariables()
 
 
 def get_variables() -> dict[str, str | None]:
     return VARIABLES.get()
 
 
-def load_variables(
-    environment_files: tuple[Path, ...], use_host_environment: bool
+async def load_variables(
+    environment_files: tuple[Path, ...],
+    use_host_environment: bool,
+    avoid_cache: bool = False,
 ) -> dict[str, str | None]:
     """Load the variables that are currently available in the environment.
 
     This will make them available via the `get_variables` function."""
 
-    existing_variables = VARIABLES.get()
-    if existing_variables:
+    existing_variables = get_variables()
+    if existing_variables and not avoid_cache:
         return {key: value for key, value in existing_variables}
 
     variables: dict[str, str | None] = {
@@ -42,7 +56,7 @@ def load_variables(
         host_env_variables = {key: value for key, value in os.environ.items()}
         variables = {**variables, **host_env_variables}
 
-    VARIABLES.set(variables)
+    await VARIABLES.set(variables)
     return variables
 
 
@@ -162,6 +176,7 @@ def get_variable_at_cursor(cursor: int, text: str) -> str | None:
     return text[start:end]
 
 
+@lru_cache()
 def extract_variable_name(variable_text: str) -> str:
     """
     Extract the variable name from a variable reference.

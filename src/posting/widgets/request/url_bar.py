@@ -152,6 +152,10 @@ class UrlBar(Vertical):
         self.cached_base_urls: list[str] = []
         self._trace_events: set[Event] = set()
 
+    def on_env_changed(self, _: None) -> None:
+        self._display_variable_at_cursor()
+        self.url_input.refresh()
+
     def compose(self) -> ComposeResult:
         with Horizontal():
             yield MethodSelector(id="method-selector")
@@ -161,6 +165,7 @@ class UrlBar(Vertical):
             )
             yield Label(id="trace-markers")
             yield SendRequestButton("Send")
+
         variable_value_bar = Label(id="variable-value-bar")
         if SETTINGS.get().url_bar.show_value_preview:
             yield variable_value_bar
@@ -175,19 +180,35 @@ class UrlBar(Vertical):
 
         self.on_theme_change(self.app.themes[self.app.theme])
         self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.app.env_changed_signal.subscribe(self, self.on_env_changed)
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
-        self.variable_value_bar.update("")
+        try:
+            self.variable_value_bar.update("")
+        except NoMatches:
+            return
 
     @on(UrlInput.Blurred)
     def on_blur(self, event: UrlInput.Blurred) -> None:
-        self.variable_value_bar.update("")
+        try:
+            self.variable_value_bar.update("")
+        except NoMatches:
+            return
 
     @on(UrlInput.CursorMoved)
     def on_cursor_moved(self, event: UrlInput.CursorMoved) -> None:
+        self._display_variable_at_cursor()
+
+    def _display_variable_at_cursor(self) -> None:
+        url_input = self.url_input
+
+        cursor_position = url_input.cursor_position
+        value = url_input.value
+        variable_at_cursor = get_variable_at_cursor(cursor_position, value)
+
         variables = get_variables()
-        variable_at_cursor = get_variable_at_cursor(event.cursor_position, event.value)
+        print("got variables", variables)
         try:
             variable_bar = self.variable_value_bar
         except NoMatches:
