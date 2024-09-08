@@ -1,3 +1,15 @@
+## 1.13.0 [8th September 2024]
+
+### Changed
+
+- Upgraded all dependencies
+- Remove `pydantic-settings` crash workaround on empty config files.
+- Renaming `App.maximized` as it now clashes with a Textual concept.
+
+### Fixed
+
+- Fixed crash while rendering error message on timeout.
+
 ## 1.12.3 [4th September 2024]
 
 ### Fixed
@@ -55,7 +67,6 @@
 - Upgrade to Textual version 0.76.0
 - Change logic to render bindings in help modal to reflect new Textual API.
 - Sort order of requests in the tree improved.
-
 
 ---
 
