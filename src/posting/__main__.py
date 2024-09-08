@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 import click
 
@@ -13,6 +14,7 @@ from posting.locations import (
     default_collection_directory,
     theme_directory,
 )
+from posting.variables import load_variables
 
 
 def create_config_file() -> None:
@@ -132,5 +134,6 @@ def make_posting(
 
     env_paths = tuple(Path(e).resolve() for e in env)
     settings = Settings(_env_file=env_paths)  # type: ignore[call-arg]
+    asyncio.run(load_variables(env_paths, settings.use_host_environment))
 
     return Posting(settings, env_paths, collection_tree, not using_default_collection)

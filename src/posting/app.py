@@ -148,7 +148,6 @@ class MainScreen(Screen[None]):
         self.settings = SETTINGS.get()
 
     async def on_mount(self) -> None:
-        await load_variables(self.environment_files, self.settings.use_host_environment)
         self.layout = self._initial_layout
 
         # Set the initial focus based on the settings.

@@ -46,11 +46,13 @@ class VariableAutoComplete(AutoComplete):
             classes,
             disabled,
         )
-        if variable_candidates is None:
-            variable_candidates = [
+        self.variable_candidates = variable_candidates
+
+    def on_mount(self) -> None:
+        if self.variable_candidates is None:
+            self.variable_candidates = [
                 DropdownItem(main=f"${variable}") for variable in get_variables()
             ]
-        self.variable_candidates = variable_candidates
 
     def get_candidates(self, target_state: TargetState) -> list[DropdownItem]:
         cursor = target_state.selection.end[1]
