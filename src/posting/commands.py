@@ -45,28 +45,28 @@ class PostingProvider(Provider):
 
             # Change the available commands depending on what is currently
             # maximized on the main screen.
-            maximized = screen.maximized
             reset_command = (
                 "view: reset",
-                partial(screen.maximize_section, None),
+                partial(screen.expand_section, None),
                 "Reset section sizes to default",
                 True,
             )
             expand_request_command = (
                 "view: expand request",
-                partial(screen.maximize_section, "request"),
+                partial(screen.expand_section, "request"),
                 "Expand the request section",
                 True,
             )
             expand_response_command = (
                 "view: expand response",
-                partial(screen.maximize_section, "response"),
+                partial(screen.expand_section, "response"),
                 "Expand the response section",
                 True,
             )
-            if maximized == "request":
+            expanded_section = screen.expanded_section
+            if expanded_section == "request":
                 commands_to_show.extend([reset_command, expand_response_command])
-            elif maximized == "response":
+            elif expanded_section == "response":
                 commands_to_show.extend([reset_command, expand_request_command])
             else:
                 commands_to_show.extend(
