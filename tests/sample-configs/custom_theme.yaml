@@ -8,3 +8,5 @@ heading:
   show_version: false
 text_input:
   blinking_cursor: false
+watch_env_files: false
+

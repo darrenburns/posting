@@ -110,6 +110,7 @@ The table below lists all available configuration options and their environment 
 | `theme_directory` (`POSTING_THEME_DIRECTORY`) | (Default: `${XDG_DATA_HOME}/posting/themes`) | The directory containing user themes. |
 | `layout` (`POSTING_LAYOUT`) | `"vertical"`, `"horizontal"` (Default: `"horizontal"`) | Sets the layout of the application. |
 | `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
+| `watch_env_files` (`POSTING_WATCH_ENV_FILES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload environment files when they change. |
 | `animation` (`POSTING_ANIMATION`) | `"none"`, `"basic"`, `"full"` (Default: `"none"`) | Controls the animation level. |
 | `response.prettify_json` (`POSTING_RESPONSE__PRETTIFY_JSON`) | `true`, `false` (Default: `true`) | If enabled, JSON responses will be pretty-formatted. |
 | `response.show_size_and_time` (`POSTING_RESPONSE__SHOW_SIZE_AND_TIME`) | `true`, `false` (Default: `true`) | If enabled, the size and time taken for the response will be displayed in the response area border subtitle. |
@@ -118,6 +119,7 @@ The table below lists all available configuration options and their environment 
 | `heading.show_version` (`POSTING_HEADING__SHOW_VERSION`) | `true`, `false` (Default: `true`) | Show/hide the version in the app header. |
 | `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show/hide the variable value preview below the URL bar. |
 | `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `"left"`, `"right"` (Default: `"left"`) | The position of the collection browser on screen. |
+| `collection_browser.show_on_startup` (`POSTING_COLLECTION_BROWSER__SHOW_ON_STARTUP`) | `true`, `false` (Default: `true`) | Show/hide the collection browser on startup. Can always be toggled using the command palette. |
 | `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |
 | `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |

@@ -89,6 +89,9 @@ class CollectionBrowserSettings(BaseModel):
     position: Literal["left", "right"] = Field(default="left")
     """The position of the collection browser on screen."""
 
+    show_on_startup: bool = Field(default=True)
+    """If enabled, the collection browser will be shown on startup."""
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -121,6 +124,9 @@ class Settings(BaseSettings):
     """If enabled, you can use environment variables from the host machine in your requests
     using the `${VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
     defined in any `.env` files explicitly supplied via the `--env` option."""
+
+    watch_env_files: bool = Field(default=True)
+    """If enabled, automatically reload environment files when they change."""
 
     text_input: TextInputSettings = Field(default_factory=TextInputSettings)
     """General configuration for inputs and text area widgets."""

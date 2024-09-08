@@ -17,6 +17,7 @@ dependencies = [
     "python-dotenv==1.0.1",
     "textual[syntax]==0.79.1",
     "textual-autocomplete==3.0.0a9",
+    "watchfiles>=0.24.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.11"

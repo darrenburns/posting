@@ -23,6 +23,7 @@ from textual.widgets import (
 )
 from textual.widgets._tabbed_content import ContentTab
 from textual.widgets.text_area import TextAreaTheme
+from watchfiles import awatch
 from posting.collection import (
     Collection,
     Cookie,
@@ -145,7 +146,6 @@ class MainScreen(Screen[None]):
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
-        load_variables(self.environment_files, self.settings.use_host_environment)
 
     def on_mount(self) -> None:
         self.layout = self._initial_layout
@@ -168,7 +168,11 @@ class MainScreen(Screen[None]):
         yield AppHeader()
         yield UrlBar()
         with AppBody():
-            yield CollectionBrowser(collection=self.collection)
+            collection_browser = CollectionBrowser(collection=self.collection)
+            collection_browser.display = (
+                self.settings.collection_browser.show_on_startup
+            )
+            yield collection_browser
             yield RequestEditor()
             yield ResponseArea()
         yield Footer(show_command_palette=False)
@@ -628,9 +632,25 @@ class Posting(App[None], inherit_bindings=False):
         self.collection = collection
         self.collection_specified = collection_specified
         self.animation_level = settings.animation
+        self.env_changed_signal = Signal[None](self, "env-changed")
 
     theme: Reactive[str] = reactive("galaxy", init=False)
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
+
+    @work(exclusive=True, group="environment-watcher")
+    async def watch_environment_files(self) -> None:
+        async for changes in awatch(*self.environment_files):
+            await load_variables(
+                self.environment_files,
+                self.settings.use_host_environment,
+                avoid_cache=True,
+            )
+            self.env_changed_signal.publish(None)
+            self.notify(
+                title="Environment changed",
+                message=f"Reloaded {len(changes)} dotenv files",
+                timeout=3,
+            )
 
     def on_mount(self) -> None:
         self.jumper = Jumper(
@@ -653,6 +673,8 @@ class Posting(App[None], inherit_bindings=False):
         )
         self.theme_change_signal = Signal[Theme](self, "theme-changed")
         self.theme = self.settings.theme
+        if self.settings.watch_env_files:
+            self.watch_environment_files()
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(
@@ -660,13 +682,6 @@ class Posting(App[None], inherit_bindings=False):
             layout=self.settings.layout,
             environment_files=self.environment_files,
         )
-        if not self.collection_specified:
-            self.notify(
-                "Using the default collection directory.",
-                title="No collection specified",
-                severity="warning",
-                timeout=7,
-            )
         return self.main_screen
 
     def get_css_variables(self) -> dict[str, str]:

@@ -1,10 +1,16 @@
 ## 1.13.0 [8th September 2024]
 
+### Added
+
+- New `collection_browser.show_on_startup` config to control whether the collection browser is shown on startup.
+- Watch for changes to loaded dotenv files and reload UI elements that depend on them when they change.
+
 ### Changed
 
 - Upgraded all dependencies
 - Remove `pydantic-settings` crash workaround on empty config files.
 - Renaming `App.maximized` as it now clashes with a Textual concept.
+- Removed "using default collection" message from startup.
 
 ### Fixed
 
