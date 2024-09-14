@@ -15,7 +15,7 @@ from posting.collection import APIInfo, Collection
 class Variable(BaseModel):
     key: str
     value: Optional[str] = None
-    src: Optional[str] = None
+    src: Optional[str | List[str]] = None
     fileNotInWorkingDirectoryWarning: Optional[str] = None
     filesNotInWorkingDirectory: Optional[List[str]] = None
     type: Optional[str] = None
@@ -80,7 +80,7 @@ def generate_directory_structure(
             directories.append(str(full_path))
             generate_directory_structure(item.item, new_path, base_path)
         if item.request is not None:
-            request_name = item.name
+            request_name = re.sub(r"[^A-Za-z0-9\.]+", "", item.name)
             file_name = f"{request_name}.posting.yaml"
             full_path = Path(base_path) / current_path / file_name
             create_request_file(full_path, item)
