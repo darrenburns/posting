@@ -4,6 +4,10 @@ import json
 import tempfile
 import shutil
 from posting.importing.postman import (
+    Variable,
+    RequestItem,
+    PostmanRequest,
+    Url,
     import_postman_spec,
     create_env_file,
     generate_directory_structure,
@@ -62,7 +66,7 @@ def test_import_postman_spec(sample_postman_spec, temp_dir):
 
 
 def test_create_env_file(temp_dir):
-    variables = [{"key": "base_url", "value": "https://api.example.com"}]
+    variables = [Variable(key="base_url", value="https://api.example.com")]
     env_file = create_env_file(temp_dir, "test.env", variables)
 
     assert env_file.exists()
@@ -70,20 +74,10 @@ def test_create_env_file(temp_dir):
 
 
 def test_generate_directory_structure(temp_dir):
-    items = [
-        {
-            "name": "Users",
-            "item": [
-                {
-                    "name": "Get User",
-                    "request": {
-                        "method": "GET",
-                        "url": {"raw": "{{base_url}}/users/1"},
-                    },
-                }
-            ],
-        }
-    ]
+    request_obj = PostmanRequest(method="GET", url=Url(raw="{{base_url}}/users/1"))
+    request_item = RequestItem(name="Get User", request=request_obj)
+    item = RequestItem(name="Users", item=[request_item])
+    items = [item]
 
     directories = generate_directory_structure(items, base_path=temp_dir)
 
@@ -93,17 +87,14 @@ def test_generate_directory_structure(temp_dir):
 
 
 def test_create_request_file(temp_dir):
-    request_data = {
-        "name": "Get User",
-        "request": {
-            "method": "GET",
-            "url": {
-                "raw": "{{base_url}}/users/1",
-                "query": [{"key": "include", "value": "posts"}],
-            },
-            "header": [{"key": "Accept", "value": "application/json"}],
-        },
-    }
+    request_obj = PostmanRequest(
+        method="GET",
+        url=Url(
+            raw="{{base_url}}/users/1", query=[Variable(key="include", value="posts")]
+        ),
+        header=[Variable(key="Accept", value="application/json")],
+    )
+    request_data = RequestItem(name="Get User", request=request_obj)
 
     file_path = temp_dir / "test_request.posting.yaml"
     create_request_file(file_path, request_data)
