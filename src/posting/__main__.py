@@ -8,6 +8,8 @@ from rich.console import Console
 from posting.app import Posting
 from posting.collection import Collection
 from posting.config import Settings
+from posting.importing.open_api import import_openapi_spec
+from posting.importing.postman import import_postman_spec
 from posting.locations import (
     config_file,
     default_collection_directory,
@@ -99,7 +101,10 @@ def locate(thing_to_locate: str) -> None:
     help="Path to save the imported collection",
     default=None,
 )
-def import_spec(spec_path: str, output: str | None) -> None:
+@click.option(
+    "--type", "-t", default="openapi", help="Specify spec type [openapi, postman]"
+)
+def import_spec(spec_path: str, output: str | None, type: str) -> None:
     """Import an OpenAPI specification into a Posting collection."""
     console = Console()
     console.print(
@@ -111,7 +116,19 @@ def import_spec(spec_path: str, output: str | None) -> None:
     from posting.importing.open_api import import_openapi_spec
 
     try:
-        collection = import_openapi_spec(spec_path)
+        if type.lower() == "openapi":
+            spec_type = "OpenAPI"
+            collection = import_openapi_spec(spec_path)
+        elif type.lower() == "postman":
+            spec_type = "Postman"
+            console.print(
+                "Importing Postman collection haven't been implemented yet", style="red"
+            )
+            import_postman_spec(spec_path, output)
+            return
+        else:
+            console.print(f"Unknown spec type: {type!r}", style="red")
+            return
 
         if output:
             output_path = Path(output)
@@ -122,7 +139,9 @@ def import_spec(spec_path: str, output: str | None) -> None:
         collection.path = output_path
         collection.save_to_disk(output_path)
 
-        console.print(f"Successfully imported OpenAPI spec to {str(output_path)!r}")
+        console.print(
+            f"Successfully imported {spec_type!r} spec to {str(output_path)!r}"
+        )
     except Exception:
         console.print("An error occurred during the import process.", style="red")
         console.print_exception()
