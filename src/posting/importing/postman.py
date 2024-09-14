@@ -12,15 +12,19 @@ from posting.collection import APIInfo, Collection
 
 class Variable(BaseModel):
     key: str
-    value: str
+    value: Optional[str] = None
+    src: Optional[str] = None
+    fileNotInWorkingDirectoryWarning: Optional[str] = None
+    filesNotInWorkingDirectory: Optional[List[str]] = None
     type: Optional[str] = None
     disabled: Optional[bool] = None
 
 
 class Body(BaseModel):
     mode: str
-    options: dict
+    options: Optional[dict] = None
     raw: Optional[str] = None
+    formdata: Optional[List[Variable]] = None
 
 
 class Url(BaseModel):
@@ -32,7 +36,7 @@ class Url(BaseModel):
 
 class PostmanRequest(BaseModel):
     method: str
-    url: str | Url
+    url: Optional[str | Url] = None
     header: Optional[List[Variable]] = None
     description: Optional[str] = None
     body: Optional[Body] = None
