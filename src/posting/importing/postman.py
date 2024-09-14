@@ -2,8 +2,10 @@ from pathlib import Path
 from typing import Any, List, Optional
 import json
 import os
-from pydantic import BaseModel
+import re
 import yaml
+
+from pydantic import BaseModel
 
 from rich.console import Console
 
@@ -58,7 +60,7 @@ def create_env_file(path: Path, env_filename: str, variables: List[Variable]) ->
     env_content: List[str] = []
 
     for var in variables:
-        env_content.append(f"{var.key!r}={var.value!r}")
+        env_content.append(f"{transform_variables(var.key)}={var.value}")
 
     env_file = path / env_filename
     env_file.write_text("\n".join(env_content))
@@ -85,6 +87,21 @@ def generate_directory_structure(
     return directories
 
 
+# Converts variable names like userId to $USER_ID, or user-id to $USER_ID
+def transform_variables(string):
+    underscore_case = re.sub(r"(?<!^)(?=[A-Z-])", "_", string).replace("-", "")
+    return underscore_case.upper()
+
+
+def transform_url(string):
+    def replace_match(match):
+        value = match.group(1)
+        return f"${transform_variables(value)}"
+
+    transformed = re.sub(r"\{\{([\w-]+)\}\}", replace_match, string)
+    return transformed
+
+
 def create_request_file(file_path: Path, request_data: RequestItem):
     yaml_content: dict[str, Any] = {
         "name": request_data.name,
@@ -99,15 +116,16 @@ def create_request_file(file_path: Path, request_data: RequestItem):
                 for header in request_data.request.header
             ]
 
-        if isinstance(request_data.request.url, Url):
-            yaml_content["url"] = request_data.request.url.raw
-            if request_data.request.url.query is not None:
-                yaml_content["params"] = [
-                    {"name": param.key, "value": param.value}
-                    for param in request_data.request.url.query
-                ]
-        else:
-            yaml_content["url"] = request_data.request.url
+        if request_data.request.url is not None:
+            if isinstance(request_data.request.url, Url):
+                yaml_content["url"] = transform_url(request_data.request.url.raw)
+                if request_data.request.url.query is not None:
+                    yaml_content["params"] = [
+                        {"name": param.key, "value": transform_url(param.value)}
+                        for param in request_data.request.url.query
+                    ]
+            else:
+                yaml_content["url"] = transform_url((request_data.request.url))
 
         if request_data.request.description is not None:
             yaml_content["description"] = request_data.request.description
@@ -116,7 +134,9 @@ def create_request_file(file_path: Path, request_data: RequestItem):
             request_data.request.body is not None
             and request_data.request.body.raw is not None
         ):
-            yaml_content["body"] = {"content": request_data.request.body.raw}
+            yaml_content["body"] = {
+                "content": transform_url(request_data.request.body.raw)
+            }
 
     # Write YAML file
     with open(file_path, "w") as f:
@@ -144,11 +164,9 @@ def import_postman_spec(
 
     base_dir = spec_path.parent
     if output_path is not None:
-        base_dir = (
-            Path(output_path).parent
-            if isinstance(output_path, str)
-            else output_path.parent
-        )
+        base_dir = Path(output_path) if isinstance(output_path, str) else output_path
+
+    console.print(f"Output path: {output_path!r}")
 
     env_file = create_env_file(base_dir, f"{info.title}.env", spec.variable)
     console.print(f"Created environment file {str(env_file)!r}.")
