@@ -8,6 +8,7 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 
 ## The Roadmap
 
+- Keymaps (work in progress, coming soon).
 - Pre-request and post-response scripts and assertions. These can be embedded in the YAML or relative paths to files shared alongside the collection (relative to the collection root).
 - Parse cURL commands.
 - Watching environment files for changes & updating the UI. ✅
@@ -31,7 +32,6 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 - <s>Improved distribution (move beyond pipx, e.g. `brew`)</s> Cancelled
 - Adding test framework.
 - More user friendly errors.
-- Keymaps.
 - I could host themes as YAML files online and offer a `posting themes install foo` which would download and move the file to the users theme directory, which would then be loaded on startup. The app could potentially even have a builtin theme "browser" which lets people preview themes (download the YAML from GitHub into memory to preview it in your app).
 - Add contributing guide.  
 - External documentation. ✅
