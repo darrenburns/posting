@@ -13,6 +13,7 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 - Parse cURL commands.
 - Watching environment files for changes & updating the UI. ✅
 - Editing key/value editor rows without having to delete/re-add them.
+- Quickly open MDN links for headers.
 - Saving recently used environments to a file.
 - Saving recently used collections to a file.
 - Viewing the currently loaded environment keys/values in a popup.
