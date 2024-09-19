@@ -8,7 +8,9 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 
 ## The Roadmap
 
-- Watching environment files for changes & updating the UI.
+- Pre-request and post-response scripts and assertions. These can be embedded in the YAML or relative paths to files shared alongside the collection (relative to the collection root).
+- Parse cURL commands.
+- Watching environment files for changes & updating the UI. ✅
 - Editing key/value editor rows without having to delete/re-add them.
 - Saving recently used environments to a file.
 - Saving recently used collections to a file.
@@ -38,7 +40,6 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 - Enabling and disabling rows in tables.
 - Highlighting variables in tables to show if they've resolved or not.  
 - (Maybe) File watchers so that if the request changes on disk then the UI updates to reflect it.
-- Pre-request and post-response scripts and assertions.  
 - Custom themes, loaded from theme directory. ✅
 - Cookie editor.
 - Dynamic in-app help system ✅
