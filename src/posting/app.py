@@ -1,3 +1,4 @@
+import inspect
 from pathlib import Path
 from typing import Any, Literal, cast
 import httpx
@@ -37,6 +38,7 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.scripts import clear_module_cache, execute_script
 from posting.themes import BUILTIN_THEMES, Theme, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
@@ -178,6 +180,59 @@ class MainScreen(Screen[None]):
             yield ResponseArea()
         yield Footer(show_command_palette=False)
 
+    def get_and_run_script(
+        self, script_path: str, default_function_name: str, *args: Any
+    ) -> None:
+        """
+        Get and run a function from a script.
+
+        Args:
+            script_path: Path to the script, relative to the collection path.
+            default_function_name: Default function name to use if not specified in the path.
+            *args: Arguments to pass to the script function.
+        """
+        full_path = self.collection.path / Path(script_path)
+        path_name_parts = full_path.name.split(":")
+        if len(path_name_parts) == 2:
+            script_path, function_name = path_name_parts
+        else:
+            script_path = path_name_parts[0]
+            function_name = default_function_name
+
+        full_path = full_path.parent / script_path
+        try:
+            script_function = execute_script(full_path, function_name)
+        except Exception as e:
+            log.error(f"Error loading script {function_name}: {e}")
+            self.notify(
+                severity="error",
+                title=f"Error loading script {function_name}",
+                message=f"The script at {full_path} could not be loaded.",
+            )
+            return
+
+        if script_function is not None:
+            try:
+                # If the script function takes arguments, pass the arguments to the script function.
+                if inspect.signature(script_function).parameters:
+                    script_function(*args)
+                else:
+                    script_function()
+            except Exception as e:
+                log.error(f"Error running {function_name} script: {e}")
+                self.notify(
+                    severity="error",
+                    title=f"Error running {function_name} script",
+                    message=f"{e}",
+                )
+        else:
+            log.warning(f"{function_name.capitalize()} script not found: {full_path}")
+            self.notify(
+                severity="error",
+                title=f"{function_name.capitalize()} script not found",
+                message=f"The {function_name} script at {full_path} could not be found.",
+            )
+
     async def send_request(self) -> None:
         self.url_bar.clear_events()
         request_options = self.request_options.to_model()
@@ -231,6 +286,8 @@ class MainScreen(Screen[None]):
                 print("auth =", request_model.auth)
 
                 # If there's an associated pre-request script, run it.
+                if on_request := request_model.scripts.on_request:
+                    self.get_and_run_script(on_request, "on_request", request)
 
                 response = await client.send(
                     request=request,
@@ -238,6 +295,10 @@ class MainScreen(Screen[None]):
                 )
                 print("response cookies =", response.cookies)
                 self.post_message(HttpResponseReceived(response))
+
+                if on_response := request_model.scripts.on_response:
+                    self.get_and_run_script(on_response, "on_response", response)
+
         except httpx.ConnectTimeout as connect_timeout:
             log.error("Connect timeout", connect_timeout)
             self.notify(
@@ -649,18 +710,42 @@ class Posting(App[None], inherit_bindings=False):
 
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
+        """Watching files that were passed in as the environment."""
         async for changes in awatch(*self.environment_files):
+            # Reload the variables from the environment files.
             await load_variables(
                 self.environment_files,
                 self.settings.use_host_environment,
                 avoid_cache=True,
             )
+            # Notify the app that the environment has changed,
+            # which will trigger a reload of the variables in the relevant widgets.
+            # Widgets subscribed to this signal can reload as needed.
+            # For example, AutoComplete dropdowns will want to reload their
+            # candidate variables when the environment changes.
             self.env_changed_signal.publish(None)
             self.notify(
                 title="Environment changed",
                 message=f"Reloaded {len(changes)} dotenv files",
                 timeout=3,
             )
+
+    @work(exclusive=True, group="collection-watcher")
+    async def watch_collection_files(self) -> None:
+        """Watching specific files within the collection directory."""
+        async for changes in awatch(self.collection.path):
+            for _, file_name in changes:
+                if file_name.endswith(".py"):
+                    # If a Python file was updated, then we want to clear
+                    # the script module cache for the app so that modules
+                    # are reloaded on the next request being sent.
+                    # Without this, we'd hit the module cache and simply
+                    # re-execute the previously cached module.
+                    self.notify(
+                        message="Reloaded scripts",
+                        timeout=3,
+                    )
+                    clear_module_cache()
 
     def on_mount(self) -> None:
         self.jumper = Jumper(
@@ -686,6 +771,8 @@ class Posting(App[None], inherit_bindings=False):
         self.theme = self.settings.theme
         if self.settings.watch_env_files:
             self.watch_environment_files()
+
+        self.watch_collection_files()
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(
