@@ -1,8 +1,8 @@
 from pathlib import Path
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.containers import VerticalScroll
 from textual.widget import Widget
-from textual.widgets import Button, Input, Label, Static
+from textual.widgets import Input, Label
 from textual_autocomplete import AutoComplete, DropdownItem, TargetState
 
 from posting.collection import Scripts
@@ -25,8 +25,8 @@ class RequestScripts(VerticalScroll):
 
     Example:
     ```
-    scripts/pre_request.py:prepare_auth
-    scripts/post_response.py:log_response
+    scripts/on_request.py:prepare_auth
+    scripts/on_response.py:log_response
     ```
 
     The API for scripts is under development and will likely change.
@@ -97,13 +97,13 @@ class RequestScripts(VerticalScroll):
         return scripts
 
     def load_scripts(self, scripts: Scripts) -> None:
-        self.query_one("#pre-request-script", Input).value = scripts.pre_request or ""
+        self.query_one("#pre-request-script", Input).value = scripts.on_request or ""
         self.query_one("#post-response-script", Input).value = (
             scripts.post_response or ""
         )
 
     def to_model(self) -> Scripts:
         return Scripts(
-            pre_request=self.query_one("#pre-request-script", Input).value or None,
+            on_request=self.query_one("#pre-request-script", Input).value or None,
             post_response=self.query_one("#post-response-script", Input).value or None,
         )

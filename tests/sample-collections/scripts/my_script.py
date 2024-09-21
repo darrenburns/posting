@@ -1,6 +1,6 @@
-def pre_request():
+def on_request():
     pass
 
 
-def post_response():
+def on_response():
     pass

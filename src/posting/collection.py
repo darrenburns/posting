@@ -116,10 +116,10 @@ def request_sort_key(request: RequestModel) -> tuple[int, str]:
 
 
 class Scripts(BaseModel):
-    pre_request: str | None = Field(default=None)
+    on_request: str | None = Field(default=None)
     """A relative path to a script that will be run before the request is sent."""
 
-    post_response: str | None = Field(default=None)
+    on_response: str | None = Field(default=None)
     """A relative path to a script that will be run after the response is received."""
 
 

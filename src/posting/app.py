@@ -229,6 +229,9 @@ class MainScreen(Screen[None]):
                 print("proxy =", request_model.options.proxy_url)
                 print("timeout =", request_model.options.timeout)
                 print("auth =", request_model.auth)
+
+                # If there's an associated pre-request script, run it.
+
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
