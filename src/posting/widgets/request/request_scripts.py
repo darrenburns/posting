@@ -34,9 +34,6 @@ class RequestScripts(VerticalScroll):
     the response to a file.
     """
 
-    PRE_REQUEST_SCRIPT_PLACEHOLDER = "Pre-request Script"
-    POST_RESPONSE_SCRIPT_PLACEHOLDER = "Post-response Script"
-
     DEFAULT_CSS = """
     RequestScripts {
         & > #pre-request-script {
