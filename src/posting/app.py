@@ -59,6 +59,7 @@ from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_editor import RequestEditor
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
+from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
@@ -478,6 +479,7 @@ class MainScreen(Screen[None]):
                 if request_options.attach_cookies
                 else []
             ),
+            scripts=self.request_scripts.to_model(),
             **self.request_editor.to_request_model_args(),
         )
 
@@ -513,6 +515,7 @@ class MainScreen(Screen[None]):
         self.request_metadata.request = request_model
         self.request_options.load_options(request_model.options)
         self.request_auth.load_auth(request_model.auth)
+        self.request_scripts.load_scripts(request_model.scripts)
 
     @property
     def url_bar(self) -> UrlBar:
@@ -565,6 +568,10 @@ class MainScreen(Screen[None]):
     @property
     def request_auth(self) -> RequestAuth:
         return self.query_one(RequestAuth)
+
+    @property
+    def request_scripts(self) -> RequestScripts:
+        return self.query_one(RequestScripts)
 
     @property
     def collection_tree(self) -> CollectionTree:

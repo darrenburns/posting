@@ -6,5 +6,7 @@ body:
   form_data:
   - name: something
     value: '123'
+scripts:
+  pre_request: scripts/my_script.py
 options:
   follow_redirects: false

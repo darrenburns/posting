@@ -5,6 +5,8 @@ from textual.widget import Widget
 from textual.widgets import Button, Input, Label, Static
 from textual_autocomplete import AutoComplete, DropdownItem, TargetState
 
+from posting.collection import Scripts
+
 
 class RequestScripts(VerticalScroll):
     """Collections can contain a scripts folder.
@@ -76,7 +78,6 @@ class RequestScripts(VerticalScroll):
             *children, name=name, id=id, classes=classes, disabled=disabled
         )
         self.collection_root = collection_root
-        self.scripts_path = collection_root / "scripts"
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
@@ -93,12 +94,6 @@ class RequestScripts(VerticalScroll):
             id="post-response-script",
         )
 
-        with Vertical():
-            with Horizontal(id="scripts-path-header-container"):
-                yield Static("Scripts path", id="scripts-path-title")
-                yield Button("Copy", id="copy-scripts-path")
-            yield Static(str(self.scripts_path), id="scripts-path")
-
     def on_mount(self) -> None:
         auto_complete_pre_request = AutoComplete(
             candidates=self.get_script_candidates,
@@ -109,11 +104,23 @@ class RequestScripts(VerticalScroll):
             target=self.query_one("#post-response-script", Input),
         )
 
-        self.mount(auto_complete_pre_request)
-        self.mount(auto_complete_post_response)
+        self.screen.mount(auto_complete_pre_request)
+        self.screen.mount(auto_complete_post_response)
 
     def get_script_candidates(self, state: TargetState) -> list[DropdownItem]:
         scripts: list[DropdownItem] = []
-        for script in self.scripts_path.glob("**/*.py"):
-            scripts.append(DropdownItem(str(script.relative_to(self.scripts_path))))
+        for script in self.collection_root.glob("**/*.py"):
+            scripts.append(DropdownItem(str(script.relative_to(self.collection_root))))
         return scripts
+
+    def load_scripts(self, scripts: Scripts) -> None:
+        self.query_one("#pre-request-script", Input).value = scripts.pre_request or ""
+        self.query_one("#post-response-script", Input).value = (
+            scripts.post_response or ""
+        )
+
+    def to_model(self) -> Scripts:
+        return Scripts(
+            pre_request=self.query_one("#pre-request-script", Input).value or None,
+            post_response=self.query_one("#post-response-script", Input).value or None,
+        )
