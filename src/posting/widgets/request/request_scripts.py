@@ -45,23 +45,6 @@ class RequestScripts(VerticalScroll):
         & Input {
             margin-bottom: 1;
         }
-
-        & #scripts-path-header-container {
-            height: 1;
-        }
-
-        & #scripts-path-title {
-            width: 13;
-        }
-
-        & #scripts-path {
-            color: $text-muted;
-            width: 1fr;
-        }
-
-        & #copy-scripts-path {
-            width: 6;
-        }
     }
     """
 
