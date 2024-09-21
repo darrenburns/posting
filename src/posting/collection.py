@@ -115,6 +115,14 @@ def request_sort_key(request: RequestModel) -> tuple[int, str]:
     return (method_order.get(request.method.upper(), 5), request.name)
 
 
+class Scripts(BaseModel):
+    pre_request: str | None = Field(default=None)
+    """A relative path to a script that will be run before the request is sent."""
+
+    post_response: str | None = Field(default=None)
+    """A relative path to a script that will be run after the response is received."""
+
+
 @total_ordering
 class RequestModel(BaseModel):
     name: str = Field(default="")
@@ -159,6 +167,9 @@ class RequestModel(BaseModel):
 
     posting_version: str = Field(default=VERSION)
     """The version of Posting."""
+
+    scripts: Scripts = Field(default_factory=Scripts)
+    """The scripts associated with the request."""
 
     options: Options = Field(default_factory=Options)
     """The options for the request."""

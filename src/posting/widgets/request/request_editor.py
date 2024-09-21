@@ -13,6 +13,7 @@ from posting.widgets.request.request_auth import RequestAuth
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
+from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.select import PostingSelect
 from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextAreaFooter, TextEditor
@@ -86,6 +87,8 @@ class RequestEditor(Vertical):
                     yield RequestAuth()
                 with TabPane("Info", id="info-pane"):
                     yield RequestMetadata()
+                with TabPane("Scripts", id="scripts-pane"):
+                    yield RequestScripts()
                 with TabPane("Options", id="options-pane"):
                     yield RequestOptions()
 
