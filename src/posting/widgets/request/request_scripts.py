@@ -98,12 +98,10 @@ class RequestScripts(VerticalScroll):
 
     def load_scripts(self, scripts: Scripts) -> None:
         self.query_one("#pre-request-script", Input).value = scripts.on_request or ""
-        self.query_one("#post-response-script", Input).value = (
-            scripts.post_response or ""
-        )
+        self.query_one("#post-response-script", Input).value = scripts.on_response or ""
 
     def to_model(self) -> Scripts:
         return Scripts(
             on_request=self.query_one("#pre-request-script", Input).value or None,
-            post_response=self.query_one("#post-response-script", Input).value or None,
+            on_response=self.query_one("#post-response-script", Input).value or None,
         )
