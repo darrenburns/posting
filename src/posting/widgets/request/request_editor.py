@@ -1,4 +1,4 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
@@ -17,6 +17,10 @@ from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.select import PostingSelect
 from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextAreaFooter, TextEditor
+
+
+if TYPE_CHECKING:
+    from posting.app import Posting
 
 
 class RequestEditorTabbedContent(PostingTabbedContent):
@@ -45,6 +49,7 @@ class RequestEditor(Vertical):
 """
 
     def compose(self) -> ComposeResult:
+        app = cast("Posting", self.app)
         with Vertical() as vertical:
             vertical.border_title = "Request"
             with RequestEditorTabbedContent():
@@ -88,7 +93,7 @@ class RequestEditor(Vertical):
                 with TabPane("Info", id="info-pane"):
                     yield RequestMetadata()
                 with TabPane("Scripts", id="scripts-pane"):
-                    yield RequestScripts()
+                    yield RequestScripts(collection_root=app.collection.path)
                 with TabPane("Options", id="options-pane"):
                     yield RequestOptions()
 
