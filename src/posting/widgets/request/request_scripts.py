@@ -1,11 +1,114 @@
 from pathlib import Path
+import shlex
+import subprocess
+from typing import Any
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.widget import Widget
 from textual.widgets import Input, Label
 from textual_autocomplete import AutoComplete, DropdownItem, TargetState
 
 from posting.collection import Scripts
+from posting.config import SETTINGS
+
+
+class ScriptPathInput(Input):
+    BINDINGS = [
+        Binding("ctrl+e", "open_in_editor", "To editor"),
+        Binding("ctrl+p", "open_in_pager", "To pager"),
+    ]
+
+    def __init__(
+        self,
+        collection_root: Path,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.collection_root = collection_root
+
+    def _get_script_path(self) -> Path | None:
+        """
+        Get the script path from the input value.
+
+        Handles the `path/to/script.py:function_name` syntax and resolves
+        relative paths against the collection root.
+
+        Returns:
+            The resolved script path if it exists, None otherwise.
+        """
+        # Handle the `path/to/script.py:function_name` syntax
+        value = self.value.strip()
+        if ":" in value:
+            value, _function_name = value.split(":")
+
+        # Paths are interpreted relative to the collection root
+        script_path = Path(value)
+        if not script_path.is_absolute():
+            script_path = self.collection_root / script_path
+
+        # Ensure the script exists, and notify the user if it doesn't
+        if not script_path.exists():
+            self.app.notify(
+                severity="error",
+                title="Invalid script path",
+                message=f"The script file '{script_path}' does not exist.",
+            )
+            return None
+
+        return script_path
+
+    def _open_with_command(self, command_name: str, command_setting: str) -> None:
+        """
+        Open the script in the specified command.
+
+        Args:
+            command_name: The name of the command to use (for display purposes).
+            command_setting: The name of the setting to retrieve the command from.
+        """
+        command = SETTINGS.get().__getattribute__(command_setting)
+        if not command:
+            self.app.notify(
+                severity="warning",
+                title=f"No {command_name} configured",
+                message=f"Set the [b]${command_setting.upper()}[/b] environment variable.",
+            )
+            return
+
+        script_path = self._get_script_path()
+        if not script_path:
+            return
+
+        command_args = shlex.split(command)
+        command_args.append(str(script_path))
+
+        with self.app.suspend():
+            try:
+                subprocess.call(command_args)
+            except OSError:
+                command_string = shlex.join(command_args)
+                self.app.notify(
+                    severity="error",
+                    title=f"Can't run {command_name} command",
+                    message=f"The command [b]{command_string}[/b] failed to run.",
+                )
+
+    def action_open_in_editor(self) -> None:
+        """
+        Open the script in the configured editor.
+
+        This action is triggered when the user presses Ctrl+E.
+        """
+        self._open_with_command("editor", "editor")
+
+    def action_open_in_pager(self) -> None:
+        """
+        Open the script in the configured pager.
+
+        This action is triggered when the user presses Ctrl+P.
+        """
+        self._open_with_command("pager", "pager")
 
 
 class RequestScripts(VerticalScroll):
@@ -66,13 +169,15 @@ class RequestScripts(VerticalScroll):
         self.can_focus = False
 
         yield Label("Pre-request script [dim]optional[/dim]")
-        yield Input(
+        yield ScriptPathInput(
+            collection_root=self.collection_root,
             placeholder="Collection-relative path to pre-request script",
             id="pre-request-script",
         )
 
         yield Label("Post-response script [dim]optional[/dim]")
-        yield Input(
+        yield ScriptPathInput(
+            collection_root=self.collection_root,
             placeholder="Collection-relative path to post-response script",
             id="post-response-script",
         )
