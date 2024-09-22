@@ -73,7 +73,6 @@ This will load all of the shared variables from `shared.env`, and then load the 
 
 Note that you do *not* need to restart to load changes made to these files,
 so you can open and edit your env files in an editor of your choice alongside Posting.
-However, autocompletion and variable highlighting will not update until Posting is restarted.
 
 ### Environment specific config
 
