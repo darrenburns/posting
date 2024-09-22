@@ -15,8 +15,18 @@ from posting.config import SETTINGS
 
 class ScriptPathInput(Input):
     BINDINGS = [
-        Binding("ctrl+e", "open_in_editor", "To editor"),
-        Binding("ctrl+p", "open_in_pager", "To pager"),
+        Binding(
+            "ctrl+e",
+            "open_in_editor",
+            "To editor",
+            tooltip="Open this script in the configured $EDITOR.",
+        ),
+        Binding(
+            "ctrl+p",
+            "open_in_pager",
+            "To pager",
+            tooltip="Open this script in the configured $PAGER.",
+        ),
     ]
 
     def __init__(

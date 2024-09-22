@@ -12,6 +12,11 @@
   }
 }
 
+Tooltip {
+  background: $surface-darken-1;
+  border-left: wide $accent;
+}
+
 AutoComplete {
   border-left: wide $accent;
   background: $surface;
