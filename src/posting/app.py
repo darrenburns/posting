@@ -735,20 +735,25 @@ class Posting(App[None], inherit_bindings=False):
         """Watching specific files within the collection directory."""
         async for changes in awatch(self.collection.path):
             for change_type, file_name in changes:
-                if file_name.endswith(".py") and change_type in (
-                    Change.deleted,
-                    Change.modified,
-                ):
-                    # If a Python file was updated, then we want to clear
-                    # the script module cache for the app so that modules
-                    # are reloaded on the next request being sent.
-                    # Without this, we'd hit the module cache and simply
-                    # re-execute the previously cached module.
-                    self.notify(
-                        message="Reloaded scripts",
-                        timeout=3,
-                    )
-                    clear_module_cache()
+                if file_name.endswith(".py"):
+                    if change_type in (
+                        Change.deleted,
+                        Change.modified,
+                    ):
+                        # If a Python file was updated, then we want to clear
+                        # the script module cache for the app so that modules
+                        # are reloaded on the next request being sent.
+                        # Without this, we'd hit the module cache and simply
+                        # re-execute the previously cached module.
+                        self.notify(
+                            message="Reloaded scripts",
+                            timeout=3,
+                        )
+                        clear_module_cache()
+                    elif change_type == Change.added:
+                        # TODO - update the autocompletion
+                        # of the available scripts.
+                        pass
 
     def on_mount(self) -> None:
         self.jumper = Jumper(
