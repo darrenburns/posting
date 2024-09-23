@@ -24,7 +24,7 @@ from textual.widgets import (
 )
 from textual.widgets._tabbed_content import ContentTab
 from textual.widgets.text_area import TextAreaTheme
-from watchfiles import awatch
+from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
     Cookie,
@@ -734,8 +734,11 @@ class Posting(App[None], inherit_bindings=False):
     async def watch_collection_files(self) -> None:
         """Watching specific files within the collection directory."""
         async for changes in awatch(self.collection.path):
-            for _, file_name in changes:
-                if file_name.endswith(".py"):
+            for change_type, file_name in changes:
+                if file_name.endswith(".py") and change_type in (
+                    Change.deleted,
+                    Change.modified,
+                ):
                     # If a Python file was updated, then we want to clear
                     # the script module cache for the app so that modules
                     # are reloaded on the next request being sent.
