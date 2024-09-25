@@ -8,5 +8,6 @@ body:
     value: '123'
 scripts:
   on_request: scripts/my_script.py
+  on_response: scripts/my_script.py
 options:
   follow_redirects: false

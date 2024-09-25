@@ -128,6 +128,9 @@ class Settings(BaseSettings):
     watch_env_files: bool = Field(default=True)
     """If enabled, automatically reload environment files when they change."""
 
+    watch_collection_files: bool = Field(default=True)
+    """If enabled, automatically reload collection files when they change."""
+
     text_input: TextInputSettings = Field(default_factory=TextInputSettings)
     """General configuration for inputs and text area widgets."""
 

@@ -5,8 +5,8 @@ post-response scripts.
 """
 
 from textual.app import ComposeResult
-from textual.containers import VerticalScroll
-from textual.widgets import RichLog, TabPane, TabbedContent
+from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.widgets import Label
 
 
 class ScriptOutput(VerticalScroll):
@@ -17,12 +17,11 @@ class ScriptOutput(VerticalScroll):
     """
 
     def compose(self) -> ComposeResult:
-        # Tabs for test results, logs, etc.
-        with TabbedContent(id="script-output-tabs"):
-            with TabPane("Output"):
-                yield RichLog()
-            with TabPane("Logs"):
-                yield RichLog()
-            # TODO: Add tests tab
-            # with TabPane("Tests"):
-            # yield Label("Test results will appear here.")
+        with Horizontal():
+            with Vertical():
+                yield Label("Pre-request")
+                yield Label("Status")
+
+            with Vertical():
+                yield Label("Post-request")
+                yield Label("Status")

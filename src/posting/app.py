@@ -38,7 +38,7 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.scripts import clear_module_cache, execute_script
+from posting.scripts import execute_script, uncache_module
 from posting.themes import BUILTIN_THEMES, Theme, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
@@ -181,7 +181,7 @@ class MainScreen(Screen[None]):
         yield Footer(show_command_palette=False)
 
     def get_and_run_script(
-        self, script_path: str, default_function_name: str, *args: Any
+        self, path_to_script: str, default_function_name: str, *args: Any
     ) -> None:
         """
         Get and run a function from a script.
@@ -191,23 +191,24 @@ class MainScreen(Screen[None]):
             default_function_name: Default function name to use if not specified in the path.
             *args: Arguments to pass to the script function.
         """
-        full_path = self.collection.path / Path(script_path)
-        path_name_parts = full_path.name.split(":")
+        script_path = Path(path_to_script)
+        path_name_parts = script_path.name.split(":")
         if len(path_name_parts) == 2:
-            script_path, function_name = path_name_parts
+            script_path = Path(path_name_parts[0])
+            function_name = path_name_parts[1]
         else:
-            script_path = path_name_parts[0]
             function_name = default_function_name
 
-        full_path = full_path.parent / script_path
         try:
-            script_function = execute_script(full_path, function_name)
+            script_function = execute_script(
+                self.collection.path, script_path, function_name
+            )
         except Exception as e:
             log.error(f"Error loading script {function_name}: {e}")
             self.notify(
                 severity="error",
                 title=f"Error loading script {function_name}",
-                message=f"The script at {full_path} could not be loaded.",
+                message=f"The script at {script_path} could not be loaded: {e}",
             )
             return
 
@@ -226,11 +227,11 @@ class MainScreen(Screen[None]):
                     message=f"{e}",
                 )
         else:
-            log.warning(f"{function_name.capitalize()} script not found: {full_path}")
+            log.warning(f"{function_name.capitalize()} script not found: {script_path}")
             self.notify(
                 severity="error",
                 title=f"{function_name.capitalize()} script not found",
-                message=f"The {function_name} script at {full_path} could not be found.",
+                message=f"The {function_name} script at {script_path} could not be found.",
             )
 
     async def send_request(self) -> None:
@@ -287,6 +288,7 @@ class MainScreen(Screen[None]):
 
                 # If there's an associated pre-request script, run it.
                 if on_request := request_model.scripts.on_request:
+                    print("running on_request script...")
                     self.get_and_run_script(on_request, "on_request", request)
 
                 response = await client.send(
@@ -297,6 +299,7 @@ class MainScreen(Screen[None]):
                 self.post_message(HttpResponseReceived(response))
 
                 if on_response := request_model.scripts.on_response:
+                    print("running on_response script...")
                     self.get_and_run_script(on_response, "on_response", response)
 
         except httpx.ConnectTimeout as connect_timeout:
@@ -734,8 +737,8 @@ class Posting(App[None], inherit_bindings=False):
     async def watch_collection_files(self) -> None:
         """Watching specific files within the collection directory."""
         async for changes in awatch(self.collection.path):
-            for change_type, file_name in changes:
-                if file_name.endswith(".py"):
+            for change_type, file_path in changes:
+                if file_path.endswith(".py"):
                     if change_type in (
                         Change.deleted,
                         Change.modified,
@@ -745,12 +748,15 @@ class Posting(App[None], inherit_bindings=False):
                         # are reloaded on the next request being sent.
                         # Without this, we'd hit the module cache and simply
                         # re-execute the previously cached module.
+                        uncache_module(file_path)
+                        file_path_object = Path(file_path)
+                        file_name = file_path_object.name
                         self.notify(
-                            message="Reloaded scripts",
-                            timeout=3,
+                            f"Reloaded {file_name!r}",
+                            title="Script reloaded",
+                            timeout=2,
                         )
-                        clear_module_cache()
-                    elif change_type == Change.added:
+                    if change_type in (Change.added, Change.deleted):
                         # TODO - update the autocompletion
                         # of the available scripts.
                         pass
@@ -771,7 +777,8 @@ class Posting(App[None], inherit_bindings=False):
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
-                "--content-tab-response-trace-pane": "f",
+                "--content-tab-response-scripts-pane": "f",
+                "--content-tab-response-trace-pane": "g",
             },
             screen=self.screen,
         )
@@ -780,7 +787,8 @@ class Posting(App[None], inherit_bindings=False):
         if self.settings.watch_env_files:
             self.watch_environment_files()
 
-        self.watch_collection_files()
+        if self.settings.watch_collection_files:
+            self.watch_collection_files()
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(

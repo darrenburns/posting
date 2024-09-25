@@ -11,6 +11,7 @@ from textual_autocomplete import AutoComplete, DropdownItem, TargetState
 
 from posting.collection import Scripts
 from posting.config import SETTINGS
+from posting.scripts import uncache_module
 
 
 class ScriptPathInput(Input):
@@ -103,6 +104,10 @@ class ScriptPathInput(Input):
                     title=f"Can't run {command_name} command",
                     message=f"The command [b]{command_string}[/b] failed to run.",
                 )
+
+        # We're back in Posting, uncache the edited module as it may have
+        # been updated, and notify the user that we're aware of the change.
+        uncache_module(str(script_path))
 
     def action_open_in_editor(self) -> None:
         """

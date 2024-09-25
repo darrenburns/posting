@@ -3,12 +3,41 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Callable, Any
+from typing import TYPE_CHECKING, Callable, Any
 import threading
+
+from httpx import Request, Response
+from textual.app import App
+from textual.notifications import SeverityLevel
+
+if TYPE_CHECKING:
+    from posting.app import Posting
 
 # Global cache for loaded modules
 _MODULE_CACHE: dict[str, ModuleType] = {}
 _CACHE_LOCK = threading.Lock()
+
+
+# class Context:
+#     def __init__(self, app: Posting):
+#         self._app: "Posting" = app
+#         self.request: Request | None = None
+#         self.response: Response | None = None
+
+#     def notify(
+#         self,
+#         message: str,
+#         *,
+#         title: str = "",
+#         severity: SeverityLevel = "information",
+#         timeout: float | None = None,
+#     ):
+#         self._app.notify(
+#             message=message,
+#             title=title,
+#             severity=severity,
+#             timeout=timeout,
+#         )
 
 
 def clear_module_cache():
@@ -19,32 +48,44 @@ def clear_module_cache():
         _MODULE_CACHE.clear()
 
 
-def execute_script(script_path: Path, function_name: str) -> Callable[..., Any] | None:
+def execute_script(
+    collection_root: Path, script_path: Path, function_name: str
+) -> Callable[..., Any] | None:
     """
     Execute a Python script from the given path and extract a specified function.
     Uses caching to prevent multiple executions of the same script.
 
     Args:
-        script_path: Path to the Python script file.
+        collection_root: Path to the root of the collection.
+        script_path: Path to the Python script file, relative to the collection root.
         function_name: Name of the function to extract from the script.
 
     Returns:
         The extracted function if found, None otherwise.
 
     Raises:
-        FileNotFoundError: If the script file does not exist.
+        FileNotFoundError: If the script file does not exist or is outside the collection.
         Exception: If there's an error during script execution.
     """
-    if not script_path.is_file():
-        raise FileNotFoundError(f"Script not found: {script_path}")
+    # Ensure the script_path is relative to the collection root
+    full_script_path = (collection_root / script_path).resolve()
 
-    script_dir = script_path.parent.resolve()
-    module_name = script_path.stem
-    module_key = str(script_path.resolve())
+    # Check if the script is within the collection root
+    if not full_script_path.is_relative_to(collection_root):
+        raise FileNotFoundError(
+            f"Script path {script_path} is outside the collection root"
+        )
+
+    if not full_script_path.is_file():
+        raise FileNotFoundError(f"Script not found: {full_script_path}")
+
+    script_dir = full_script_path.parent
+    module_name = full_script_path.stem
+    module_key = str(full_script_path)
 
     try:
         sys.path.insert(0, str(script_dir))
-        module = _import_script_as_module(script_path, module_name, module_key)
+        module = _import_script_as_module(full_script_path, module_name, module_key)
         return _validate_function(getattr(module, function_name, None))
     finally:
         sys.path.remove(str(script_dir))
@@ -88,3 +129,16 @@ def _validate_function(func: Any) -> Callable[..., Any] | None:
         The function if it's callable, None otherwise.
     """
     return func if callable(func) else None
+
+
+def uncache_module(script_path: str) -> None:
+    """
+    Clear a specific module from the global module cache.
+
+    Args:
+        script_path: Path to the script file.
+    """
+    module_key = str(script_path)
+    with _CACHE_LOCK:
+        if module_key in _MODULE_CACHE:
+            del _MODULE_CACHE[module_key]
