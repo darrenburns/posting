@@ -695,6 +695,9 @@ class Posting(App[None], inherit_bindings=False):
             available_themes |= load_user_themes()
 
         self.themes = available_themes
+        """The themes that are available to the app, potentially including
+        themes loaded from the user's themes directory and xresources themes
+        if those configuration options are enabled."""
 
         # We need to call super.__init__ after the themes are loaded,
         # because our `get_css_variables` override depends on
@@ -702,14 +705,39 @@ class Posting(App[None], inherit_bindings=False):
         super().__init__()
 
         self.settings = settings
+        """Settings object which is built via pydantic-settings,
+        essentially a direct translation of the config.yaml file."""
+
         self.environment_files = environment_files
+        """A list of paths to dotenv files, in the order they're loaded."""
+
         self.collection = collection
+        """The loaded collection."""
+
         self.collection_specified = collection_specified
+        """Boolean indicating whether the user launched Posting explicitly
+        supplying a collection directory, or if they let Posting auto-discover
+        it in some way (likely just using the default collection)."""
+
         self.animation_level = settings.animation
+        """The level of animation to use in the app. This is used by Textual."""
+
         self.env_changed_signal = Signal[None](self, "env-changed")
+        """Signal that is published when the environment has changed.
+        This means one or more of the loaded environment files (in
+        `self.environment_files`) have been modified."""
+
+        self.session_env: dict[str, object] = {}
+        """Users can set the value of variables for the duration of the
+        session (until the app is quit). This can be done via the scripting
+        interface: pre-request or post-response scripts."""
 
     theme: Reactive[str] = reactive("galaxy", init=False)
+    """The currently selected theme. Changing this reactive should
+    trigger a complete refresh via the `watch_theme` method."""
+
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
+    """True if 'jump mode' is currently active, otherwise False."""
 
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
