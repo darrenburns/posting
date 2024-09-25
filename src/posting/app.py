@@ -748,6 +748,7 @@ class Posting(App[None], inherit_bindings=False):
                 self.environment_files,
                 self.settings.use_host_environment,
                 avoid_cache=True,
+                overlay_variables=self.session_env,
             )
             # Notify the app that the environment has changed,
             # which will trigger a reload of the variables in the relevant widgets.
