@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -9,7 +10,7 @@ import threading
 from httpx import Request, Response
 from textual.notifications import SeverityLevel
 
-from posting.variables import get_variables
+from posting.variables import get_variables, update_variables
 
 if TYPE_CHECKING:
     from posting.app import Posting as PostingApp
@@ -23,7 +24,7 @@ class Posting:
     """A class that provides access to Posting's API from within a script."""
 
     def __init__(self, app: PostingApp):
-        self._app: "PostingApp" = app
+        self._app: PostingApp = app
         """The Textual App instance for Posting."""
 
         self.request: Request | None = None
@@ -51,6 +52,7 @@ class Posting:
             value: The value of the variable to set.
         """
         self._app.session_env[name] = value
+        update_variables(self._app.session_env)
 
     def clear_variable(self, name: str) -> None:
         """Clear a session variable.
@@ -60,6 +62,7 @@ class Posting:
         """
         if name in self._app.session_env:
             del self._app.session_env[name]
+            update_variables(self._app.session_env)
 
     def notify(
         self,

@@ -5,7 +5,6 @@ import re
 import os
 from pathlib import Path
 from dotenv import dotenv_values
-from asyncio import Lock
 
 
 _VARIABLES_PATTERN = re.compile(
@@ -16,14 +15,15 @@ _VARIABLES_PATTERN = re.compile(
 class SharedVariables:
     def __init__(self):
         self._variables: dict[str, object] = {}
-        self._lock = Lock()
 
     def get(self) -> dict[str, object]:
         return self._variables.copy()
 
-    async def set(self, variables: dict[str, object]) -> None:
-        async with self._lock:
-            self._variables = variables
+    def set(self, variables: dict[str, object]) -> None:
+        self._variables = variables
+
+    def update(self, new_variables: dict[str, object]) -> None:
+        self._variables.update(new_variables)
 
 
 VARIABLES = SharedVariables()
@@ -37,11 +37,12 @@ async def load_variables(
     environment_files: tuple[Path, ...],
     use_host_environment: bool,
     avoid_cache: bool = False,
-    overlay_variables: dict[str, object] | None = None,
 ) -> dict[str, object]:
-    """Load the variables that are currently available in the environment,
-    optionally overlaying with additional variables which can be sourced
-    from anywhere.
+    """Load the variables that are currently available in the environment.
+
+    This will likely involve reading from a set of environment files,
+    but it could also involve reading from the host machine's environment
+    if `use_host_environment` is True.
 
     This will make them available via the `get_variables` function.
 
@@ -65,11 +66,20 @@ async def load_variables(
         host_env_variables = {key: value for key, value in os.environ.items()}
         variables = {**variables, **host_env_variables}
 
-    if overlay_variables:
-        variables = {**variables, **overlay_variables}
-
-    await VARIABLES.set(variables)
+    VARIABLES.set(variables)
     return variables
+
+
+def update_variables(new_variables: dict[str, object]) -> None:
+    """Update the current variables with new values.
+
+    This function safely updates the shared variables with new key-value pairs.
+    If a key already exists, its value will be updated. If it doesn't exist, it will be added.
+
+    Args:
+        new_variables: A dictionary containing the new variables to update or add.
+    """
+    VARIABLES.update(new_variables)
 
 
 @lru_cache()

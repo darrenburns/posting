@@ -38,11 +38,11 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
-from posting.scripts import execute_script, uncache_module
+from posting.scripts import execute_script, uncache_module, Posting as PostingContext
 from posting.themes import BUILTIN_THEMES, Theme, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
-from posting.variables import SubstitutionError, get_variables
+from posting.variables import SubstitutionError, get_variables, update_variables
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
@@ -214,9 +214,13 @@ class MainScreen(Screen[None]):
 
         if script_function is not None:
             try:
-                # If the script function takes arguments, pass the arguments to the script function.
-                if inspect.signature(script_function).parameters:
-                    script_function(*args)
+                # Get the number of parameters the script function expects
+                signature = inspect.signature(script_function)
+                num_params = len(signature.parameters)
+
+                # Call the function with the appropriate number of arguments
+                if num_params > 0:
+                    script_function(*args[:num_params])
                 else:
                     script_function()
             except Exception as e:
@@ -286,10 +290,19 @@ class MainScreen(Screen[None]):
                 print("timeout =", request_model.options.timeout)
                 print("auth =", request_model.auth)
 
+                app = cast("Posting", self.app)
+                script_context = PostingContext(app)
+                script_context.request = request
+
                 # If there's an associated pre-request script, run it.
                 if on_request := request_model.scripts.on_request:
                     print("running on_request script...")
-                    self.get_and_run_script(on_request, "on_request", request)
+                    self.get_and_run_script(
+                        on_request,
+                        "on_request",
+                        request,
+                        script_context,
+                    )
 
                 response = await client.send(
                     request=request,
@@ -300,7 +313,13 @@ class MainScreen(Screen[None]):
 
                 if on_response := request_model.scripts.on_response:
                     print("running on_response script...")
-                    self.get_and_run_script(on_response, "on_response", response)
+                    script_context.response = response
+                    self.get_and_run_script(
+                        on_response,
+                        "on_response",
+                        response,
+                        script_context,
+                    )
 
         except httpx.ConnectTimeout as connect_timeout:
             log.error("Connect timeout", connect_timeout)
@@ -748,8 +767,10 @@ class Posting(App[None], inherit_bindings=False):
                 self.environment_files,
                 self.settings.use_host_environment,
                 avoid_cache=True,
-                overlay_variables=self.session_env,
             )
+            # Overlay the session variables on top of the environment variables.
+            await update_variables(self.session_env)
+
             # Notify the app that the environment has changed,
             # which will trigger a reload of the variables in the relevant widgets.
             # Widgets subscribed to this signal can reload as needed.
