@@ -763,13 +763,13 @@ class Posting(App[None], inherit_bindings=False):
         """Watching files that were passed in as the environment."""
         async for changes in awatch(*self.environment_files):
             # Reload the variables from the environment files.
-            await load_variables(
+            load_variables(
                 self.environment_files,
                 self.settings.use_host_environment,
                 avoid_cache=True,
             )
             # Overlay the session variables on top of the environment variables.
-            await update_variables(self.session_env)
+            update_variables(self.session_env)
 
             # Notify the app that the environment has changed,
             # which will trigger a reload of the variables in the relevant widgets.

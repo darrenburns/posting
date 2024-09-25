@@ -33,7 +33,7 @@ def get_variables() -> dict[str, object]:
     return VARIABLES.get()
 
 
-async def load_variables(
+def load_variables(
     environment_files: tuple[Path, ...],
     use_host_environment: bool,
     avoid_cache: bool = False,
