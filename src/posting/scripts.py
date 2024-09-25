@@ -64,6 +64,11 @@ class Posting:
             del self._app.session_env[name]
             update_variables(self._app.session_env)
 
+    def clear_all_variables(self) -> None:
+        """Clear all session variables."""
+        self._app.session_env.clear()
+        update_variables(self._app.session_env)
+
     def notify(
         self,
         message: str,

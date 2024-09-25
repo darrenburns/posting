@@ -65,6 +65,7 @@ from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
+from posting.widgets.response.script_output import ScriptOutput
 from posting.xresources import load_xresources_themes
 
 
@@ -210,7 +211,7 @@ class MainScreen(Screen[None]):
                 title=f"Error loading script {function_name}",
                 message=f"The script at {script_path} could not be loaded: {e}",
             )
-            return
+            raise
 
         if script_function is not None:
             try:
@@ -230,6 +231,7 @@ class MainScreen(Screen[None]):
                     title=f"Error running {function_name} script",
                     message=f"{e}",
                 )
+                raise
         else:
             log.warning(f"{function_name.capitalize()} script not found: {script_path}")
             self.notify(
@@ -237,6 +239,7 @@ class MainScreen(Screen[None]):
                 title=f"{function_name.capitalize()} script not found",
                 message=f"The {function_name} script at {script_path} could not be found.",
             )
+            raise
 
     async def send_request(self) -> None:
         self.url_bar.clear_events()
@@ -297,12 +300,20 @@ class MainScreen(Screen[None]):
                 # If there's an associated pre-request script, run it.
                 if on_request := request_model.scripts.on_request:
                     print("running on_request script...")
-                    self.get_and_run_script(
-                        on_request,
-                        "on_request",
-                        request,
-                        script_context,
-                    )
+                    try:
+                        self.get_and_run_script(
+                            on_request,
+                            "on_request",
+                            request,
+                            script_context,
+                        )
+                    except Exception:
+                        self.response_script_output.set_request_status("error")
+                        # TODO - load the error into the response area, or log it.
+                    else:
+                        self.response_script_output.set_request_status("success")
+                else:
+                    self.response_script_output.set_request_status("no-script")
 
                 response = await client.send(
                     request=request,
@@ -314,12 +325,20 @@ class MainScreen(Screen[None]):
                 if on_response := request_model.scripts.on_response:
                     print("running on_response script...")
                     script_context.response = response
-                    self.get_and_run_script(
-                        on_response,
-                        "on_response",
-                        response,
-                        script_context,
-                    )
+                    try:
+                        self.get_and_run_script(
+                            on_response,
+                            "on_response",
+                            response,
+                            script_context,
+                        )
+                    except Exception:
+                        self.response_script_output.set_response_status("error")
+                        # TODO - load the error into the response area, or log it.
+                    else:
+                        self.response_script_output.set_response_status("success")
+                else:
+                    self.response_script_output.set_response_status("no-script")
 
         except httpx.ConnectTimeout as connect_timeout:
             log.error("Connect timeout", connect_timeout)
@@ -666,6 +685,10 @@ class MainScreen(Screen[None]):
     @property
     def response_trace(self) -> ResponseTrace:
         return self.query_one(ResponseTrace)
+
+    @property
+    def response_script_output(self) -> ScriptOutput:
+        return self.query_one(ScriptOutput)
 
 
 class Posting(App[None], inherit_bindings=False):
