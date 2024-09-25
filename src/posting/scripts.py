@@ -7,37 +7,85 @@ from typing import TYPE_CHECKING, Callable, Any
 import threading
 
 from httpx import Request, Response
-from textual.app import App
 from textual.notifications import SeverityLevel
 
+from posting.variables import get_variables
+
 if TYPE_CHECKING:
-    from posting.app import Posting
+    from posting.app import Posting as PostingApp
 
 # Global cache for loaded modules
 _MODULE_CACHE: dict[str, ModuleType] = {}
 _CACHE_LOCK = threading.Lock()
 
 
-# class Context:
-#     def __init__(self, app: Posting):
-#         self._app: "Posting" = app
-#         self.request: Request | None = None
-#         self.response: Response | None = None
+class Posting:
+    """A class that provides access to Posting's API from within a script."""
 
-#     def notify(
-#         self,
-#         message: str,
-#         *,
-#         title: str = "",
-#         severity: SeverityLevel = "information",
-#         timeout: float | None = None,
-#     ):
-#         self._app.notify(
-#             message=message,
-#             title=title,
-#             severity=severity,
-#             timeout=timeout,
-#         )
+    def __init__(self, app: PostingApp):
+        self._app: "PostingApp" = app
+        """The Textual App instance for Posting."""
+
+        self.request: Request | None = None
+        """The request that is currently being processed."""
+
+        self.response: Response | None = None
+        """The response received, if it's available."""
+
+    @property
+    def variables(self) -> dict[str, object]:
+        """Get the variables available in the environment.
+
+        This includes variables loaded from the environment and
+        any variables that have been set in scripts for this session.
+        """
+        return get_variables()
+
+    def set_variable(self, name: str, value: object) -> None:
+        """Set a session variable, which persists until the app shuts
+        down, and overrides any variables loaded from the environment
+        with the same name.
+
+        Args:
+            name: The name of the variable to set.
+            value: The value of the variable to set.
+        """
+        self._app.session_env[name] = value
+
+    def clear_variable(self, name: str) -> None:
+        """Clear a session variable.
+
+        Args:
+            name: The name of the variable to clear.
+        """
+        if name in self._app.session_env:
+            del self._app.session_env[name]
+
+    def notify(
+        self,
+        message: str,
+        *,
+        title: str = "",
+        severity: SeverityLevel = "information",
+        timeout: float | None = None,
+    ):
+        """Send a toast message, which will appear at the bottom
+        right corner of Posting. This is useful for grabbing the
+        user's attention even if they're not directly viewing the
+        Scripts tab.
+
+        Args:
+            message: The message to display in the toast body.
+            title: The title of the toast.
+            severity: The severity of the message.
+            timeout: Number of seconds the toast will be displayed for.
+        """
+        self._app.notify(
+            message=message,
+            title=title,
+            severity=severity,
+            timeout=timeout,
+        )
 
 
 def clear_module_cache():
