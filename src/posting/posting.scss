@@ -136,6 +136,13 @@ Footer {
 
 RichLog {
   background: $surface;
+  padding-left: 1;
+
+  &:focus {
+    background: $surface-lighten-1;
+    border-left: wide $accent;
+    padding-left: 0;
+  }
 }
 
 ContentTab {

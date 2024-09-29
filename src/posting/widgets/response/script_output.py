@@ -18,7 +18,9 @@ class ScriptOutput(VerticalScroll):
     DEFAULT_CSS = """\
         ScriptOutput {
             padding: 0 2;
-
+            & #status-bar {
+                height: 3;
+            }
             & Label {
                 &.-success {
                     color: $success;
@@ -38,7 +40,7 @@ class ScriptOutput(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
-        with Horizontal():
+        with Horizontal(id="status-bar"):
             with Vertical():
                 yield Label("Pre-request")
                 yield Label(self.request_status, id="request-status")
@@ -47,7 +49,7 @@ class ScriptOutput(VerticalScroll):
                 yield Label("Post-request")
                 yield Label(self.response_status, id="response-status")
 
-        yield Label("Script Output")
+        yield Label("Script output")
         yield RichLog(markup=True, highlight=True)
 
     def set_request_status(self, status: ScriptStatus) -> None:

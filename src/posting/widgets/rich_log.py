@@ -22,9 +22,9 @@ class RichLogIO(StringIO):
 
     def _flush_line(self, line: str) -> None:
         if self.stream_type == "stdout":
-            self.rich_log.write(f"[green]out[/green] {line}")
+            self.rich_log.write(f" [green]out[/green] {line}")
         else:
-            self.rich_log.write(f"[red]err[/red] {line}")
+            self.rich_log.write(f" [red]err[/red] {line}")
 
     def flush(self) -> None:
         if self._buffer:
