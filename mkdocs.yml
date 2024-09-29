@@ -35,6 +35,7 @@ nav:
     - "Help System": "guide/help_system.md"
     - "Themes": "guide/themes.md"
     - "Importing": "guide/importing.md"
+    - "Scripting": "guide/scripting.md"
   - Roadmap: "roadmap.md"
   - Changelog: "CHANGELOG.md"
   - FAQ: "faq.md"
