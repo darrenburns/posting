@@ -1,7 +1,11 @@
 import inspect
+from contextlib import redirect_stdout, redirect_stderr
+from io import StringIO
 from pathlib import Path
 from typing import Any, Literal, cast
+
 import httpx
+
 from rich.console import Group
 from rich.text import Text
 from textual import on, log, work
@@ -20,6 +24,7 @@ from textual.widgets import (
     Footer,
     Input,
     Label,
+    RichLog,
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
@@ -66,6 +71,7 @@ from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
+from posting.widgets.rich_log import RichLogIO
 from posting.xresources import load_xresources_themes
 
 
@@ -182,7 +188,10 @@ class MainScreen(Screen[None]):
         yield Footer(show_command_palette=False)
 
     def get_and_run_script(
-        self, path_to_script: str, default_function_name: str, *args: Any
+        self,
+        path_to_script: str,
+        default_function_name: str,
+        *args: Any,
     ) -> None:
         """
         Get and run a function from a script.
@@ -215,15 +224,29 @@ class MainScreen(Screen[None]):
 
         if script_function is not None:
             try:
-                # Get the number of parameters the script function expects
-                signature = inspect.signature(script_function)
-                num_params = len(signature.parameters)
+                script_output = self.response_script_output
+                script_output.log_function_call_start(
+                    f"{script_path.name}:{function_name}"
+                )
 
-                # Call the function with the appropriate number of arguments
-                if num_params > 0:
-                    script_function(*args[:num_params])
-                else:
-                    script_function()
+                rich_log = script_output.rich_log
+                stdout_log = RichLogIO(rich_log, "stdout")
+                stderr_log = RichLogIO(rich_log, "stderr")
+
+                with redirect_stdout(stdout_log), redirect_stderr(stderr_log):
+                    # Ensure we pass in the number of parameters the user has
+                    # implicitly requested in their script.
+                    signature = inspect.signature(script_function)
+                    num_params = len(signature.parameters)
+                    if num_params > 0:
+                        script_function(*args[:num_params])
+                    else:
+                        script_function()
+
+                # Ensure any remaining content is flushed
+                stdout_log.flush()
+                stderr_log.flush()
+
             except Exception as e:
                 log.error(f"Error running {function_name} script: {e}")
                 self.notify(
@@ -297,9 +320,11 @@ class MainScreen(Screen[None]):
                 script_context = PostingContext(app)
                 script_context.request = request
 
+                script_output = self.response_script_output
+                script_output.reset()
+
                 # If there's an associated pre-request script, run it.
                 if on_request := request_model.scripts.on_request:
-                    print("running on_request script...")
                     try:
                         self.get_and_run_script(
                             on_request,
@@ -322,9 +347,8 @@ class MainScreen(Screen[None]):
                 print("response cookies =", response.cookies)
                 self.post_message(HttpResponseReceived(response))
 
+                script_context.response = response
                 if on_response := request_model.scripts.on_response:
-                    print("running on_response script...")
-                    script_context.response = response
                     try:
                         self.get_and_run_script(
                             on_response,

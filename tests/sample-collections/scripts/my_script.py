@@ -1,3 +1,4 @@
+import sys
 import httpx
 
 from posting.scripts import Posting
@@ -11,8 +12,11 @@ def on_request(request: httpx.Request, posting: Posting) -> None:
         message="Hello from my_script.py!",
     )
     posting.set_variable("set_in_script", "foo")
+    sys.stderr.write("Hello from my_script.py:on_request - i'm an error!")
 
 
 def on_response(response: httpx.Response, posting: Posting) -> None:
     print(response.status_code)
     print(posting.variables["set_in_script"])  # prints "foo"
+    sys.stderr.write("Hello from my_script.py:on_response - i'm an error!")
+    sys.stdout.write("Hello from my_script.py!")
