@@ -121,11 +121,7 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
             collection = import_openapi_spec(spec_path)
         elif type.lower() == "postman":
             spec_type = "Postman"
-            console.print(
-                "Importing Postman collection haven't been implemented yet", style="red"
-            )
-            import_postman_spec(spec_path, output)
-            return
+            collection = import_postman_spec(spec_path, output)
         else:
             console.print(f"Unknown spec type: {type!r}", style="red")
             return
