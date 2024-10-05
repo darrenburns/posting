@@ -35,9 +35,9 @@ def highlight_url(text: Text, styles: UrlStyles) -> None:
 def highlight_variables(text: Text, styles: VariableStyles) -> None:
     for match in find_variables(text.plain):
         variable_name, start, end = match
-        if variable_name not in get_variables():
+        if variable_name not in get_variables() and styles.unresolved:
             text.stylize(Style.parse(styles.unresolved), start, end)
-        else:
+        elif styles.resolved:
             text.stylize(Style.parse(styles.resolved), start, end)
 
 

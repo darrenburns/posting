@@ -214,15 +214,16 @@ UrlBar {
 
 StatusBar {
   height: 1;
-  color: $text-muted;
-  background: $surface;
+  color: $text;
+  background: $secondary 10%;
   padding: 0 3;
-  hatch: right $surface-lighten-1;
+  hatch: right $secondary-darken-1 15%;
   dock: bottom;
 
   & #selected-request {
-    background: $surface-lighten-1;
-    padding: 0 1;
+    background: $secondary 15%;
+    border-left: vkey $secondary 33%;
+    border-right: vkey $secondary 33%;
   }
 }
 

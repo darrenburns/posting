@@ -4,7 +4,7 @@ from textual.widgets import Label
 
 from posting.collection import RequestModel
 
-NO_REQUEST_SELECTED = "No open request"
+NO_REQUEST_SELECTED = "Unsaved request"
 
 
 class StatusBar(Horizontal):
