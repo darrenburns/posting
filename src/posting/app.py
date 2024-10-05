@@ -71,6 +71,7 @@ from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
 from posting.widgets.rich_log import RichLogIO
+from posting.widgets.status_bar import StatusBar
 from posting.xresources import load_xresources_themes
 
 
@@ -113,6 +114,10 @@ class AppBody(Vertical):
     DEFAULT_CSS = """\
     AppBody {
         padding: 0 2;
+
+        StatusBar {
+            dock: bottom;
+        }
     }
     """
 
@@ -184,6 +189,7 @@ class MainScreen(Screen[None]):
             yield collection_browser
             yield RequestEditor()
             yield ResponseArea()
+        yield StatusBar()
         yield Footer(show_command_palette=False)
 
     def get_and_run_script(
@@ -399,7 +405,7 @@ class MainScreen(Screen[None]):
         else:
             self.url_input.remove_class("error")
 
-    @work(exclusive=True)
+    @work(exclusive=True, group="send_request")
     async def send_via_worker(self) -> None:
         await self.send_request()
 

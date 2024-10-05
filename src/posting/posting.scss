@@ -114,10 +114,10 @@ AppBody {
 
 Footer {
   border: none;
-  height: 2;
-  padding: 0 2 1 2;
+  height: 1;
+  padding: 0 2 0 2;
   background: transparent;
-  margin: 0;
+  margin: 0 0 1 0;
 
   & FooterKey {
     color: $text 85%;
@@ -212,6 +212,19 @@ UrlBar {
   }
 }
 
+StatusBar {
+  height: 1;
+  color: $text-muted;
+  background: $surface;
+  padding: 0 3;
+  hatch: right $surface-lighten-1;
+  dock: bottom;
+
+  & #selected-request {
+    background: $surface-lighten-1;
+    padding: 0 1;
+  }
+}
 
 TabPane {
   padding: 0;
