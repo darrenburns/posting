@@ -116,6 +116,9 @@ def request_sort_key(request: RequestModel) -> tuple[int, str]:
 
 
 class Scripts(BaseModel):
+    setup: str | None = Field(default=None)
+    """A relative path to a script that will be run before the template is applied."""
+
     on_request: str | None = Field(default=None)
     """A relative path to a script that will be run before the request is sent."""
 

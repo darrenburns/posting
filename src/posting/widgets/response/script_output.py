@@ -1,11 +1,10 @@
 """Tab for displaying the output of a script.
-
+https://github.com/sergeyklay/gohugo-theme-ed/blob/main/exampleSite/hugo.toml
 This could be test results, logs, or other output from pre-request or
 post-response scripts.
 """
 
 from typing import Literal
-from rich.rule import Rule
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.reactive import Reactive, reactive
@@ -35,6 +34,7 @@ class ScriptOutput(VerticalScroll):
         }    
     """
 
+    setup_status: Reactive[ScriptStatus] = reactive("no-script")
     request_status: Reactive[ScriptStatus] = reactive("no-script")
     response_status: Reactive[ScriptStatus] = reactive("no-script")
 
@@ -42,15 +42,22 @@ class ScriptOutput(VerticalScroll):
         self.can_focus = False
         with Horizontal(id="status-bar"):
             with Vertical():
+                yield Label("Setup")
+                yield Label(self.setup_status, id="setup-status")
+            with Vertical():
                 yield Label("Pre-request")
                 yield Label(self.request_status, id="request-status")
-
             with Vertical():
-                yield Label("Post-request")
+                yield Label("Post-response")
                 yield Label(self.response_status, id="response-status")
 
         yield Label("Script output")
         yield RichLog(markup=True, highlight=True)
+
+    def set_setup_status(self, status: ScriptStatus) -> None:
+        """Set the status of the setup script."""
+        self.setup_status = status
+        self.set_label_status("setup-status", status)
 
     def set_request_status(self, status: ScriptStatus) -> None:
         """Set the status of the request."""
@@ -84,12 +91,13 @@ class ScriptOutput(VerticalScroll):
     def reset(self) -> None:
         """Reset the output."""
         self.rich_log.clear()
+        self.set_setup_status("no-script")
         self.set_request_status("no-script")
         self.set_response_status("no-script")
 
     def log_function_call_start(self, function: str) -> None:
         """Log the start of a function call."""
-        self.rich_log.write(f"[b dim]Running {function}:[/]")
+        self.rich_log.write(f"[b dim]Running {function}[/]")
 
     @property
     def rich_log(self) -> RichLog:

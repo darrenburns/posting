@@ -24,7 +24,6 @@ from textual.widgets import (
     Footer,
     Input,
     Label,
-    RichLog,
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
@@ -266,6 +265,9 @@ class MainScreen(Screen[None]):
 
     async def send_request(self) -> None:
         self.url_bar.clear_events()
+        script_output = self.response_script_output
+        script_output.reset()
+
         request_options = self.request_options.to_model()
 
         cert_config = SETTINGS.get().ssl
@@ -277,10 +279,28 @@ class MainScreen(Screen[None]):
         if password := cert_config.password:
             httpx_cert_config.append(password.get_secret_value())
 
+        app = cast("Posting", self.app)
+        script_context = PostingContext(app)
+
         cert = cast(CertTypes, tuple(httpx_cert_config))
         try:
-            # We must apply the template before we can do anything else.
+            # Run setup scripts first
             request_model = self.build_request_model(request_options)
+            if setup_script := request_model.scripts.setup:
+                try:
+                    self.get_and_run_script(
+                        setup_script,
+                        "setup",
+                        script_context,
+                    )
+                except Exception:
+                    self.response_script_output.set_setup_status("error")
+                else:
+                    self.response_script_output.set_setup_status("success")
+            else:
+                self.response_script_output.set_setup_status("no-script")
+
+            # Now apply the template
             variables = get_variables()
             try:
                 request_model.apply_template(variables)
@@ -316,12 +336,7 @@ class MainScreen(Screen[None]):
                 print("timeout =", request_model.options.timeout)
                 print("auth =", request_model.auth)
 
-                app = cast("Posting", self.app)
-                script_context = PostingContext(app)
                 script_context.request = request
-
-                script_output = self.response_script_output
-                script_output.reset()
 
                 # If there's an associated pre-request script, run it.
                 if on_request := request_model.scripts.on_request:

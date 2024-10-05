@@ -6,7 +6,11 @@ body:
   form_data:
   - name: something
     value: '123'
+headers:
+- name: X-Setup-Var
+  value: $setup_var
 scripts:
+  setup: scripts/my_script.py
   on_request: scripts/my_script.py
   on_response: scripts/my_script.py
 options:

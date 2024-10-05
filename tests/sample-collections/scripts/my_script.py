@@ -4,6 +4,10 @@ import httpx
 from posting.scripts import Posting
 
 
+def setup(posting: Posting) -> None:
+    posting.set_variable("setup_var", "ADDED IN SETUP")
+
+
 def on_request(request: httpx.Request, posting: Posting) -> None:
     new_header = "Foo-Bar-Baz!!!!!"
     request.headers["X-Custom-Header"] = new_header
