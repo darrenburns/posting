@@ -72,6 +72,7 @@ from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
 from posting.widgets.rich_log import RichLogIO
 from posting.widgets.status_bar import StatusBar
+from posting.widgets.text_area import PostingTextArea
 from posting.xresources import load_xresources_themes
 
 
@@ -526,6 +527,7 @@ class MainScreen(Screen[None]):
 
             request_model.save_to_disk(save_path)
             self.collection_browser.update_currently_open_node(request_model)
+            self.status_bar.dirty = False
             self.notify(
                 title="Request saved",
                 message=path_to_display,

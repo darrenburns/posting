@@ -128,3 +128,5 @@ Hold `shift` and move the cursor or click and drag to select text.
                 yield line[column], (row, column)
                 column -= 1
             row -= 1
+
+class RequestBody()

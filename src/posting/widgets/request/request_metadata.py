@@ -1,9 +1,12 @@
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
+from textual.message import Message
 from textual.reactive import Reactive, reactive
 from textual.widgets import Input, Label, Static
 
 from posting.collection import RequestModel
+from posting.messages import RequestChanged
 from posting.widgets.text_area import PostingTextArea
 from posting.widgets.variable_input import VariableInput
 
@@ -49,8 +52,13 @@ class RequestMetadata(VerticalScroll):
         yield VariableInput(placeholder="Enter a name...", id="name-input")
         yield Label("Description [dim]optional[/dim]")
         yield PostingTextArea(id="description-textarea")
-
         yield Static("", id="request-path")
+
+    @on(Input.Changed)
+    @on(PostingTextArea.Changed)
+    def report_change(self, event: Message) -> None:
+        event.stop()
+        self.post_message(RequestChanged())
 
     @property
     def request_name_input(self) -> Input:

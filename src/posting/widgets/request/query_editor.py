@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
@@ -6,6 +7,13 @@ from posting.collection import QueryParam
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 from posting.widgets.variable_input import VariableInput
+from textual import on
+from textual.message import Message
+
+
+@dataclass
+class QueryParamsChanged(Message):
+    """Sent when the query parameters change."""
 
 
 class ParamsTable(PostingDataTable):
@@ -66,3 +74,9 @@ class QueryStringEditor(Vertical):
             ),
             empty_message="There are no parameters.",
         )
+
+    @on(PostingDataTable.RowsRemoved)
+    @on(PostingDataTable.RowsAdded)
+    def on_content_changed(self, event: Message) -> None:
+        event.stop()
+        self.post_message(QueryParamsChanged())

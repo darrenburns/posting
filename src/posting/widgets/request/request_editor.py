@@ -16,7 +16,7 @@ from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.select import PostingSelect
 from posting.widgets.tabbed_content import PostingTabbedContent
-from posting.widgets.text_area import TextAreaFooter, TextEditor
+from posting.widgets.text_area import PostingTextArea, TextAreaFooter, TextEditor
 
 
 if TYPE_CHECKING:

@@ -1,12 +1,19 @@
+from dataclasses import dataclass
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.events import DescendantFocus
+from textual.message import Message
 from textual.widgets import Checkbox, Input, Label, Static
 
 from posting.collection import Options
 from posting.widgets.variable_input import VariableInput
+
+
+@dataclass
+class OptionsChanged(Message):
+    """Sent when the request options change."""
 
 
 class RequestOptions(VerticalScroll):
@@ -139,6 +146,13 @@ class RequestOptions(VerticalScroll):
             self.options.timeout = float(event.value)
         except ValueError:
             self.options.timeout = 5.0
+
+    @on(Input.Changed)
+    @on(Checkbox.Changed)
+    def on_option_change(self, event: Input.Changed | Checkbox.Changed) -> None:
+        """Handle the input change event."""
+        event.stop()
+        self.post_message(OptionsChanged())
 
     @on(DescendantFocus)
     def on_descendant_focus(self, event: DescendantFocus) -> None:

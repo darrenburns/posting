@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -12,6 +13,14 @@ from posting.request_headers import REQUEST_HEADERS
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 from posting.widgets.input import PostingInput
 from posting.widgets.variable_input import VariableInput
+from textual import on
+from textual.message import Message
+from posting.messages import RequestChanged
+
+
+@dataclass
+class HeadersChanged(Message):
+    pass
 
 
 class HeaderInput(PostingInput):
@@ -53,6 +62,12 @@ class HeaderEditor(Vertical):
                 prevent_default_enter=False,
             )
         )
+
+    @on(PostingDataTable.RowsRemoved)
+    @on(PostingDataTable.RowsAdded)
+    def on_content_changed(self, event: Message) -> None:
+        event.stop()
+        self.post_message(RequestChanged())
 
 
 class HeadersTable(PostingDataTable):

@@ -220,7 +220,7 @@ StatusBar {
   hatch: right $secondary-darken-1 15%;
   dock: bottom;
 
-  & #selected-request {
+  & FileStatus {
     background: $secondary 15%;
     border-left: vkey $secondary 33%;
     border-right: vkey $secondary 33%;

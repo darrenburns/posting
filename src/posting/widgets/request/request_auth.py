@@ -1,14 +1,22 @@
+from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 import httpx
 from textual import on, log
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.message import Message
 from textual.widgets import ContentSwitcher, Input, Label, Select, Static
 
 from posting.collection import Auth, BasicAuth, DigestAuth
 from posting.widgets.select import PostingSelect
 from posting.widgets.variable_input import VariableInput
+from posting.messages import RequestChanged
+
+
+@dataclass
+class AuthChanged(Message):
+    pass
 
 
 @runtime_checkable
@@ -112,6 +120,12 @@ class RequestAuth(VerticalScroll):
     def on_auth_type_changed(self, event: Select.Changed):
         value = event.value
         self.content_switcher.current = f"auth-form-{value}" if value else None
+
+    @on(Select.Changed)
+    @on(Input.Changed)
+    def on_content_changed(self, event: Message) -> None:
+        event.stop()
+        self.post_message(AuthChange())
 
     def to_httpx_auth(self) -> httpx.Auth | None:
         form = self.current_form

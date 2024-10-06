@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 import shlex
 import subprocess
@@ -12,6 +13,17 @@ from textual_autocomplete import AutoComplete, DropdownItem, TargetState
 from posting.collection import Scripts
 from posting.config import SETTINGS
 from posting.scripts import uncache_module
+from textual import on
+from textual.message import Message
+
+
+@dataclass
+class ScriptsChanged(Message):
+    """Posted when the paths to the scripts change.
+
+    Note that this does not mean the scripts themselves have changed,
+    only that the paths to them have changed.
+    """
 
 
 class ScriptPathInput(Input):
@@ -239,3 +251,8 @@ class RequestScripts(VerticalScroll):
             on_request=self.query_one("#pre-request-script", Input).value or None,
             on_response=self.query_one("#post-response-script", Input).value or None,
         )
+
+    @on(Input.Changed)
+    def on_content_changed(self, event: Message) -> None:
+        event.stop()
+        self.post_message(ScriptsChanged())
