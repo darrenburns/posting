@@ -114,7 +114,7 @@ AppBody {
 
 Footer {
   border: none;
-  height: 1;
+  height: 2;
   padding: 0 2 0 2;
   background: transparent;
   margin: 0 0 1 0;
@@ -224,6 +224,8 @@ StatusBar {
     background: $secondary 15%;
     border-left: vkey $secondary 33%;
     border-right: vkey $secondary 33%;
+    width: auto;
+    max-width: 30%;
   }
 }
 

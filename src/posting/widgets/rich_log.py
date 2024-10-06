@@ -1,6 +1,16 @@
 from io import StringIO
 from typing import Literal
+from textual.binding import Binding
 from textual.widgets import RichLog
+
+
+class PostingRichLog(RichLog):
+    BINDINGS = [
+        Binding("j", "scroll_down", "Scroll down"),
+        Binding("k", "scroll_up", "Scroll up"),
+        Binding("g", "scroll_home", "Scroll to top"),
+        Binding("G", "scroll_end", "Scroll to bottom"),
+    ]
 
 
 class RichLogIO(StringIO):

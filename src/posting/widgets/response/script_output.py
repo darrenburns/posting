@@ -8,7 +8,9 @@ from typing import Literal
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.reactive import Reactive, reactive
-from textual.widgets import Label, RichLog
+from textual.widgets import Label
+
+from posting.widgets.rich_log import PostingRichLog
 
 ScriptStatus = Literal["success", "error", "no-script"]
 
@@ -52,7 +54,7 @@ class ScriptOutput(VerticalScroll):
                 yield Label(self.response_status, id="response-status")
 
         yield Label("Script output")
-        yield RichLog(markup=True, highlight=True)
+        yield PostingRichLog(markup=True, highlight=True)
 
     def set_setup_status(self, status: ScriptStatus) -> None:
         """Set the status of the setup script."""
@@ -100,6 +102,6 @@ class ScriptOutput(VerticalScroll):
         self.rich_log.write(f"[b dim]Running {function}[/]")
 
     @property
-    def rich_log(self) -> RichLog:
+    def rich_log(self) -> PostingRichLog:
         """Get the RichLog widget which stdout and stderr are printed to."""
-        return self.query_one(RichLog)
+        return self.query_one(PostingRichLog)

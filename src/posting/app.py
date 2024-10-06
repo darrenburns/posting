@@ -635,6 +635,7 @@ class MainScreen(Screen[None]):
 
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
+        self.status_bar.set_request_status(request_model)
         self.selected_method = request_model.method
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
@@ -670,6 +671,10 @@ class MainScreen(Screen[None]):
     @property
     def url_bar(self) -> UrlBar:
         return self.query_one(UrlBar)
+
+    @property
+    def status_bar(self) -> StatusBar:
+        return self.query_one(StatusBar)
 
     @property
     def method_selector(self) -> MethodSelector:
