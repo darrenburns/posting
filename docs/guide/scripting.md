@@ -29,6 +29,10 @@ By default, if you specify a path to a Python file, Posting will look for and ex
 
 However, you can have Posting call any function you wish using the syntax `path/to/script.py:function_to_run`.
 
+Note that relative paths are relative to the collection directory.
+This ensures that if you place scripts inside your collection directory,
+they're included when you share a collection with others.
+
 Note that you do not need to specify all of the arguments when writing these functions. Posting will only pass the number of arguments that you've specified when it calls your function. For example, you could define a your `on_request` function as `def on_request(request: httpx.Request) -> None` and Posting would call it with `on_request(request: httpx.Request)` without passing the `posting` argument.
 
 ### Example: Setup Script
