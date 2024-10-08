@@ -35,6 +35,17 @@ they're included when you share a collection with others.
 
 Note that you do not need to specify all of the arguments when writing these functions. Posting will only pass the number of arguments that you've specified when it calls your function. For example, you could define a your `on_request` function as `def on_request(request: httpx.Request) -> None` and Posting would call it with `on_request(request: httpx.Request)` without passing the `posting` argument.
 
+## Editing Scripts
+
+When you edit a script, it'll automatically be reloaded.
+This means you can keep Posting open while editing it.
+
+Posting also allows you to quickly jump to your editor (assuming you've set the `$EDITOR` or `$POSTING_EDITOR` environment variables) to edit a script.
+Press ++ctrl+e++ while a script input field inside the `Scripts` tab is focused to open the path in your editor.
+
+!!! warning
+    As of version 2.0.0, the script file must exist *before* pressing ++ctrl+e++. Posting will not create the file for you.
+
 ### Example: Setup Script
 
 The **setup script** is run before the request is built.
@@ -105,7 +116,11 @@ The `Posting` object provides access to the application context and useful metho
 
 Note that variables are described as "session variables" because they persist for the duration of the session (until you close Posting).
 
-### Libraries
+### Execution Environment
+
+Scripts run in the same process and environment as Posting, so you should take care to avoid performing damaging global operations such as monkey-patching standard library modules.
+
+#### Libraries
 
 You can make use of any library that is available in the Python environment that Posting is running in. This means you can use all of the Python standard library as well as any of Posting's dependencies (such as `httpx`, `pyyaml`, `pydantic`, etc).
 
