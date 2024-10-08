@@ -60,7 +60,7 @@ class TestJumpMode:
 
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+o")  # enter jump mode
-            await pilot.press("y")  # target "Options" tab
+            await pilot.press("u")  # target "Options" tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -302,7 +302,7 @@ class TestLoadingRequest:
         async def run_before(pilot: Pilot):
             await pilot.press(*"jj")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "y")  # jump to 'Options' tab
+            await pilot.press("ctrl+o", "u")  # jump to 'Options' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
 
