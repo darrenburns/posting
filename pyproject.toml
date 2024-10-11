@@ -1,6 +1,6 @@
 [project]
 name = "posting"
-version = "1.13.0"
+version = "2.0.0b1"
 description = "The modern API client that lives in your terminal."
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }
@@ -16,7 +16,7 @@ dependencies = [
     "pydantic-settings==2.4.0",
     "python-dotenv==1.0.1",
     "textual[syntax]==0.79.1",
-    "textual-autocomplete==3.0.0a9",
+    "textual-autocomplete==3.0.0a10",
     "watchfiles>=0.24.0",
 ]
 readme = "README.md"
@@ -24,7 +24,7 @@ requires-python = ">= 3.11"
 license = { file = "LICENSE" }
 keywords = ["tui", "http", "client", "terminal", "api", "testing", "textual", "cli", "posting", "developer-tool"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",

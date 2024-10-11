@@ -1,6 +1,6 @@
 ## Overview
 
-You can attach simple Python scripts to requests, and have Posting run them at various stages of the request lifecycle. This powerful feature allows you to:
+You can attach simple Python scripts to requests inside the `Scripts` tab, and have Posting run them at various stages of the request lifecycle. This powerful feature allows you to:
 
 - Perform setup before a request (e.g. setting variables, preparing data)
 - Set or modify headers, query parameters, and other request properties
@@ -9,7 +9,7 @@ You can attach simple Python scripts to requests, and have Posting run them at v
 - Inspect request and response objects, and manipulate them
 - Pretty much anything else you can think of doing with Python!
 
-## Script Types
+## Script types
 
 Posting supports three types of scripts, which run at different points in the request/response lifecycle:
 
@@ -17,7 +17,7 @@ Posting supports three types of scripts, which run at different points in the re
 2. **Pre-request Scripts**: Runs after the request has been constructed and variables have been substituted, but before the request is sent. You can directly modify the request object here.
 3. **Post-response Scripts**: Runs after the response is received. This is useful for extracting data from the response, or for performing cleanup.
 
-## Writing Scripts
+## Writing scripts
 
 In the context of Posting, a "script" is a regular Python function.
 
@@ -35,7 +35,7 @@ they're included when you share a collection with others.
 
 Note that you do not need to specify all of the arguments when writing these functions. Posting will only pass the number of arguments that you've specified when it calls your function. For example, you could define a your `on_request` function as `def on_request(request: httpx.Request) -> None` and Posting would call it with `on_request(request: httpx.Request)` without passing the `posting` argument.
 
-## Editing Scripts
+## Editing scripts
 
 When you edit a script, it'll automatically be reloaded.
 This means you can keep Posting open while editing it.
@@ -46,7 +46,7 @@ Press ++ctrl+e++ while a script input field inside the `Scripts` tab is focused 
 !!! warning
     As of version 2.0.0, the script file must exist *before* pressing ++ctrl+e++. Posting will not create the file for you.
 
-### Example: Setup Script
+### Example: Setup script
 
 The **setup script** is run before the request is built.
 You can set variables in the setup script that can be used in the request.
@@ -69,7 +69,7 @@ def setup(posting: Posting) -> None:
         posting.set_variable("auth_token", "1234567890")
 ```
 
-### Example: Pre-request Script
+### Example: Pre-request script
 
 The **pre-request script** is run after the request has been constructed and variables have been substituted, right before the request is sent.
 
@@ -87,7 +87,7 @@ def on_request(request: httpx.Request, posting: Posting) -> None:
     posting.notify("Request is being sent!")
 ```
 
-### Example: Post-response Script
+### Example: Post-response script
 
 The **post-response script** is run after the response is received.
 You can use this to extract data from the response, for example a JWT token,
@@ -104,7 +104,7 @@ def on_response(response: httpx.Response, posting: Posting) -> None:
     posting.set_variable("auth_token", response.headers["Authorization"])
 ```
 
-### The `Posting` Object
+### The `Posting` object
 
 The `Posting` object provides access to the application context and useful methods:
 
@@ -116,7 +116,7 @@ The `Posting` object provides access to the application context and useful metho
 
 Note that variables are described as "session variables" because they persist for the duration of the session (until you close Posting).
 
-### Execution Environment
+### Execution environment
 
 Scripts run in the same process and environment as Posting, so you should take care to avoid performing damaging global operations such as monkey-patching standard library modules.
 
