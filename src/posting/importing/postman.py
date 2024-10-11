@@ -3,7 +3,7 @@ from typing import List, Optional
 import json
 import re
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from rich.console import Console
 
@@ -66,8 +66,8 @@ class RequestItem(BaseModel):
 
 
 class PostmanCollection(BaseModel):
-    info: dict[str, str]
-    variable: List[Variable]
+    info: dict[str, str] = Field(default_factory=dict)
+    variable: List[Variable] = Field(default_factory=list)
 
     item: List[RequestItem]
 
