@@ -46,6 +46,10 @@ Press ++ctrl+e++ while a script input field inside the `Scripts` tab is focused 
 !!! warning
     As of version 2.0.0, the script file must exist *before* pressing ++ctrl+e++. Posting will not create the file for you.
 
+## Script logs
+
+If your script writes to `stdout` or `stderr`, you'll see the output in the `Scripts` tab in the Response section.
+
 ### Example: Setup script
 
 The **setup script** is run before the request is built.

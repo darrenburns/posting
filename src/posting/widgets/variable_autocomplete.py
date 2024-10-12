@@ -87,10 +87,8 @@ class VariableAutoComplete(AutoComplete):
         text = target_state.text
         if is_cursor_within_variable(cursor, text):
             variable_at_cursor = get_variable_at_cursor(cursor, text)
-            print(f"search string = {variable_at_cursor}")
             return variable_at_cursor or ""
         else:
-            print(f"search string = {target_state.text}")
             return target_state.text
 
     def get_variable_candidates(self, target_state: TargetState) -> list[DropdownItem]:
