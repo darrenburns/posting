@@ -54,6 +54,13 @@ class FocusSettings(BaseModel):
 
     If this value is unset, focus will not shift when a response is received."""
 
+    on_request_open: (
+        Literal["headers", "body", "query", "auth", "info", "scripts", "options"] | None
+    ) = Field(default=None)
+    """On opening a request using the sidebar collection browser, move focus to the specified target.
+
+    If this value is unset, focus will not shift when a request is opened."""
+
 
 class CertificateSettings(BaseModel):
     """Configuration for SSL CA bundles and client certificates."""
