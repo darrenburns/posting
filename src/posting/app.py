@@ -119,17 +119,57 @@ class AppBody(Vertical):
 class MainScreen(Screen[None]):
     AUTO_FOCUS = None
     BINDINGS = [
-        Binding("ctrl+j", "send_request", "Send"),
-        Binding("ctrl+t", "change_method", "Method"),
-        Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
-        Binding("ctrl+s", "save_request", "Save"),
-        Binding("ctrl+n", "new_request", "New"),
-        Binding("ctrl+m", "toggle_expanded", "Expand section", show=False),
+        Binding(
+            "ctrl+j",
+            "send_request",
+            "Send",
+            tooltip="Send the current request.",
+            id="send-request",
+        ),
+        Binding(
+            "ctrl+t",
+            "change_method",
+            "Method",
+            tooltip="Focus the method selector.",
+            id="focus-method",
+        ),
+        Binding(
+            "ctrl+l",
+            "app.focus('url-input')",
+            "Focus URL input",
+            show=False,
+            tooltip="Focus the URL input.",
+            id="focus-url",
+        ),
+        Binding(
+            "ctrl+s",
+            "save_request",
+            "Save",
+            tooltip="Save the current request. If a request is open, this will overwrite it.",
+            id="save-request",
+        ),
+        Binding(
+            "ctrl+n",
+            "new_request",
+            "New",
+            tooltip="Create a new request",
+            id="new-request",
+        ),
+        Binding(
+            "ctrl+m",
+            "toggle_expanded",
+            "Expand section",
+            show=False,
+            tooltip="Expand or shrink the section (request or response) which has focus",
+            id="expand-section",
+        ),
         Binding(
             "ctrl+h",
             "toggle_collection_browser",
             "Toggle collection browser",
             show=False,
+            tooltip="Toggle the collection browser",
+            id="toggle-collection",
         ),
     ]
 
@@ -738,19 +778,31 @@ class Posting(App[None], inherit_bindings=False):
             "ctrl+p",
             "command_palette",
             description="Commands",
+            tooltip="Open the command palette to search and run commands.",
+            id="commands",
         ),
         Binding(
             "ctrl+o",
             "toggle_jump_mode",
             description="Jump",
+            tooltip="Activate jump mode to quickly move focus between widgets.",
+            id="jump",
         ),
         Binding(
             "ctrl+c",
             "app.quit",
             description="Quit",
+            tooltip="Quit the application.",
             priority=True,
+            id="quit",
         ),
-        Binding("f1,ctrl+question_mark", "help", "Help"),
+        Binding(
+            "f1,ctrl+question_mark",
+            "help",
+            "Help",
+            tooltip="Open the help dialog for the currently focused widget.",
+            id="help",
+        ),
         Binding("f8", "save_screenshot", "Save screenshot", show=False),
     ]
 
@@ -873,6 +925,7 @@ class Posting(App[None], inherit_bindings=False):
                         pass
 
     def on_mount(self) -> None:
+        self.set_keymap(self.settings.keymap)
         self.jumper = Jumper(
             {
                 "method-selector": "1",

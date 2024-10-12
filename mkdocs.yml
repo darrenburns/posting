@@ -34,6 +34,7 @@ nav:
     - "Command Palette": "guide/command_palette.md"
     - "Help System": "guide/help_system.md"
     - "Themes": "guide/themes.md"
+    - "Keymaps": "guide/keymap.md"
     - "Importing": "guide/importing.md"
     - "Scripting": "guide/scripting.md"
   - Roadmap: "roadmap.md"
