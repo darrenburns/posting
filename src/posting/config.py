@@ -10,7 +10,6 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 from textual.types import AnimationLevel
-import yaml
 
 from posting.locations import config_file, theme_directory
 
@@ -182,6 +181,9 @@ class Settings(BaseSettings):
 
     focus: FocusSettings = Field(default_factory=FocusSettings)
     """Configuration for focus."""
+
+    keymap: dict[str, str] = Field(default_factory=dict)
+    """A dictionary mapping binding IDs to key combinations."""
 
     @classmethod
     def settings_customise_sources(
