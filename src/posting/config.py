@@ -23,6 +23,13 @@ class HeadingSettings(BaseModel):
     """Whether or not to show the hostname in the app header."""
     show_version: bool = Field(default=True)
     """Whether or not to show the version in the app header."""
+    hostname: str | None = Field(default=None)
+    """The hostname to display in the app header.
+
+    You may use Rich markup here.
+    
+    If unset, the hostname provided via `socket.gethostname()` will be used.
+    """
 
 
 class UrlBarSettings(BaseModel):
