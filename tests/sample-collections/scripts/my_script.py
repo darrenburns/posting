@@ -5,6 +5,8 @@ from posting.scripts import Posting
 
 
 def setup(posting: Posting) -> None:
+    print("Hello from my_script.py:setup!")
+    sys.stderr.write("error from setup!\n")
     posting.set_variable("setup_var", "ADDED IN SETUP")
 
 

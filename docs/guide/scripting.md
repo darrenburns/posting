@@ -9,6 +9,8 @@ You can attach simple Python scripts to requests inside the `Scripts` tab, and h
 - Inspect request and response objects, and manipulate them
 - Pretty much anything else you can think of doing with Python!
 
+<img src="../../assets/scripts-tab.png" alt="Scripts tab" />
+
 ## Script types
 
 Posting supports three types of scripts, which run at different points in the request/response lifecycle:
@@ -49,6 +51,7 @@ Press ++ctrl+e++ while a script input field inside the `Scripts` tab is focused 
 ## Script logs
 
 If your script writes to `stdout` or `stderr`, you'll see the output in the `Scripts` tab in the Response section.
+This output is not persisted on disk.
 
 ### Example: Setup script
 

@@ -542,5 +542,22 @@ class TestFocusAutoSwitchingConfig:
 
         async def run_before(pilot: Pilot):
             await pilot.press("j", "j", "enter")
+            await pilot.pause()  # wait for focus to switch
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestScripts:
+    def test_script_runs(self, snap_compare):
+        """Check that a script runs correctly."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("enter")
+            await pilot.press("ctrl+j")
+            await pilot.app.workers.wait_for_complete()
+            await pilot.press("ctrl+o", "f")  # jump to "Scripts"
+            await pilot.press("ctrl+m")  # expand response section
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))

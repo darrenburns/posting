@@ -73,6 +73,6 @@ These are the IDs of the actions that you can change the keybinding for:
 - `toggle-collection` - Toggle the collection browser. Default: `ctrl+h`.
 - `new-request` - Create a new request. Default: `ctrl+n`.
 - `commands` - Open the command palette. Default: `ctrl+p`.
-- `help` - Open the help dialog for the currently focused widget. Default: `f1,?`.
+- `help` - Open the help dialog for the currently focused widget. Default: `f1,ctrl+question_mark`.
 - `quit` - Quit the application. Default: `ctrl+c`.
 - `jump` - Enter jump mode. Default: `ctrl+o`.
