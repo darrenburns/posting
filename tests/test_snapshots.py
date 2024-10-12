@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Literal
 from unittest import mock
 import pytest
 
@@ -119,7 +120,7 @@ class TestUrlBar:
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
 
-@pytest.mark.skip(reason="cursor blink is not working in textual 0.76")
+# @pytest.mark.skip(reason="cursor blink is not working in textual 0.76")
 @use_config("general.yaml")
 class TestCommandPalette:
     def test_loads_and_shows_discovery_options(self, snap_compare):
@@ -149,8 +150,8 @@ class TestCommandPalette:
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
-            await pilot.press(*"toggle collection")
-            await pilot.press("enter", "enter")
+            await pilot.press(*"tog coll")
+            await pilot.press("down", "enter")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -520,3 +521,26 @@ class TestCustomThemeComplex:
             await pilot.press("shift+down")
 
         assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestFocusAutoSwitchingConfig:
+    @pytest.mark.parametrize(
+        "focus_target",
+        ["headers", "body", "query", "info", "url", "method"],
+    )
+    def test_focus_on_request_open__open_body(
+        self,
+        focus_target,
+        monkeypatch,
+        snap_compare,
+    ):
+        """Check that the expected tab is focused when a request is opened from the collection browser."""
+
+        monkeypatch.setenv("POSTING_FOCUS__ON_REQUEST_OPEN", focus_target)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)

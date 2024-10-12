@@ -55,7 +55,7 @@ def load_variables(
 
     existing_variables = get_variables()
     if existing_variables and not avoid_cache:
-        return {key: value for key, value in existing_variables}
+        return {key: value for key, value in existing_variables.items()}
 
     variables: dict[str, object] = {
         key: value
