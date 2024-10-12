@@ -57,7 +57,7 @@ Some keys might be intercepted before reaching Posting, and your emulator might 
 
 The only way to know for sure which keys are supported in your particular terminal emulator is to install Textual, run `textual keys`, press the key you want to use, and look at the `key` field of the printed output.
 
-!!! note
+!!! example "Work in progress"
     In the future, I hope to make it easier to discover which keys are supported and when key presses they correspond to for a particular environment directly within Posting. This will likely take the form of a CLI command that outputs key names and their corresponding key presses. For now, if you need assistance, please open a discussion on [GitHub](https://github.com/darrenburns/posting/discussions).
 
 ### Binding IDs
