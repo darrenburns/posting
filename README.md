@@ -13,7 +13,9 @@ Some notable features include:
 - autocompletion
 - syntax highlighting using tree-sitter
 - Vim keys
+- customizable keybindings
 - user-defined themes
+- run Python code before and after requests
 - configuration
 - "open in $EDITOR"
 - a command palette for quickly accessing functionality
@@ -22,28 +24,21 @@ Visit the [website](https://posting.sh) for more information, the roadmap, and t
 
 ## Installation
 
-Posting can be installed via [`pipx`](https://pipx.pypa.io/stable/) or [Rye](https://rye-up.com/guide/installation) on MacOS, Linux, and Windows:
+Posting can be installed via [uv](https://docs.astral.sh/uv/getting-started/installation/) on MacOS, Linux, and Windows.
 
-```bash
-pipx install posting
-# or
-rye install posting
-```
+`uv` is a single Rust binary that you can use to install Python packages in an isolated environment on MacOS, Linux, and Windows. It's significantly faster than alternative tools, and will have you up and running in seconds.
 
-### Rye is recommended
-
-Rye is recommended, as it is significantly faster than Homebrew and `pipx`, and can install Posting in under a second.
+You don't even need to worry about installing Python yourself - `uv` will manage everything for you.
 
 ```bash
 # quick install on MacOS/Linux
-curl -sSf https://rye.astral.sh/get | bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # install Posting
-rye install posting
+uv tool install --python 3.11 posting
 ```
 
-Windows users should follow the guide [Rye](https://rye-up.com/guide/installation) to learn how to install Rye.
-
+`uv` can also be installed via Homebrew, Cargo, Winget, pipx, and more. See the [installation guide](https://docs.astral.sh/uv/getting-started/installation/) for more information.
 
 ## Learn More
 
