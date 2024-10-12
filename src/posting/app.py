@@ -120,7 +120,7 @@ class MainScreen(Screen[None]):
     AUTO_FOCUS = None
     BINDINGS = [
         Binding(
-            "ctrl+j",
+            "ctrl+j,alt+enter",
             "send_request",
             "Send",
             tooltip="Send the current request.",

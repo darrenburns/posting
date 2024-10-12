@@ -52,8 +52,9 @@ Some keys might be intercepted before reaching Posting, and your emulator might 
 - To specify `@` (at) use `at` (*not* e.g. ++shift+2++ as this only applies to some keyboard layouts).
 - Arrow keys can be specified as `left`, `right`, `up` and `down`.
 - `shift` works as a modifier non-printable keys e.g. `shift+backspace`, `shift+enter`, `shift+right` are all acceptable. Support may vary depending on your emulator.
-- `ctrl+enter`, `ctrl+backspace`, `ctrl+shift+enter`, `ctrl+shift+space` etc. are supported if your terminal supports the Kitty keyboard protocol.
-- Other keys include `comma`, `full_stop`, `colon`, `semicolon`, `quotation_mark`, `apostrophe`, `left_bracket`, `right_square_bracket`, `left_square_bracket`, `backslash`, `vertical_line` (pipe), `plus`, `minus`, `equals_sign`, `slash`, `asterisk`,`tilde`, `percent_sign`.
+- `alt` also works as a modifier e.g. `alt+enter`.
+- `ctrl+enter`, `alt+enter`,`ctrl+backspace`, `ctrl+shift+enter`, `ctrl+shift+space` etc. are supported if your terminal supports the Kitty keyboard protocol.
+- Other keys include (but are not limited to) `comma`, `full_stop`, `colon`, `semicolon`, `quotation_mark`, `apostrophe`, `left_bracket`, `right_square_bracket`, `left_square_bracket`, `backslash`, `vertical_line` (pipe |), `plus`, `minus`, `equals_sign`, `slash`, `asterisk`,`tilde`, `percent_sign`.
 
 The only way to know for sure which keys are supported in your particular terminal emulator is to install Textual, run `textual keys`, press the key you want to use, and look at the `key` field of the printed output.
 
@@ -64,7 +65,7 @@ The only way to know for sure which keys are supported in your particular termin
 
 These are the IDs of the actions that you can change the keybinding for:
 
-- `send-request` - Send the current request. Default: `ctrl+j`.
+- `send-request` - Send the current request. Default: `ctrl+j,alt+enter`.
 - `focus-method` - Focus the method selector. Default: `ctrl+t`.
 - `focus-url` - Focus the URL input. Default: `ctrl+l`.
 - `save-request` - Save the current request. Default: `ctrl+s`.
