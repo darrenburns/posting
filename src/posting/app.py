@@ -1,6 +1,5 @@
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
-from io import StringIO
 from pathlib import Path
 from typing import Any, Literal, cast
 
