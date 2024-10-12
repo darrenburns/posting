@@ -152,7 +152,7 @@ class MainScreen(Screen[None]):
             "ctrl+n",
             "new_request",
             "New",
-            tooltip="Create a new request",
+            tooltip="Create a new request.",
             id="new-request",
         ),
         Binding(
@@ -160,7 +160,7 @@ class MainScreen(Screen[None]):
             "toggle_expanded",
             "Expand section",
             show=False,
-            tooltip="Expand or shrink the section (request or response) which has focus",
+            tooltip="Expand or shrink the section (request or response) which has focus.",
             id="expand-section",
         ),
         Binding(
@@ -168,7 +168,7 @@ class MainScreen(Screen[None]):
             "toggle_collection_browser",
             "Toggle collection browser",
             show=False,
-            tooltip="Toggle the collection browser",
+            tooltip="Toggle the collection browser.",
             id="toggle-collection",
         ),
     ]
@@ -803,7 +803,7 @@ class Posting(App[None], inherit_bindings=False):
             tooltip="Open the help dialog for the currently focused widget.",
             id="help",
         ),
-        Binding("f8", "save_screenshot", "Save screenshot", show=False),
+        Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
 
     def __init__(
