@@ -122,6 +122,10 @@ class RequestEditor(Vertical):
     def form_editor(self) -> FormEditor:
         return self.query_one("#form-body-editor", FormEditor)
 
+    @property
+    def query_editor(self) -> QueryStringEditor:
+        return self.query_one(QueryStringEditor)
+
     def to_request_model_args(self) -> dict[str, Any]:
         """Returns a dictionary containing the arguments that should be
         passed to the httpx.Request object. The keys will depend on the

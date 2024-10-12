@@ -472,6 +472,17 @@ class MainScreen(Screen[None]):
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
         """Load a request model into the UI when a request is selected."""
         self.load_request_model(event.request)
+        if focus_on_request_open := self.settings.focus.on_request_open:
+            targets = {
+                "headers": self.headers_table,
+                "body": self.request_editor.request_body_type_select,
+                "query": self.request_editor.query_editor.query_key_input,
+                "info": self.request_metadata.request_name_input,
+                "url": self.url_input,
+                "method": self.method_selector,
+            }
+            if target := targets.get(focus_on_request_open):
+                self.set_focus(target)
 
     @on(CollectionTree.RequestCacheUpdated)
     def on_request_cache_updated(

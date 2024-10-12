@@ -55,10 +55,14 @@ class FocusSettings(BaseModel):
     If this value is unset, focus will not shift when a response is received."""
 
     on_request_open: (
-        Literal["headers", "body", "query", "auth", "info", "scripts", "options"] | None
+        Literal["headers", "body", "query", "info", "url", "method"] | None
     ) = Field(default=None)
     """On opening a request using the sidebar collection browser, move focus to the specified target.
 
+    Valid values are: `headers`, `body`, `query`, `info`, `url`, `method`.
+
+    This will move focus *inside* the target tab, to the topmost widget in the tab.
+    
     If this value is unset, focus will not shift when a request is opened."""
 
 
