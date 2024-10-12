@@ -15,7 +15,7 @@ dependencies = [
     "pyyaml==6.0.2",
     "pydantic-settings==2.4.0",
     "python-dotenv==1.0.1",
-    "textual[syntax]==0.79.1",
+    "textual[syntax]==0.83.0",
     "textual-autocomplete==3.0.0a10",
     "watchfiles>=0.24.0",
 ]

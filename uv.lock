@@ -886,8 +886,8 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.9.0" },
     { name = "python-dotenv", specifier = "==1.0.1" },
     { name = "pyyaml", specifier = "==6.0.2" },
-    { name = "textual", extras = ["syntax"], specifier = "==0.79.1" },
-    { name = "textual-autocomplete", specifier = "==3.0.0a10" },
+    { name = "textual", extras = ["syntax"], specifier = "==0.83.0" },
+    { name = "textual-autocomplete", editable = "../textual-autocomplete" },
     { name = "watchfiles", specifier = ">=0.24.0" },
     { name = "xdg-base-dirs", specifier = "==6.0.1" },
 ]
@@ -1320,7 +1320,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.79.1"
+version = "0.83.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
@@ -1328,9 +1328,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a4/0d/9c3e18839b696fa6f3bf0e820579967d5c3ffafc9a7c28e557f0ed4a74a3/textual-0.79.1.tar.gz", hash = "sha256:2aaa9778beac5e56957794ee492bd8d281d39516ccb0e507e726484a1327d8b2", size = 1366998 }
+sdist = { url = "https://files.pythonhosted.org/packages/cf/0b/58ec0dbcd92a5121fdae972f09de71b5bc38d389bab53a638e24349f904d/textual-0.83.0.tar.gz", hash = "sha256:fc3b97796092d9c7e685e5392f38f3eb2007ffe1b3b1384dee6d3f10d256babd", size = 1449378 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6a/4b/cd3a8067f5a0f575d5532095d2cf3430f9926509f0698a55ede73c2532c3/textual-0.79.1-py3-none-any.whl", hash = "sha256:75f26c0a8829560a1a8cc739f758c2c1c684246e27166acb3f4ad40110200692", size = 581639 },
+    { url = "https://files.pythonhosted.org/packages/18/39/6cec279ca41dcacb1c92ad6e4467c9e88db4eb4d2f02300c66218ec432de/textual-0.83.0-py3-none-any.whl", hash = "sha256:d6efc1e5c54086fd0a4fe274f18b5638ca24a69325c07e1b4400a7d0a1a14c55", size = 600387 },
 ]
 
 [package.optional-dependencies]
@@ -1341,15 +1341,17 @@ syntax = [
 
 [[package]]
 name = "textual-autocomplete"
-version = "3.0.0a10"
-source = { registry = "https://pypi.org/simple" }
+version = "3.0.0a11"
+source = { editable = "../textual-autocomplete" }
 dependencies = [
     { name = "textual" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/29/94/3b974997845531bb58bf7e036c74800c06c8b7f9561105d0f4559841590b/textual_autocomplete-3.0.0a10.tar.gz", hash = "sha256:ea9cb40a8b5de0e691cd360d2912af30c02bfb17fc963061cf8350828b67cb64", size = 16771 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d9/40/4dcc1ed7581ffe98023cfeb0e39d7b0c6abdf876a3c5d8f0a02b9118123d/textual_autocomplete-3.0.0a10-py3-none-any.whl", hash = "sha256:04646775f4fbd37d20da7772e75937a290f59bb52c7d491023d15aabe009138b", size = 17379 },
+
+[package.metadata]
+requires-dist = [
+    { name = "textual", specifier = ">=0.83.0" },
+    { name = "typing-extensions", specifier = ">=4.5.0,<5.0.0" },
 ]
 
 [[package]]
