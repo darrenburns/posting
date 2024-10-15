@@ -28,7 +28,7 @@ jobs:
         run: uv sync --all-extras --dev
       - name: Run Tests
         run: |
-            uv run make test
+            uv run make test-ci
       - name: Attach Code Coverage
         uses: py-cov-action/python-coverage-comment-action@v3.25
         with:
