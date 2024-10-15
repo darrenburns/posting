@@ -39,9 +39,6 @@ class JumpOverlay(ModalScreen[str | Widget | None]):
         self.keys_to_widgets: dict[str, Widget | str] = {}
         self._resize_counter = 0
 
-    def on_mount(self) -> None:
-        self._sync()
-
     def on_key(self, key_event: events.Key) -> None:
         # We need to stop the bubbling of these keys, because if they
         # arrive at the parent after the overlay is closed, then the parent
@@ -63,19 +60,20 @@ class JumpOverlay(ModalScreen[str | Widget | None]):
         self.dismiss(None)
 
     async def on_resize(self) -> None:
-        self._sync()
         self._resize_counter += 1
         if self._resize_counter == 1:
             return
+        print("recomposing")
         await self.recompose()
 
     def _sync(self) -> None:
+        print("syncing")
         self.overlays = self.jumper.get_overlays()
         self.keys_to_widgets = {v.key: v.widget for v in self.overlays.values()}
 
     def compose(self) -> ComposeResult:
-        overlays = self.jumper.get_overlays()
-        for offset, jump_info in overlays.items():
+        self._sync()
+        for offset, jump_info in self.overlays.items():
             key, _widget = jump_info
             label = Label(key, classes="textual-jump-label")
             label.styles.offset = offset
