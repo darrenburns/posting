@@ -12,4 +12,4 @@ test-snapshot-update:
 
 .PHONY: test-ci
 test-ci:
-	$(run) pytest --cov=posting --cov-report term-missing tests/ $(ARGS)
+	$(run) pytest --cov=posting tests/ --cov-report term-missing $(ARGS)
