@@ -1,4 +1,4 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
@@ -13,9 +13,14 @@ from posting.widgets.request.request_auth import RequestAuth
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
+from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.select import PostingSelect
 from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextAreaFooter, TextEditor
+
+
+if TYPE_CHECKING:
+    from posting.app import Posting
 
 
 class RequestEditorTabbedContent(PostingTabbedContent):
@@ -44,6 +49,7 @@ class RequestEditor(Vertical):
 """
 
     def compose(self) -> ComposeResult:
+        app = cast("Posting", self.app)
         with Vertical() as vertical:
             vertical.border_title = "Request"
             with RequestEditorTabbedContent():
@@ -86,6 +92,8 @@ class RequestEditor(Vertical):
                     yield RequestAuth()
                 with TabPane("Info", id="info-pane"):
                     yield RequestMetadata()
+                with TabPane("Scripts", id="scripts-pane"):
+                    yield RequestScripts(collection_root=app.collection.path)
                 with TabPane("Options", id="options-pane"):
                     yield RequestOptions()
 
@@ -114,6 +122,10 @@ class RequestEditor(Vertical):
     def form_editor(self) -> FormEditor:
         return self.query_one("#form-body-editor", FormEditor)
 
+    @property
+    def query_editor(self) -> QueryStringEditor:
+        return self.query_one(QueryStringEditor)
+
     def to_request_model_args(self) -> dict[str, Any]:
         """Returns a dictionary containing the arguments that should be
         passed to the httpx.Request object. The keys will depend on the
@@ -125,7 +137,18 @@ class RequestEditor(Vertical):
             return {"body": None}
         elif current == "text-body-editor":
             # We need to check the chosen content type in the TextEditor
-            return {"body": RequestBody(content=text_editor.text)}
+            # We can look at the language to determine the content type.
+            return {
+                "body": RequestBody(
+                    content=text_editor.text,
+                    content_type=text_editor.content_type,
+                )
+            }
         elif current == "form-body-editor":
-            return {"body": RequestBody(form_data=self.form_editor.to_model())}
+            return {
+                "body": RequestBody(
+                    form_data=self.form_editor.to_model(),
+                    content_type="application/x-www-form-urlencoded",
+                )
+            }
         return {}

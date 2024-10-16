@@ -3,6 +3,7 @@
 from typing import Literal
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Static
@@ -25,6 +26,15 @@ class ConfirmationModal(ModalScreen[bool]):
         }
     }
     """
+
+    BINDINGS = [
+        Binding(
+            "left,right,up,down,h,j,k,l",
+            "move_focus",
+            "Navigate",
+            show=False,
+        )
+    ]
 
     def __init__(
         self,
@@ -68,3 +78,7 @@ class ConfirmationModal(ModalScreen[bool]):
     @on(Button.Pressed, "#cancel-button")
     def cancel(self) -> None:
         self.dismiss(False)
+
+    def action_move_focus(self) -> None:
+        # It's enough to just call focus_next here as there are only two buttons.
+        self.screen.focus_next()

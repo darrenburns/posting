@@ -1,20 +1,28 @@
-## Installation
-
 Posting can be installed in a matter of seconds on MacOS, Linux, and Windows.
 
-### Rye (recommended)
+## Installation
 
-Rye is recommended, as it is faster than Homebrew and `pipx` by several orders of magnitude:
+The recommended method is to use [uv](https://docs.astral.sh/uv/getting-started/installation/), which is a single Rust binary that you can use to install Python apps.
+It's significantly faster than alternative tools, and will get you up and running with Posting in seconds.
+
+You don't even need to worry about installing Python yourself - `uv` will manage everything for you.
 
 ```bash
-# Install Rye (on MacOS/Linux only - Windows users see below)
-curl -sSf https://rye.astral.sh/get | bash
+# quick install on MacOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# install Posting
-rye install posting
+# install Posting (will also quickly install Python 3.12 if needed)
+uv tool install --python 3.12 posting
 ```
 
-Windows users should follow the guide [Rye](https://rye-up.com/guide/installation) to learn how to install Rye.
+`uv` can also be installed via Homebrew, Cargo, Winget, pipx, and more. See the [installation guide](https://docs.astral.sh/uv/getting-started/installation/) for more information.
+
+`uv` also makes it easy to install additional Python packages into your Posting environment, which you can then use in your pre-request/post-response scripts.
+
+### Prefer `pipx`?
+
+If you'd prefer to use `pipx`, that works too: `pipx install posting`.
+
 
 ### pipx
 

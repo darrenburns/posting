@@ -134,6 +134,10 @@ def make_posting(
 
     env_paths = tuple(Path(e).resolve() for e in env)
     settings = Settings(_env_file=env_paths)  # type: ignore[call-arg]
-    asyncio.run(load_variables(env_paths, settings.use_host_environment))
+    load_variables(env_paths, settings.use_host_environment)
 
     return Posting(settings, env_paths, collection_tree, not using_default_collection)
+
+
+if __name__ == "__main__":
+    cli()

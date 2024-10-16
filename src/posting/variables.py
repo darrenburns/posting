@@ -1,12 +1,10 @@
 from __future__ import annotations
-from contextvars import ContextVar
 from functools import lru_cache
 
 import re
 import os
 from pathlib import Path
 from dotenv import dotenv_values
-from asyncio import Lock
 
 
 _VARIABLES_PATTERN = re.compile(
@@ -16,38 +14,50 @@ _VARIABLES_PATTERN = re.compile(
 
 class SharedVariables:
     def __init__(self):
-        self._variables: dict[str, str | None] = {}
-        self._lock = Lock()
+        self._variables: dict[str, object] = {}
 
-    def get(self) -> dict[str, str | None]:
+    def get(self) -> dict[str, object]:
         return self._variables.copy()
 
-    async def set(self, variables: dict[str, str | None]) -> None:
-        async with self._lock:
-            self._variables = variables
+    def set(self, variables: dict[str, object]) -> None:
+        self._variables = variables
+
+    def update(self, new_variables: dict[str, object]) -> None:
+        self._variables.update(new_variables)
 
 
 VARIABLES = SharedVariables()
 
 
-def get_variables() -> dict[str, str | None]:
+def get_variables() -> dict[str, object]:
     return VARIABLES.get()
 
 
-async def load_variables(
+def load_variables(
     environment_files: tuple[Path, ...],
     use_host_environment: bool,
     avoid_cache: bool = False,
-) -> dict[str, str | None]:
+) -> dict[str, object]:
     """Load the variables that are currently available in the environment.
 
-    This will make them available via the `get_variables` function."""
+    This will likely involve reading from a set of environment files,
+    but it could also involve reading from the host machine's environment
+    if `use_host_environment` is True.
+
+    This will make them available via the `get_variables` function.
+
+    Args:
+        environment_files: The environment files to load variables from.
+        use_host_environment: Whether to use env vars from the host machine.
+        avoid_cache: Whether to avoid using cached variables (so do a full lookup).
+        overlay_variables: Additional variables to overlay on top of the result.
+    """
 
     existing_variables = get_variables()
     if existing_variables and not avoid_cache:
-        return {key: value for key, value in existing_variables}
+        return {key: value for key, value in existing_variables.items()}
 
-    variables: dict[str, str | None] = {
+    variables: dict[str, object] = {
         key: value
         for file in environment_files
         for key, value in dotenv_values(file).items()
@@ -56,8 +66,20 @@ async def load_variables(
         host_env_variables = {key: value for key, value in os.environ.items()}
         variables = {**variables, **host_env_variables}
 
-    await VARIABLES.set(variables)
+    VARIABLES.set(variables)
     return variables
+
+
+def update_variables(new_variables: dict[str, object]) -> None:
+    """Update the current variables with new values.
+
+    This function safely updates the shared variables with new key-value pairs.
+    If a key already exists, its value will be updated. If it doesn't exist, it will be added.
+
+    Args:
+        new_variables: A dictionary containing the new variables to update or add.
+    """
+    VARIABLES.update(new_variables)
 
 
 @lru_cache()

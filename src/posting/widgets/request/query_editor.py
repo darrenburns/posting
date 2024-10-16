@@ -1,6 +1,7 @@
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
+from textual.widgets import Input
 from posting.collection import QueryParam
 
 from posting.widgets.datatable import PostingDataTable
@@ -60,9 +61,13 @@ class QueryStringEditor(Vertical):
         yield KeyValueEditor(
             ParamsTable(),
             KeyValueInput(
-                VariableInput(placeholder="Key"),
+                VariableInput(placeholder="Key", id="query-key-input"),
                 VariableInput(placeholder="Value"),
                 button_label="Add parameter",
             ),
             empty_message="There are no parameters.",
         )
+
+    @property
+    def query_key_input(self) -> Input:
+        return self.query_one("#query-key-input", Input)

@@ -572,6 +572,16 @@ class TextEditor(Vertical):
     def text(self) -> str:
         return self.text_area.text
 
+    @property
+    def content_type(self) -> str | None:
+        """Return the content type associated with the current language."""
+        if self.language == "json":
+            return "application/json"
+        elif self.language == "html":
+            return "text/html"
+        else:
+            return None
+
 
 VSCODE = TextAreaTheme.get_builtin_theme("vscode_dark")
 POSTING_THEME = TextAreaTheme(

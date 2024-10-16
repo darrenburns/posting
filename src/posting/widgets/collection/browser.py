@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import partial
 import os
 from pathlib import Path
-from typing import Any, Union
+from typing import Union
 from urllib.parse import urlparse
 from rich.style import Style
 from rich.text import Text, TextType

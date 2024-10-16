@@ -12,6 +12,10 @@
   }
 }
 
+Tooltip {
+  background: $surface-darken-2;
+}
+
 AutoComplete {
   border-left: wide $accent;
   background: $surface;
@@ -126,6 +130,17 @@ Footer {
     &:hover {
       color: $text 100%;
     }
+  }
+}
+
+RichLog {
+  background: $surface;
+  padding-left: 1;
+
+  &:focus {
+    background: $surface-lighten-1;
+    border-left: wide $accent;
+    padding-left: 0;
   }
 }
 
