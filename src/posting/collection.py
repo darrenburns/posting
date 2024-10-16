@@ -101,7 +101,7 @@ class RequestBody(BaseModel):
     form_data: list[FormItem] | None = Field(default=None)
     """The form data of the request."""
 
-    content_type: str | None = Field(default=None)
+    _content_type: str | None = Field(default=None)
     """We may set an additional header if the content type is known."""
 
     def to_httpx_args(self) -> dict[str, Any]:
@@ -153,9 +153,6 @@ class RequestModel(BaseModel):
 
     body: RequestBody | None = Field(default=None)
     """The body of the request."""
-
-    content: str | bytes | None = Field(default=None)
-    """The content of the request."""
 
     auth: Auth | None = Field(default=None)
     """The authentication information for the request."""

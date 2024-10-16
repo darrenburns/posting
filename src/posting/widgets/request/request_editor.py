@@ -141,14 +141,14 @@ class RequestEditor(Vertical):
             return {
                 "body": RequestBody(
                     content=text_editor.text,
-                    content_type=text_editor.content_type,
+                    _content_type=text_editor.content_type,
                 )
             }
         elif current == "form-body-editor":
             return {
                 "body": RequestBody(
                     form_data=self.form_editor.to_model(),
-                    content_type="application/x-www-form-urlencoded",
+                    _content_type="application/x-www-form-urlencoded",
                 )
             }
         return {}

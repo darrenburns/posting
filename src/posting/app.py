@@ -361,7 +361,26 @@ class MainScreen(Screen[None]):
                 timeout=request_model.options.timeout,
                 auth=request_model.auth.to_httpx_auth() if request_model.auth else None,
             ) as client:
+                script_context.request = request_model
+
+                # If there's an associated pre-request script, run it.
+                if on_request := request_model.scripts.on_request:
+                    try:
+                        self.get_and_run_script(
+                            on_request,
+                            "on_request",
+                            request_model,
+                            script_context,
+                        )
+                    except Exception:
+                        self.response_script_output.set_request_status("error")
+                        # TODO - load the error into the response area, or log it.
+                    else:
+                        self.response_script_output.set_request_status("success")
+                else:
+                    self.response_script_output.set_request_status("no-script")
                 request = self.build_httpx_request(request_model, client)
+
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
@@ -374,25 +393,6 @@ class MainScreen(Screen[None]):
                 print("proxy =", request_model.options.proxy_url)
                 print("timeout =", request_model.options.timeout)
                 print("auth =", request_model.auth)
-
-                script_context.request = request
-
-                # If there's an associated pre-request script, run it.
-                if on_request := request_model.scripts.on_request:
-                    try:
-                        self.get_and_run_script(
-                            on_request,
-                            "on_request",
-                            request,
-                            script_context,
-                        )
-                    except Exception:
-                        self.response_script_output.set_request_status("error")
-                        # TODO - load the error into the response area, or log it.
-                    else:
-                        self.response_script_output.set_request_status("success")
-                else:
-                    self.response_script_output.set_request_status("no-script")
 
                 response = await client.send(
                     request=request,
