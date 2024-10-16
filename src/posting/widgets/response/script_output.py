@@ -10,10 +10,18 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.reactive import Reactive, reactive
 from textual.widgets import Label, RichLog
 
+from posting.help_screen import HelpData
+
 ScriptStatus = Literal["success", "error", "no-script"]
 
 
 class ScriptOutput(VerticalScroll):
+    help = HelpData(
+        title="Script Output",
+        description="""\
+This log displays the output of scripts that executed during the last request.
+""",
+    )
     DEFAULT_CSS = """\
         ScriptOutput {
             padding: 0 2;

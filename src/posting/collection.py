@@ -47,6 +47,16 @@ class Auth(BaseModel):
             return httpx.DigestAuth(self.digest.username, self.digest.password)
         return None
 
+    @classmethod
+    def basic_auth(cls, username: str, password: str) -> Auth:
+        return cls(type="basic", basic=BasicAuth(username=username, password=password))
+
+    @classmethod
+    def digest_auth(cls, username: str, password: str) -> Auth:
+        return cls(
+            type="digest", digest=DigestAuth(username=username, password=password)
+        )
+
 
 class BasicAuth(BaseModel):
     username: str = Field(default="")
@@ -101,7 +111,7 @@ class RequestBody(BaseModel):
     form_data: list[FormItem] | None = Field(default=None)
     """The form data of the request."""
 
-    content_type: str | None = Field(default=None)
+    content_type: str | None = Field(default=None, init=False)
     """We may set an additional header if the content type is known."""
 
     def to_httpx_args(self) -> dict[str, Any]:
@@ -122,6 +132,11 @@ def request_sort_key(request: RequestModel) -> tuple[int, str]:
 
 
 class Scripts(BaseModel):
+    """The scripts associated with the request.
+
+    Paths are relative to the collection directory root.
+    """
+
     setup: str | None = Field(default=None)
     """A relative path to a script that will be run before the template is applied."""
 
@@ -153,9 +168,6 @@ class RequestModel(BaseModel):
 
     body: RequestBody | None = Field(default=None)
     """The body of the request."""
-
-    content: str | bytes | None = Field(default=None)
-    """The content of the request."""
 
     auth: Auth | None = Field(default=None)
     """The authentication information for the request."""

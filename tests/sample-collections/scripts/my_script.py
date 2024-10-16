@@ -1,7 +1,7 @@
 import sys
 import httpx
 
-from posting.scripts import Posting
+from posting import Auth, Header, RequestModel, Posting
 
 
 def setup(posting: Posting) -> None:
@@ -10,9 +10,13 @@ def setup(posting: Posting) -> None:
     posting.set_variable("setup_var", "ADDED IN SETUP")
 
 
-def on_request(request: httpx.Request, posting: Posting) -> None:
+def on_request(request: RequestModel, posting: Posting) -> None:
     new_header = "Foo-Bar-Baz!!!!!"
-    print(f"Set header to {new_header!r}!")
+    header = Header(name="X-Custom-Header", value=new_header)
+    request.headers.append(header)
+    print(f"Set header:\n{header}!")
+    # request.body.content = "asdf"
+    request.auth = Auth.basic_auth("username", "password")
     posting.notify(
         message="Hello from my_script.py!",
     )
