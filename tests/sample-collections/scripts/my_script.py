@@ -1,8 +1,7 @@
 import sys
 import httpx
 
-from posting.collection import Auth, BasicAuth, Header, RequestModel
-from posting.scripts import Posting
+from posting import Auth, Header, RequestModel, Posting
 
 
 def setup(posting: Posting) -> None:
@@ -17,7 +16,7 @@ def on_request(request: RequestModel, posting: Posting) -> None:
     request.headers.append(header)
     print(f"Set header:\n{header}!")
     # request.body.content = "asdf"
-    request.auth = Auth(type="basic", basic=BasicAuth(username="foo", password="bar"))
+    request.auth = Auth.basic_auth("username", "password")
     posting.notify(
         message="Hello from my_script.py!",
     )
