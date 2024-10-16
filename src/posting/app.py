@@ -664,13 +664,13 @@ class MainScreen(Screen[None]):
             header_names_lower = {header.name.lower(): header for header in headers}
             # Don't add the content type header if the user has explicitly set it.
             if (
-                request_body._content_type is not None
+                request_body.content_type is not None
                 and "content-type" not in header_names_lower
             ):
                 headers.append(
                     Header(
                         name="content-type",
-                        value=request_body._content_type,
+                        value=request_body.content_type,
                     )
                 )
         return RequestModel(

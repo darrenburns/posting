@@ -16,7 +16,7 @@ def on_request(request: RequestModel, posting: Posting) -> None:
     header = Header(name="X-Custom-Header", value=new_header)
     request.headers.append(header)
     print(f"Set header:\n{header}!")
-    request.body.content = "asdf"
+    # request.body.content = "asdf"
     request.auth = Auth(type="basic", basic=BasicAuth(username="foo", password="bar"))
     posting.notify(
         message="Hello from my_script.py!",

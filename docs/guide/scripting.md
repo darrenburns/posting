@@ -26,7 +26,7 @@ In the context of Posting, a "script" is a regular Python function.
 By default, if you specify a path to a Python file, Posting will look for and execute the following functions at the appropriate times:
 
 - `setup(posting: Posting) -> None`
-- `on_request(request: httpx.Request, posting: Posting) -> None`
+- `on_request(request: RequestModel, posting: Posting) -> None`
 - `on_response(response: httpx.Response, posting: Posting) -> None`
 
 However, you can have Posting call any function you wish using the syntax `path/to/script.py:function_to_run`.
@@ -35,7 +35,7 @@ Note that relative paths are relative to the collection directory.
 This ensures that if you place scripts inside your collection directory,
 they're included when you share a collection with others.
 
-Note that you do not need to specify all of the arguments when writing these functions. Posting will only pass the number of arguments that you've specified when it calls your function. For example, you could define a your `on_request` function as `def on_request(request: httpx.Request) -> None` and Posting would call it with `on_request(request: httpx.Request)` without passing the `posting` argument.
+Note that you do not need to specify all of the arguments when writing these functions. Posting will only pass the number of arguments that you've specified when it calls your function. For example, you could define a your `on_request` function as `def on_request(request: RequestModel) -> None` and Posting would call it with `on_request(request: RequestModel)` without passing the `posting` argument.
 
 ## Editing scripts
 
@@ -83,9 +83,11 @@ The **pre-request script** is run after the request has been constructed and var
 You can directly modify the `Request` object in this function, for example to set headers, query parameters, etc.
 
 ```python
-def on_request(request: httpx.Request, posting: Posting) -> None:
+def on_request(request: RequestModel, posting: Posting) -> None:
     # Set a custom header on the request.
-    request.headers["X-Custom-Header"] = "foo"
+    request.headers.append(
+        Header(name="X-Custom-Header", value="foo")
+    )
 
     # This will be captured and written to the log.
     print("Request is being sent!")
