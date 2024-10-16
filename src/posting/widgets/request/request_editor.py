@@ -137,7 +137,18 @@ class RequestEditor(Vertical):
             return {"body": None}
         elif current == "text-body-editor":
             # We need to check the chosen content type in the TextEditor
-            return {"body": RequestBody(content=text_editor.text)}
+            # We can look at the language to determine the content type.
+            return {
+                "body": RequestBody(
+                    content=text_editor.text,
+                    content_type=text_editor.content_type,
+                )
+            }
         elif current == "form-body-editor":
-            return {"body": RequestBody(form_data=self.form_editor.to_model())}
+            return {
+                "body": RequestBody(
+                    form_data=self.form_editor.to_model(),
+                    content_type="application/x-www-form-urlencoded",
+                )
+            }
         return {}

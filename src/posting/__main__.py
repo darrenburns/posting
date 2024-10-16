@@ -137,3 +137,7 @@ def make_posting(
     load_variables(env_paths, settings.use_host_environment)
 
     return Posting(settings, env_paths, collection_tree, not using_default_collection)
+
+
+if __name__ == "__main__":
+    cli()
