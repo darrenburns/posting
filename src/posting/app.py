@@ -31,6 +31,7 @@ from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
     Cookie,
+    Header,
     HttpRequestMethod,
     Options,
     RequestModel,
@@ -657,7 +658,21 @@ class MainScreen(Screen[None]):
         # We ensure elsewhere that the we can only "open" requests, not collection nodes.
         assert not isinstance(open_request, Collection)
 
+        request_editor_args = self.request_editor.to_request_model_args()
         headers = self.headers_table.to_model()
+        if request_body := request_editor_args.get("body"):
+            header_names_lower = {header.name.lower(): header for header in headers}
+            # Don't add the content type header if the user has explicitly set it.
+            if (
+                request_body.content_type is not None
+                and "content-type" not in header_names_lower
+            ):
+                headers.append(
+                    Header(
+                        name="content-type",
+                        value=request_body.content_type,
+                    )
+                )
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
@@ -674,7 +689,7 @@ class MainScreen(Screen[None]):
                 else []
             ),
             scripts=self.request_scripts.to_model(),
-            **self.request_editor.to_request_model_args(),
+            **request_editor_args,
         )
 
     def load_request_model(self, request_model: RequestModel) -> None:
