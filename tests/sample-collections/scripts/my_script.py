@@ -15,7 +15,6 @@ def on_request(request: RequestModel, posting: Posting) -> None:
     new_header = "Foo-Bar-Baz!!!!!"
     header = Header(name="X-Custom-Header", value=new_header)
     request.headers.append(header)
-    request.headers.append(header)
     print(f"Set header:\n{header}!")
     request.body.content = "asdf"
     request.auth = Auth(type="basic", basic=BasicAuth(username="foo", password="bar"))

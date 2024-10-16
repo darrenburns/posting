@@ -229,17 +229,14 @@ class RequestModel(BaseModel):
 
     def to_httpx(self, client: httpx.AsyncClient) -> httpx.Request:
         """Convert the request model to an httpx request."""
+        headers = httpx.Headers(
+            [(header.name, header.value) for header in self.headers if header.enabled]
+        )
         return client.build_request(
             method=self.method,
             url=self.url,
             **(self.body.to_httpx_args() if self.body else {}),
-            headers=httpx.Headers(
-                [
-                    (header.name, header.value)
-                    for header in self.headers
-                    if header.enabled
-                ]
-            ),
+            headers=headers,
             params=httpx.QueryParams(
                 [(param.name, param.value) for param in self.params if param.enabled]
             ),
