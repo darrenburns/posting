@@ -1,7 +1,9 @@
 ## Overview
 
 You can quickly switch between Posting and external editors and pagers.
-This can let you use the tools you love for editing requests and browsing responses.
+
+For example, you could edit request bodies in `vim`, and then browse the JSON response body in `less` or `fx`.
+
 You can even configure a custom pager specifically for browsing JSON.
 
 ## External Editors
