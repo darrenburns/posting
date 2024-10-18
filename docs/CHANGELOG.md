@@ -2,12 +2,12 @@
 
 ### Added
 
-- **Scripting**: This allows you run to run Python scripts before and after sending requests. Scripts can be used to perform setup, set variables, modify requests, and more.
+- **Scripting**: Run Python scripts before and after sending requests. Scripts can be used to perform setup, set variables, modify requests, and more.
     - Define "setup", "pre-request" and "post-request" Python functions and attach them to requests.
     - Posting will automatically reload these functions when they change, meaning you can edit them in an external editor while Posting is running.
     - Scripts can be used to directly manipulate the request, set variables which are used in the request (e.g. set a `$token` variable which is used in the request URL).
     - Output from scripts is captured and displayed in the "Scripts" tab.
-- **Keymaps**: You can now change the default keybindings for any of Posting's "global" actions (e.g. sending request, opening jump mode, etc.) by editing `keymap` section of your `config.yaml` file.
+- **Keymaps**: Change the default keybindings for any of Posting's "global" actions (e.g. sending request, opening jump mode, etc.) by editing `keymap` section of your `config.yaml` file.
 - Added `heading.hostname` config to allow customisation of the hostname in the header. This field supports Rich markup. You may wish to use this to apply highlighting when `posting` is running on a production system vs a development environment, for example.
 - Added `focus.on_request_open` config to automatically shift focus when a request is opened via the collection browser. For example, you might prefer to have focus jump to the "Body" tab when a request is opened.
 - More detail and screenshots added to several sections of the guide.
