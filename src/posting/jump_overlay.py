@@ -66,11 +66,9 @@ class JumpOverlay(ModalScreen[str | Widget | None]):
         self._resize_counter += 1
         if self._resize_counter == 1:
             return
-        print("recomposing")
         await self.recompose()
 
     def _sync(self) -> None:
-        print("syncing")
         self.overlays = self.jumper.get_overlays()
         self.keys_to_widgets = {v.key: v.widget for v in self.overlays.values()}
 

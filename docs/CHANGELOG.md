@@ -1,3 +1,37 @@
+## 2.0.0 [18th October 2024]
+
+### Added
+
+- **Scripting**: This allows you run to run Python scripts before and after sending requests. Scripts can be used to perform setup, set variables, modify requests, and more.
+    - Define "setup", "pre-request" and "post-request" Python functions and attach them to requests.
+    - Posting will automatically reload these functions when they change, meaning you can edit them in an external editor while Posting is running.
+    - Scripts can be used to directly manipulate the request, set variables which are used in the request (e.g. set a `$token` variable which is used in the request URL).
+    - Output from scripts is captured and displayed in the "Scripts" tab.
+- **Keymaps**: You can now change the default keybindings for any of Posting's "global" actions (e.g. sending request, opening jump mode, etc.) by editing `keymap` section of your `config.yaml` file.
+- Added `heading.hostname` config to allow customisation of the hostname in the header. This field supports Rich markup. You may wish to use this to apply highlighting when `posting` is running on a production system vs a development environment, for example.
+- Added `focus.on_request_open` config to automatically shift focus when a request is opened via the collection browser. For example, you might prefer to have focus jump to the "Body" tab when a request is opened.
+- More detail and screenshots added to several sections of the guide.
+    - Much more detail added to the "Getting Started" section.
+    - Collections guide updated to explain more about the collection browser.
+    - Guide for Keymaps added.
+    - Guide for Scripting added.
+    - Guide for External Tools added (integrating with vim, less, fx, etc.)
+- `alt`+`enter` can now be used to send a request (in addition to the existing `ctrl+j` binding).
+- Tooltips added to more actions in the app footer. These appear on mouse hover.
+
+### Changed
+
+- Automatically apply `content-type` header based on the body type selected in the UI.
+- Updated to Textual 0.83.0
+- Various refinements to autocompletion, upgrading to textual-autocomplete 3.0.0a12.
+- Dependency specifications loosened on several dependencies.
+- Recommended installation method changed from rye to uv.
+
+### Fixed
+
+- Fixed double rendering in "jump mode" overlay.
+- Fixed sidebar not working on mobile on https://posting.sh
+
 ## 1.13.0 [8th September 2024]
 
 ### Added
