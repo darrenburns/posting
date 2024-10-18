@@ -31,6 +31,7 @@ from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
     Cookie,
+    Header,
     HttpRequestMethod,
     Options,
     RequestModel,
@@ -361,7 +362,26 @@ class MainScreen(Screen[None]):
                 timeout=request_model.options.timeout,
                 auth=request_model.auth.to_httpx_auth() if request_model.auth else None,
             ) as client:
+                script_context.request = request_model
+
+                # If there's an associated pre-request script, run it.
+                if on_request := request_model.scripts.on_request:
+                    try:
+                        self.get_and_run_script(
+                            on_request,
+                            "on_request",
+                            request_model,
+                            script_context,
+                        )
+                    except Exception:
+                        self.response_script_output.set_request_status("error")
+                        # TODO - load the error into the response area, or log it.
+                    else:
+                        self.response_script_output.set_request_status("success")
+                else:
+                    self.response_script_output.set_request_status("no-script")
                 request = self.build_httpx_request(request_model, client)
+
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
@@ -374,25 +394,6 @@ class MainScreen(Screen[None]):
                 print("proxy =", request_model.options.proxy_url)
                 print("timeout =", request_model.options.timeout)
                 print("auth =", request_model.auth)
-
-                script_context.request = request
-
-                # If there's an associated pre-request script, run it.
-                if on_request := request_model.scripts.on_request:
-                    try:
-                        self.get_and_run_script(
-                            on_request,
-                            "on_request",
-                            request,
-                            script_context,
-                        )
-                    except Exception:
-                        self.response_script_output.set_request_status("error")
-                        # TODO - load the error into the response area, or log it.
-                    else:
-                        self.response_script_output.set_request_status("success")
-                else:
-                    self.response_script_output.set_request_status("no-script")
 
                 response = await client.send(
                     request=request,
@@ -657,7 +658,21 @@ class MainScreen(Screen[None]):
         # We ensure elsewhere that the we can only "open" requests, not collection nodes.
         assert not isinstance(open_request, Collection)
 
+        request_editor_args = self.request_editor.to_request_model_args()
         headers = self.headers_table.to_model()
+        if request_body := request_editor_args.get("body"):
+            header_names_lower = {header.name.lower(): header for header in headers}
+            # Don't add the content type header if the user has explicitly set it.
+            if (
+                request_body.content_type is not None
+                and "content-type" not in header_names_lower
+            ):
+                headers.append(
+                    Header(
+                        name="content-type",
+                        value=request_body.content_type,
+                    )
+                )
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
@@ -674,7 +689,7 @@ class MainScreen(Screen[None]):
                 else []
             ),
             scripts=self.request_scripts.to_model(),
-            **self.request_editor.to_request_model_args(),
+            **request_editor_args,
         )
 
     def load_request_model(self, request_model: RequestModel) -> None:

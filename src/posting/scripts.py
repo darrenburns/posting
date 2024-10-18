@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-import asyncio
 import sys
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Callable, Any
 import threading
 
-from httpx import Request, Response
+from httpx import Response
 from textual.notifications import SeverityLevel
 
+from posting.collection import RequestModel
 from posting.variables import get_variables, update_variables
 
 if TYPE_CHECKING:
@@ -27,7 +27,7 @@ class Posting:
         self._app: PostingApp = app
         """The Textual App instance for Posting."""
 
-        self.request: Request | None = None
+        self.request: RequestModel | None = None
         """The request that is currently being processed."""
 
         self.response: Response | None = None

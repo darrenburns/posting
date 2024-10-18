@@ -26,7 +26,7 @@ In the context of Posting, a "script" is a regular Python function.
 By default, if you specify a path to a Python file, Posting will look for and execute the following functions at the appropriate times:
 
 - `setup(posting: Posting) -> None`
-- `on_request(request: httpx.Request, posting: Posting) -> None`
+- `on_request(request: RequestModel, posting: Posting) -> None`
 - `on_response(response: httpx.Response, posting: Posting) -> None`
 
 However, you can have Posting call any function you wish using the syntax `path/to/script.py:function_to_run`.
@@ -35,7 +35,7 @@ Note that relative paths are relative to the collection directory.
 This ensures that if you place scripts inside your collection directory,
 they're included when you share a collection with others.
 
-Note that you do not need to specify all of the arguments when writing these functions. Posting will only pass the number of arguments that you've specified when it calls your function. For example, you could define a your `on_request` function as `def on_request(request: httpx.Request) -> None` and Posting would call it with `on_request(request: httpx.Request)` without passing the `posting` argument.
+Note that you do not need to specify all of the arguments when writing these functions. Posting will only pass the number of arguments that you've specified when it calls your function. For example, you could define a your `on_request` function as `def on_request(request: RequestModel) -> None` and Posting would call it with `on_request(request: RequestModel)` without passing the `posting` argument.
 
 ## Editing scripts
 
@@ -80,12 +80,20 @@ def setup(posting: Posting) -> None:
 
 The **pre-request script** is run after the request has been constructed and variables have been substituted, right before the request is sent.
 
-You can directly modify the `Request` object in this function, for example to set headers, query parameters, etc.
+You can directly modify the `RequestModel` object in this function, for example to set headers, query parameters, etc.
+The code snippet below shows some of the API.
 
 ```python
-def on_request(request: httpx.Request, posting: Posting) -> None:
-    # Set a custom header on the request.
-    request.headers["X-Custom-Header"] = "foo"
+from posting import Auth, Header, RequestModel, Posting
+
+
+def on_request(request: RequestModel, posting: Posting) -> None:
+    # Add a custom header to the request.
+    request.headers.append(Header(name="X-Custom-Header", value="foo"))
+
+    # Set auth on the request.
+    request.auth = Auth.basic_auth("username", "password")
+    # request.auth = Auth.digest_auth("username", "password")
 
     # This will be captured and written to the log.
     print("Request is being sent!")
@@ -101,6 +109,9 @@ You can use this to extract data from the response, for example a JWT token,
 and set it as a variable to be used in later requests.
 
 ```python
+from posting import Posting
+
+
 def on_response(response: httpx.Response, posting: Posting) -> None:
     # Print the status code of the response to the log.
     print(response.status_code)
