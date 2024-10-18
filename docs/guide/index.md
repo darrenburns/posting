@@ -37,7 +37,7 @@ The methods above will both install Posting globally, in an isolated environment
 
 ??? failure "Homebrew is not supported"
 
-    Installing via Homebrew is not supported, as some of Posting's Rust and C dependencies can take over 10 minutes to compile. When using Rye, installation time is measured in tens of milliseconds, and with `pipx` it's just a few seconds.
+    Installing via Homebrew is not supported, as some of Posting's Rust and C dependencies can take over 10 minutes to compile. When using uv, installation time is measured in milliseconds, and with pipx it's just a few seconds.
 
 <!-- 
 On MacOS, you can also install Posting via Homebrew:
