@@ -31,6 +31,7 @@
 
 - Fixed double rendering in "jump mode" overlay.
 - Fixed sidebar not working on mobile on https://posting.sh
+- Fixed autocompletion appearing when on 1 item in the list and the "search string" is equal to that item.
 
 ## 1.13.0 [8th September 2024]
 
