@@ -5,11 +5,6 @@
     /* hide the main content on the home page.
     we're gonna do it all ourself. */
     html { scroll-behavior: smooth; }
-    .md-main{
-        display: none;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
     body {
         background-image: linear-gradient(
             0deg,
@@ -54,8 +49,13 @@
     #home-title {
       margin: 0 0 0.3rem 0;
     }
+    }
     p#home-intro {
       font-size: 0.9rem;
+    }
+
+    div.md-nav__source {
+        background-color: hsla(287deg, 100%, 10%, 0.8) !important;
     }
     #home-subtitle {
       font-family: "Roboto Mono", monospace;
@@ -250,6 +250,16 @@
         }
         .feature-column-description {
             font-size: 1rem;
+        }
+    }
+
+    @media (min-width: 1220px) {
+        /* The sidebar content sits on top of the main content
+        and makes some buttons unclickable. This is a hack to workaround
+        that while keeping the sidebar working on screensizes where it's
+        still required.*/
+        body > div.md-container > main > div {
+            display: none;
         }
     }
 
@@ -1696,7 +1706,10 @@
           </p>
           <p class="feature-description">
             Adjust the user interface to your liking through the <span data-text="configuration system" class="gradient-text subtle-purple-glow">configuration system</span> or at runtime.
-          </p>  
+          </p>
+          <p class="feature-description">
+            Customize keybindings to your liking using the <span data-text="keymap" class="gradient-text subtle-purple-glow">keymap</span> system.
+          </p>
         </div>
         <div class="feature-image">
           <img src="assets/themes.png" alt="A selection of Posting's themes stacked on top of each other.">
@@ -1714,9 +1727,8 @@
       </div>
       <div class="feature-column">
         <h3 class="feature-column-title">Scripting</h3>
-        <span class="feature-tag">Coming Soon!</span>
         <p class="feature-column-description">
-          Enhance your workflow with custom scripts, allowing you to automate repetitive tasks and extend Posting's functionality.
+          Run Python code before and after requests to prepare headers, set variables, and more.
         </p>
       </div>
       <div class="feature-column">

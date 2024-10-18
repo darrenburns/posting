@@ -1,6 +1,5 @@
 from typing import Callable
 from textual.widgets import Input, TextArea
-from textual.widgets.text_area import Selection
 from textual_autocomplete import (
     AutoComplete,
     DropdownItem,
@@ -56,15 +55,19 @@ class VariableAutoComplete(AutoComplete):
         cursor = target_state.selection.end[1]
         text = target_state.text
         if is_cursor_within_variable(cursor, text):
-            return self.get_variable_candidates(target_state)
+            candidates = self.get_variable_candidates(target_state)
         else:
-            return super().get_candidates(target_state)
+            candidates = super().get_candidates(target_state)
+        return candidates
 
-    def _completion_strategy(
-        self, value: str, target_state: TargetState
-    ) -> TargetState:
+    def _completion_strategy(self, value: str, target_state: TargetState) -> None:
+        """Modify the target state to reflect the completion.
+
+        Only works in Inputs for now.
+        """
         cursor = target_state.selection.end[1]
         text = target_state.text
+        target: Input = self.target
         if is_cursor_within_variable(cursor, text):
             # Replace the text from the variable start
             # with the completion text.
@@ -73,18 +76,11 @@ class VariableAutoComplete(AutoComplete):
             old_value = text
             new_value = old_value[:start] + value + old_value[end:]
 
-            # Move the cursor to the end of the inserted text
-            new_column = start + len(value)
-            return TargetState(
-                text=new_value,
-                selection=Selection.cursor((0, new_column)),
-            )
+            target.value = new_value
+            target.cursor_position = start + len(value)
         else:
-            # Replace the entire contents
-            return TargetState(
-                text=value,
-                selection=Selection.cursor((0, len(value))),
-            )
+            target.value = value
+            target.cursor_position = len(value)
 
     def _search_string(self, target_state: TargetState) -> str:
         cursor = target_state.selection.end[1]

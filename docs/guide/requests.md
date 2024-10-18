@@ -37,6 +37,12 @@ By default, this name is used to generate the filename, but you can also choose 
 
 Within the "Directory" field of this dialog, it's important to note that `.` refers to the currently loaded *collection* directory (that is, the directory that was loaded using the `--collection` option), and *not* necessarily the current working directory.
 
+### Duplicating a request
+
+With a the cursor over a request in the collection tree, press ++d++ to create a duplicate of that request. This will bring up a dialog allowing you to change the name and description of the request, or move it to another location.
+
+To skip the dialog and quickly duplicate the request, press ++shift+d++, creating it as a sibling of the original request. The file name of the new request will be generated automatically. You can always modify the name and description after it's created in the `Info` tab.
+
 ## Saving a request
 
 Press ++ctrl+s++ to save the currently open request.
@@ -50,3 +56,7 @@ If the request is already saved on disk, ++ctrl+s++ will overwrite the previous 
 Requests are stored on your file system as simple YAML files, suffixed with `.posting.yaml`.
 
 A directory can be loaded into Posting using the `--collection` option, and all `.posting.yaml` files in that directory will be displayed in the sidebar.
+
+## Deleting a request
+
+You can delete a request by moving the cursor over it in the tree, and pressing ++backspace++.

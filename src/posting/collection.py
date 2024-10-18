@@ -47,6 +47,16 @@ class Auth(BaseModel):
             return httpx.DigestAuth(self.digest.username, self.digest.password)
         return None
 
+    @classmethod
+    def basic_auth(cls, username: str, password: str) -> Auth:
+        return cls(type="basic", basic=BasicAuth(username=username, password=password))
+
+    @classmethod
+    def digest_auth(cls, username: str, password: str) -> Auth:
+        return cls(
+            type="digest", digest=DigestAuth(username=username, password=password)
+        )
+
 
 class BasicAuth(BaseModel):
     username: str = Field(default="")
@@ -96,7 +106,13 @@ class Options(BaseModel):
 
 class RequestBody(BaseModel):
     content: str | None = Field(default=None)
+    """The content of the request."""
+
     form_data: list[FormItem] | None = Field(default=None)
+    """The form data of the request."""
+
+    content_type: str | None = Field(default=None, init=False)
+    """We may set an additional header if the content type is known."""
 
     def to_httpx_args(self) -> dict[str, Any]:
         httpx_args: dict[str, Any] = {}
@@ -113,6 +129,22 @@ class RequestBody(BaseModel):
 def request_sort_key(request: RequestModel) -> tuple[int, str]:
     method_order = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}
     return (method_order.get(request.method.upper(), 5), request.name)
+
+
+class Scripts(BaseModel):
+    """The scripts associated with the request.
+
+    Paths are relative to the collection directory root.
+    """
+
+    setup: str | None = Field(default=None)
+    """A relative path to a script that will be run before the template is applied."""
+
+    on_request: str | None = Field(default=None)
+    """A relative path to a script that will be run before the request is sent."""
+
+    on_response: str | None = Field(default=None)
+    """A relative path to a script that will be run after the response is received."""
 
 
 @total_ordering
@@ -137,9 +169,6 @@ class RequestModel(BaseModel):
     body: RequestBody | None = Field(default=None)
     """The body of the request."""
 
-    content: str | bytes | None = Field(default=None)
-    """The content of the request."""
-
     auth: Auth | None = Field(default=None)
     """The authentication information for the request."""
 
@@ -159,6 +188,9 @@ class RequestModel(BaseModel):
 
     posting_version: str = Field(default=VERSION)
     """The version of Posting."""
+
+    scripts: Scripts = Field(default_factory=Scripts)
+    """The scripts associated with the request."""
 
     options: Options = Field(default_factory=Options)
     """The options for the request."""
@@ -212,17 +244,14 @@ class RequestModel(BaseModel):
 
     def to_httpx(self, client: httpx.AsyncClient) -> httpx.Request:
         """Convert the request model to an httpx request."""
+        headers = httpx.Headers(
+            [(header.name, header.value) for header in self.headers if header.enabled]
+        )
         return client.build_request(
             method=self.method,
             url=self.url,
             **(self.body.to_httpx_args() if self.body else {}),
-            headers=httpx.Headers(
-                [
-                    (header.name, header.value)
-                    for header in self.headers
-                    if header.enabled
-                ]
-            ),
+            headers=headers,
             params=httpx.QueryParams(
                 [(param.name, param.value) for param in self.params if param.enabled]
             ),

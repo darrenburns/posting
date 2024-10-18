@@ -60,7 +60,7 @@ class TestJumpMode:
 
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+o")  # enter jump mode
-            await pilot.press("y")  # target "Options" tab
+            await pilot.press("u")  # target "Options" tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -119,7 +119,6 @@ class TestUrlBar:
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
 
-@pytest.mark.skip(reason="cursor blink is not working in textual 0.76")
 @use_config("general.yaml")
 class TestCommandPalette:
     def test_loads_and_shows_discovery_options(self, snap_compare):
@@ -149,8 +148,8 @@ class TestCommandPalette:
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
-            await pilot.press(*"toggle collection")
-            await pilot.press("enter", "enter")
+            await pilot.press(*"tog coll")
+            await pilot.press("down", "enter")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -283,18 +282,18 @@ class TestLoadingRequest:
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
 
-    @pytest.mark.skip(
-        reason="info tab contains a path, specific to the host the test runs on"
-    )
-    def test_request_loaded_into_view__info(self, snap_compare):
-        """Check that the request info is loaded into the view."""
+    # @pytest.mark.skip(
+    #     reason="info tab contains a path, specific to the host the test runs on"
+    # )
+    # def test_request_loaded_into_view__info(self, snap_compare):
+    #     """Check that the request info is loaded into the view."""
 
-        async def run_before(pilot: Pilot):
-            await pilot.press("j")
-            await pilot.press("enter")
-            await pilot.press("ctrl+o", "t")  # jump to 'Info' tab
+    #     async def run_before(pilot: Pilot):
+    #         await pilot.press("j")
+    #         await pilot.press("enter")
+    #         await pilot.press("ctrl+o", "t")  # jump to 'Info' tab
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
+    #     assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
 
     def test_request_loaded_into_view__options(self, snap_compare):
         """Check that the request options are loaded into the view."""
@@ -302,7 +301,7 @@ class TestLoadingRequest:
         async def run_before(pilot: Pilot):
             await pilot.press(*"jj")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "y")  # jump to 'Options' tab
+            await pilot.press("ctrl+o", "u")  # jump to 'Options' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
 
@@ -420,11 +419,9 @@ class TestVariables:
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 @patch_env("POSTING_THEME_DIRECTORY", str(THEME_DIR.resolve()))
 class TestCustomThemeSimple:
-    @pytest.mark.skip(reason="cursor blink is not working in textual 0.76")
     def test_theme_set_on_startup_and_in_command_palette(self, snap_compare):
         """Check that the theme is set on startup and available in the command palette."""
 
-        @pytest.mark.skip(reason="cursor blink is not working in textual 0.76")
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
@@ -520,3 +517,44 @@ class TestCustomThemeComplex:
             await pilot.press("shift+down")
 
         assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestFocusAutoSwitchingConfig:
+    @pytest.mark.parametrize(
+        "focus_target",
+        ["headers", "body", "query", "info", "url", "method"],
+    )
+    def test_focus_on_request_open__open_body(
+        self,
+        focus_target,
+        monkeypatch,
+        snap_compare,
+    ):
+        """Check that the expected tab is focused when a request is opened from the collection browser."""
+
+        monkeypatch.setenv("POSTING_FOCUS__ON_REQUEST_OPEN", focus_target)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.pause()  # wait for focus to switch
+            await pilot.wait_for_scheduled_animations()
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestScripts:
+    def test_script_runs(self, snap_compare):
+        """Check that a script runs correctly."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("enter")
+            await pilot.press("ctrl+j")
+            await pilot.app.workers.wait_for_complete()
+            await pilot.press("ctrl+o", "f")  # jump to "Scripts"
+            await pilot.press("ctrl+m")  # expand response section
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))

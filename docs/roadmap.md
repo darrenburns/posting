@@ -13,6 +13,8 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 - Parse cURL commands.
 - Watching environment files for changes & updating the UI. ✅
 - Editing key/value editor rows without having to delete/re-add them.
+- Quickly open MDN links for headers.
+- Templates. Create a `_template.posting.yaml` file (perhaps a checkbox in the new request modal for this). Any requests created in a collection will be based off of the nearest template (looking upwards to the collection root). Note that this is not "inheritance" - it's a means of quickly pre-filling values in requests based on a template request.
 - Saving recently used environments to a file.
 - Saving recently used collections to a file.
 - Viewing the currently loaded environment keys/values in a popup.

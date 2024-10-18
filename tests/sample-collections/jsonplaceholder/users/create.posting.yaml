@@ -9,6 +9,7 @@ body:
       "username": "john.doe",
       "email": "john.doe@example.com"
     }
+  content_type: application/json
 headers:
 - name: Content-Type
   value: application/json
@@ -18,5 +19,7 @@ headers:
   value: gzip
 - name: Cache-Control
   value: no-cache
+scripts:
+  on_request: scripts/my_script.py
 options:
   follow_redirects: false

@@ -10,7 +10,6 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 from textual.types import AnimationLevel
-import yaml
 
 from posting.locations import config_file, theme_directory
 
@@ -24,6 +23,13 @@ class HeadingSettings(BaseModel):
     """Whether or not to show the hostname in the app header."""
     show_version: bool = Field(default=True)
     """Whether or not to show the version in the app header."""
+    hostname: str | None = Field(default=None)
+    """The hostname to display in the app header.
+
+    You may use Rich markup here.
+    
+    If unset, the hostname provided via `socket.gethostname()` will be used.
+    """
 
 
 class UrlBarSettings(BaseModel):
@@ -54,6 +60,17 @@ class FocusSettings(BaseModel):
     """On receiving a response, move focus to the body or the response section (the tabs).
 
     If this value is unset, focus will not shift when a response is received."""
+
+    on_request_open: (
+        Literal["headers", "body", "query", "info", "url", "method"] | None
+    ) = Field(default=None)
+    """On opening a request using the sidebar collection browser, move focus to the specified target.
+
+    Valid values are: `headers`, `body`, `query`, `info`, `url`, `method`.
+
+    This will move focus *inside* the target tab, to the topmost widget in the tab.
+    
+    If this value is unset, focus will not shift when a request is opened."""
 
 
 class CertificateSettings(BaseModel):
@@ -128,6 +145,9 @@ class Settings(BaseSettings):
     watch_env_files: bool = Field(default=True)
     """If enabled, automatically reload environment files when they change."""
 
+    watch_collection_files: bool = Field(default=True)
+    """If enabled, automatically reload collection files when they change."""
+
     text_input: TextInputSettings = Field(default_factory=TextInputSettings)
     """General configuration for inputs and text area widgets."""
 
@@ -179,6 +199,9 @@ class Settings(BaseSettings):
 
     focus: FocusSettings = Field(default_factory=FocusSettings)
     """Configuration for focus."""
+
+    keymap: dict[str, str] = Field(default_factory=dict)
+    """A dictionary mapping binding IDs to key combinations."""
 
     @classmethod
     def settings_customise_sources(

@@ -3,6 +3,7 @@ import httpx
 from posting.config import SETTINGS
 
 from posting.widgets.response.response_trace import ResponseTrace
+from posting.widgets.response.script_output import ScriptOutput
 from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextAreaFooter, TextEditor
 from posting.widgets.response.cookies_table import CookiesTable
@@ -76,6 +77,8 @@ class ResponseArea(Vertical):
                 yield ResponseHeadersTable()
             with TabPane("Cookies", id="response-cookies-pane"):
                 yield CookiesTable()
+            with TabPane("Scripts", id="response-scripts-pane"):
+                yield ScriptOutput()
             with TabPane("Trace", id="response-trace-pane"):
                 yield ResponseTrace()
 

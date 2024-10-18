@@ -1,6 +1,10 @@
+import inspect
+from contextlib import redirect_stdout, redirect_stderr
 from pathlib import Path
 from typing import Any, Literal, cast
+
 import httpx
+
 from rich.console import Group
 from rich.text import Text
 from textual import on, log, work
@@ -23,10 +27,11 @@ from textual.widgets import (
 )
 from textual.widgets._tabbed_content import ContentTab
 from textual.widgets.text_area import TextAreaTheme
-from watchfiles import awatch
+from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
     Cookie,
+    Header,
     HttpRequestMethod,
     Options,
     RequestModel,
@@ -37,10 +42,11 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.scripts import execute_script, uncache_module, Posting as PostingContext
 from posting.themes import BUILTIN_THEMES, Theme, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
-from posting.variables import SubstitutionError, get_variables
+from posting.variables import SubstitutionError, get_variables, update_variables
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
@@ -59,9 +65,12 @@ from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_editor import RequestEditor
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
+from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
+from posting.widgets.response.script_output import ScriptOutput
+from posting.widgets.rich_log import RichLogIO
 from posting.xresources import load_xresources_themes
 
 
@@ -111,17 +120,57 @@ class AppBody(Vertical):
 class MainScreen(Screen[None]):
     AUTO_FOCUS = None
     BINDINGS = [
-        Binding("ctrl+j", "send_request", "Send"),
-        Binding("ctrl+t", "change_method", "Method"),
-        Binding("ctrl+l", "app.focus('url-input')", "Focus URL input", show=False),
-        Binding("ctrl+s", "save_request", "Save"),
-        Binding("ctrl+n", "new_request", "New"),
-        Binding("ctrl+m", "toggle_expanded", "Expand section", show=False),
+        Binding(
+            "ctrl+j,alt+enter",
+            "send_request",
+            "Send",
+            tooltip="Send the current request.",
+            id="send-request",
+        ),
+        Binding(
+            "ctrl+t",
+            "change_method",
+            "Method",
+            tooltip="Focus the method selector.",
+            id="focus-method",
+        ),
+        Binding(
+            "ctrl+l",
+            "app.focus('url-input')",
+            "Focus URL input",
+            show=False,
+            tooltip="Focus the URL input.",
+            id="focus-url",
+        ),
+        Binding(
+            "ctrl+s",
+            "save_request",
+            "Save",
+            tooltip="Save the current request. If a request is open, this will overwrite it.",
+            id="save-request",
+        ),
+        Binding(
+            "ctrl+n",
+            "new_request",
+            "New",
+            tooltip="Create a new request.",
+            id="new-request",
+        ),
+        Binding(
+            "ctrl+m",
+            "toggle_expanded",
+            "Expand section",
+            show=False,
+            tooltip="Expand or shrink the section (request or response) which has focus.",
+            id="expand-section",
+        ),
         Binding(
             "ctrl+h",
             "toggle_collection_browser",
             "Toggle collection browser",
             show=False,
+            tooltip="Toggle the collection browser.",
+            id="toggle-collection",
         ),
     ]
 
@@ -177,8 +226,88 @@ class MainScreen(Screen[None]):
             yield ResponseArea()
         yield Footer(show_command_palette=False)
 
+    def get_and_run_script(
+        self,
+        path_to_script: str,
+        default_function_name: str,
+        *args: Any,
+    ) -> None:
+        """
+        Get and run a function from a script.
+
+        Args:
+            script_path: Path to the script, relative to the collection path.
+            default_function_name: Default function name to use if not specified in the path.
+            *args: Arguments to pass to the script function.
+        """
+        script_path = Path(path_to_script)
+        path_name_parts = script_path.name.split(":")
+        if len(path_name_parts) == 2:
+            script_path = Path(path_name_parts[0])
+            function_name = path_name_parts[1]
+        else:
+            function_name = default_function_name
+
+        try:
+            script_function = execute_script(
+                self.collection.path, script_path, function_name
+            )
+        except Exception as e:
+            log.error(f"Error loading script {function_name}: {e}")
+            self.notify(
+                severity="error",
+                title=f"Error loading script {function_name}",
+                message=f"The script at {script_path} could not be loaded: {e}",
+            )
+            raise
+
+        if script_function is not None:
+            try:
+                script_output = self.response_script_output
+                script_output.log_function_call_start(
+                    f"{script_path.name}:{function_name}"
+                )
+
+                rich_log = script_output.rich_log
+                stdout_log = RichLogIO(rich_log, "stdout")
+                stderr_log = RichLogIO(rich_log, "stderr")
+
+                with redirect_stdout(stdout_log), redirect_stderr(stderr_log):
+                    # Ensure we pass in the number of parameters the user has
+                    # implicitly requested in their script.
+                    signature = inspect.signature(script_function)
+                    num_params = len(signature.parameters)
+                    if num_params > 0:
+                        script_function(*args[:num_params])
+                    else:
+                        script_function()
+
+                # Ensure any remaining content is flushed
+                stdout_log.flush()
+                stderr_log.flush()
+
+            except Exception as e:
+                log.error(f"Error running {function_name} script: {e}")
+                self.notify(
+                    severity="error",
+                    title=f"Error running {function_name} script",
+                    message=f"{e}",
+                )
+                raise
+        else:
+            log.warning(f"{function_name.capitalize()} script not found: {script_path}")
+            self.notify(
+                severity="error",
+                title=f"{function_name.capitalize()} script not found",
+                message=f"The {function_name} script at {script_path} could not be found.",
+            )
+            raise
+
     async def send_request(self) -> None:
         self.url_bar.clear_events()
+        script_output = self.response_script_output
+        script_output.reset()
+
         request_options = self.request_options.to_model()
 
         cert_config = SETTINGS.get().ssl
@@ -190,10 +319,28 @@ class MainScreen(Screen[None]):
         if password := cert_config.password:
             httpx_cert_config.append(password.get_secret_value())
 
+        app = cast("Posting", self.app)
+        script_context = PostingContext(app)
+
         cert = cast(CertTypes, tuple(httpx_cert_config))
         try:
-            # We must apply the template before we can do anything else.
+            # Run setup scripts first
             request_model = self.build_request_model(request_options)
+            if setup_script := request_model.scripts.setup:
+                try:
+                    self.get_and_run_script(
+                        setup_script,
+                        "setup",
+                        script_context,
+                    )
+                except Exception:
+                    self.response_script_output.set_setup_status("error")
+                else:
+                    self.response_script_output.set_setup_status("success")
+            else:
+                self.response_script_output.set_setup_status("no-script")
+
+            # Now apply the template
             variables = get_variables()
             try:
                 request_model.apply_template(variables)
@@ -215,7 +362,26 @@ class MainScreen(Screen[None]):
                 timeout=request_model.options.timeout,
                 auth=request_model.auth.to_httpx_auth() if request_model.auth else None,
             ) as client:
+                script_context.request = request_model
+
+                # If there's an associated pre-request script, run it.
+                if on_request := request_model.scripts.on_request:
+                    try:
+                        self.get_and_run_script(
+                            on_request,
+                            "on_request",
+                            request_model,
+                            script_context,
+                        )
+                    except Exception:
+                        self.response_script_output.set_request_status("error")
+                        # TODO - load the error into the response area, or log it.
+                    else:
+                        self.response_script_output.set_request_status("success")
+                else:
+                    self.response_script_output.set_request_status("no-script")
                 request = self.build_httpx_request(request_model, client)
+
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
@@ -228,12 +394,31 @@ class MainScreen(Screen[None]):
                 print("proxy =", request_model.options.proxy_url)
                 print("timeout =", request_model.options.timeout)
                 print("auth =", request_model.auth)
+
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
                 )
                 print("response cookies =", response.cookies)
                 self.post_message(HttpResponseReceived(response))
+
+                script_context.response = response
+                if on_response := request_model.scripts.on_response:
+                    try:
+                        self.get_and_run_script(
+                            on_response,
+                            "on_response",
+                            response,
+                            script_context,
+                        )
+                    except Exception:
+                        self.response_script_output.set_response_status("error")
+                        # TODO - load the error into the response area, or log it.
+                    else:
+                        self.response_script_output.set_response_status("success")
+                else:
+                    self.response_script_output.set_response_status("no-script")
+
         except httpx.ConnectTimeout as connect_timeout:
             log.error("Connect timeout", connect_timeout)
             self.notify(
@@ -288,6 +473,17 @@ class MainScreen(Screen[None]):
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
         """Load a request model into the UI when a request is selected."""
         self.load_request_model(event.request)
+        if focus_on_request_open := self.settings.focus.on_request_open:
+            targets = {
+                "headers": self.headers_table,
+                "body": self.request_editor.request_body_type_select,
+                "query": self.request_editor.query_editor.query_key_input,
+                "info": self.request_metadata.request_name_input,
+                "url": self.url_input,
+                "method": self.method_selector,
+            }
+            if target := targets.get(focus_on_request_open):
+                self.set_focus(target)
 
     @on(CollectionTree.RequestCacheUpdated)
     def on_request_cache_updated(
@@ -462,7 +658,21 @@ class MainScreen(Screen[None]):
         # We ensure elsewhere that the we can only "open" requests, not collection nodes.
         assert not isinstance(open_request, Collection)
 
+        request_editor_args = self.request_editor.to_request_model_args()
         headers = self.headers_table.to_model()
+        if request_body := request_editor_args.get("body"):
+            header_names_lower = {header.name.lower(): header for header in headers}
+            # Don't add the content type header if the user has explicitly set it.
+            if (
+                request_body.content_type is not None
+                and "content-type" not in header_names_lower
+            ):
+                headers.append(
+                    Header(
+                        name="content-type",
+                        value=request_body.content_type,
+                    )
+                )
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
@@ -478,7 +688,8 @@ class MainScreen(Screen[None]):
                 if request_options.attach_cookies
                 else []
             ),
-            **self.request_editor.to_request_model_args(),
+            scripts=self.request_scripts.to_model(),
+            **request_editor_args,
         )
 
     def load_request_model(self, request_model: RequestModel) -> None:
@@ -513,6 +724,7 @@ class MainScreen(Screen[None]):
         self.request_metadata.request = request_model
         self.request_options.load_options(request_model.options)
         self.request_auth.load_auth(request_model.auth)
+        self.request_scripts.load_scripts(request_model.scripts)
 
     @property
     def url_bar(self) -> UrlBar:
@@ -567,12 +779,20 @@ class MainScreen(Screen[None]):
         return self.query_one(RequestAuth)
 
     @property
+    def request_scripts(self) -> RequestScripts:
+        return self.query_one(RequestScripts)
+
+    @property
     def collection_tree(self) -> CollectionTree:
         return self.query_one(CollectionTree)
 
     @property
     def response_trace(self) -> ResponseTrace:
         return self.query_one(ResponseTrace)
+
+    @property
+    def response_script_output(self) -> ScriptOutput:
+        return self.query_one(ScriptOutput)
 
 
 class Posting(App[None], inherit_bindings=False):
@@ -584,20 +804,32 @@ class Posting(App[None], inherit_bindings=False):
             "ctrl+p",
             "command_palette",
             description="Commands",
+            tooltip="Open the command palette to search and run commands.",
+            id="commands",
         ),
         Binding(
             "ctrl+o",
             "toggle_jump_mode",
             description="Jump",
+            tooltip="Activate jump mode to quickly move focus between widgets.",
+            id="jump",
         ),
         Binding(
             "ctrl+c",
             "app.quit",
             description="Quit",
+            tooltip="Quit the application.",
             priority=True,
+            id="quit",
         ),
-        Binding("f1,ctrl+question_mark", "help", "Help"),
-        Binding("f8", "save_screenshot", "Save screenshot", show=False),
+        Binding(
+            "f1,ctrl+question_mark",
+            "help",
+            "Help",
+            tooltip="Open the help dialog for the currently focused widget.",
+            id="help",
+        ),
+        Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
 
     def __init__(
@@ -621,6 +853,9 @@ class Posting(App[None], inherit_bindings=False):
             available_themes |= load_user_themes()
 
         self.themes = available_themes
+        """The themes that are available to the app, potentially including
+        themes loaded from the user's themes directory and xresources themes
+        if those configuration options are enabled."""
 
         # We need to call super.__init__ after the themes are loaded,
         # because our `get_css_variables` override depends on
@@ -628,23 +863,58 @@ class Posting(App[None], inherit_bindings=False):
         super().__init__()
 
         self.settings = settings
+        """Settings object which is built via pydantic-settings,
+        essentially a direct translation of the config.yaml file."""
+
         self.environment_files = environment_files
+        """A list of paths to dotenv files, in the order they're loaded."""
+
         self.collection = collection
+        """The loaded collection."""
+
         self.collection_specified = collection_specified
+        """Boolean indicating whether the user launched Posting explicitly
+        supplying a collection directory, or if they let Posting auto-discover
+        it in some way (likely just using the default collection)."""
+
         self.animation_level = settings.animation
+        """The level of animation to use in the app. This is used by Textual."""
+
         self.env_changed_signal = Signal[None](self, "env-changed")
+        """Signal that is published when the environment has changed.
+        This means one or more of the loaded environment files (in
+        `self.environment_files`) have been modified."""
+
+        self.session_env: dict[str, object] = {}
+        """Users can set the value of variables for the duration of the
+        session (until the app is quit). This can be done via the scripting
+        interface: pre-request or post-response scripts."""
 
     theme: Reactive[str] = reactive("galaxy", init=False)
+    """The currently selected theme. Changing this reactive should
+    trigger a complete refresh via the `watch_theme` method."""
+
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
+    """True if 'jump mode' is currently active, otherwise False."""
 
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
+        """Watching files that were passed in as the environment."""
         async for changes in awatch(*self.environment_files):
-            await load_variables(
+            # Reload the variables from the environment files.
+            load_variables(
                 self.environment_files,
                 self.settings.use_host_environment,
                 avoid_cache=True,
             )
+            # Overlay the session variables on top of the environment variables.
+            update_variables(self.session_env)
+
+            # Notify the app that the environment has changed,
+            # which will trigger a reload of the variables in the relevant widgets.
+            # Widgets subscribed to this signal can reload as needed.
+            # For example, AutoComplete dropdowns will want to reload their
+            # candidate variables when the environment changes.
             self.env_changed_signal.publish(None)
             self.notify(
                 title="Environment changed",
@@ -652,7 +922,36 @@ class Posting(App[None], inherit_bindings=False):
                 timeout=3,
             )
 
+    @work(exclusive=True, group="collection-watcher")
+    async def watch_collection_files(self) -> None:
+        """Watching specific files within the collection directory."""
+        async for changes in awatch(self.collection.path):
+            for change_type, file_path in changes:
+                if file_path.endswith(".py"):
+                    if change_type in (
+                        Change.deleted,
+                        Change.modified,
+                    ):
+                        # If a Python file was updated, then we want to clear
+                        # the script module cache for the app so that modules
+                        # are reloaded on the next request being sent.
+                        # Without this, we'd hit the module cache and simply
+                        # re-execute the previously cached module.
+                        uncache_module(file_path)
+                        file_path_object = Path(file_path)
+                        file_name = file_path_object.name
+                        self.notify(
+                            f"Reloaded {file_name!r}",
+                            title="Script reloaded",
+                            timeout=2,
+                        )
+                    if change_type in (Change.added, Change.deleted):
+                        # TODO - update the autocompletion
+                        # of the available scripts.
+                        pass
+
     def on_mount(self) -> None:
+        self.set_keymap(self.settings.keymap)
         self.jumper = Jumper(
             {
                 "method-selector": "1",
@@ -663,11 +962,13 @@ class Posting(App[None], inherit_bindings=False):
                 "--content-tab-query-pane": "e",
                 "--content-tab-auth-pane": "r",
                 "--content-tab-info-pane": "t",
-                "--content-tab-options-pane": "y",
+                "--content-tab-scripts-pane": "y",
+                "--content-tab-options-pane": "u",
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
-                "--content-tab-response-trace-pane": "f",
+                "--content-tab-response-scripts-pane": "f",
+                "--content-tab-response-trace-pane": "g",
             },
             screen=self.screen,
         )
@@ -675,6 +976,9 @@ class Posting(App[None], inherit_bindings=False):
         self.theme = self.settings.theme
         if self.settings.watch_env_files:
             self.watch_environment_files()
+
+        if self.settings.watch_collection_files:
+            self.watch_collection_files()
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(
