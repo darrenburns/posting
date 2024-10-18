@@ -7,6 +7,10 @@ It's significantly faster than alternative tools, and will get you up and runnin
 
 You don't even need to worry about installing Python yourself - `uv` will manage everything for you.
 
+### uv
+
+Here's how to install Posting using `uv`:
+
 ```bash
 # quick install on MacOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -18,11 +22,6 @@ uv tool install --python 3.12 posting
 `uv` can also be installed via Homebrew, Cargo, Winget, pipx, and more. See the [installation guide](https://docs.astral.sh/uv/getting-started/installation/) for more information.
 
 `uv` also makes it easy to install additional Python packages into your Posting environment, which you can then use in your pre-request/post-response scripts.
-
-### Prefer `pipx`?
-
-If you'd prefer to use `pipx`, that works too: `pipx install posting`.
-
 
 ### pipx
 
@@ -57,12 +56,13 @@ This introduction will show you how to create a simple POST request to the [JSON
 
 A *collection* is simply a directory which may contain requests saved by Posting.
 
-If you launch Posting without specifying a collection, any requests you create will be saved in the `"default"` collection.
-This is a directory reserved by Posting on your filesystem, and unrelated to the directory you launched Posting from.
+If you launch Posting without specifying a collection, any requests you create will be saved to the `"default"` collection.
+
+The default collection is a directory reserved by Posting on your filesystem. It's a "global" collection and is not related to the directory you launched Posting from.
 
 This is fine for quick throwaway requests, but you'll probably want to create a new collection for each project you work on so that you can check it into version control.
 
-To create a new collection, simply create a new directory and pass it into Posting:
+To create a new collection, simply create a new directory and pass it into Posting.
 
 ```bash
 mkdir my-collection
@@ -71,21 +71,46 @@ posting --collection my-collection
 
 Now, any requests you create will be saved in the `my-collection` directory as simple YAML files with the `.posting.yaml` extension.
 
-### Creating a request
+When Posting opens, you'll see the collection browser on the left side of the screen with `my-collection` displayed at the bottom right corner.
+
+### Setting the request method to POST
 
 When you launch Posting, no request is open, so the UI will look rather empty.
 
 Let's create a simple POST request to the [JSONPlaceholder](https://jsonplaceholder.typicode.com/) mock API to create a new user.
 
-Press ++ctrl+t++ to open the request method dropdown, then press ++p++ to quickly select the `POST` method.
+Press ++ctrl+t++ to open the request method dropdown:
 
-Press ++tab++ to move focus to the next widget, which is the URL bar. The URL bar can also be focused with ++ctrl+l++. Type `https://jsonplaceholder.typicode.com/users` into the URL bar.
+![Posting request method dropdown](../assets/request-method-dropdown.png)
+
+The underlined character in each method indicates the key you can press to quickly select that method. We want to send a POST request, so press ++p++ to quickly select the POST method.
+
+### Setting the request URL
+
+You can move focus forward and backward through widgets using ++tab++ and ++shift+tab++ respectively.
+So, you can move focus from the method selector to the URL bar by pressing ++tab++ once.
+
+Alternatively, you can immediately move the focus to the URL bar from anywhere in Posting using ++ctrl+l++.
+
+Type `https://jsonplaceholder.typicode.com/users` into the URL bar.
+
+![Posting URL bar](../assets/url-bar.png)
+
+Posting's URL bar highlights parts of the URL as you type, which can be helpful for spotting typos.
+
+It can also autocomplete domains you've previously used, to save you from having to retype them.
+For example, if you later want to make a request to `https://jsonplaceholder.typicode.com/posts`, you can simply type "json" into the URL bar and select the URL from the autocomplete menu that appears.
+
+![Posting URL autocomplete](../assets/url-autocomplete.gif)
 
 ### Adding a JSON body
 
 Press ++ctrl+o++ to enter "jump mode", then press ++w++ to quickly jump to the "Body" tab.
+Jump mode is great for quickly moving through the UI without having to press ++tab++ multiple times.
 
-Press ++j++ (or ++down++) to move the cursor down to the dropdown. Press ++enter++ to open it, and select the option `Raw (json, text, etc.)`.
+At this point focus is currently on the tab bar itself.
+Press ++j++ (or ++down++) to move the cursor down to the dropdown.
+Press ++enter++ to open it, then select the option `Raw (json, text, etc.)`.
 
 Move down to the text area below using ++j++ (or ++down++), and type (or paste) the JSON below. 
 
@@ -97,14 +122,26 @@ Move down to the text area below using ++j++ (or ++down++), and type (or paste) 
 }
 ```
 
+Note at the bottom right of the text area, JSON is pre-selected as the content type.
+This means Posting will automatically use JSON syntax highlighting and it will insert the `Content-Type: application/json` header for you when the request is sent.
+
 ### Viewing keyboard shortcuts
 
 Now is probably a good time to note that you can see the full list of keyboard shortcuts for the focused widget by pressing ++f1++. The text area widget in particular has a lot of useful shortcuts and supports things like undo/redo.
 
+!!! tip "Changing keyboard shortcuts"
+
+    You can remap keybindings in Posting using [Keymaps](../guide/keymap.md).
 
 ### Sending the request
 
-Press ++ctrl+j++ to send the request. This shortcut works globally.
+Press ++ctrl+j++ to send the request.
+This shortcut works globally.
+
+!!! tip "Keyboard shortcuts"
+
+    You may also be able to send the request using ++alt+enter++.
+    This only works on terminals that support the Kitty graphics protocol.
 
 ### Saving the request
 

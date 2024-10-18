@@ -27,8 +27,8 @@ nav:
   - Guide:
     - "Getting Started": "guide/index.md"
     - "Navigation": "guide/navigation.md"
-    - "Requests": "guide/requests.md"
     - "Collections": "guide/collections.md"
+    - "Requests": "guide/requests.md"
     - "Configuration": "guide/configuration.md"
     - "Environments": "guide/environments.md"
     - "Command Palette": "guide/command_palette.md"

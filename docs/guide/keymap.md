@@ -1,8 +1,9 @@
 ## Overview
 
-As explained in the [Help System](./help_system.md) section, you can view the keybindings for any widget by pressing `F1` or `?` when that widget has focus.
+As explained in the [Help System](./help_system.md) section, you can view the keybindings for any widget by pressing ++f1++ or ++ctrl+question-mark++ when that widget has focus.
 
 If you wish to use different keybindings, you can do so by editing the `keymap` section of your `config.yaml` file.
+Check the location of that file on your system by running `posting locate config` on the command line.
 
 ### Changing the keymap
 

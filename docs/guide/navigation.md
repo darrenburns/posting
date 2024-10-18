@@ -24,6 +24,15 @@ You can check these by pressing <kbd>f1</kbd> while it is focused.
 
 Where it makes sense, <kbd>up</kbd> and <kbd>down</kbd> will also move between widgets.
 
+## Mouse navigation
+
+You can also navigate Posting entirely using the mouse, very much like a typical GUI application.
+
+If a widget shows a scrollbar, you can use the mouse wheel or trackpad gestures to scroll through its content.
+Scrollbars can also be clicked and dragged.
+
+If you hold shift and scroll using the trackpad or mousewheel, the content will scroll horizontally (if there's a horizontal scrollbar).
+
 ## Contextual help
 
 Many widgets have additional bindings for navigation other than those displayed in the footer. You can view the full list of keybindings for the currently
@@ -37,6 +46,7 @@ You can use the `focus.on_startup` and `focus.on_response` configuration options
 |----------------------|---------------|-------------|
 | `focus.on_startup` | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
 | `focus.on_response` | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
+| `focus.on_request_open` | `"headers"`, `"body"`, `"query"`, `"info"`, `"url"`, `"method"` (Default: `unset`) | Automatically focus the specified target when a request is opened from the collection browser. |
 
 ## Exiting
 
