@@ -581,8 +581,8 @@ class MainScreen(Screen[None]):
         """Open the new request flow."""
         await self.collection_tree.new_request_flow(None)
 
-    def watch_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
-        """Update the layout of the app to be horizontal or vertical."""
+    def watch_current_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
+        """Update the current layout of the app to be horizontal or vertical."""
         classes = {"horizontal", "vertical"}
         other_class = classes.difference({layout}).pop()
         self.app_body.add_class(f"layout-{layout}")

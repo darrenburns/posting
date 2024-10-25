@@ -24,7 +24,7 @@ class PostingProvider(Provider):
 
         if isinstance(screen, MainScreen):
             # Only show the option to change to the layout which isn't the current one.
-            if screen.layout == "horizontal":
+            if screen.current_layout == "horizontal":
                 commands_to_show.append(
                     (
                         "layout: vertical",
@@ -33,7 +33,7 @@ class PostingProvider(Provider):
                         True,
                     ),
                 )
-            elif screen.layout == "vertical":
+            elif screen.current_layout == "vertical":
                 commands_to_show.append(
                     (
                         "layout: horizontal",
