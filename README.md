@@ -36,7 +36,7 @@
 | src/posting/widgets/confirmation.py                   |       39 |       21 |     46% |51-57, 60-64, 67-72, 76, 80, 84 |
 | src/posting/widgets/datatable.py                      |       91 |       31 |     66% |67, 70-73, 97-112, 115-127, 135-140 |
 | src/posting/widgets/input.py                          |       61 |        2 |     97% |    33, 74 |
-| src/posting/widgets/key\_value.py                     |       94 |       16 |     83% |52, 103-106, 109, 115-123, 175-177, 184 |
+| src/posting/widgets/key\_value.py                     |       94 |       16 |     83% |53, 104-107, 110, 116-124, 176-178, 185 |
 | src/posting/widgets/request/\_\_init\_\_.py           |        0 |        0 |    100% |           |
 | src/posting/widgets/request/form\_editor.py           |       29 |        0 |    100% |           |
 | src/posting/widgets/request/header\_editor.py         |       50 |        5 |     90% |   103-107 |
@@ -46,7 +46,7 @@
 | src/posting/widgets/request/request\_body.py          |       81 |       61 |     25% |41-45, 50-55, 57-104, 109-114, 119-130 |
 | src/posting/widgets/request/request\_editor.py        |       82 |        3 |     96% |23, 141, 154 |
 | src/posting/widgets/request/request\_metadata.py      |       40 |        3 |     92% |     38-40 |
-| src/posting/widgets/request/request\_options.py       |       79 |       16 |     80% |123-128, 133, 140-141, 146-153 |
+| src/posting/widgets/request/request\_options.py       |       79 |       16 |     80% |120-125, 130, 137-138, 143-150 |
 | src/posting/widgets/request/request\_scripts.py       |       81 |       32 |     60% |53-71, 81-110, 118, 126, 226-229 |
 | src/posting/widgets/request/url\_bar.py               |      160 |       12 |     92% |75, 83, 156-157, 189-190, 196-197, 213-216, 258-259 |
 | src/posting/widgets/response/cookies\_table.py        |        8 |        0 |    100% |           |
