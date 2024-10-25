@@ -15,7 +15,6 @@ class RequestOptions(VerticalScroll):
     
         Checkbox {
             height: 1;
-            margin: 0 2 1 2;
             padding: 0 1;
             border: none;
             background: transparent;
@@ -32,15 +31,13 @@ class RequestOptions(VerticalScroll):
         }
 
         #proxy-option {
-            padding-left: 3;
-            margin-bottom: 1;
-            height: auto;
+            padding: 0 1 0 2;
+            height: 2;
         }
 
         #timeout-option {
-            padding-left: 3;
-            height: auto;
-            margin-bottom: 1;
+            padding: 0 1 0 2;
+            height: 2;
         }
 
         & #option-description {
@@ -98,11 +95,11 @@ class RequestOptions(VerticalScroll):
         )
 
         with Vertical(id="proxy-option"):
-            yield Label("Proxy URL")
+            yield Label("Proxy URL:")
             yield VariableInput(id="proxy-url")
 
         with Vertical(id="timeout-option"):
-            yield Label("Timeout")
+            yield Label("Timeout:")
             yield VariableInput(
                 value=str(self.options.timeout),
                 id="timeout",

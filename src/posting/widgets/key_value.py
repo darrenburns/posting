@@ -19,6 +19,7 @@ class KeyValueInput(Horizontal):
             border: none;
             width: 1fr;
             margin-left: 1;
+            margin-right: 1;
             &:focus {
                 border: none;
                 padding: 0 1;
