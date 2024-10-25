@@ -176,7 +176,7 @@ class MainScreen(Screen[None]):
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     """The currently selected method of the request."""
-    layout: Reactive[PostingLayout] = reactive("vertical", init=False)
+    current_layout: Reactive[PostingLayout] = reactive("vertical", init=False)
     """The current layout of the app."""
     expanded_section: Reactive[Literal["request", "response"] | None] = reactive(
         None, init=False
@@ -197,7 +197,7 @@ class MainScreen(Screen[None]):
         self.settings = SETTINGS.get()
 
     def on_mount(self) -> None:
-        self.layout = self._initial_layout
+        self.current_layout = self._initial_layout
 
         # Set the initial focus based on the settings.
         focus_on_startup = self.settings.focus.on_startup
@@ -1000,7 +1000,7 @@ class Posting(App[None], inherit_bindings=False):
         return {**super().get_css_variables(), **color_system}
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
-        self.main_screen.layout = layout
+        self.main_screen.current_layout = layout
 
     def command_theme(self, theme: str) -> None:
         self.theme = theme
