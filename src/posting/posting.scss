@@ -86,7 +86,7 @@ AppBody {
     & KeyValueInput {
       layout: vertical;
       & Button {
-        width: 1fr;
+        width: 100%;
       }
     }
 
@@ -134,11 +134,11 @@ Footer {
 }
 
 RichLog {
-  background: $surface;
+  background: $surface 50%;
   padding-left: 1;
 
   &:focus {
-    background: $surface-lighten-1;
+    background: $surface-lighten-1 50%;
     border-left: wide $accent;
     padding-left: 0;
   }
