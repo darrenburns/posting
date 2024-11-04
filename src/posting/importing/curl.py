@@ -46,9 +46,11 @@ class CurlImport:
             if args.data or args.form or args.data_raw or args.data_binary
             else "GET"
         )
-        self.headers = (
-            [header.split(": ") for header in args.header] if args.header else []
-        )
+        self.headers = []
+        for header in args.header or []:
+            name, sep, value = header.partition(":")
+            if sep:
+                self.headers.append([name.strip(), value.strip()])
         self.url = args.url
         self.user = args.user
         self.compressed = args.compressed
