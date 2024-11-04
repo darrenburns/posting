@@ -3,11 +3,22 @@ import shlex
 
 
 class CurlImport:
+    """
+    Parses a curl command string and extracts HTTP request components.
+    """
+
     def __init__(self, curl_command):
+        """
+        Initialize the parser with a curl command.
+
+        Args:
+            curl_command (str): The curl command string to parse.
+        """
         # Remove leading 'curl ' if present
         if curl_command.strip().startswith("curl "):
             curl_command = curl_command.strip()[5:]
 
+        # Replace line breaks and `\`. If we don't do this, argparse can crash when pasting requests from chrome
         curl_command = curl_command.replace("\\\n", " ")
         curl_command = curl_command.replace("\\", " ")
 
@@ -38,7 +49,7 @@ class CurlImport:
         parser.add_argument("-e", "--referer", help="Referrer URL")
         parser.add_argument("-A", "--user-agent", help="User-Agent to send to server")
         parser.add_argument("url", nargs="?")
-        # Parse the arguments
+
         args = parser.parse_intermixed_args(tokens)
         # Extract components
         self.method = args.request or (
