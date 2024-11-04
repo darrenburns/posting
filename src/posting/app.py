@@ -5,6 +5,7 @@ from typing import Any, Literal, cast
 
 import httpx
 
+from posting.importing.curl import CurlImport
 from rich.console import Group
 from rich.text import Text
 from textual import on, log, work
@@ -66,7 +67,7 @@ from posting.widgets.request.request_editor import RequestEditor
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
-from posting.widgets.request.url_bar import UrlInput, UrlBar
+from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
@@ -691,6 +692,28 @@ class MainScreen(Screen[None]):
             scripts=self.request_scripts.to_model(),
             **request_editor_args,
         )
+
+    def on_curl_message(self, event: CurlMessage):
+        curl_import = CurlImport(event.curl_command)
+        self.headers_table.replace_all_rows(curl_import.headers)
+        self.url_input.value = curl_import.url
+
+        # Clear existing data
+        self.request_body_text_area.text = ""
+        self.request_editor.form_editor.replace_all_rows([])
+
+        if curl_import.is_form_data:
+            self.request_editor.request_body_type_select.value = "form-body-editor"
+            self.request_editor.form_editor.replace_all_rows(curl_import.data_pairs)
+            self.request_body_text_area.text = ""
+        elif curl_import.data:
+            self.request_editor.form_editor.replace_all_rows([])
+            self.request_editor.request_body_type_select.value = "text-body-editor"
+            self.request_body_text_area.text = curl_import.data
+        else:
+            self.request_editor.request_body_type_select.value = "no-body-label"
+
+        self.method_selector.value = curl_import.method
 
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
