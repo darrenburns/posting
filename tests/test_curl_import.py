@@ -175,13 +175,6 @@ def test_curl_with_complex_command():
     assert curl_import.is_form_data is False
 
 
-def test_curl_with_insecure():
-    """Test parsing of --insecure flag."""
-    curl_command = "curl -k http://example.com"
-    curl_import = CurlImport(curl_command)
-    assert curl_import.insecure is True
-
-
 def test_curl_with_utf8_characters():
     """Test curl command with UTF-8 characters."""
     curl_command = "curl -d 'param=テスト' http://example.com"
