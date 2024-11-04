@@ -721,6 +721,9 @@ class MainScreen(Screen[None]):
         else:
             self.request_editor.request_body_type_select.value = "no-body-label"
 
+        if curl_import.insecure:
+            self.request_options.verify_ssl_checkbox.value = False
+
         self.method_selector.value = curl_import.method
         self.notify(
             title="Curl request imported",
