@@ -694,7 +694,17 @@ class MainScreen(Screen[None]):
         )
 
     def on_curl_message(self, event: CurlMessage):
-        curl_import = CurlImport(event.curl_command)
+        try:
+            curl_import = CurlImport(event.curl_command)
+        except SystemExit:
+            self.notify(
+                title="Could not parse curl request",
+                message="An error occurred while parsing the curl request.",
+                timeout=5,
+                severity="error",
+            )
+            return
+
         self.headers_table.replace_all_rows(curl_import.headers)
         self.url_input.value = curl_import.url
 
@@ -705,15 +715,18 @@ class MainScreen(Screen[None]):
         if curl_import.is_form_data:
             self.request_editor.request_body_type_select.value = "form-body-editor"
             self.request_editor.form_editor.replace_all_rows(curl_import.data_pairs)
-            self.request_body_text_area.text = ""
         elif curl_import.data:
-            self.request_editor.form_editor.replace_all_rows([])
             self.request_editor.request_body_type_select.value = "text-body-editor"
             self.request_body_text_area.text = curl_import.data
         else:
             self.request_editor.request_body_type_select.value = "no-body-label"
 
         self.method_selector.value = curl_import.method
+        self.notify(
+            title="Curl request imported",
+            message=f"Successfully imported curl request to {curl_import.url}",
+            timeout=3,
+        )
 
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
