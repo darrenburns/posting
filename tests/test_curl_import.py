@@ -1,4 +1,3 @@
-import pytest
 from posting.importing.curl import CurlImport
 
 
