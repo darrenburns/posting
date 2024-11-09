@@ -40,7 +40,7 @@ uv tool install --python 3.12 posting
 
 `uv` can also be installed via Homebrew, Cargo, Winget, pipx, and more. See the [installation guide](https://docs.astral.sh/uv/getting-started/installation/) for more information.
 
-After it installs, you can run it via the command line:
+ Now you can run Posting via the command line:
 
 ```bash
 posting
