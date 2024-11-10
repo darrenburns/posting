@@ -1,5 +1,6 @@
 import argparse
 import base64
+from datetime import datetime
 import shlex
 from typing import cast
 from urllib.parse import ParseResult, parse_qsl, urlparse
@@ -31,6 +32,8 @@ class CurlImport:
         Args:
             curl_command (str): The curl command string to parse.
         """
+        self.curl_command = curl_command
+
         # Remove leading 'curl ' if present
         if curl_command.strip().startswith("curl "):
             curl_command = curl_command.strip()[5:]
@@ -254,15 +257,17 @@ class CurlImport:
             attach_cookies=True,  # Default to attaching cookies
         )
 
+        curl_command = self.curl_command.strip()
+        description = f"Imported from curl at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}:\n{curl_command}"
         return RequestModel(
             method=self.method,
             url=base_url,  # Use the URL without query parameters
             headers=headers,
             body=body,
-            name="",  # Empty name since this is a new request
-            params=query_params,  # Add the parsed query parameters
+            name=base_url,
+            description=description,
+            params=query_params,
             options=options,
-            auth=auth,  # Add the extracted auth
-            cookies=[],  # No cookies parsed from curl yet
-            scripts=Scripts(),  # Empty scripts object
+            auth=auth,
+            scripts=Scripts(),
         )
