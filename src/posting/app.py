@@ -696,23 +696,21 @@ class MainScreen(Screen[None]):
     def on_curl_message(self, event: CurlMessage):
         try:
             curl_import = CurlImport(event.curl_command)
-        except SystemExit:
+            request_model = curl_import.to_request_model()
+        except Exception as e:
             self.notify(
                 title="Could not parse curl request",
-                message="An error occurred while parsing the curl request.",
+                message=f"An error occurred: {e}",
                 timeout=5,
                 severity="error",
             )
-            return
-
-        request_model = curl_import.to_request_model()
-        self.load_request_model(request_model)
-
-        self.notify(
-            title="Curl request imported",
-            message=f"Successfully imported curl request to {curl_import.url}",
-            timeout=3,
-        )
+        else:
+            self.load_request_model(request_model)
+            self.notify(
+                title="Curl request imported",
+                message=f"Successfully imported curl request to {curl_import.url}",
+                timeout=3,
+            )
 
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
