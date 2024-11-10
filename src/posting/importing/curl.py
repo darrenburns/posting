@@ -1,10 +1,13 @@
 import argparse
+import base64
 import shlex
 from typing import cast
 from urllib.parse import ParseResult, parse_qsl, urlparse
 
 from posting.collection import (
     Auth,
+    BasicAuth,
+    DigestAuth,
     FormItem,
     Header,
     HttpRequestMethod,
@@ -147,6 +150,72 @@ class CurlImport:
                 form_data.append((item, ""))
         return form_data
 
+    def _extract_auth_from_headers(self) -> tuple[Auth | None, list[tuple[str, str]]]:
+        """Extract authentication info from headers, returning the Auth object and remaining headers.
+
+        Returns:
+            A tuple of (Auth object or None, list of remaining headers)
+        """
+        remaining_headers = []
+        auth: Auth | None = None
+
+        # First check the -u/--user parameter
+        if self.user:
+            username, _, password = self.user.partition(":")
+            # Default to empty password if none provided
+            auth = Auth.basic_auth(username, password)
+
+        # Look for auth headers that might override the -u parameter
+        for name, value in self.headers:
+            header_lower = name.lower()
+            if header_lower == "authorization":
+                parts = value.split(" ", 1)
+                if len(parts) != 2:
+                    # Not a valid auth header, keep it as a regular header
+                    remaining_headers.append((name, value))
+                    continue
+
+                auth_type, auth_value = parts
+                auth_type_lower = auth_type.lower()
+
+                if auth_type_lower == "basic":
+                    try:
+                        # Basic auth is base64 encoded username:password
+                        decoded = base64.b64decode(auth_value).decode()
+                        username, _, password = decoded.partition(":")
+                        auth = Auth.basic_auth(username, password)
+                    except Exception:
+                        # If we can't decode it, keep it as a header
+                        remaining_headers.append((name, value))
+
+                elif auth_type_lower == "digest":
+                    # Parse digest auth parameters
+                    # Example: Digest username="user", realm="realm", nonce="nonce", uri="/path"
+                    try:
+                        params = {}
+                        for param in auth_value.split(","):
+                            key, _, value = param.partition("=")
+                            key = key.strip()
+                            value = value.strip(' "')
+                            params[key] = value
+
+                        if "username" in params:
+                            # We only need username/password for the auth model
+                            auth = Auth.digest_auth(
+                                username=params["username"],
+                                password=params.get("password", ""),
+                            )
+                    except Exception:
+                        # If we can't parse it, keep it as a header
+                        remaining_headers.append((name, value))
+                else:
+                    # Unknown auth type, keep as header
+                    remaining_headers.append((name, value))
+            else:
+                remaining_headers.append((name, value))
+
+        return auth, remaining_headers
+
     def to_request_model(self) -> RequestModel:
         """Convert the parsed curl command into a RequestModel."""
         # Parse URL and extract query parameters
@@ -156,6 +225,9 @@ class CurlImport:
             QueryParam(name=name, value=value)
             for name, value in parse_qsl(parsed_url.query)
         ]
+
+        # Extract auth and get remaining headers
+        auth, remaining_headers = self._extract_auth_from_headers()
 
         # Build the request body if one exists
         body: RequestBody | None = None
@@ -172,8 +244,8 @@ class CurlImport:
                 # Raw body content
                 body = RequestBody(content=self.data)
 
-        # Convert headers to Header objects
-        headers = [Header(name=name, value=value) for name, value in self.headers]
+        # Convert remaining headers to Header objects
+        headers = [Header(name=name, value=value) for name, value in remaining_headers]
 
         # Set options, including the insecure flag
         options = Options(
@@ -190,7 +262,7 @@ class CurlImport:
             name="",  # Empty name since this is a new request
             params=query_params,  # Add the parsed query parameters
             options=options,
-            auth=None,  # Auth not implemented yet for curl import
+            auth=auth,  # Add the extracted auth
             cookies=[],  # No cookies parsed from curl yet
             scripts=Scripts(),  # Empty scripts object
         )
