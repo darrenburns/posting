@@ -708,10 +708,6 @@ class MainScreen(Screen[None]):
         request_model = curl_import.to_request_model()
         self.load_request_model(request_model)
 
-        # Handle special curl options that affect request options
-        if curl_import.insecure:
-            self.request_options.verify_ssl_checkbox.value = False
-
         self.notify(
             title="Curl request imported",
             message=f"Successfully imported curl request to {curl_import.url}",

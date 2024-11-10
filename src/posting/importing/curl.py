@@ -1,8 +1,18 @@
 import argparse
 import shlex
-from typing import Any
+from typing import cast
 
-from posting.collection import Header, RequestBody, RequestModel
+from posting.collection import (
+    Auth,
+    FormItem,
+    Header,
+    HttpRequestMethod,
+    Options,
+    QueryParam,
+    RequestBody,
+    RequestModel,
+    Scripts,
+)
 
 
 class CurlImport:
@@ -55,16 +65,21 @@ class CurlImport:
 
         args = parser.parse_intermixed_args(tokens)
         # Extract components
-        self.method = args.request or (
-            "POST"
-            if args.data or args.form or args.data_raw or args.data_binary
-            else "GET"
+        self.method = cast(
+            HttpRequestMethod,
+            args.request
+            or (
+                "POST"
+                if args.data or args.form or args.data_raw or args.data_binary
+                else "GET"
+            ),
         )
         self.headers: list[tuple[str, str]] = []
-        for header in args.header or []:
-            name, sep, value = header.partition(":")
-            if sep:
-                self.headers.append((name.strip(), value.strip()))
+        if args.header:
+            for header in args.header:
+                name, sep, value = header.partition(":")
+                if sep:
+                    self.headers.append((name.strip(), value.strip()))
 
         self.url = args.url
         self.user = args.user
@@ -139,7 +154,11 @@ class CurlImport:
             if self.is_form_data:
                 # Use form data pairs from either -F or -d
                 form_data = self.form or self.data_pairs
-                body = RequestBody(form_data=form_data)
+                body = RequestBody(
+                    form_data=[
+                        FormItem(name=name, value=value) for name, value in form_data
+                    ]
+                )
             else:
                 # Raw body content
                 body = RequestBody(content=self.data)
@@ -147,16 +166,22 @@ class CurlImport:
         # Convert headers to Header objects
         headers = [Header(name=name, value=value) for name, value in self.headers]
 
+        # Set options, including the insecure flag
+        options = Options(
+            verify_ssl=not self.insecure,  # Invert insecure flag for verify_ssl
+            follow_redirects=True,  # Default to following redirects
+            attach_cookies=True,  # Default to attaching cookies
+        )
+
         return RequestModel(
             method=self.method,
             url=self.url,
             headers=headers,
             body=body,
-            # Set reasonable defaults for other required fields
             name="",  # Empty name since this is a new request
             params=[],  # No query params parsed from curl
-            options=None,  # Use default options
+            options=options,
             auth=None,  # Auth not implemented yet for curl import
             cookies=[],  # No cookies parsed from curl yet
-            scripts=None,  # No scripts for imported requests
+            scripts=Scripts(),  # Empty scripts object
         )
