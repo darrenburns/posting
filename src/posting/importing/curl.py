@@ -1,7 +1,7 @@
 import argparse
 import shlex
 from typing import cast
-from urllib.parse import parse_qsl, urlparse
+from urllib.parse import ParseResult, parse_qsl, urlparse
 
 from posting.collection import (
     Auth,
@@ -150,7 +150,7 @@ class CurlImport:
     def to_request_model(self) -> RequestModel:
         """Convert the parsed curl command into a RequestModel."""
         # Parse URL and extract query parameters
-        parsed_url = urlparse(self.url)
+        parsed_url: ParseResult = urlparse(self.url)
         base_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
         query_params = [
             QueryParam(name=name, value=value)
