@@ -7,7 +7,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
 from textual.design import ColorSystem
-from textual.events import Blur
+from textual.events import Blur, Paste
 from textual.message import Message
 from textual.widgets import Input, Button, Label
 from textual_autocomplete import DropdownItem
@@ -26,6 +26,12 @@ from posting.widgets.input import PostingInput
 from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
 from posting.widgets.variable_autocomplete import VariableAutoComplete
+
+
+class CurlMessage(Message):
+    def __init__(self, curl_command):
+        super().__init__()
+        self.curl_command = curl_command
 
 
 class UrlInput(PostingInput):
@@ -104,6 +110,12 @@ Press `ctrl+l` to quickly focus this bar from elsewhere.""",
         if theme.url:
             self.highlighter.url_styles = theme.url.fill_with_defaults(theme)
 
+    def on_paste(self, event: Paste):
+        if not event.text.startswith("curl "):
+            return
+        event.prevent_default()
+        self.post_message(CurlMessage(event.text))
+
 
 class SendRequestButton(Button, can_focus=False):
     """
@@ -160,7 +172,7 @@ class UrlBar(Vertical):
         with Horizontal():
             yield MethodSelector(id="method-selector")
             yield UrlInput(
-                placeholder="Enter a URL...",
+                placeholder="Enter a URL or paste a curl command...",
                 id="url-input",
             )
             yield Label(id="trace-markers")

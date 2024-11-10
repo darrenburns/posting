@@ -5,6 +5,7 @@ from typing import Any, Literal, cast
 
 import httpx
 
+from posting.importing.curl import CurlImport
 from rich.console import Group
 from rich.text import Text
 from textual import on, log, work
@@ -66,7 +67,7 @@ from posting.widgets.request.request_editor import RequestEditor
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
-from posting.widgets.request.url_bar import UrlInput, UrlBar
+from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
@@ -691,6 +692,25 @@ class MainScreen(Screen[None]):
             scripts=self.request_scripts.to_model(),
             **request_editor_args,
         )
+
+    def on_curl_message(self, event: CurlMessage):
+        try:
+            curl_import = CurlImport(event.curl_command)
+            request_model = curl_import.to_request_model()
+        except Exception as e:
+            self.notify(
+                title="Could not parse curl request",
+                message=f"An error occurred: {e}",
+                timeout=5,
+                severity="error",
+            )
+        else:
+            self.load_request_model(request_model)
+            self.notify(
+                title="Curl request imported",
+                message=f"Successfully imported curl request to {curl_import.url}",
+                timeout=3,
+            )
 
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
