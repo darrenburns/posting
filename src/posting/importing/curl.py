@@ -1,6 +1,7 @@
 import argparse
 import shlex
 from typing import cast
+from urllib.parse import parse_qsl, urlparse
 
 from posting.collection import (
     Auth,
@@ -148,6 +149,14 @@ class CurlImport:
 
     def to_request_model(self) -> RequestModel:
         """Convert the parsed curl command into a RequestModel."""
+        # Parse URL and extract query parameters
+        parsed_url = urlparse(self.url)
+        base_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+        query_params = [
+            QueryParam(name=name, value=value)
+            for name, value in parse_qsl(parsed_url.query)
+        ]
+
         # Build the request body if one exists
         body: RequestBody | None = None
         if self.data or self.form:
@@ -175,11 +184,11 @@ class CurlImport:
 
         return RequestModel(
             method=self.method,
-            url=self.url,
+            url=base_url,  # Use the URL without query parameters
             headers=headers,
             body=body,
             name="",  # Empty name since this is a new request
-            params=[],  # No query params parsed from curl
+            params=query_params,  # Add the parsed query parameters
             options=options,
             auth=None,  # Auth not implemented yet for curl import
             cookies=[],  # No cookies parsed from curl yet
