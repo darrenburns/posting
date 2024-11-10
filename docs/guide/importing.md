@@ -1,8 +1,14 @@
 ## Overview
 
-Posting currently supports importing from OpenAPI specs.
+Posting supports importing from external sources.
 
-Support for other API formats will be added in future updates.
+## Importing from curl
+
+!!! example "This feature is experimental."
+
+You can import a curl command by pasting it into the URL bar.
+
+This will fill out the request details in the UI based on the curl command you pasted, overwriting any existing values.
 
 ## Importing from OpenAPI
 

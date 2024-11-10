@@ -45,7 +45,12 @@ class UrlInput(PostingInput):
 Enter the URL to send a request to. Refer to variables from the environment (loaded via `--env`) using `$variable` or `${variable}` syntax.
 Resolved variables will be highlighted green. Move the cursor over a variable to preview the value.
 Base URL suggestions are loaded based on the URLs found in the currently open collection.
-Press `ctrl+l` to quickly focus this bar from elsewhere.""",
+Press `ctrl+l` to quickly focus this bar from elsewhere.
+
+You can also import a `curl` command by pasting it into the URL bar.
+This will fill out the request details in the UI based on the curl command you pasted, overwriting any existing values.
+It's recommended you create a new request before pasting a curl command, to avoid overwriting.
+""",
     )
 
     DEFAULT_CSS = """\
