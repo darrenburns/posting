@@ -546,6 +546,7 @@ class RequestPreview(VerticalScroll):
             dock: bottom;
             height: auto;
             max-height: 50%;
+            width: 100%;
             padding: 0 1;
             border-top: solid $accent 35%;
             &.hidden {
@@ -575,8 +576,8 @@ class CollectionBrowser(Vertical):
         width: auto;
         max-width: 33%;
         & Tree {
-            min-width: 20;
             background: transparent;
+            width: auto;
         }
 
         #empty-collection-label {
