@@ -1,5 +1,8 @@
 import argparse
 import shlex
+from typing import Any
+
+from posting.collection import Header, RequestBody, RequestModel
 
 
 class CurlImport:
@@ -128,18 +131,32 @@ class CurlImport:
                 form_data.append((item, ""))
         return form_data
 
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "method": self.method,
-            "url": self.url,
-            "headers": self.headers,
-            "data": self.data,
-            "data_pairs": self.data_pairs,
-            "form": self.form,
-            "user": self.user,
-            "compressed": self.compressed,
-            "insecure": self.insecure,
-            "referer": self.referer,
-            "user_agent": self.user_agent,
-            "is_form_data": self.is_form_data,
-        }
+    def to_request_model(self) -> RequestModel:
+        """Convert the parsed curl command into a RequestModel."""
+        # Build the request body if one exists
+        body: RequestBody | None = None
+        if self.data or self.form:
+            if self.is_form_data:
+                # Use form data pairs from either -F or -d
+                form_data = self.form or self.data_pairs
+                body = RequestBody(form_data=form_data)
+            else:
+                # Raw body content
+                body = RequestBody(content=self.data)
+
+        # Convert headers to Header objects
+        headers = [Header(name=name, value=value) for name, value in self.headers]
+
+        return RequestModel(
+            method=self.method,
+            url=self.url,
+            headers=headers,
+            body=body,
+            # Set reasonable defaults for other required fields
+            name="",  # Empty name since this is a new request
+            params=[],  # No query params parsed from curl
+            options=None,  # Use default options
+            auth=None,  # Auth not implemented yet for curl import
+            cookies=[],  # No cookies parsed from curl yet
+            scripts=None,  # No scripts for imported requests
+        )
