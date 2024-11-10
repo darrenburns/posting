@@ -41,7 +41,9 @@ class RequestMetadata(VerticalScroll):
         else:
             self.request_name_input.value = request.name or ""
             self.request_description_textarea.text = request.description
-            self.request_path_label.update(str(request.path) or "")
+            self.request_path_label.update(
+                str(request.path) if request.path else "Request not saved to disk."
+            )
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
