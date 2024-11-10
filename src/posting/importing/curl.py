@@ -7,8 +7,6 @@ from urllib.parse import ParseResult, parse_qsl, urlparse
 
 from posting.collection import (
     Auth,
-    BasicAuth,
-    DigestAuth,
     FormItem,
     Header,
     HttpRequestMethod,
