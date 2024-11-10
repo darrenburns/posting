@@ -55,7 +55,9 @@ class RequestMetadata(VerticalScroll):
         yield Label("Description [dim]optional[/dim]")
         yield PostingTextArea(id="description-textarea")
         yield Label("Path [dim]read-only[/dim]")
-        yield ReadOnlyTextArea("", select_on_focus=True, id="request-path")
+        yield ReadOnlyTextArea(
+            "Request not saved to disk.", select_on_focus=True, id="request-path"
+        )
 
     @property
     def request_name_input(self) -> Input:
