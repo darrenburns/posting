@@ -18,8 +18,8 @@ def test_get_with_headers():
     assert curl_import.method == "GET"
     assert curl_import.url == "http://example.com"
     assert curl_import.headers == [
-        ["Accept", "application/json"],
-        ["User-Agent", "TestAgent"],
+        ("Accept", "application/json"),
+        ("User-Agent", "TestAgent"),
     ]
     assert curl_import.data is None
 
@@ -145,14 +145,14 @@ def test_curl_with_escaped_newlines():
     assert curl_import.method == "POST"
     assert curl_import.url == "http://example.com"
     assert curl_import.data == '{"key": "value"}'
-    assert curl_import.headers == [["Content-Type", "application/json"]]
+    assert curl_import.headers == [("Content-Type", "application/json")]
 
 
 def test_curl_with_no_space_in_header():
     """Test headers without space after colon."""
     curl_command = "curl -H 'Authorization:Bearer token' http://example.com"
     curl_import = CurlImport(curl_command)
-    assert curl_import.headers == [["Authorization", "Bearer token"]]
+    assert curl_import.headers == [("Authorization", "Bearer token")]
 
 
 def test_curl_with_complex_command():
@@ -166,8 +166,8 @@ def test_curl_with_complex_command():
     assert curl_import.method == "POST"
     assert curl_import.url == "http://example.com/api/test"
     assert curl_import.headers == [
-        ["Accept", "application/json"],
-        ["Content-Type", "application/json"],
+        ("Accept", "application/json"),
+        ("Content-Type", "application/json"),
     ]
     assert curl_import.data == '{"name":"test","value":123}'
     assert curl_import.compressed is True
