@@ -1,3 +1,11 @@
+## 2.1.0 [11th November 2024]
+
+### Added
+
+- Import curl command by pasting it into the URL bar.
+- Collection browser width now adjusts based on content, so it doesn't waste a lot of space on larger screens.
+- Info tab now shows "Request not saved to disk" if a request has not been saved to disk, rather than "None" or nothing at all.
+
 ## 2.0.0 [18th October 2024]
 
 ### Added
