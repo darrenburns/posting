@@ -7,7 +7,7 @@ class CurlImport:
     Parses a curl command string and extracts HTTP request components.
     """
 
-    def __init__(self, curl_command):
+    def __init__(self, curl_command: str):
         """
         Initialize the parser with a curl command.
 
@@ -57,11 +57,12 @@ class CurlImport:
             if args.data or args.form or args.data_raw or args.data_binary
             else "GET"
         )
-        self.headers = []
+        self.headers: list[tuple[str, str]] = []
         for header in args.header or []:
             name, sep, value = header.partition(":")
             if sep:
-                self.headers.append([name.strip(), value.strip()])
+                self.headers.append((name.strip(), value.strip()))
+
         self.url = args.url
         self.user = args.user
         self.compressed = args.compressed
@@ -100,12 +101,12 @@ class CurlImport:
         else:
             self.form = []
 
-    def parse_data(self, data_str):
+    def parse_data(self, data_str: str) -> list[tuple[str, str]]:
         """Parse the data string into a list of tuples."""
         if not data_str:
             return []
         pairs = data_str.split("&")
-        data = []
+        data: list[tuple[str, str]] = []
         for pair in pairs:
             if "=" in pair:
                 key, value = pair.split("=", 1)
@@ -114,11 +115,11 @@ class CurlImport:
                 data.append((pair, ""))
         return data
 
-    def parse_form(self, form_list):
+    def parse_form(self, form_list: list[str]) -> list[tuple[str, str]]:
         """Parse the form data into a list of tuples."""
         if not form_list:
             return []
-        form_data = []
+        form_data: list[tuple[str, str]] = []
         for item in form_list:
             if "=" in item:
                 key, value = item.split("=", 1)
@@ -127,7 +128,7 @@ class CurlImport:
                 form_data.append((item, ""))
         return form_data
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, object]:
         return {
             "method": self.method,
             "url": self.url,
