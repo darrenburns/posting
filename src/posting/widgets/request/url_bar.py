@@ -172,7 +172,7 @@ class UrlBar(Vertical):
         with Horizontal():
             yield MethodSelector(id="method-selector")
             yield UrlInput(
-                placeholder="Enter a URL...",
+                placeholder="Enter a URL or paste a curl command...",
                 id="url-input",
             )
             yield Label(id="trace-markers")
