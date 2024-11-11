@@ -11,15 +11,23 @@
 
   outputs = inputs @ {flake-parts, ...}:
     flake-parts.lib.mkFlake {inherit inputs;} {
+      imports = [flake-parts.flakeModules.modules];
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+      flake.modules.homeManager.default = ./home-manager.nix;
       perSystem = {
         pkgs,
         lib,
         inputs',
+        system,
+        self',
         ...
       }: let
         package = builtins.fromTOML (builtins.readFile ./pyproject.toml);
       in {
+        _module.args.pkgs = import inputs.nixpkgs {
+          inherit system;
+          overlays = [(final: prev: {posting = self'.packages.default;})];
+        };
         packages.default = pkgs.python312Packages.buildPythonPackage {
           pname = package.project.name;
           version = package.project.version;
