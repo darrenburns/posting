@@ -6,7 +6,7 @@
 }: let
   inherit (lib) mkOption mkIf mkEnableOption;
   cfg = config.programs.posting;
-  posting = pkgs.callPackage ./flake.nix {};
+  posting = pkgs.callPackage ./flake.nix {inherit pkgs;};
 in {
   options.programs.posting = {
     enable = mkEnableOption "Posting API client";
