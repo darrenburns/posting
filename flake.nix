@@ -18,8 +18,6 @@
         pkgs,
         lib,
         inputs',
-        system,
-        self',
         ...
       }: let
         package = builtins.fromTOML (builtins.readFile ./pyproject.toml);
