@@ -24,10 +24,6 @@
       }: let
         package = builtins.fromTOML (builtins.readFile ./pyproject.toml);
       in {
-        _module.args.pkgs = import inputs.nixpkgs {
-          inherit system;
-          overlays = [(final: prev: {posting = self'.packages.default;})];
-        };
         packages.default = pkgs.python312Packages.buildPythonPackage {
           pname = package.project.name;
           version = package.project.version;

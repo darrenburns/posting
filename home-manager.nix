@@ -4,12 +4,13 @@
   pkgs,
   ...
 }: let
-  inherit (lib) mkOption mkIf mkEnableOption mkPackageOption;
+  inherit (lib) mkOption mkIf mkEnableOption;
   cfg = config.programs.posting;
+  posting = pkgs.callPackage ./flake.nix {};
 in {
   options.programs.posting = {
     enable = mkEnableOption "Posting API client";
-    package = mkPackageOption pkgs "posting" {};
+    # package = mkPackageOption pkgs "posting" {};
     settings = mkOption {
       type = (pkgs.formats.yaml {}).type;
       default = {};
@@ -27,7 +28,7 @@ in {
   };
 
   config = mkIf cfg.enable {
-    home.packages = cfg.package;
+    home.packages = posting;
     home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
   };
 }
