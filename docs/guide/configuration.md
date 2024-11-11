@@ -104,7 +104,7 @@ The table below lists all available configuration options and their environment 
 
 | Config Key (Env Var) | Values (Default) | Description |
 |----------------------|------------------|-------------|
-| `theme` (`POSTING_THEME`) | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` (Default: `"posting"`) | Sets the theme of the application. |
+| `theme` (`POSTING_THEME`) | `"posting"`, `"galaxy"`, `"monokai"`, `"solarized-light"`, `"nautilus"`, `"nebula"`, `"alpine"`, `"cobalt"`, `"twilight"`, `"hacker"` (Default: `"galaxy"`) | Sets the theme of the application. |
 | `load_user_themes` (`POSTING_LOAD_USER_THEMES`) | `true`, `false` (Default: `true`) | If enabled, load user themes from the theme directory, allowing them to be specified in config and selected via the command palette. |
 | `load_builtin_themes` (`POSTING_LOAD_BUILTIN_THEMES`) | `true`, `false` (Default: `true`) | If enabled, load builtin themes, allowing them to be specified in config and selected via the command palette. |
 | `theme_directory` (`POSTING_THEME_DIRECTORY`) | (Default: `${XDG_DATA_HOME}/posting/themes`) | The directory containing user themes. |
