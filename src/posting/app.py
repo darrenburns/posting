@@ -699,8 +699,8 @@ class MainScreen(Screen[None]):
             request_model = curl_import.to_request_model()
         except Exception as e:
             self.notify(
-                title="Could not parse curl request",
-                message=f"An error occurred: {e}",
+                title="Import error",
+                message=f"Couldn't import curl command.",
                 timeout=5,
                 severity="error",
             )
@@ -708,7 +708,7 @@ class MainScreen(Screen[None]):
             self.load_request_model(request_model)
             self.notify(
                 title="Curl request imported",
-                message=f"Successfully imported curl request to {curl_import.url}",
+                message=f"Successfully imported request to {curl_import.url}",
                 timeout=3,
             )
 

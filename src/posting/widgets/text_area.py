@@ -382,6 +382,7 @@ class ReadOnlyTextArea(PostingTextArea):
         read_only: bool = True,
         show_line_numbers: bool = False,
         max_checkpoints: int = 50,
+        select_on_focus: bool = False,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -401,6 +402,7 @@ class ReadOnlyTextArea(PostingTextArea):
             classes=classes,
             disabled=disabled,
         )
+        self.select_on_focus = select_on_focus
 
     @dataclass
     class VisualModeToggled(Message):
@@ -519,6 +521,10 @@ class ReadOnlyTextArea(PostingTextArea):
         )
         self.scroll_relative(y=-half_height, animate=False)
         self.move_cursor(target)
+
+    def on_focus(self) -> None:
+        if self.select_on_focus:
+            self.select_all()
 
 
 class TextEditor(Vertical):

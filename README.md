@@ -16,8 +16,10 @@ Some notable features include:
 - customizable keybindings
 - user-defined themes
 - run Python code before and after requests
-- configuration
+- extensive configuration
 - "open in $EDITOR"
+- import curl commands by pasting them into the URL bar
+- import OpenAPI specs
 - a command palette for quickly accessing functionality
 
 Visit the [website](https://posting.sh) for more information, the roadmap, and the user guide.

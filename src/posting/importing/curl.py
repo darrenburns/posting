@@ -66,9 +66,14 @@ class CurlImport:
         )
         parser.add_argument("-e", "--referer", help="Referrer URL")
         parser.add_argument("-A", "--user-agent", help="User-Agent to send to server")
+        parser.add_argument(
+            "--digest",
+            action="store_true",
+            help="Use HTTP Digest Authentication",
+        )
         parser.add_argument("url", nargs="?")
 
-        args = parser.parse_intermixed_args(tokens)
+        args, extras = parser.parse_known_intermixed_args(tokens)
         # Extract components
         self.method = cast(
             HttpRequestMethod,
@@ -92,6 +97,7 @@ class CurlImport:
         self.insecure = args.insecure
         self.referer = args.referer
         self.user_agent = args.user_agent
+        self.use_digest = args.digest
 
         # Determine if the data is form data
         self.is_form_data = False
@@ -163,8 +169,11 @@ class CurlImport:
         # First check the -u/--user parameter
         if self.user:
             username, _, password = self.user.partition(":")
-            # Default to empty password if none provided
-            auth = Auth.basic_auth(username, password)
+            # Use digest auth if --digest flag was provided, otherwise use basic auth
+            if self.use_digest:
+                auth = Auth.digest_auth(username, password)
+            else:
+                auth = Auth.basic_auth(username, password)
 
         # Look for auth headers that might override the -u parameter
         for name, value in self.headers:
