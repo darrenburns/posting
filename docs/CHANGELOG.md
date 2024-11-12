@@ -3,6 +3,9 @@
 ### Added
 
 - Import curl command by pasting it into the URL bar.
+
+### Changed
+
 - Collection browser width now adjusts based on content, so it doesn't waste a lot of space on larger screens.
 - Info tab now shows "Request not saved to disk" if a request has not been saved to disk, rather than "None" or nothing at all.
 
