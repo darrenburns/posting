@@ -1,3 +1,13 @@
+## 2.1.1 [12th November 2024]
+
+### Fixed
+
+- Fix collection browser message not being visible when it's empty.
+
+### Changed
+
+- Improved message in empty collection browser, indicating keybind for how to toggle the collection browser.
+
 ## 2.1.0 [11th November 2024]
 
 ### Added
