@@ -10,7 +10,7 @@
   };
 
   outputs = inputs @ {flake-parts, ...}:
-    flake-parts.lib.mkFlake {inherit inputs;} {
+    flake-parts.lib.mkFlake {inherit inputs;} rec {
       imports = [flake-parts.flakeModules.modules];
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
       flake.overlays.default = final: prev: (
@@ -31,6 +31,7 @@
         config = mkIf cfg.enable {
           home.packages = [cfg.package];
           home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
+          nixpkgs.overlays = [flake.overlays.default];
         };
 
         options.programs.posting = {
