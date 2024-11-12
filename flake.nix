@@ -25,7 +25,6 @@
         inherit (lib) mkOption mkIf mkEnableOption mkPackageOption;
         cfg = config.programs.posting;
       in {
-        nixpkgs.overlays = [flake.overlays.default];
         options.programs.posting = {
           enable = mkEnableOption "Posting API client";
           package = mkPackageOption pkgs "posting" {};
@@ -45,10 +44,14 @@
           };
         };
 
-        config = mkIf cfg.enable {
-          home.packages = [cfg.package];
-          home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
-        };
+        config =
+          mkIf cfg.enable {
+            home.packages = [cfg.package];
+            home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
+          }
+          // {
+            nixpkgs.overlays = [flake.overlays.default];
+          };
       };
       perSystem = {
         pkgs,
