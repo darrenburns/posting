@@ -13,11 +13,12 @@
     flake-parts.lib.mkFlake {inherit inputs;} {
       imports = [flake-parts.flakeModules.modules];
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
-      flake.overlays.default = final: prev:
-        (inputs.textual-autocomplete.overlays.default (final prev))
+      flake.overlays.default = final: prev: (
+        inputs.textual-autocomplete.overlays.default final prev
         // {
           posting = final.callPackage ./package.nix {};
-        };
+        }
+      );
       flake.modules.homeManager.default = {
         config,
         lib,
