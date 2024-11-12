@@ -27,13 +27,12 @@
       }: let
         inherit (lib) mkOption mkIf mkEnableOption mkPackageOption;
         cfg = config.programs.posting;
-        pkgs' = pkgs.extend flake.overlays.default;
       in {
         options.programs.posting = {
           enable = mkEnableOption "Posting API client";
-          package = mkPackageOption pkgs' "posting" {};
+          package = mkPackageOption pkgs "posting" {};
           settings = mkOption {
-            type = (pkgs'.formats.yaml {}).type;
+            type = (pkgs.formats.yaml {}).type;
             default = {};
             example = {
               theme = "galaxy";
@@ -51,6 +50,7 @@
         config = mkIf cfg.enable {
           home.packages = [cfg.package];
           home.file.".config/posting/config.yaml".text = builtins.toJSON cfg.settings;
+          nixpkgs.overlays = [flake.overlays.default];
         };
       };
       perSystem = {
