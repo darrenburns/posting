@@ -91,11 +91,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1731268161,
-        "narHash": "sha256-tWVwdgdq+jfeiywoNhYPJVaKbU8tkWg5btk17dQ6b/o=",
+        "lastModified": 1731418268,
+        "narHash": "sha256-jL5ky4serO7oTOlR5T+8ghDY9IoveoeTNPEtxDEO/nY=",
         "owner": "justdeeevin",
         "repo": "textual-autocomplete",
-        "rev": "bb127cc993a4d4e20e53dea05908a5e273a5fce9",
+        "rev": "0e5d04d870c29b95756884276508fa4caf058947",
         "type": "github"
       },
       "original": {

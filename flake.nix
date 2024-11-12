@@ -10,93 +10,58 @@
   };
 
   outputs = inputs @ {flake-parts, ...}:
-    flake-parts.lib.mkFlake {inherit inputs;} {
+    flake-parts.lib.mkFlake {inherit inputs;} rec {
       imports = [flake-parts.flakeModules.modules];
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
-      flake.modules.homeManager.default = ./home-manager.nix;
-      perSystem = {
-        pkgs,
+      flake.overlays.default = final: prev: {
+        posting = final.callPackage ./package.nix {};
+      };
+      flake.modules.homeManager.default = {
+        config,
         lib,
-        inputs',
+        pkgs,
         ...
       }: let
-        package = builtins.fromTOML (builtins.readFile ./pyproject.toml);
+        inherit (lib) mkOption mkIf mkEnableOption mkPackageOption;
+        cfg = config.programs.posting;
       in {
-        packages.default = pkgs.python312Packages.buildPythonPackage {
-          pname = package.project.name;
-          version = package.project.version;
-          pyproject = true;
-          src = ./.;
-          build-system = [pkgs.python312Packages.hatchling];
-          dependencies = with pkgs.python312Packages; [
-            click
-            xdg-base-dirs
-            click-default-group
-            httpx
-            pyperclip
-            pydantic
-            pyyaml
-            pydantic-settings
-            python-dotenv
-            (inputs'.textual-autocomplete.packages.default.overridePythonAttrs
-              (old: rec {
-                version = "3.0.0a12";
-                src = pkgs.fetchPypi {
-                  pname = "textual_autocomplete";
-                  inherit version;
-                  hash = "sha256-HSyeTSTH9XWryMYSy2q//0cG9qqrm5OVBrldroRUkwk=";
-                };
-
-                postPatch = ''
-                  sed -i "/^requires-python =.*/a version = '${version}'" pyproject.toml
-                '';
-              }))
-            (textual.overridePythonAttrs (old: rec {
-              version = "0.85.0";
-              src = pkgs.fetchFromGitHub {
-                owner = "Textualize";
-                repo = "textual";
-                rev = "refs/tags/v${version}";
-                hash = "sha256-ROq/Pjq6XRgi9iqMlCzpLmgzJzLl21MI7148cOxHS3o=";
+        nixpkgs.overlays = [flake.overlays.default];
+        options.programs.posting = {
+          enable = mkEnableOption "Posting API client";
+          package = mkPackageOption pkgs "posting" {};
+          settings = mkOption {
+            type = (pkgs.formats.yaml {}).type;
+            default = {};
+            example = {
+              theme = "galaxy";
+              layout = "horizontal";
+              response.prettify_json = false;
+              heading = {
+                visible = true;
+                show_host = false;
               };
-
-              postPatch = ''
-                sed -i "/^requires-python =.*/a version = '${version}'" pyproject.toml
-              '';
-            }))
-            (watchfiles.overridePythonAttrs (old: rec {
-              version = "0.24.0";
-
-              src = pkgs.fetchFromGitHub {
-                owner = "samuelcolvin";
-                repo = "watchfiles";
-                rev = "refs/tags/v${version}";
-                hash = "sha256-uc4CfczpNkS4NMevtRxhUOj9zTt59cxoC0BXnuHFzys=";
-              };
-
-              cargoDeps = pkgs.rustPlatform.importCargoLock {
-                lockFile = pkgs.fetchurl {
-                  url = "https://raw.githubusercontent.com/samuelcolvin/watchfiles/refs/tags/v${version}/Cargo.lock";
-                  hash = "sha256-rA6K0bjivOGhoGUYUk5OubFaMh3duEMaDgGtCqbY26g=";
-                };
-                outputHashes = {
-                  "notify-6.1.1" = "sha256-lT3R5ZQpjx52NVMEKTTQI90EWT16YnbqphqvZmNpw/I=";
-                };
-              };
-
-              postPatch = ''
-                sed -i "/^requires-python =.*/a version = '${version}'" pyproject.toml
-                substituteInPlace Cargo.toml \
-                  --replace-fail 'version = "0.0.0"' 'version = "${version}"'
-              '';
-            }))
-          ];
-          meta = {
-            description = package.project.description;
-            homepage = package.project.urls.homepage;
-            license = lib.licenses.asl20;
+            };
+            description = "Posting configuration settings. See <https://github.com/darrenburns/posting/blob/main/docs/guide/configuration.md>";
           };
         };
+
+        config = mkIf cfg.enable {
+          home.packages = [cfg.package];
+          home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
+        };
+      };
+      perSystem = {
+        pkgs,
+        system,
+        ...
+      }: {
+        _module.args.pkgs = import inputs.nixpkgs {
+          inherit system;
+          overlays = [
+            inputs.textual-autocomplete.overlays.default
+          ];
+        };
+        packages.default = pkgs.callPackage ./package.nix {};
       };
     };
 }
