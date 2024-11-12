@@ -31,7 +31,7 @@
       in {
         options.programs.posting = {
           enable = mkEnableOption "Posting API client";
-          package = mkPackageOption pkgs' "posting";
+          package = mkPackageOption pkgs' "posting" {};
           settings = mkOption {
             type = (pkgs'.formats.yaml {}).type;
             default = {};
