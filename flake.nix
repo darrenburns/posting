@@ -51,11 +51,14 @@
             description = "Posting configuration settings. See <https://github.com/darrenburns/posting/blob/main/docs/guide/configuration.md>";
           };
         };
-        config = mkIf cfg.enable {
-          nixpkgs.overlays = [inputs.textual-autocomplete.overlays.default];
-          home.packages = [cfg.package];
-          home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
-        };
+        config =
+          mkIf cfg.enable {
+            home.packages = [cfg.package];
+            home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
+          }
+          // {
+            nixpkgs.overlays = [inputs.textual-autocomplete.overlays.default];
+          };
       };
       perSystem = {
         pkgs,
