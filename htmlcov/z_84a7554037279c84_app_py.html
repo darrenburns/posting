@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_84a7554037279c84_collection_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-10 18:06 +0000
+            created at 2024-11-12 00:03 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -781,8 +781,8 @@
     <p class="mis show_mis"><span class="n"><a id="t699" href="#t699">699</a></span><span class="t">            <span class="nam">request_model</span> <span class="op">=</span> <span class="nam">curl_import</span><span class="op">.</span><span class="nam">to_request_model</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t700" href="#t700">700</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t701" href="#t701">701</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">notify</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t702" href="#t702">702</a></span><span class="t">                <span class="nam">title</span><span class="op">=</span><span class="str">"Could not parse curl request"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t703" href="#t703">703</a></span><span class="t">                <span class="nam">message</span><span class="op">=</span><span class="fst">f"</span><span class="fst">An error occurred: </span><span class="op">{</span><span class="nam">e</span><span class="op">}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t702" href="#t702">702</a></span><span class="t">                <span class="nam">title</span><span class="op">=</span><span class="str">"Import error"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t703" href="#t703">703</a></span><span class="t">                <span class="nam">message</span><span class="op">=</span><span class="fst">f"</span><span class="fst">Couldn't import curl command.</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t704" href="#t704">704</a></span><span class="t">                <span class="nam">timeout</span><span class="op">=</span><span class="num">5</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t705" href="#t705">705</a></span><span class="t">                <span class="nam">severity</span><span class="op">=</span><span class="str">"error"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t706" href="#t706">706</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -790,7 +790,7 @@
     <p class="mis show_mis"><span class="n"><a id="t708" href="#t708">708</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">load_request_model</span><span class="op">(</span><span class="nam">request_model</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t709" href="#t709">709</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">notify</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t710" href="#t710">710</a></span><span class="t">                <span class="nam">title</span><span class="op">=</span><span class="str">"Curl request imported"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t711" href="#t711">711</a></span><span class="t">                <span class="nam">message</span><span class="op">=</span><span class="fst">f"</span><span class="fst">Successfully imported curl request to </span><span class="op">{</span><span class="nam">curl_import</span><span class="op">.</span><span class="nam">url</span><span class="op">}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t711" href="#t711">711</a></span><span class="t">                <span class="nam">message</span><span class="op">=</span><span class="fst">f"</span><span class="fst">Successfully imported request to </span><span class="op">{</span><span class="nam">curl_import</span><span class="op">.</span><span class="nam">url</span><span class="op">}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t712" href="#t712">712</a></span><span class="t">                <span class="nam">timeout</span><span class="op">=</span><span class="num">3</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t713" href="#t713">713</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t714" href="#t714">714</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -1243,7 +1243,7 @@
             <a class="nav" href="z_84a7554037279c84_collection_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-10 18:06 +0000
+            created at 2024-11-12 00:03 +0000
         </p>
     </div>
 </footer>
