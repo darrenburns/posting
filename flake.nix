@@ -50,7 +50,7 @@
 
         config = mkIf cfg.enable {
           home.packages = [cfg.package];
-          home.file.".config/posting/config.yaml".text = lib.generators.toYAML cfg.settings;
+          home.file.".config/posting/config.yaml".text = builtins.toJSON cfg.settings;
         };
       };
       perSystem = {
