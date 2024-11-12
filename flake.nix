@@ -51,6 +51,7 @@
             description = "Posting configuration settings. See <https://github.com/darrenburns/posting/blob/main/docs/guide/configuration.md>";
           };
         };
+
         config =
           mkIf cfg.enable {
             home.packages = [cfg.package];
