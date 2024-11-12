@@ -16,7 +16,7 @@
       flake.overlays.default = final: prev: (
         inputs.textual-autocomplete.overlays.default final prev
         // {
-          posting = final.callPackage ./package.nix {};
+          posting = prev.callPackage ./package.nix {};
         }
       );
       flake.modules.homeManager.default = {
