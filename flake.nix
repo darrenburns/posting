@@ -25,7 +25,7 @@
         pkgs,
         ...
       }: let
-        inherit (lib) mkOption mkIf mkEnableOption mkPackageOption;
+        inherit (lib) mkOption mkIf mkEnableOption mkPackageOption types;
         cfg = config.programs.posting;
       in {
         options.programs.posting = {
@@ -45,6 +45,11 @@
             };
             description = "Posting configuration settings. See <https://github.com/darrenburns/posting/blob/main/docs/guide/configuration.md>";
           };
+          themes = mkOption {
+            type = types.listOf ((pkgs.formats.yaml {}).type);
+            default = {};
+            description = "List of user-defined themes. See <https://github.com/darrenburns/posting/blob/main/docs/guide/themes.md>";
+          };
         };
 
         config = mkIf cfg.enable {
@@ -53,6 +58,7 @@
           nixpkgs.overlays = [flake.overlays.default];
         };
       };
+
       perSystem = {
         pkgs,
         system,
