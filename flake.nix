@@ -50,11 +50,10 @@
             };
             description = "Posting configuration settings. See <https://github.com/darrenburns/posting/blob/main/docs/guide/configuration.md>";
           };
-
-          config = mkIf cfg.enable {
-            home.packages = [cfg.package];
-            home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
-          };
+        };
+        config = mkIf cfg.enable {
+          home.packages = [cfg.package];
+          home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
         };
       };
       perSystem = {
