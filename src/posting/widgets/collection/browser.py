@@ -583,8 +583,8 @@ class CollectionBrowser(Vertical):
         #empty-collection-label {
            color: $text-muted;
            padding: 1 2;
+           width: 24;
         }
-
 
     }
     """
@@ -607,7 +607,7 @@ class CollectionBrowser(Vertical):
         collection = self.collection
 
         yield Static(
-            "[i]Collection is empty.[/]\nPress [b]ctrl+s[/b] to save the current request.",
+            "[i]Collection is empty.[/]\n\nPress [b]ctrl+s[/b] to save the current request.\n\nPress [b]ctrl+h[/b] to toggle this panel.",
             id="empty-collection-label",
         )
 
