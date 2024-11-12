@@ -54,6 +54,7 @@
         config = mkIf cfg.enable {
           home.packages = [cfg.package];
           home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
+          nixpkgs.overlays = [inputs.textual-autocomplete.overlays.default];
         };
       };
       perSystem = {
