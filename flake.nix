@@ -25,18 +25,17 @@
         pkgs,
         ...
       }: let
-        inherit (lib) mkOption mkIf mkEnableOption mkPackageOption;
+        inherit (lib) mkOption mkIf mkEnableOption;
         cfg = config.programs.posting;
       in {
-        config = mkIf cfg.enable {
-          home.packages = [cfg.package];
-          home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
-          nixpkgs.overlays = [flake.overlays.default];
-        };
-
         options.programs.posting = {
           enable = mkEnableOption "Posting API client";
-          package = mkPackageOption pkgs "posting" {};
+          package = mkOption {
+            type = lib.types.package;
+            description = "The posting package to use.";
+            default = pkgs.callPackage ./package.nix {};
+            defaultText = "outputs.packages.\${system}.default";
+          };
           settings = mkOption {
             type = (pkgs.formats.yaml {}).type;
             default = {};
@@ -50,6 +49,11 @@
               };
             };
             description = "Posting configuration settings. See <https://github.com/darrenburns/posting/blob/main/docs/guide/configuration.md>";
+          };
+
+          config = mkIf cfg.enable {
+            home.packages = [cfg.package];
+            home.file.".config/posting/config.yaml".text = lib.genrators.toYAML cfg.settings;
           };
         };
       };
