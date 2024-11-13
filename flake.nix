@@ -12,13 +12,16 @@
   outputs = inputs @ {flake-parts, ...}:
     flake-parts.lib.mkFlake {inherit inputs;} rec {
       imports = [flake-parts.flakeModules.modules];
+
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+
       flake.overlays.default = final: prev: (
         inputs.textual-autocomplete.overlays.default final prev
         // {
           posting = prev.callPackage ./package.nix {};
         }
       );
+
       flake.modules.homeManager.default = {
         config,
         lib,
@@ -54,7 +57,7 @@
 
         config = mkIf cfg.enable {
           home.packages = [cfg.package];
-          home.file.".config/posting/config.yaml".text = builtins.toJSON cfg.settings;
+          home.file = {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;} // builtins.listToAttrs (map (theme: {".local/share/posting/${theme.name}.yaml".text = builtins.toJSON theme;}) cfg.themes);
           nixpkgs.overlays = [flake.overlays.default];
         };
       };
