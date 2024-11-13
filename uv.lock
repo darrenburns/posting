@@ -870,9 +870,10 @@ wheels = [
 
 [[package]]
 name = "posting"
-version = "2.1.0"
+version = "2.1.1"
 source = { editable = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "click" },
     { name = "click-default-group" },
     { name = "httpx", extra = ["brotli"] },
@@ -901,6 +902,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.10.10" },
     { name = "click", specifier = ">=8.1.7,<9.0.0" },
     { name = "click-default-group", specifier = ">=1.2.4,<2.0.0" },
     { name = "httpx", extras = ["brotli"], specifier = ">=0.27.2,<1.0.0" },
