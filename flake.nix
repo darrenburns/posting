@@ -57,7 +57,7 @@
 
         config = mkIf cfg.enable {
           home.packages = [cfg.package];
-          home.file = {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;} // builtins.listToAttrs (map (theme: {".local/share/posting/${theme.name}.yaml".text = builtins.toJSON theme;}) cfg.themes);
+          home.file = {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;} // builtins.listToAttrs (map (theme: {".local/share/posting/themes/${theme.name}.yaml".text = builtins.toJSON theme;}) cfg.themes);
           nixpkgs.overlays = [flake.overlays.default];
         };
       };
