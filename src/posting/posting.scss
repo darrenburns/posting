@@ -1,14 +1,14 @@
 * {
-  scrollbar-color: $accent 30%;
-  scrollbar-color-hover: $accent 80%;
-  scrollbar-color-active: $accent;
+  scrollbar-color: $surface-lighten-1;
+  scrollbar-color-hover: $primary 80%;
+  scrollbar-color-active: $primary;
   scrollbar-background: $surface-darken-1;
   scrollbar-background-hover: $surface-darken-1;
   scrollbar-background-active: $surface-darken-1;
   scrollbar-size-vertical: 1;
 
   &:focus {
-    scrollbar-color: $accent 55%;
+    scrollbar-color: $primary 55%;
   }
 }
 
@@ -49,12 +49,12 @@ ModalScreen {
 
 .section {
   border: round $border 20%;
-  border-title-color: $text;
+  border-title-color: $text-secondary 60%;
   border-title-align: right;
 
   &:focus-within {
     border: round $border 100%;
-    border-title-color: $text;
+    border-title-color: $foreground;
     border-title-style: b;
   }
 }
@@ -320,5 +320,32 @@ Select {
 CollectionBrowser {
   &.section {
     border-subtitle-align: left;
+  }
+}
+
+ScriptOutput {
+  padding: 0 2;
+  & #status-bar {
+      height: 3;
+      text-style: bold;
+  }
+  & Label {
+      width: auto;
+      &.-success {
+          color: $text-success;
+          text-style: not b;
+        }
+        &.-error {
+          color: $text-error;
+          text-style: not b;
+        }
+        &.-no-script {
+          color: $text-muted;
+          text-style: not b;
+      }
+  }
+
+  & #script-output-title {
+    text-style: b;
   }
 }

@@ -74,13 +74,6 @@ in the body tab. Setting a header in this table will override the default value 
     HeadersTable {
         height: auto;
         width: 1fr;
-        border-left: inner $accent 0%;
-        margin-right: 1;
-
-        &:focus {
-            width: 1fr;
-            border-left: inner $accent;
-        }
     }
     """
 

@@ -22,25 +22,6 @@ class ScriptOutput(VerticalScroll):
 This log displays the output of scripts that executed during the last request.
 """,
     )
-    DEFAULT_CSS = """\
-        ScriptOutput {
-            padding: 0 2;
-            & #status-bar {
-                height: 3;
-            }
-            & Label {
-                &.-success {
-                    color: $success;
-                }
-                &.-error {
-                    color: $error;
-                }
-                &.-no-script {
-                    color: $text-muted;
-                }
-            }
-        }    
-    """
 
     setup_status: Reactive[ScriptStatus] = reactive("no-script")
     request_status: Reactive[ScriptStatus] = reactive("no-script")
@@ -59,7 +40,7 @@ This log displays the output of scripts that executed during the last request.
                 yield Label("Post-response")
                 yield Label(self.response_status, id="response-status")
 
-        yield Label("Script output")
+        yield Label("Script output", id="script-output-title")
         yield RichLog(markup=True, highlight=True)
 
     def set_setup_status(self, status: ScriptStatus) -> None:
