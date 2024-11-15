@@ -148,6 +148,16 @@ UrlBar {
   }
 }
 
+SendRequestButton {
+  background: $primary-muted;
+  color: $text-primary;
+  text-style: b;
+  &:hover {
+    color: $text;
+    text-style: b;
+    background: $primary;
+  }
+}
 
 TextArea {
   border: none;
@@ -241,17 +251,10 @@ CommandPalette {
 
 }
 
-
-
 Select {
   height: 1;
   border: none;
   padding: 0;
-  background: $primary-muted;
-  
-  #label {
-    color: $text-primary;
-  }  
   &:focus {
     #label {
       color: $block-cursor-foreground;
@@ -268,10 +271,10 @@ Select {
     height: 1;
     border: none;
     padding: 0 1;
-    background: $primary-muted;
+    background: $surface-lighten-1;
 
     .arrow {
-      color: $text-primary;
+      color: $text-disabled;
     }
   }
 

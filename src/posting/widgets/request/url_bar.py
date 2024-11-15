@@ -131,24 +131,6 @@ class SendRequestButton(Button, can_focus=False):
     The button for sending the request.
     """
 
-    DEFAULT_CSS = """\
-    SendRequestButton {
-        padding: 0 1;
-        height: 1;
-        min-width: 10;
-        background: $primary;
-        color: $text;
-        border: none;
-        text-style: none;
-        &:hover {
-            text-style: b;
-            padding: 0 1;
-            border: none;
-            background: $primary-darken-1;
-        }
-    }
-    """
-
 
 class UrlBar(Vertical):
     """
