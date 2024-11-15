@@ -6,17 +6,17 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
-from textual.design import ColorSystem
 from textual.events import Blur, Paste
 from textual.message import Message
 from textual.widgets import Input, Button, Label
+from textual.theme import Theme
 from textual_autocomplete import DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
 from posting.config import SETTINGS
 from posting.help_screen import HelpData
 
 from posting.highlighters import VariablesAndUrlHighlighter
-from posting.themes import Theme
+from posting.themes import UrlStyles, VariableStyles
 from posting.variables import (
     extract_variable_name,
     get_variable_at_cursor,
@@ -95,8 +95,7 @@ It's recommended you create a new request before pasting a curl command, to avoi
 
     def on_mount(self):
         self.highlighter = VariablesAndUrlHighlighter(self)
-        self.on_theme_change(self.app.themes[self.app.theme])
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
@@ -110,10 +109,15 @@ It's recommended you create a new request before pasting a curl command, to avoi
 
     def on_theme_change(self, theme: Theme) -> None:
         super().on_theme_change(theme)
-        if theme.variable:
-            self.highlighter.variable_styles = theme.variable.fill_with_defaults(theme)
-        if theme.url:
-            self.highlighter.url_styles = theme.url.fill_with_defaults(theme)
+        self.highlighter.variable_styles = VariableStyles(
+            resolved=theme.variables.get("variable-resolved") or theme.success,
+            unresolved=theme.variables.get("variable-unresolved") or theme.error,
+        )
+        self.highlighter.url_styles = UrlStyles(
+            base=theme.variables.get("url-base") or theme.secondary,
+            protocol=theme.variables.get("url-protocol") or theme.accent,
+            separator=theme.variables.get("url-separator") or "dim",
+        )
 
     def on_paste(self, event: Paste):
         if not event.text.startswith("curl "):
@@ -195,8 +199,8 @@ class UrlBar(Vertical):
         )
         self.screen.mount(self.auto_complete)
 
-        self.on_theme_change(self.app.themes[self.app.theme])
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.on_theme_change(self.app.current_theme)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
         self.app.env_changed_signal.subscribe(self, self.on_env_changed)
 
     @on(Input.Changed)
@@ -252,7 +256,7 @@ class UrlBar(Vertical):
     def _get_variable_candidates(self, target_state: TargetState) -> list[DropdownItem]:
         return [DropdownItem(main=f"${variable}") for variable in get_variables()]
 
-    def on_theme_change(self, theme: ColorSystem) -> None:
+    def on_theme_change(self, theme: Theme) -> None:
         markers = self._build_markers()
         self.trace_markers.update(markers)
         self.url_input.notify_style_update()

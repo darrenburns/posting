@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 import httpx
+from textual.system_commands import SystemCommandsProvider
+from textual.theme import ThemeProvider
 
 from posting.importing.curl import CurlImport
 from rich.console import Group
@@ -27,7 +29,6 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
-from textual.widgets.text_area import TextAreaTheme
 from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
@@ -817,7 +818,7 @@ class MainScreen(Screen[None]):
 
 class Posting(App[None], inherit_bindings=False):
     AUTO_FOCUS = None
-    COMMANDS = {PostingProvider}
+    COMMANDS = {SystemCommandsProvider, PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
         Binding(
@@ -863,19 +864,14 @@ class Posting(App[None], inherit_bindings=False):
 
         available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 
-        if settings.load_builtin_themes:
-            available_themes |= BUILTIN_THEMES
+        # if settings.load_builtin_themes:
+        # available_themes |= BUILTIN_THEMES
 
         if settings.use_xresources:
             available_themes |= load_xresources_themes()
 
         if settings.load_user_themes:
             available_themes |= load_user_themes()
-
-        self.themes = available_themes
-        """The themes that are available to the app, potentially including
-        themes loaded from the user's themes directory and xresources themes
-        if those configuration options are enabled."""
 
         # We need to call super.__init__ after the themes are loaded,
         # because our `get_css_variables` override depends on
@@ -909,10 +905,6 @@ class Posting(App[None], inherit_bindings=False):
         """Users can set the value of variables for the duration of the
         session (until the app is quit). This can be done via the scripting
         interface: pre-request or post-response scripts."""
-
-    theme: Reactive[str] = reactive("galaxy", init=False)
-    """The currently selected theme. Changing this reactive should
-    trigger a complete refresh via the `watch_theme` method."""
 
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
@@ -992,8 +984,6 @@ class Posting(App[None], inherit_bindings=False):
             },
             screen=self.screen,
         )
-        self.theme_change_signal = Signal[Theme](self, "theme-changed")
-        self.theme = self.settings.theme
         if self.settings.watch_env_files:
             self.watch_environment_files()
 
@@ -1008,25 +998,19 @@ class Posting(App[None], inherit_bindings=False):
         )
         return self.main_screen
 
-    def get_css_variables(self) -> dict[str, str]:
-        if self.theme:
-            theme = self.themes.get(self.theme)
-            if theme:
-                color_system = theme.to_color_system().generate()
-            else:
-                color_system = {}
-        else:
-            color_system = {}
-        return {**super().get_css_variables(), **color_system}
+    def get_theme_variable_defaults(self) -> dict[str, str]:
+        current_theme = self.current_theme
+        return {
+            "method.get": current_theme.success,
+            "method.post": current_theme.primary,
+            "method.put": current_theme.secondary,
+            "method.delete": current_theme.error,
+            "method.patch": current_theme.warning,
+            "method.options": current_theme.primary,
+        }
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
-
-    def command_theme(self, theme: str) -> None:
-        self.theme = theme
-        self.notify(
-            f"Theme is now [b]{theme!r}[/].", title="Theme updated", timeout=2.5
-        )
 
     def action_save_screenshot(
         self,
@@ -1078,34 +1062,6 @@ class Posting(App[None], inherit_bindings=False):
             return
         if not event.option_selected:
             self.theme = self._original_theme
-
-    def watch_theme(self, theme: str | None) -> None:
-        self.refresh_css(animate=False)
-        self.screen._update_styles()
-        if theme:
-            theme_object = self.themes[theme]
-            if syntax := getattr(theme_object, "syntax", None):
-                if isinstance(syntax, str):
-                    valid_themes = {
-                        theme.name for theme in TextAreaTheme.builtin_themes()
-                    }
-                    valid_themes.add("posting")
-                    if syntax not in valid_themes:
-                        # Default to the posting theme for text areas
-                        # if the specified theme is invalid.
-                        theme_object.syntax = "posting"
-                        self.notify(
-                            f"Theme {theme!r} has an invalid value for 'syntax': {syntax!r}. Defaulting to 'posting'.",
-                            title="Invalid theme",
-                            severity="warning",
-                            timeout=7,
-                        )
-
-            self.theme_change_signal.publish(theme_object)
-
-    @property
-    def theme_object(self) -> Theme:
-        return self.themes[self.theme]
 
     def action_toggle_jump_mode(self) -> None:
         self._jumping = not self._jumping

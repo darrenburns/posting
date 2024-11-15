@@ -180,8 +180,10 @@ Sub-collections cannot be deleted from the UI yet.
             if self._cursor_node is not node:
                 node_label.stylize(Style(dim=True, bold=True))
         else:
-            method_style = getattr(
-                self.app.theme_object.method, node.data.method.lower(), "dim"
+            theme = self.app.current_theme
+            # TODO - Add methods to all themes
+            method_style = theme.variables.get(
+                f"method.{node.data.method.lower()}", "dim"
             )
             open_indicator = "█ " if node is self.currently_open else " "
             method = (

@@ -870,7 +870,7 @@ wheels = [
 
 [[package]]
 name = "posting"
-version = "2.1.0"
+version = "2.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -909,7 +909,7 @@ requires-dist = [
     { name = "pyperclip", specifier = ">=1.9.0,<2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1,<2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2,<7.0.0" },
-    { name = "textual", extras = ["syntax"], specifier = "==0.85.0" },
+    { name = "textual", extras = ["syntax"], editable = "../textual" },
     { name = "textual-autocomplete", specifier = "==3.0.0a12" },
     { name = "watchfiles", specifier = ">=0.24.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.1,<7.0.0" },
@@ -1342,23 +1342,29 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.85.0"
-source = { registry = "https://pypi.org/simple" }
+version = "0.85.2"
+source = { editable = "../textual" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
     { name = "platformdirs" },
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f0/ef/d498d5eb07ebe63299517bbee7e4be2fe8e1b4f0835763446cef1c4eaed0/textual-0.85.0.tar.gz", hash = "sha256:645c0fd0b4f61cd19383df78a1acd4f3b555e2c514cfa2f454e20692dffc10a0", size = 1461202 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9c/d5/0f35e93d1343fd8a4a1571c104dd6f0a9d038aa89d203146f22b9beed725/textual-0.85.0-py3-none-any.whl", hash = "sha256:8e75d023f06b242fb88233926dfb7801792f867643493096dd45dd216dc950f3", size = 614318 },
-]
 
 [package.optional-dependencies]
 syntax = [
     { name = "tree-sitter" },
     { name = "tree-sitter-languages" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "markdown-it-py", extras = ["linkify", "plugins"], specifier = ">=2.1.0" },
+    { name = "platformdirs", specifier = ">=3.6.0,<5" },
+    { name = "rich", specifier = ">=13.3.3" },
+    { name = "tree-sitter", marker = "extra == 'syntax'", specifier = ">=0.20.1,<0.21.0" },
+    { name = "tree-sitter-languages", marker = "extra == 'syntax'", specifier = "==1.10.2" },
+    { name = "typing-extensions", specifier = ">=4.4.0,<5.0.0" },
 ]
 
 [[package]]

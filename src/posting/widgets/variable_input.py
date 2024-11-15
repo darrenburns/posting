@@ -1,9 +1,7 @@
-from textual import on
-from textual.widgets import Input
 from textual_autocomplete import DropdownItem, TargetState
 from posting.help_screen import HelpData
 from posting.highlighters import VariableHighlighter
-from posting.themes import Theme
+from posting.themes import Theme, VariableStyles
 from posting.variables import get_variables
 from posting.widgets.input import PostingInput
 
@@ -39,9 +37,11 @@ Press `tab` to both insert *and* shift focus.
             theme: The new app theme.
         """
         super().on_theme_change(theme)
-        if theme.variable:
-            self.highlighter.variable_styles = theme.variable.fill_with_defaults(theme)
-            self.refresh()
+        self.highlighter.variable_styles = VariableStyles(
+            resolved=theme.variables.get("variable-resolved"),
+            unresolved=theme.variables.get("variable-unresolved"),
+        )
+        self.refresh()
 
     def _get_variable_candidates(self, target_state: TargetState) -> list[DropdownItem]:
         return [DropdownItem(main=f"${variable}") for variable in get_variables()]

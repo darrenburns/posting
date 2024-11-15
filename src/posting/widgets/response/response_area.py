@@ -63,7 +63,7 @@ class ResponseArea(Vertical):
         self.border_title = "Response"
         self._latest_response: httpx.Response | None = None
         self.add_class("section")
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
     def compose(self) -> ComposeResult:
         with ResponseTabbedContent(disabled=self.response is None):

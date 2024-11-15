@@ -2,6 +2,7 @@ import uuid
 from pydantic import BaseModel, Field
 from rich.style import Style
 from textual.design import ColorSystem
+from textual.theme import Theme as TextualTheme
 from textual.widgets.text_area import TextAreaTheme
 import yaml
 from posting.config import SETTINGS
@@ -191,6 +192,150 @@ class Theme(BaseModel):
             else None,
             selection_style=Style.parse(text_area.selection)
             if text_area.selection
+            else None,
+        )
+
+    def to_textual_theme(self) -> TextualTheme:
+        """Convert this theme to a Textual Theme.
+
+        Returns:
+            A Textual Theme instance with all properties and variables set.
+        """
+        theme_data = {
+            "name": self.name,
+            "primary": self.primary,
+            "secondary": self.secondary,
+            "background": self.background,
+            "surface": self.surface,
+            "panel": self.panel,
+            "warning": self.warning,
+            "error": self.error,
+            "success": self.success,
+            "accent": self.accent,
+            "dark": self.dark,
+        }
+
+        variables = {}
+        if self.url:
+            url_styles = self.url.fill_with_defaults(self)
+            variables.update(
+                {
+                    "url-base": url_styles.base,
+                    "url-protocol": url_styles.protocol,
+                    "url-separator": url_styles.separator,
+                }
+            )
+
+        if self.variable:
+            var_styles = self.variable.fill_with_defaults(self)
+            variables.update(
+                {
+                    "variable-resolved": var_styles.resolved,
+                    "variable-unresolved": var_styles.unresolved,
+                }
+            )
+
+        if self.method:
+            variables.update(
+                {
+                    "method-get": self.method.get,
+                    "method-post": self.method.post,
+                    "method-put": self.method.put,
+                    "method-delete": self.method.delete,
+                    "method-patch": self.method.patch,
+                    "method-options": self.method.options,
+                    "method-head": self.method.head,
+                }
+            )
+
+        if self.text_area:
+            if self.text_area.gutter:
+                variables["text-area-gutter"] = self.text_area.gutter
+            if self.text_area.cursor:
+                variables["text-area-cursor"] = self.text_area.cursor
+            if self.text_area.cursor_line:
+                variables["text-area-cursor-line"] = self.text_area.cursor_line
+            if self.text_area.cursor_line_gutter:
+                variables["text-area-cursor-line-gutter"] = (
+                    self.text_area.cursor_line_gutter
+                )
+            if self.text_area.matched_bracket:
+                variables["text-area-matched-bracket"] = self.text_area.matched_bracket
+            if self.text_area.selection:
+                variables["text-area-selection"] = self.text_area.selection
+
+        if isinstance(self.syntax, SyntaxTheme):
+            if self.syntax.json_key:
+                variables["syntax-json-key"] = self.syntax.json_key
+            if self.syntax.json_string:
+                variables["syntax-json-string"] = self.syntax.json_string
+            if self.syntax.json_number:
+                variables["syntax-json-number"] = self.syntax.json_number
+            if self.syntax.json_boolean:
+                variables["syntax-json-boolean"] = self.syntax.json_boolean
+            if self.syntax.json_null:
+                variables["syntax-json-null"] = self.syntax.json_null
+
+        theme_data = {k: v for k, v in theme_data.items() if v is not None}
+        theme_data["variables"] = {k: v for k, v in variables.items() if v is not None}
+
+        return TextualTheme(**theme_data)
+
+    @staticmethod
+    def text_area_theme_from_textual(textual_theme: "TextualTheme") -> TextAreaTheme:
+        """Create a TextArea theme from a Textual theme.
+
+        Args:
+            textual_theme: A Textual theme to convert
+
+        Returns:
+            A TextAreaTheme instance configured based on the Textual theme's colors and variables.
+        """
+        variables = textual_theme.variables or {}
+
+        # Build syntax styles from theme variables or theme colors
+        syntax_styles = {
+            "string": Style.parse(
+                variables.get("syntax-json-string", textual_theme.primary)
+            ),
+            "number": Style.parse(
+                variables.get("syntax-json-number", textual_theme.accent)
+            ),
+            "boolean": Style.parse(
+                variables.get("syntax-json-boolean", textual_theme.accent)
+            ),
+            "json.null": Style.parse(
+                variables.get("syntax-json-null", textual_theme.secondary)
+            ),
+            "json.label": Style.parse(
+                variables.get("syntax-json-key", textual_theme.primary)
+            ),
+        }
+
+        return TextAreaTheme(
+            name=uuid.uuid4().hex,
+            syntax_styles=syntax_styles,
+            gutter_style=Style.parse(variables.get("text-area-gutter"))
+            if "text-area-gutter" in variables
+            else None,
+            cursor_style=Style.parse(variables.get("text-area-cursor"))
+            if "text-area-cursor" in variables
+            else None,
+            cursor_line_style=Style.parse(variables.get("text-area-cursor-line"))
+            if "text-area-cursor-line" in variables
+            else None,
+            cursor_line_gutter_style=Style.parse(
+                variables.get("text-area-cursor-line-gutter")
+            )
+            if "text-area-cursor-line-gutter" in variables
+            else None,
+            bracket_matching_style=Style.parse(
+                variables.get("text-area-matched-bracket")
+            )
+            if "text-area-matched-bracket" in variables
+            else None,
+            selection_style=Style.parse(variables.get("text-area-selection"))
+            if "text-area-selection" in variables
             else None,
         )
 

@@ -10,12 +10,13 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.reactive import Reactive, reactive
+from textual.theme import Theme as TextualTheme
 from textual.widgets import Checkbox, Label, Select, TextArea
-from textual.widgets.text_area import Selection, TextAreaTheme, ThemeDoesNotExist
+from textual.widgets.text_area import Selection, TextAreaTheme
 from typing_extensions import Literal
 
 from posting.config import SETTINGS
-from posting.themes import SyntaxTheme, Theme
+from posting.themes import Theme
 from posting.widgets.select import PostingSelect
 
 
@@ -218,18 +219,17 @@ class PostingTextArea(TextArea):
         empty = len(self.text) == 0
         self.set_class(empty, "empty")
 
-        self.on_theme_change(self.app.themes[self.app.theme])
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.on_theme_change(self.app.current_theme)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
-    def on_theme_change(self, theme: Theme) -> None:
-        syntax_theme = theme.syntax
-        if isinstance(syntax_theme, str):
+    def on_theme_change(self, theme: TextualTheme) -> None:
+        builtin_theme = theme.variables.get("text-area-theme")
+        if isinstance(builtin_theme, str):
             # A builtin theme was requested
-            self.theme = syntax_theme
-        else:  # isinstance(syntax_theme, SyntaxTheme)
-            # A custom theme has been specified.
-            # Register the theme and immediately apply it.
-            text_area_theme = theme.to_text_area_theme()
+            self.theme = builtin_theme
+        else:
+            # Generate a TextAreaTheme from the Textual them
+            text_area_theme = Theme.text_area_theme_from_textual(theme)
             self.register_theme(text_area_theme)
             self.theme = text_area_theme.name
 

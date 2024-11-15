@@ -12,10 +12,6 @@
   }
 }
 
-Tooltip {
-  background: $surface-darken-2;
-}
-
 AutoComplete {
   border-left: wide $accent;
   background: $surface;
@@ -52,12 +48,12 @@ ModalScreen {
 }
 
 .section {
-  border: round $accent 35%;
+  border: round $border 20%;
   border-title-color: $text;
   border-title-align: right;
 
   &:focus-within {
-    border: round $accent 100%;
+    border: round $border 100%;
     border-title-color: $text;
     border-title-style: b;
   }
@@ -89,17 +85,6 @@ AppBody {
         width: 100%;
       }
     }
-
-    & #option-description {
-      dock: bottom;
-      border-left: none;
-      border-top: $accent 30%;
-      height: auto;
-      width: 1fr;
-      max-width: 1fr;
-      padding: 0 1;
-    }
-
   }
   
   &.layout-vertical {
@@ -111,69 +96,21 @@ AppBody {
   }
 }
 
-Footer {
-  border: none;
-  height: 2;
-  padding: 0 2 1 2;
-  background: transparent;
-  margin: 0;
-
-  & FooterKey {
-    color: $text 85%;
-    background: transparent;
-
-    .footer-key--key {
-      color: $accent-lighten-1;
-      background: transparent;
-    }
-
-    &:hover {
-      color: $text 100%;
-    }
-  }
-}
 
 RichLog {
-  background: $surface 50%;
   padding-left: 1;
-
   &:focus {
-    background: $surface-lighten-1 50%;
     border-left: wide $accent;
     padding-left: 0;
   }
 }
 
-ContentTab {
-  padding: 0 1;
-  height: 1;
-  text-style: none;
-
-  &.-active {
-    text-style: b;
-  }
-}
-
-Tabs {
-  height: 2;
-
-  & #tabs-list {
-    min-height: 1;
-  }
-
-  &:focus {
-    & .underline--bar {
-      background: $accent 50%;
-    }
-  }
-}
 
 UrlBar {
   height: 3;
   padding: 1 3 0 3;
 
   & #method-selector {
-      background: $secondary;
       width: 11;
   }
 
@@ -212,65 +149,6 @@ UrlBar {
 }
 
 
-TabPane {
-  padding: 0;
-  height: 1fr;
-}
-
-DataTable {
-  scrollbar-gutter: stable;
-
-  & .datatable--header {
-    background: $boost;
-    color: $text;
-  }
-
-  &:focus {
-    .datatable--cursor {
-      background: $accent;
-      color: $text;
-    }
-
-    .datatable--fixed {
-      background: $primary 50%;
-      color: $text;
-    }
-
-    .datatable--fixed-cursor {
-      background: $accent-lighten-1;
-      color: $text;
-    }
-
-    .datatable--hover {
-      background: $primary-lighten-1 20%;
-      color: $text;
-    }
-  }
-
-  &:blur {
-    .datatable--cursor {
-      background: $primary-lighten-1 10%;
-      color: $text;
-    }
-
-    .datatable--fixed {
-      background: $primary 60%;
-      color: $text;
-    }
-
-    .datatable--fixed-cursor {
-      background: $primary 85%;
-      color: $text;
-    }
-
-    .datatable--hover {
-      background: $primary-lighten-1 40%;
-      color: $text;
-    }
-  }
-}
-
-
 TextArea {
   border: none;
   &:focus {
@@ -293,41 +171,19 @@ TextArea {
   }
 
   &#description-textarea {
-    width: 100%;
-    height: 1fr;
     padding: 0;
-    background: $surface;
     padding-left: 1;
     &:focus {
-      background: $surface-lighten-1;
-      border-left: outer $surface-lighten-2;
+      border-left: outer $surface-lighten-1;
       padding: 0;
-  }
-  }
-
-}
-
-
-
-Tree {
-  & > .tree--cursor {
-    text-style: b;
-    color: $text;
-    background: $panel-lighten-1 70%;
-  }
-  &:focus > .tree--cursor {
-    background: $accent;
+    }
   }
 
-  & > .tree--highlight {
-    text-style: not underline;
-}
 }
 
 Input {
   padding: 0 1;
   height: 1;
-  background: $surface;
   border: none;
   &.-invalid {
     padding-left: 0;
@@ -335,19 +191,11 @@ Input {
   }
 
   &:focus {
-    background: $surface-lighten-1;
     padding-left: 0;
-    border-left: outer $surface-lighten-2;
+    border-left: outer $surface-lighten-1;
     &.-invalid {
       border-left: outer $error;
     }
-
-    & .input--cursor {
-      color: $text;
-      background: $accent;
-      text-style: not reverse;
-    }
-
   }
 }
 
@@ -357,16 +205,16 @@ Button {
   border: none;
 
   &:disabled {
-    opacity: 60%;
+    opacity: 40%;
   }
 }
 
 CommandPalette {
-  background: black 20%;
 
   & > Vertical {
-    width: 50;
-    background: transparent;
+    margin-top: 5;
+    width: 65vw;
+    max-height: 65vh;
   }
 
   & #--input {
@@ -374,69 +222,74 @@ CommandPalette {
     border-left: wide $accent;
 
     & CommandInput {
-      height: auto;
+      height: 3;
       border: none;
       padding: 1 2;
-      background: transparent;
     }
 
     & SearchIcon {
       display: none;
-      height: 1;
     }
-  }
 
-  & #--results {
-    padding: 0;
   }
 
   & CommandList {
     border: none;
     border-left: wide $accent;
-    padding: 0;
     padding-bottom: 1;
-    text-style: bold;
   }
 
-  & > .command-palette--help-text {
-    background: transparent;
-    text-style: not b;
-  }
 }
+
+
 
 Select {
   height: 1;
   border: none;
   padding: 0;
-
+  background: $primary-muted;
+  
+  #label {
+    color: $text-primary;
+  }  
   &:focus {
-    background: $accent-lighten-1;
-    color: $text;
-
-    & > SelectCurrent {
-      background: $accent-lighten-1;
-      color: $text;
+    #label {
+      color: $block-cursor-foreground;
+    }
+    SelectCurrent {
+      background: $block-cursor-background;
+      .arrow {
+        color: $block-cursor-foreground;
+      }
     }
   }
-
-  & > SelectCurrent {
+  
+  SelectCurrent {
     height: 1;
     border: none;
     padding: 0 1;
+    background: $primary-muted;
+
+    .arrow {
+      color: $text-primary;
+    }
   }
 
   & > SelectOverlay {
     padding: 0;
     border: none;
   }
+
 }
 
 .textual-jump-label {
   layer: textual-jump;
   dock: top;
-  background: $accent-lighten-2;
+  color: $text-accent;
+  background: $accent-muted;
   text-style: bold;
-  color: $text;
+  padding: 0 1;
+  margin-right: 1;
 }
 
 #textual-jump-info {
@@ -444,9 +297,9 @@ Select {
   dock: bottom;
   height: 1;
   width: 1fr;
-  background: $accent;
-  color: $text;
-  hatch: right $accent-darken-2;
+  background: $accent-muted;
+  color: $text-accent;
+  hatch: right $accent 30%;
   
   & Label {
     width: auto;
@@ -458,17 +311,11 @@ Select {
   dock: bottom;
   height: 1;
   background: transparent;
-  color: $text-muted 42%;
+  color: $foreground-muted;
 }
 
 CollectionBrowser {
   &.section {
-    border-title-align: left;
+    border-subtitle-align: left;
   }
-}
-
-Toast {
-  color: $text; 
-  background: $secondary-background-darken-2;
-  border-right: none;
 }
