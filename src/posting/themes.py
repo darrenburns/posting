@@ -417,7 +417,7 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
     "cobalt": TextualTheme(
         name="cobalt",
         primary="#334D5C",
-        secondary="#4878A6",
+        secondary="#66B2FF",
         warning="#FFAA22",
         error="#E63946",
         success="#4CAF50",

@@ -11,37 +11,6 @@ from posting.widgets.datatable import PostingDataTable
 
 
 class KeyValueInput(Horizontal):
-    DEFAULT_CSS = """\
-    KeyValueInput {
-        height: auto;
-        width: 1fr;
-        & > Input {
-            border: none;
-            width: 1fr;
-            margin-left: 1;
-            margin-right: 1;
-            &:focus {
-                border: none;
-                padding: 0 1;
-            }
-        }
-
-        & > Button {
-            background: $primary;
-            color: $text;
-            text-style: none;
-            width: 10;
-            margin: 0 1;
-            &:hover {
-                text-style: b;
-                padding: 0 1;
-                border: none;
-                background: $primary-darken-1;
-            }
-        }
-    }
-    """
-
     @dataclass
     class New(Message):
         key: str

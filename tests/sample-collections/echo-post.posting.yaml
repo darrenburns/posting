@@ -5,7 +5,7 @@ url: https://postman-echo.com/post
 body:
   content: |-
     {
-      "term_program": "$TERM_PROGRAM 🥺",
+      "string": "Hello, world!",
       "booleans": [true, false],
       "numbers": [1, 2, 42],
       "null": null
@@ -15,7 +15,6 @@ auth:
   type: basic
   basic:
     username: darren
-    password: $domain
 headers:
 - name: Content-Type
   value: application/json

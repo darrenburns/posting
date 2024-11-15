@@ -181,10 +181,23 @@ Sub-collections cannot be deleted from the UI yet.
                 node_label.stylize(Style(dim=True, bold=True))
         else:
             theme = self.app.current_theme
-            # TODO - Add methods to all themes
-            method_style = theme.variables.get(
-                f"method-{node.data.method.lower()}", "dim"
+
+            theme_vars = self.app.theme_variables
+            default_styles = {
+                "get": theme_vars.get("text-primary"),
+                "post": theme_vars.get("text-success"),
+                "put": theme_vars.get("text-secondary"),
+                "delete": theme_vars.get("text-error"),
+                "options": theme_vars.get("text-muted"),
+                "head": theme_vars.get("text-muted"),
+            }
+
+            method = node.data.method.lower()
+            method_style = theme_vars.get(
+                f"method-{method}",
+                default_styles.get(method),
             )
+
             open_indicator = ">" if node is self.currently_open else " "
             method = (
                 f"{node.data.method[:3]}" if isinstance(node.data, RequestModel) else ""

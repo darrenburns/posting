@@ -33,7 +33,7 @@ class HeaderEditor(Vertical):
             KeyValueInput(
                 HeaderInput(placeholder="Name", id="header-key-input"),
                 VariableInput(placeholder="Value", id="header-value-input"),
-                button_label="Add header",
+                button_label="Add",
             ),
             empty_message="There are no headers.",
         )

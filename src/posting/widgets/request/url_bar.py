@@ -91,14 +91,21 @@ It's recommended you create a new request before pasting a curl command, to avoi
 
     def on_theme_change(self, theme: Theme) -> None:
         super().on_theme_change(theme)
+        theme_variables = self.app.theme_variables
         self.highlighter.variable_styles = VariableStyles(
-            resolved=theme.variables.get("variable-resolved") or theme.success,
-            unresolved=theme.variables.get("variable-unresolved") or theme.error,
+            resolved=theme_variables.get("variable-resolved")
+            or theme_variables.get("text-success"),
+            unresolved=theme_variables.get("variable-unresolved")
+            or theme_variables.get("text-error"),
         )
+
         self.highlighter.url_styles = UrlStyles(
-            base=theme.variables.get("url-base") or theme.secondary,
-            protocol=theme.variables.get("url-protocol") or theme.accent,
-            separator=theme.variables.get("url-separator") or "dim",
+            base=theme_variables.get("url-base")
+            or theme_variables.get("text-secondary"),
+            protocol=theme_variables.get("url-protocol")
+            or theme_variables.get("text-accent"),
+            separator=theme_variables.get("url-separator")
+            or theme_variables.get("foreground-muted"),
         )
 
     def on_paste(self, event: Paste):
