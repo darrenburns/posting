@@ -4,8 +4,6 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 import httpx
-from textual.system_commands import SystemCommandsProvider
-from textual.theme import ThemeProvider
 
 from posting.importing.curl import CurlImport
 from rich.console import Group
@@ -20,6 +18,8 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.signal import Signal
+from textual.system_commands import SystemCommandsProvider
+from textual.theme import Theme
 from textual.widget import Widget
 from textual.widgets import (
     Button,
@@ -846,8 +846,8 @@ class Posting(App[None], inherit_bindings=False):
 
         available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 
-        # if settings.load_builtin_themes:
-        # available_themes |= BUILTIN_THEMES
+        if settings.load_builtin_themes:
+            available_themes |= BUILTIN_THEMES
 
         if settings.use_xresources:
             available_themes |= load_xresources_themes()
@@ -855,10 +855,12 @@ class Posting(App[None], inherit_bindings=False):
         if settings.load_user_themes:
             available_themes |= load_user_themes()
 
-        # We need to call super.__init__ after the themes are loaded,
-        # because our `get_css_variables` override depends on
-        # the themes dict being available.
         super().__init__()
+
+        for theme in available_themes.values():
+            self.register_theme(theme)
+
+        self.theme = "galaxy"
 
         self.settings = settings
         """Settings object which is built via pydantic-settings,

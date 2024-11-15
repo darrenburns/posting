@@ -32,22 +32,6 @@ class RequestEditor(Vertical):
     The request editor.
     """
 
-    DEFAULT_CSS = """\
-    RequestEditor {
-        & TextEditor {
-            height: 1fr;
-        }
-        & #request-body-type-select-container {
-            dock: top;
-            height: 1;
-        }
-        & #no-body-label {
-            height: 1fr;
-            hatch: right $surface-lighten-1 70%;
-        }
-    }
-"""
-
     def compose(self) -> ComposeResult:
         app = cast("Posting", self.app)
         with Vertical() as vertical:

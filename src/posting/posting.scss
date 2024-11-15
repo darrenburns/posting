@@ -35,6 +35,10 @@ ModalScreen {
   background: black 30%;
 }
 
+Footer {
+  padding-left: 2;
+}
+
 .modal-body {
   background: $background;
   padding: 1 2;
@@ -48,12 +52,12 @@ ModalScreen {
 }
 
 .section {
-  border: round $secondary 40%;
+  border: round $accent 40%;
   border-title-color: $text-accent 50%;
   border-title-align: right;
 
   &:focus-within {
-    border: round $primary 100%;
+    border: round $accent 100%;
     border-title-color: $foreground;
     border-title-style: b;
   }
@@ -80,11 +84,6 @@ AppHeader {
   padding: 0 3;
   margin-top: 1;
   height: 1;
-
-  & > #app-title {
-      dock: left;
-  }
-
   & > #app-user-host {
       dock: right;
       color: $text-muted;
@@ -129,10 +128,6 @@ Input {
   &:focus {
       border: none;
       padding: 0 1;
-      & .input--cursor {
-        color: $text;
-        background: $primary;
-      }
   }
   &.error {
       border-left: thick $error;
@@ -229,11 +224,6 @@ TextArea {
       border: none;
   }
 
-  & .text-area--cursor {
-    color: $text;
-    background: $accent;
-  }
-
   &.empty {
     & .text-area--cursor-line {
       background: transparent;
@@ -254,6 +244,82 @@ TextArea {
   }
 
 }
+
+RequestEditor {
+  & #request-body-type-select-container {
+      dock: top;
+      height: 1;
+  }
+  & #no-body-label {
+      height: 1fr;
+      hatch: right $surface-lighten-1 70%;
+  }
+}
+
+RequestBodyTextArea {
+  color: $foreground;
+  background: transparent;
+}
+
+TextAreaFooter {
+  dock: bottom;
+  height: 1;
+  width: 1fr;
+
+  &:focus-within {
+      background: $primary 55%;
+  }
+
+  &:disabled {
+      background: transparent;
+  }
+
+  & Select {
+      width: 8;
+      margin-left: 1;
+      & SelectCurrent {
+          width: 8;
+      }
+      & SelectOverlay {
+          width: 16;
+      }
+  }
+
+  & Checkbox {
+      margin: 0 1;
+      height: 1;
+      padding: 0 1;
+      border: none;
+  }
+
+  #location-label {
+      width: auto;
+      color: $text 50%;
+      margin-left: 1;
+  }
+
+  #mode-label {
+      dock: left;
+      color: $text;
+      padding: 0 1;
+      display: none;
+      margin-left: 1;
+      &.visual-mode {
+          background: $secondary;
+          display: block;
+      }
+  }
+
+  #rw-label {
+      margin-left: 1;
+      color: $text-muted;
+      display: none;
+      &.read-only {
+          display: block;
+      }
+  }
+}
+
 
 Input {
   padding: 0 1;

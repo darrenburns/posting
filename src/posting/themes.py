@@ -1,6 +1,7 @@
 import uuid
 from pydantic import BaseModel, Field
 from rich.style import Style
+from textual.color import Color
 from textual.design import ColorSystem
 from textual.theme import Theme as TextualTheme
 from textual.widgets.text_area import TextAreaTheme
@@ -275,6 +276,10 @@ class Theme(BaseModel):
                 variables["syntax-json-boolean"] = self.syntax.json_boolean
             if self.syntax.json_null:
                 variables["syntax-json-null"] = self.syntax.json_null
+        elif isinstance(self.syntax, str):
+            variables["syntax-theme"] = self.syntax
+        else:
+            variables["syntax-theme"] = "css"
 
         theme_data = {k: v for k, v in theme_data.items() if v is not None}
         theme_data["variables"] = {k: v for k, v in variables.items() if v is not None}
@@ -340,21 +345,23 @@ class Theme(BaseModel):
         )
 
 
-def load_user_themes() -> dict[str, Theme]:
+def load_user_themes() -> dict[str, TextualTheme]:
     """Load user themes from "~/.config/posting/themes".
 
     Returns:
         A dictionary mapping theme names to theme objects.
     """
     directory = SETTINGS.get().theme_directory
-    themes: dict[str, Theme] = {}
+    themes: dict[str, TextualTheme] = {}
     for path in directory.iterdir():
         path_suffix = path.suffix
         if path_suffix == ".yaml" or path_suffix == ".yml":
             with path.open() as theme_file:
                 theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
                 try:
-                    themes[theme_content["name"]] = Theme(**theme_content)
+                    themes[theme_content["name"]] = Theme(
+                        **theme_content
+                    ).to_textual_theme()
                 except KeyError:
                     raise ValueError(
                         f"Invalid theme file {path}. A `name` is required."
@@ -362,114 +369,78 @@ def load_user_themes() -> dict[str, Theme]:
     return themes
 
 
-BUILTIN_THEMES: dict[str, Theme] = {
-    "posting": Theme(
-        name="posting",
-        primary="#004578",
-        secondary="#0178D4",
-        warning="#ffa62b",
-        error="#ba3c5b",
-        success="#4EBF71",
-        accent="#ffa62b",
-        dark=True,
-        syntax="posting",
-    ),
-    "monokai": Theme(
-        name="monokai",
-        primary="#F92672",  # Pink
-        secondary="#66D9EF",  # Light Blue
-        warning="#FD971F",  # Orange
-        error="#F92672",  # Pink (same as primary for consistency)
-        success="#A6E22E",  # Green
-        accent="#AE81FF",  # Purple
-        background="#272822",  # Dark gray-green
-        surface="#3E3D32",  # Slightly lighter gray-green
-        panel="#3E3D32",  # Same as surface for consistency
-        dark=True,
-        syntax="monokai",
-    ),
-    "solarized-light": Theme(
-        name="solarized-light",
-        primary="#268bd2",
-        secondary="#2aa198",
-        warning="#cb4b16",
-        error="#dc322f",
-        success="#859900",
-        accent="#6c71c4",
-        background="#fdf6e3",
-        surface="#eee8d5",
-        panel="#eee8d5",
-        syntax="github_light",
-    ),
-    "nautilus": Theme(
-        name="nautilus",
-        primary="#0077BE",  # Ocean Blue
-        secondary="#20B2AA",  # Light Sea Green
-        warning="#FFD700",  # Gold (like sunlight on water)
-        error="#FF6347",  # Tomato (like a warning buoy)
-        success="#32CD32",  # Lime Green (like seaweed)
-        accent="#FF8C00",  # Dark Orange (like a sunset over water)
-        dark=True,
-        background="#001F3F",  # Dark Blue (deep ocean)
-        surface="#003366",  # Navy Blue (shallower water)
-        panel="#005A8C",  # Steel Blue (water surface)
-        syntax="posting",
-    ),
-    "galaxy": Theme(
+galaxy_primary = Color.parse("#8A2BE2")
+galaxy_secondary = Color.parse("#a684e8")
+galaxy_warning = Color.parse("#FFD700")
+galaxy_error = Color.parse("#FF4500")
+galaxy_success = Color.parse("#00FA9A")
+galaxy_accent = Color.parse("#FF69B4")
+galaxy_background = Color.parse("#0F0F1F")
+galaxy_surface = Color.parse("#1E1E3F")
+galaxy_panel = Color.parse("#2D2B55")
+galaxy_contrast_text = galaxy_background.get_contrast_text(1.0)
+
+BUILTIN_THEMES: dict[str, TextualTheme] = {
+    "galaxy": TextualTheme(
         name="galaxy",
-        primary="#8A2BE2",  # Improved Deep Magenta (Blueviolet)
-        secondary="#a684e8",
-        warning="#FFD700",  # Gold, more visible than orange
-        error="#FF4500",  # OrangeRed, vibrant but less harsh than pure red
-        success="#00FA9A",  # Medium Spring Green, kept for vibrancy
-        accent="#FF69B4",  # Hot Pink, for a pop of color
+        primary=galaxy_primary.hex,
+        secondary=galaxy_secondary.hex,
+        warning=galaxy_warning.hex,
+        error=galaxy_error.hex,
+        success=galaxy_success.hex,
+        accent=galaxy_accent.hex,
+        background=galaxy_background.hex,
+        surface=galaxy_surface.hex,
+        panel=galaxy_panel.hex,
         dark=True,
-        background="#0F0F1F",  # Very Dark Blue, almost black
-        surface="#1E1E3F",  # Dark Blue-Purple
-        panel="#2D2B55",  # Slightly Lighter Blue-Purple
-        syntax="monokai",
+        variables={
+            "input-cursor-background": galaxy_primary.hex,
+            "footer-background": "transparent",
+        },
     ),
-    "nebula": Theme(
+    "nautilus": TextualTheme(
+        name="nautilus",
+        primary="#0077BE",
+        secondary="#20B2AA",
+        warning="#FFD700",
+        error="#FF6347",
+        success="#32CD32",
+        accent="#FF8C00",
+        background="#001F3F",
+        surface="#003366",
+        panel="#005A8C",
+        dark=True,
+        variables={"syntax-theme": "posting"},
+    ),
+    "nebula": TextualTheme(
         name="nebula",
-        primary="#4169E1",  # Royal Blue, more vibrant than Midnight Blue
-        secondary="#9400D3",  # Dark Violet, more vibrant than Indigo Dye
-        warning="#FFD700",  # Kept Gold for warnings
-        error="#FF1493",  # Deep Pink, more nebula-like than Crimson
-        success="#00FF7F",  # Spring Green, slightly more vibrant
-        accent="#FF00FF",  # Magenta, for a true neon accent
+        primary="#4169E1",
+        secondary="#9400D3",
+        warning="#FFD700",
+        error="#FF1493",
+        success="#00FF7F",
+        accent="#FF00FF",
+        background="#0A0A23",
+        surface="#1C1C3C",
+        panel="#2E2E5E",
         dark=True,
-        background="#0A0A23",  # Dark Navy, closer to a night sky
-        surface="#1C1C3C",  # Dark Blue-Purple
-        panel="#2E2E5E",  # Slightly Lighter Blue-Purple
-        syntax="dracula",
+        variables={"syntax-theme": "dracula"},
     ),
-    "alpine": Theme(
-        name="alpine",
-        primary="#4A90E2",  # Clear Sky Blue
-        secondary="#81A1C1",  # Misty Blue
-        warning="#EBCB8B",  # Soft Sunlight
-        error="#BF616A",  # Muted Red
-        success="#A3BE8C",  # Alpine Meadow Green
-        accent="#5E81AC",  # Mountain Lake Blue
-        dark=True,
-        background="#2E3440",  # Dark Slate Grey
-        surface="#3B4252",  # Darker Blue-Grey
-        panel="#434C5E",  # Lighter Blue-Grey
-    ),
-    "cobalt": Theme(
+    "cobalt": TextualTheme(
         name="cobalt",
-        primary="#334D5C",  # Deep Cobalt Blue
-        secondary="#4878A6",  # Slate Blue
-        warning="#FFAA22",  # Amber, suitable for warnings related to primary
-        error="#E63946",  # Red, universally recognized for errors
-        success="#4CAF50",  # Green, commonly used for success indication
-        accent="#D94E64",  # Candy Apple Red
+        primary="#334D5C",
+        secondary="#4878A6",
+        warning="#FFAA22",
+        error="#E63946",
+        success="#4CAF50",
+        accent="#D94E64",
+        surface="#27343B",
+        panel="#2D3E46",
+        background="#1F262A",
         dark=True,
-        surface="#27343B",  # Dark Lead
-        panel="#2D3E46",  # Storm Gray
-        background="#1F262A",  # Charcoal
+        variables={"syntax-theme": "monokai"},
     ),
-    "twilight": Theme(
+    "twilight": TextualTheme(
         name="twilight",
         primary="#367588",
         secondary="#5F9EA0",
@@ -477,22 +448,33 @@ BUILTIN_THEMES: dict[str, Theme] = {
         error="#FF6347",
         success="#00FA9A",
         accent="#FF7F50",
-        dark=True,
         background="#191970",
         surface="#3B3B6D",
         panel="#4C516D",
-    ),
-    "hacker": Theme(
-        name="hacker",
-        primary="#00FF00",  # Bright Green (Lime)
-        secondary="#32CD32",  # Lime Green
-        warning="#ADFF2F",  # Green Yellow
-        error="#FF4500",  # Orange Red (for contrast)
-        success="#00FA9A",  # Medium Spring Green
-        accent="#39FF14",  # Neon Green
         dark=True,
-        background="#0D0D0D",  # Almost Black
-        surface="#1A1A1A",  # Very Dark Gray
-        panel="#2A2A2A",  # Dark Gray
+        variables={"syntax-theme": "dracula"},
+    ),
+    "hacker": TextualTheme(
+        name="hacker",
+        primary="#00FF00",
+        secondary="#3A9F3A",
+        warning="#00FF66",
+        error="#FF0000",
+        success="#00DD00",
+        accent="#00FF33",
+        background="#000000",
+        surface="#0A0A0A",
+        panel="#111111",
+        dark=True,
+        variables={
+            "syntax-theme": "monokai",
+            "method-get": "#00FF00",
+            "method-post": "#00DD00",
+            "method-put": "#00BB00",
+            "method-delete": "#FF0000",
+            "method-patch": "#00FF33",
+            "method-options": "#3A9F3A",
+            "method-head": "#00FF66",
+        },
     ),
 }
