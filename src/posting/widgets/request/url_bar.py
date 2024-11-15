@@ -53,24 +53,6 @@ It's recommended you create a new request before pasting a curl command, to avoi
 """,
     )
 
-    DEFAULT_CSS = """\
-    UrlInput {
-        border: none;
-        width: 1fr;
-        &:focus {
-            border: none;
-            padding: 0 1;
-            & .input--cursor {
-              color: $text;
-              background: $accent-lighten-2;
-            }
-        }
-        &.error {
-            border-left: thick $error;
-        }
-    }
-    """
-
     BINDINGS = [
         Binding("down", "app.focus_next", "Focus next", show=False),
     ]

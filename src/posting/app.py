@@ -79,24 +79,6 @@ from posting.xresources import load_xresources_themes
 class AppHeader(Horizontal):
     """The header of the app."""
 
-    DEFAULT_CSS = """\
-    AppHeader {
-        color: $accent-lighten-2;
-        padding: 0 3;
-        margin-top: 1;
-        height: 1;
-
-        & > #app-title {
-            dock: left;
-        }
-
-        & > #app-user-host {
-            dock: right;
-            color: $text-muted;
-        }
-    }
-    """
-
     def compose(self) -> ComposeResult:
         settings = SETTINGS.get().heading
         if settings.show_version:

@@ -48,12 +48,12 @@ ModalScreen {
 }
 
 .section {
-  border: round $border 20%;
+  border: round $secondary 40%;
   border-title-color: $text-accent 50%;
   border-title-align: right;
 
   &:focus-within {
-    border: round $border 100%;
+    border: round $primary 100%;
     border-title-color: $foreground;
     border-title-style: b;
   }
@@ -73,6 +73,22 @@ ModalScreen {
 
 .dock-left {
   dock: left;
+}
+
+AppHeader {
+  color: $text-primary;
+  padding: 0 3;
+  margin-top: 1;
+  height: 1;
+
+  & > #app-title {
+      dock: left;
+  }
+
+  & > #app-user-host {
+      dock: right;
+      color: $text-muted;
+  }
 }
 
 AppBody {
@@ -96,6 +112,32 @@ AppBody {
   }
 }
 
+DataTable {
+  height: auto;
+  width: 1fr;
+  padding: 0 1;
+  &:focus {
+      width: 1fr;
+      padding: 0;
+      border-left: inner $accent;
+  }
+}
+
+Input {
+  border: none;
+  width: 1fr;
+  &:focus {
+      border: none;
+      padding: 0 1;
+      & .input--cursor {
+        color: $text;
+        background: $primary;
+      }
+  }
+  &.error {
+      border-left: thick $error;
+  }
+}
 
 RichLog {
   padding-left: 1;
@@ -156,6 +198,28 @@ SendRequestButton {
   &:hover {
       color: $text;
       background: $primary-darken-1;
+  }
+}
+
+CollectionBrowser {
+  height: 1fr;
+  dock: left;
+  width: auto;
+  max-width: 33%;
+
+  & Tree {
+      color: $foreground 80%;
+      background: transparent;
+      width: auto;
+      &:focus {
+        color: $foreground;
+      }
+  }
+
+  #empty-collection-label {
+     color: $text-muted;
+     padding: 1 2;
+     width: 24;
   }
 }
 

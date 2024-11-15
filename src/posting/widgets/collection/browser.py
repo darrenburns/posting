@@ -571,26 +571,6 @@ class RequestPreview(VerticalScroll):
 
 
 class CollectionBrowser(Vertical):
-    DEFAULT_CSS = """\
-    CollectionBrowser {
-        height: 1fr;
-        dock: left;
-        width: auto;
-        max-width: 33%;
-        & Tree {
-            background: transparent;
-            width: auto;
-        }
-
-        #empty-collection-label {
-           color: $text-muted;
-           padding: 1 2;
-           width: 24;
-        }
-
-    }
-    """
-
     def __init__(
         self,
         collection: Collection | None = None,

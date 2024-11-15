@@ -70,13 +70,6 @@ in the body tab. Setting a header in this table will override the default value 
 """,
     )
 
-    DEFAULT_CSS = """\
-    HeadersTable {
-        height: auto;
-        width: 1fr;
-    }
-    """
-
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove header"),
     ]
