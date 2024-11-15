@@ -6,7 +6,11 @@ body:
   content: |-
     {
       "term_program": "$TERM_PROGRAM 🥺",
+      "booleans": [true, false],
+      "numbers": [1, 2, 42],
+      "null": null
     }
+  content_type: application/json
 auth:
   type: basic
   basic:

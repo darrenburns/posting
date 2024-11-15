@@ -172,14 +172,15 @@ class Theme(BaseModel):
 
     def to_text_area_theme(self) -> TextAreaTheme:
         """Retrieve the TextAreaTheme corresponding to this theme."""
-        syntax_styles: dict[str, Style] = {}
         if isinstance(self.syntax, SyntaxTheme):
-            syntax_styles = self.syntax.to_text_area_syntax_styles(self)
+            syntax = self.syntax.to_text_area_syntax_styles(self)
+        else:
+            syntax = TextAreaTheme.get_builtin_theme(self.syntax)
 
         text_area = self.text_area
         return TextAreaTheme(
             name=uuid.uuid4().hex,
-            syntax_styles=syntax_styles,
+            syntax_styles=syntax,
             gutter_style=Style.parse(text_area.gutter) if text_area.gutter else None,
             cursor_style=Style.parse(text_area.cursor) if text_area.cursor else None,
             cursor_line_style=Style.parse(text_area.cursor_line)
@@ -287,33 +288,35 @@ class Theme(BaseModel):
         return TextualTheme(**theme_data)
 
     @staticmethod
-    def text_area_theme_from_textual(textual_theme: "TextualTheme") -> TextAreaTheme:
-        """Create a TextArea theme from a Textual theme.
+    def text_area_theme_from_theme_variables(
+        theme_variables: dict[str, str],
+    ) -> TextAreaTheme:
+        """Create a TextArea theme from a dictionary of theme variables.
 
         Args:
-            textual_theme: A Textual theme to convert
+            theme_variables: A dictionary of theme variables.
 
         Returns:
             A TextAreaTheme instance configured based on the Textual theme's colors and variables.
         """
-        variables = textual_theme.variables or {}
+        variables = theme_variables or {}
 
-        # Build syntax styles from theme variables or theme colors
+        # Infer reasonable default syntax styles from the theme variables.
         syntax_styles = {
             "string": Style.parse(
-                variables.get("syntax-json-string", textual_theme.primary)
+                variables.get("syntax-json-string", variables["text-accent"])
             ),
             "number": Style.parse(
-                variables.get("syntax-json-number", textual_theme.accent)
+                variables.get("syntax-json-number", variables["text-secondary"])
             ),
             "boolean": Style.parse(
-                variables.get("syntax-json-boolean", textual_theme.accent)
+                variables.get("syntax-json-boolean", variables["text-success"])
             ),
             "json.null": Style.parse(
-                variables.get("syntax-json-null", textual_theme.secondary)
+                variables.get("syntax-json-null", variables["text-warning"])
             ),
             "json.label": Style.parse(
-                variables.get("syntax-json-key", textual_theme.primary)
+                variables.get("syntax-json-key", variables["text-primary"])
             ),
         }
 
@@ -410,7 +413,6 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
         surface="#003366",
         panel="#005A8C",
         dark=True,
-        variables={"syntax-theme": "posting"},
     ),
     "nebula": TextualTheme(
         name="nebula",
@@ -424,7 +426,6 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
         surface="#1C1C3C",
         panel="#2E2E5E",
         dark=True,
-        variables={"syntax-theme": "dracula"},
     ),
     "cobalt": TextualTheme(
         name="cobalt",
@@ -438,7 +439,6 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
         panel="#2D3E46",
         background="#1F262A",
         dark=True,
-        variables={"syntax-theme": "monokai"},
     ),
     "twilight": TextualTheme(
         name="twilight",
@@ -452,7 +452,6 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
         surface="#3B3B6D",
         panel="#4C516D",
         dark=True,
-        variables={"syntax-theme": "dracula"},
     ),
     "hacker": TextualTheme(
         name="hacker",
@@ -467,7 +466,6 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
         panel="#111111",
         dark=True,
         variables={
-            "syntax-theme": "monokai",
             "method-get": "#00FF00",
             "method-post": "#00DD00",
             "method-put": "#00BB00",

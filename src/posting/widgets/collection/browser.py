@@ -59,27 +59,27 @@ Sub-collections cannot be deleted from the UI yet.
             "d",
             "duplicate_request",
             "Dupe",
-            # tooltip="Duplicate the request under the cursor and show the 'New Request' modal to change the name/description.",
+            tooltip="Duplicate the request under the cursor and show the 'New Request' modal to change the name/description.",
         ),
         Binding(
             "D",
             "quick_duplicate_request",
             "Quick Dupe",
             show=False,
-            # tooltip="Duplicate the request and automatically assign a unique name.",
+            tooltip="Duplicate the request and automatically assign a unique name.",
         ),
         Binding(
             "backspace",
             "delete_request_with_confirmation",
             "Delete",
-            # tooltip="Delete the request under the cursor.",
+            tooltip="Delete the request under the cursor.",
         ),
         Binding(
             "shift+backspace",
             "delete_request",
             "Delete",
             show=False,
-            # tooltip="Delete the collection under the cursor.",
+            tooltip="Delete the collection under the cursor.",
         ),
     ]
 
@@ -183,9 +183,9 @@ Sub-collections cannot be deleted from the UI yet.
             theme = self.app.current_theme
             # TODO - Add methods to all themes
             method_style = theme.variables.get(
-                f"method.{node.data.method.lower()}", "dim"
+                f"method-{node.data.method.lower()}", "dim"
             )
-            open_indicator = "█ " if node is self.currently_open else " "
+            open_indicator = ">" if node is self.currently_open else " "
             method = (
                 f"{node.data.method[:3]}" if isinstance(node.data, RequestModel) else ""
             )

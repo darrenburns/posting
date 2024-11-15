@@ -149,13 +149,15 @@ class PostingTextArea(TextArea):
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
     def on_theme_change(self, theme: TextualTheme) -> None:
-        builtin_theme = theme.variables.get("text-area-theme")
+        builtin_theme = theme.variables.get("syntax-theme")
         if isinstance(builtin_theme, str):
             # A builtin theme was requested
             self.theme = builtin_theme
         else:
             # Generate a TextAreaTheme from the Textual them
-            text_area_theme = Theme.text_area_theme_from_textual(theme)
+            text_area_theme = Theme.text_area_theme_from_theme_variables(
+                self.app.theme_variables
+            )
             self.register_theme(text_area_theme)
             self.theme = text_area_theme.name
 
