@@ -42,19 +42,17 @@ class ResponseArea(Vertical):
             }
         }
         &.success .border-title-status {
-            color: $text;
-            background: $success;
+            color: $text-success;
+            background: $success-muted;
         }
         &.warning .border-title-status {
-            color: $text;
-            background: $warning;
+            color: $text-warning;
+            background: $warning-muted;
         }
         &.error .border-title-status {
-            color: $text;
-            background: $error;
+            color: $text-error;
+            background: $error-muted;
         }
-
-
     }
     """
     response: Reactive[httpx.Response | None] = reactive(None)
