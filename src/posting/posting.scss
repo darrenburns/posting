@@ -1,5 +1,5 @@
 * {
-  scrollbar-color: $surface-lighten-1;
+  scrollbar-color: $surface-lighten-1 60%;
   scrollbar-color-hover: $primary 80%;
   scrollbar-color-active: $primary;
   scrollbar-background: $surface-darken-1;
@@ -22,8 +22,8 @@ AutoComplete {
   }
 
   & .autocomplete--highlight-match {
-    color: $text;
-    background: $primary-lighten-2;
+    color: $text-accent;
+    background: $accent-muted;
   }
 }
 
@@ -49,7 +49,7 @@ ModalScreen {
 
 .section {
   border: round $border 20%;
-  border-title-color: $text-secondary 60%;
+  border-title-color: $text-accent 50%;
   border-title-align: right;
 
   &:focus-within {
@@ -150,8 +150,8 @@ UrlBar {
 
 SendRequestButton {
   min-width: 8;
-  background: $primary-muted;
-  color: $text-primary;
+  background: $accent-muted;
+  color: $text-accent;
   text-style: b;
   &:hover {
       color: $text;
