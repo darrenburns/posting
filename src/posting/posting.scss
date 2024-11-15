@@ -149,13 +149,13 @@ UrlBar {
 }
 
 SendRequestButton {
+  min-width: 8;
   background: $primary-muted;
   color: $text-primary;
   text-style: b;
   &:hover {
-    color: $text;
-    text-style: b;
-    background: $primary;
+      color: $text;
+      background: $primary-darken-1;
   }
 }
 
