@@ -257,7 +257,10 @@ RequestEditor {
 }
 
 RequestBodyTextArea {
-  color: $foreground;
+  background: transparent;
+}
+
+ResponseTextArea {
   background: transparent;
 }
 

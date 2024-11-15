@@ -1,5 +1,6 @@
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
+from itertools import cycle
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -19,7 +20,7 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.signal import Signal
 from textual.system_commands import SystemCommandsProvider
-from textual.theme import Theme
+from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
 from textual.widgets import (
     Button,
@@ -45,7 +46,7 @@ from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
-from posting.themes import BUILTIN_THEMES, Theme, load_user_themes
+from posting.themes import BUILTIN_THEMES, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables, update_variables
@@ -833,6 +834,7 @@ class Posting(App[None], inherit_bindings=False):
             id="help",
         ),
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
+        Binding("ctrl+0", "next_theme", "Next theme", show=False),
     ]
 
     def __init__(
@@ -848,6 +850,9 @@ class Posting(App[None], inherit_bindings=False):
 
         if settings.load_builtin_themes:
             available_themes |= BUILTIN_THEMES
+        else:
+            for theme in TEXTUAL_THEMES.values():
+                self.unregister_theme(theme.name)
 
         if settings.use_xresources:
             available_themes |= load_xresources_themes()
@@ -861,6 +866,11 @@ class Posting(App[None], inherit_bindings=False):
             self.register_theme(theme)
 
         self.theme = "galaxy"
+        self.theme_names = cycle(
+            theme_name
+            for theme_name in self.available_themes.keys()
+            if theme_name != "textual-ansi"
+        )
 
         self.settings = settings
         """Settings object which is built via pydantic-settings,
@@ -1092,3 +1102,6 @@ class Posting(App[None], inherit_bindings=False):
 
         self.set_focus(None)
         await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
+
+    def action_next_theme(self) -> None:
+        self.theme = next(self.theme_names)
