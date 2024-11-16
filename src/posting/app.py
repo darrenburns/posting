@@ -340,11 +340,12 @@ class MainScreen(Screen[None]):
                 # use the CA bundle.
                 verify = cert_config.ca_bundle
 
+            timeout = request_model.options.timeout
             async with httpx.AsyncClient(
                 verify=verify,
                 cert=cert,
                 proxy=request_model.options.proxy_url or None,
-                timeout=request_model.options.timeout,
+                timeout=timeout,
                 auth=request_model.auth.to_httpx_auth() if request_model.auth else None,
             ) as client:
                 script_context.request = request_model
@@ -409,7 +410,7 @@ class MainScreen(Screen[None]):
             self.notify(
                 severity="error",
                 title="Connect timeout",
-                message=f"Couldn't connect within {connect_timeout} seconds.",
+                message=f"Couldn't connect within {timeout} seconds.",
             )
         except Exception as e:
             log.error("Error sending request", e)
@@ -684,7 +685,7 @@ class MainScreen(Screen[None]):
         except Exception as e:
             self.notify(
                 title="Import error",
-                message=f"Couldn't import curl command.",
+                message="Couldn't import curl command.",
                 timeout=5,
                 severity="error",
             )
@@ -1088,7 +1089,7 @@ class Posting(App[None], inherit_bindings=False):
                         self.set_focus(target_widget)
                     else:
                         target_widget.post_message(
-                            Click(0, 0, 0, 0, 0, False, False, False)
+                            Click(target_widget, 0, 0, 0, 0, 0, False, False, False)
                         )
 
             elif isinstance(target, Widget):

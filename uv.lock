@@ -909,7 +909,7 @@ requires-dist = [
     { name = "pyperclip", specifier = ">=1.9.0,<2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1,<2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2,<7.0.0" },
-    { name = "textual", extras = ["syntax"], editable = "../textual" },
+    { name = "textual", extras = ["syntax"], specifier = "==0.86.0" },
     { name = "textual-autocomplete", specifier = "==3.0.0a12" },
     { name = "watchfiles", specifier = ">=0.24.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.1,<7.0.0" },
@@ -1342,29 +1342,23 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.85.2"
-source = { editable = "../textual" }
+version = "0.86.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
     { name = "platformdirs" },
     { name = "rich" },
     { name = "typing-extensions" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/d6/3f/185de74f637bf0f1734271bc8c1de14c750c46d2d33902bdcb2da8b86840/textual-0.86.0.tar.gz", hash = "sha256:db90ed4d41015722f0f49796761b314ca85dbd32871a3078275df21bb74a76ce", size = 1496637 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/11/5df6cb7f88752771accd61c78e4ba7d261af4af7142569cc748126bf8555/textual-0.86.0-py3-none-any.whl", hash = "sha256:ae661f28e32aae96e7f0e9301e35f5ad2260b7e7259b2abac96306c956c66a09", size = 646854 },
+]
 
 [package.optional-dependencies]
 syntax = [
     { name = "tree-sitter" },
     { name = "tree-sitter-languages" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "markdown-it-py", extras = ["linkify", "plugins"], specifier = ">=2.1.0" },
-    { name = "platformdirs", specifier = ">=3.6.0,<5" },
-    { name = "rich", specifier = ">=13.3.3" },
-    { name = "tree-sitter", marker = "extra == 'syntax'", specifier = ">=0.20.1,<0.21.0" },
-    { name = "tree-sitter-languages", marker = "extra == 'syntax'", specifier = "==1.10.2" },
-    { name = "typing-extensions", specifier = ">=4.4.0,<5.0.0" },
 ]
 
 [[package]]

@@ -238,6 +238,7 @@ class PostingTextArea(TextArea):
                 self.text = temp_file.read()
 
         os.remove(temp_file_name)
+        self.app.refresh()
 
 
 BRACKETS = set("()[]{}")

@@ -141,7 +141,7 @@ This shortcut works globally.
 !!! tip "Keyboard shortcuts"
 
     You may also be able to send the request using ++alt+enter++.
-    This only works on terminals that support the Kitty graphics protocol.
+    This only works on terminals that support the Kitty keyboard protocol.
 
 ### Saving the request
 
