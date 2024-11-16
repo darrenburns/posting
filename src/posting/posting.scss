@@ -157,6 +157,13 @@ UrlBar {
 
   & #method-selector {
       width: 11;
+
+      &:blur SelectCurrent {
+        background: $primary-muted;
+        #label {
+          color: $text-primary;
+        }
+      }
   }
 
   & #trace-markers {
@@ -458,7 +465,7 @@ Select {
     height: 1;
     border: none;
     padding: 0 1;
-    background: $surface-lighten-1;
+    background: $surface;
 
     .arrow {
       color: $text-disabled;

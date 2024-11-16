@@ -401,6 +401,68 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
             "footer-background": "transparent",
         },
     ),
+    "nebula": TextualTheme(
+        name="nebula",
+        primary="#4A9CFF",
+        secondary="#66D9EF",
+        warning="#FFB454",
+        error="#FF5555",
+        success="#50FA7B",
+        accent="#FF79C6",
+        surface="#193549",
+        panel="#1F4662",
+        background="#0D2137",
+        dark=True,
+        variables={
+            "input-selection-background": "#4A9CFF 35%",
+        },
+    ),
+    "sunset": TextualTheme(
+        name="sunset",
+        primary="#FF7E5F",
+        secondary="#FEB47B",
+        warning="#FFD93D",
+        error="#FF5757",
+        success="#98D8AA",
+        accent="#B983FF",
+        background="#2B2139",
+        surface="#362C47",
+        panel="#413555",
+        dark=True,
+        variables={
+            "input-cursor-background": "#FF7E5F",
+            "input-selection-background": "#FF7E5F 35%",
+            "footer-background": "transparent",
+            "button-color-foreground": "#2B2139",
+            "method-get": "#FF7E5F",
+        },
+    ),
+    "aurora": TextualTheme(
+        name="aurora",
+        primary="#45FFB3",
+        secondary="#A1FCDF",
+        accent="#DF7BFF",
+        warning="#FFE156",
+        error="#FF6B6B",
+        success="#64FFDA",
+        background="#0A1A2F",
+        surface="#142942",
+        panel="#1E3655",
+        dark=True,
+        variables={
+            "input-cursor-background": "#45FFB3",
+            "input-selection-background": "#45FFB3 35%",
+            "footer-background": "transparent",
+            "button-color-foreground": "#0A1A2F",
+            "method-get": "#45FFB3",
+            "method-post": "#DF7BFF",
+            "method-put": "#A1FCDF",
+            "method-delete": "#FF6B6B",
+            "method-patch": "#DF7BFF",
+            "method-options": "#FFE156",
+            "method-head": "#7BB2FF",
+        },
+    ),
     "nautilus": TextualTheme(
         name="nautilus",
         primary="#0077BE",
@@ -425,22 +487,6 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
         surface="#27343B",
         panel="#2D3E46",
         background="#1F262A",
-        dark=True,
-        variables={
-            "input-selection-background": "#4A9CFF 35%",
-        },
-    ),
-    "nebula": TextualTheme(
-        name="nebula",
-        primary="#4A9CFF",
-        secondary="#66D9EF",
-        warning="#FFB454",
-        error="#FF5555",
-        success="#50FA7B",
-        accent="#FF79C6",
-        surface="#193549",
-        panel="#1F4662",
-        background="#0D2137",
         dark=True,
         variables={
             "input-selection-background": "#4A9CFF 35%",
@@ -479,6 +525,34 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
             "method-patch": "#00FF33",
             "method-options": "#3A9F3A",
             "method-head": "#00FF66",
+        },
+    ),
+    "manuscript": TextualTheme(
+        name="manuscript",
+        primary="#2C4251",  # Ink blue
+        secondary="#6B4423",  # Aged leather brown
+        accent="#8B4513",  # Rich leather accent
+        warning="#B4846C",  # Faded sepia
+        error="#A94442",  # Muted red ink
+        success="#2D5A27",  # Library green
+        background="#F5F1E9",  # Aged paper
+        surface="#EBE6D9",  # Textured paper
+        panel="#E0DAC8",  # Parchment
+        dark=False,
+        variables={
+            "input-cursor-background": "#2C4251",
+            "input-selection-background": "#2C4251 25%",
+            "footer-background": "#2C4251",
+            "footer-key-foreground": "#F5F1E9",
+            "footer-description-foreground": "#F5F1E9",
+            "button-color-foreground": "#F5F1E9",
+            "method-get": "#2C4251",  # Ink blue
+            "method-post": "#2D5A27",  # Library green
+            "method-put": "#6B4423",  # Leather brown
+            "method-delete": "#A94442",  # Red ink
+            "method-patch": "#8B4513",  # Rich leather
+            "method-options": "#4A4A4A",  # Dark gray ink
+            "method-head": "#5C5C5C",  # Gray ink
         },
     ),
 }

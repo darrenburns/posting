@@ -870,9 +870,9 @@ class Posting(App[None], inherit_bindings=False):
 
         unwanted_themes = [
             "textual-ansi",
-            "catppuccin-latte",
-            "solarized-light",
-            "textual-light",
+            # "catppuccin-latte",
+            # "solarized-light",
+            # "textual-light",
         ]
 
         for theme_name in unwanted_themes:
