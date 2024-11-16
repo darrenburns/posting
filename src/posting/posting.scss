@@ -299,7 +299,7 @@ TextAreaFooter {
   width: 1fr;
 
   &:focus-within {
-      background: $primary 55%;
+      background: $primary-muted;
   }
 
   &:disabled {
@@ -309,11 +309,14 @@ TextAreaFooter {
   & Select {
       width: 8;
       margin-left: 1;
+      
       & SelectCurrent {
-          width: 8;
+        width: 8;
+        background: $surface;
       }
       & SelectOverlay {
-          width: 16;
+        width: 16;
+
       }
   }
 
@@ -322,6 +325,15 @@ TextAreaFooter {
       height: 1;
       padding: 0 1;
       border: none;
+      & .toggle--button {
+        background: transparent;
+      }
+      &:focus {
+        background: $block-cursor-background;
+        & .toggle--button {
+          background: $block-cursor-background;
+        }
+      }
   }
 
   #location-label {
@@ -344,10 +356,15 @@ TextAreaFooter {
 
   #rw-label {
       margin-left: 1;
-      color: $text-muted;
+      color: $text-warning;
+      background: $warning-muted;
+      padding: 0 1;
       display: none;
+      &:disabled {
+        opacity: 30%;
+      }
       &.read-only {
-          display: block;
+         display: block;
       }
   }
 }
