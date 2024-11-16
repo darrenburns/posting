@@ -870,15 +870,12 @@ class Posting(App[None], inherit_bindings=False):
 
         unwanted_themes = [
             "textual-ansi",
-            # "catppuccin-latte",
-            # "solarized-light",
-            # "textual-light",
         ]
 
         for theme_name in unwanted_themes:
             self.unregister_theme(theme_name)
 
-        self.theme = "galaxy"
+        self.theme = settings.theme
         self.theme_names = cycle(
             theme_name
             for theme_name in self.available_themes.keys()
