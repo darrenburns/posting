@@ -94,7 +94,7 @@ class PostingProvider(Provider):
                     (
                         "help: Hide keybindings sidebar",
                         app.action_hide_help_panel,
-                        "Hide the keybindings sidebar.",
+                        "Hide the keybindings sidebar",
                         True,
                     ),
                 )

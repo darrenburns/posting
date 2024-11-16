@@ -54,6 +54,8 @@ Sub-collections cannot be deleted from the UI yet.
 """,
     )
 
+    BINDING_GROUP_TITLE = "Collection Browser"
+
     BINDINGS = [
         Binding(
             "d",

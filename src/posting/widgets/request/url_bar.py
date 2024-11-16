@@ -53,6 +53,8 @@ It's recommended you create a new request before pasting a curl command, to avoi
 """,
     )
 
+    BINDING_GROUP_TITLE = "URL Input"
+
     BINDINGS = [
         Binding("down", "app.focus_next", "Focus next", show=False),
     ]

@@ -104,6 +104,7 @@ class AppBody(Vertical):
 
 class MainScreen(Screen[None]):
     AUTO_FOCUS = None
+    BINDING_GROUP_TITLE = "Main Screen"
     BINDINGS = [
         Binding(
             "ctrl+j,alt+enter",
@@ -804,6 +805,7 @@ class Posting(App[None], inherit_bindings=False):
     AUTO_FOCUS = None
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
+    BINDING_GROUP_TITLE = "Global Keybinds"
     BINDINGS = [
         Binding(
             "ctrl+p",

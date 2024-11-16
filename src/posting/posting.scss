@@ -39,6 +39,14 @@ Footer {
   padding-left: 2;
 }
 
+HelpPanel {
+  #title {
+    display: block;
+  }
+  KeyPanel {
+    scrollbar-size-vertical: 1;
+  }
+}
 .modal-body {
   background: $background;
   padding: 1 2;

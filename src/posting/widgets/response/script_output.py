@@ -23,6 +23,8 @@ This log displays the output of scripts that executed during the last request.
 """,
     )
 
+    BINDING_GROUP_TITLE = "Script Output"
+
     setup_status: Reactive[ScriptStatus] = reactive("no-script")
     request_status: Reactive[ScriptStatus] = reactive("no-script")
     response_status: Reactive[ScriptStatus] = reactive("no-script")

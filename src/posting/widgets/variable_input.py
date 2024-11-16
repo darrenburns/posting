@@ -20,6 +20,8 @@ Press `tab` to both insert *and* shift focus.
 """,
     )
 
+    BINDING_GROUP_TITLE = "Variable Input"
+
     def on_mount(self) -> None:
         self.highlighter = VariableHighlighter()
         self.auto_complete = VariableAutoComplete(

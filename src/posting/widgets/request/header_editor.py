@@ -25,8 +25,12 @@ Press `tab` to both insert *and* shift focus.
 """,
     )
 
+    BINDING_GROUP_TITLE = "HTTP Header Input"
+
 
 class HeaderEditor(Vertical):
+    BINDING_GROUP_TITLE = "HTTP Header Editor"
+
     def compose(self) -> ComposeResult:
         yield KeyValueEditor(
             HeadersTable(),
@@ -69,6 +73,8 @@ Posting will automatically attach a `User-Agent` header to outgoing requests in 
 in the body tab. Setting a header in this table will override the default value in these cases.
 """,
     )
+
+    BINDING_GROUP_TITLE = "Headers Table"
 
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove header"),

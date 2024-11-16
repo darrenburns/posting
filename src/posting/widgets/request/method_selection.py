@@ -22,6 +22,8 @@ The dropdown does not need to be expanded in order to select a method.
 """,
     )
 
+    BINDING_GROUP_TITLE = "HTTP Method Selector"
+
     BINDINGS = [
         Binding("g", "select_method('GET')", "GET", show=False),
         Binding("p", "select_method('POST')", "POST", show=False),
