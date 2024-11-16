@@ -2,7 +2,7 @@ import inspect
 from contextlib import redirect_stdout, redirect_stderr
 from itertools import cycle
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, Iterable, Literal, cast
 
 import httpx
 
@@ -14,7 +14,7 @@ from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -802,7 +802,7 @@ class MainScreen(Screen[None]):
 
 class Posting(App[None], inherit_bindings=False):
     AUTO_FOCUS = None
-    COMMANDS = {SystemCommandsProvider, PostingProvider}
+    COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
         Binding(
