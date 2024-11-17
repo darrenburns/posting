@@ -289,6 +289,27 @@ TextArea {
 
 }
 
+RequestMetadata {
+  padding: 0 2;
+  & Input {
+      margin-bottom: 1;
+  }
+  & PostingTextArea {
+      margin-bottom: 1;
+  }
+  & Button {
+      dock: bottom;
+      width: 1fr;
+  }
+  & #request-path {
+      color: $text-muted;
+      margin: 0;
+      padding: 0;
+      height: auto;
+      max-height: 2;
+  }
+}
+
 RequestEditor {
   & #request-body-type-select-container {
       dock: top;

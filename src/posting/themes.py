@@ -454,13 +454,7 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
             "input-selection-background": "#45FFB3 35%",
             "footer-background": "transparent",
             "button-color-foreground": "#0A1A2F",
-            "method-get": "#45FFB3",
             "method-post": "#DF7BFF",
-            "method-put": "#A1FCDF",
-            "method-delete": "#FF6B6B",
-            "method-patch": "#DF7BFF",
-            "method-options": "#FFE156",
-            "method-head": "#7BB2FF",
         },
     ),
     "nautilus": TextualTheme(

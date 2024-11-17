@@ -188,7 +188,7 @@ Sub-collections cannot be deleted from the UI yet.
             default_styles = {
                 "get": theme_vars.get("text-primary"),
                 "post": theme_vars.get("text-success"),
-                "put": theme_vars.get("text-secondary"),
+                "put": theme_vars.get("text-warning"),
                 "delete": theme_vars.get("text-error"),
                 "options": theme_vars.get("text-muted"),
                 "head": theme_vars.get("text-muted"),

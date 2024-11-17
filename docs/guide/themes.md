@@ -76,8 +76,6 @@ method:
   delete: 'strikethrough #b8e986'
 ```
 
-
-
 ### X resources themes
 
 Posting supports using X resources for theming. To use this, enable the `use_xresources` option (see above).
