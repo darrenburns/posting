@@ -2,7 +2,7 @@ import inspect
 from contextlib import redirect_stdout, redirect_stderr
 from itertools import cycle
 from pathlib import Path
-from typing import Any, Iterable, Literal, cast
+from typing import Any, Literal, cast
 
 import httpx
 
@@ -14,12 +14,11 @@ from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult, SystemCommand
+from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.signal import Signal
-from textual.system_commands import SystemCommandsProvider
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
 from textual.widgets import (
@@ -849,39 +848,6 @@ class Posting(App[None], inherit_bindings=False):
     ) -> None:
         SETTINGS.set(settings)
 
-        available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
-
-        if settings.load_builtin_themes:
-            available_themes |= BUILTIN_THEMES
-        else:
-            for theme in TEXTUAL_THEMES.values():
-                self.unregister_theme(theme.name)
-
-        if settings.use_xresources:
-            available_themes |= load_xresources_themes()
-
-        if settings.load_user_themes:
-            available_themes |= load_user_themes()
-
-        super().__init__()
-
-        for theme in available_themes.values():
-            self.register_theme(theme)
-
-        unwanted_themes = [
-            "textual-ansi",
-        ]
-
-        for theme_name in unwanted_themes:
-            self.unregister_theme(theme_name)
-
-        self.theme = settings.theme
-        self.theme_names = cycle(
-            theme_name
-            for theme_name in self.available_themes.keys()
-            if theme_name not in unwanted_themes
-        )
-
         self.settings = settings
         """Settings object which is built via pydantic-settings,
         essentially a direct translation of the config.yaml file."""
@@ -909,6 +875,8 @@ class Posting(App[None], inherit_bindings=False):
         """Users can set the value of variables for the duration of the
         session (until the app is quit). This can be done via the scripting
         interface: pre-request or post-response scripts."""
+
+        super().__init__()
 
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
@@ -967,6 +935,38 @@ class Posting(App[None], inherit_bindings=False):
                         pass
 
     def on_mount(self) -> None:
+        settings = SETTINGS.get()
+
+        available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
+
+        if settings.load_builtin_themes:
+            available_themes |= BUILTIN_THEMES
+        else:
+            for theme in TEXTUAL_THEMES.values():
+                self.unregister_theme(theme.name)
+
+        if settings.use_xresources:
+            available_themes |= load_xresources_themes()
+
+        if settings.load_user_themes:
+            available_themes |= load_user_themes()
+
+        for theme in available_themes.values():
+            self.register_theme(theme)
+
+        unwanted_themes = [
+            "textual-ansi",
+        ]
+        for theme_name in unwanted_themes:
+            self.unregister_theme(theme_name)
+
+        self.theme = settings.theme
+        self.theme_names = cycle(
+            theme_name
+            for theme_name in self.available_themes.keys()
+            if theme_name not in unwanted_themes
+        )
+
         self.set_keymap(self.settings.keymap)
         self.jumper = Jumper(
             {
@@ -1001,17 +1001,6 @@ class Posting(App[None], inherit_bindings=False):
             environment_files=self.environment_files,
         )
         return self.main_screen
-
-    def get_theme_variable_defaults(self) -> dict[str, str]:
-        current_theme = self.current_theme
-        return {
-            "method.get": current_theme.success,
-            "method.post": current_theme.primary,
-            "method.put": current_theme.secondary,
-            "method.delete": current_theme.error,
-            "method.patch": current_theme.warning,
-            "method.options": current_theme.primary,
-        }
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
