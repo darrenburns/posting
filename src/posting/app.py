@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 import httpx
+from textual.content import Content
 
 from posting.importing.curl import CurlImport
 from rich.console import Group
@@ -1008,7 +1009,7 @@ class Posting(App[None], inherit_bindings=False):
     def action_save_screenshot(
         self,
     ) -> str:
-        return self.save_screenshot()
+        self.search_themes()
 
     @on(CommandPalette.Opened)
     def palette_opened(self) -> None:
@@ -1029,22 +1030,15 @@ class Posting(App[None], inherit_bindings=False):
         if not self.settings.command_palette.theme_preview:
             return
 
-        prompt: Group = event.highlighted_event.option.prompt
-        # TODO: This is making quite a lot of assumptions. Fragile, but the only
-        # way I can think of doing it given the current Textual APIs.
-        command_name = prompt.renderables[0]
-        if isinstance(command_name, Text):
-            command_name = command_name.plain
-        command_name = command_name.strip()
-        if ":" in command_name:
-            name, value = command_name.split(":", maxsplit=1)
-            name = name.strip()
-            value = value.strip()
-            if name == "theme":
-                if value in self.themes:
-                    self.theme = value
+        prompt = event.highlighted_event.option.prompt
+        themes = self.available_themes.keys()
+        if isinstance(prompt, Content):
+            candidate = prompt.plain
+            if candidate in themes:
+                self.theme = candidate
             else:
                 self.theme = self._original_theme
+            self.call_next(self.screen._update_styles)
 
     @on(CommandPalette.Closed)
     def palette_closed(self, event: CommandPalette.Closed) -> None:

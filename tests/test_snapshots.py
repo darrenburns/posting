@@ -541,7 +541,7 @@ class TestFocusAutoSwitchingConfig:
             await pilot.pause()  # wait for focus to switch
             await pilot.wait_for_scheduled_animations()
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 60))
 
 
 @use_config("general.yaml")
