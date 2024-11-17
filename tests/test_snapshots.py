@@ -539,10 +539,9 @@ class TestFocusAutoSwitchingConfig:
         async def run_before(pilot: Pilot):
             await pilot.press("j", "j", "enter")
             await pilot.pause()  # wait for focus to switch
-            await pilot.pause()  # wait for focus to switch
             await pilot.wait_for_scheduled_animations()
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before)
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
 
 
 @use_config("general.yaml")
