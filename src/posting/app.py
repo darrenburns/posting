@@ -8,8 +8,6 @@ import httpx
 from textual.content import Content
 
 from posting.importing.curl import CurlImport
-from rich.console import Group
-from rich.text import Text
 from textual import on, log, work
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
@@ -837,7 +835,6 @@ class Posting(App[None], inherit_bindings=False):
             id="help",
         ),
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
-        Binding("ctrl+0", "next_theme", "Next theme", show=False),
     ]
 
     def __init__(
@@ -962,11 +959,6 @@ class Posting(App[None], inherit_bindings=False):
             self.unregister_theme(theme_name)
 
         self.theme = settings.theme
-        self.theme_names = cycle(
-            theme_name
-            for theme_name in self.available_themes.keys()
-            if theme_name not in unwanted_themes
-        )
 
         self.set_keymap(self.settings.keymap)
         self.jumper = Jumper(
@@ -1009,7 +1001,7 @@ class Posting(App[None], inherit_bindings=False):
     def action_save_screenshot(
         self,
     ) -> str:
-        self.search_themes()
+        return self.save_screenshot()
 
     @on(CommandPalette.Opened)
     def palette_opened(self) -> None:
@@ -1095,6 +1087,3 @@ class Posting(App[None], inherit_bindings=False):
 
         self.set_focus(None)
         await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
-
-    def action_next_theme(self) -> None:
-        self.theme = next(self.theme_names)
