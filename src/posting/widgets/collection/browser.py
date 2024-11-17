@@ -182,8 +182,6 @@ Sub-collections cannot be deleted from the UI yet.
             if self._cursor_node is not node:
                 node_label.stylize(Style(dim=True, bold=True))
         else:
-            theme = self.app.current_theme
-
             theme_vars = self.app.theme_variables
             default_styles = {
                 "get": theme_vars.get("text-primary"),
