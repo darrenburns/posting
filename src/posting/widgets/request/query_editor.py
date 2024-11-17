@@ -14,20 +14,6 @@ class ParamsTable(PostingDataTable):
     The parameters table.
     """
 
-    DEFAULT_CSS = """\
-    ParamsTable {
-        height: auto;
-        width: 1fr;
-        border-left: inner $accent 0%;
-        margin-right: 1;
-
-        &:focus {
-            width: 1fr;
-            border-left: inner $accent;
-        }
-    }
-    """
-
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove row"),
     ]

@@ -15,10 +15,7 @@ class PostingProvider(Provider):
         app = self.posting
         screen = self.screen
 
-        commands_to_show: list[tuple[str, IgnoreReturnCallbackType, str, bool]] = [
-            *self.get_theme_commands(),
-            ("app: quit", app.action_quit, "Quit Posting", True),
-        ]
+        commands_to_show: list[tuple[str, IgnoreReturnCallbackType, str, bool]] = []
 
         from posting.app import MainScreen
 
@@ -27,7 +24,7 @@ class PostingProvider(Provider):
             if screen.current_layout == "horizontal":
                 commands_to_show.append(
                     (
-                        "layout: vertical",
+                        "layout: Vertical",
                         partial(app.command_layout, "vertical"),
                         "Change layout to vertical",
                         True,
@@ -36,7 +33,7 @@ class PostingProvider(Provider):
             elif screen.current_layout == "vertical":
                 commands_to_show.append(
                     (
-                        "layout: horizontal",
+                        "layout: Horizontal",
                         partial(app.command_layout, "horizontal"),
                         "Change layout to horizontal",
                         True,
@@ -46,21 +43,21 @@ class PostingProvider(Provider):
             # Change the available commands depending on what is currently
             # maximized on the main screen.
             reset_command = (
-                "view: reset",
+                "view: Reset",
                 partial(screen.expand_section, None),
-                "Reset section sizes to default",
+                "Reset the size of the request & response sections",
                 True,
             )
             expand_request_command = (
-                "view: expand request",
+                "view: Expand request section",
                 partial(screen.expand_section, "request"),
-                "Expand the request section",
+                "Expand the request section and hide the response section",
                 True,
             )
             expand_response_command = (
-                "view: expand response",
+                "view: Expand response section",
                 partial(screen.expand_section, "response"),
-                "Expand the response section",
+                "Expand the response section and hide the request section",
                 True,
             )
             expanded_section = screen.expanded_section
@@ -75,9 +72,47 @@ class PostingProvider(Provider):
 
             commands_to_show.append(
                 (
-                    "view: toggle collection browser",
+                    "view: Toggle collection browser",
                     screen.action_toggle_collection_browser,
-                    "Toggle the collection browser",
+                    "Toggle the collection browser sidebar",
+                    True,
+                ),
+            )
+
+            if not app.ansi_color:
+                commands_to_show.append(
+                    (
+                        "theme: Change theme",
+                        app.action_change_theme,
+                        "Change the current theme",
+                        True,
+                    ),
+                )
+
+            if screen.query("HelpPanel"):
+                commands_to_show.append(
+                    (
+                        "help: Hide keybindings sidebar",
+                        app.action_hide_help_panel,
+                        "Hide the keybindings sidebar",
+                        True,
+                    ),
+                )
+            else:
+                commands_to_show.append(
+                    (
+                        "help: Show keybindings sidebar",
+                        app.action_show_help_panel,
+                        "Display keybindings for the focused widget in a sidebar",
+                        True,
+                    ),
+                )
+
+            commands_to_show.append(
+                (
+                    "app: Quit Posting",
+                    app.action_quit,
+                    "Quit Posting and return to the command line",
                     True,
                 ),
             )
@@ -116,22 +151,6 @@ class PostingProvider(Provider):
                     runnable,
                     help=help_text,
                 )
-
-    def get_theme_commands(
-        self,
-    ) -> tuple[tuple[str, IgnoreReturnCallbackType, str, bool], ...]:
-        posting = self.posting
-        return tuple(self.get_theme_command(theme) for theme in posting.themes)
-
-    def get_theme_command(
-        self, theme_name: str
-    ) -> tuple[str, IgnoreReturnCallbackType, str, bool]:
-        return (
-            f"theme: {theme_name}",
-            partial(self.posting.command_theme, theme_name),
-            f"Set the theme to {theme_name}",
-            False,
-        )
 
     @property
     def posting(self) -> "Posting":

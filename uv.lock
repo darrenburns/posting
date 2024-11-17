@@ -870,7 +870,7 @@ wheels = [
 
 [[package]]
 name = "posting"
-version = "2.1.0"
+version = "2.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -909,7 +909,7 @@ requires-dist = [
     { name = "pyperclip", specifier = ">=1.9.0,<2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1,<2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2,<7.0.0" },
-    { name = "textual", extras = ["syntax"], specifier = "==0.85.0" },
+    { name = "textual", extras = ["syntax"], specifier = "==0.86.1" },
     { name = "textual-autocomplete", specifier = "==3.0.0a12" },
     { name = "watchfiles", specifier = ">=0.24.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.1,<7.0.0" },
@@ -1342,7 +1342,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.85.0"
+version = "0.86.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
@@ -1350,9 +1350,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f0/ef/d498d5eb07ebe63299517bbee7e4be2fe8e1b4f0835763446cef1c4eaed0/textual-0.85.0.tar.gz", hash = "sha256:645c0fd0b4f61cd19383df78a1acd4f3b555e2c514cfa2f454e20692dffc10a0", size = 1461202 }
+sdist = { url = "https://files.pythonhosted.org/packages/56/c6/435723343db6a65ed92950d1e20ded920c4c22e6e785ea0e369abd4ac1c7/textual-0.86.1.tar.gz", hash = "sha256:a6e68de5383415f222f26b4049c2a92ed204071fdfebe3d729f8dd373ca5f519", size = 1496752 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9c/d5/0f35e93d1343fd8a4a1571c104dd6f0a9d038aa89d203146f22b9beed725/textual-0.85.0-py3-none-any.whl", hash = "sha256:8e75d023f06b242fb88233926dfb7801792f867643493096dd45dd216dc950f3", size = 614318 },
+    { url = "https://files.pythonhosted.org/packages/fe/a3/2b7bfd8d0665072a77459f51b600445939aee8a9d25bc3d546c9ac879a19/textual-0.86.1-py3-none-any.whl", hash = "sha256:ebc2bfd92c2f1a451c12dcbcfda002598a2fc9793d1684be83514b5fba75f915", size = 646857 },
 ]
 
 [package.optional-dependencies]

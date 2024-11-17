@@ -39,12 +39,13 @@ class Jumper:
         ids_to_keys = self.ids_to_keys
         for child in children:
             try:
-                widget_offset = screen.get_offset(child)
+                widget_x, widget_y = screen.get_offset(child)
             except NoWidget:
                 # The widget might not be visible in the layout
                 # due to it being hidden in some modes.
                 continue
 
+            widget_offset = Offset(widget_x, widget_y - 1)
             if child.id and child.id in ids_to_keys:
                 overlays[widget_offset] = JumpInfo(
                     ids_to_keys[child.id],

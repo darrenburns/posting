@@ -3,12 +3,12 @@ from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
 from textual.app import RenderResult
+from textual.theme import Theme
 from textual.widgets import Input
 from textual._segment_tools import line_crop
 
 
 from posting.config import SETTINGS
-from posting.themes import Theme
 
 
 class PostingInput(Input):
@@ -17,8 +17,8 @@ class PostingInput(Input):
 
         self._theme_cursor_style: Style | None = None
 
-        self.on_theme_change(self.app.themes[self.app.theme])
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.on_theme_change(self.app.current_theme)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
     def render(self) -> RenderResult:
         self.view_position = self.view_position
@@ -44,10 +44,8 @@ class PostingInput(Input):
         )
 
     def on_theme_change(self, theme: Theme) -> None:
-        text_area_theme = theme.text_area
-        self._theme_cursor_style = (
-            Style.parse(text_area_theme.cursor) if text_area_theme.cursor else None
-        )
+        cursor_style = theme.variables.get("input-cursor")
+        self._theme_cursor_style = Style.parse(cursor_style) if cursor_style else None
         self.refresh()
 
 

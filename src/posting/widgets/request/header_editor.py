@@ -25,15 +25,19 @@ Press `tab` to both insert *and* shift focus.
 """,
     )
 
+    BINDING_GROUP_TITLE = "HTTP Header Input"
+
 
 class HeaderEditor(Vertical):
+    BINDING_GROUP_TITLE = "HTTP Header Editor"
+
     def compose(self) -> ComposeResult:
         yield KeyValueEditor(
             HeadersTable(),
             KeyValueInput(
                 HeaderInput(placeholder="Name", id="header-key-input"),
                 VariableInput(placeholder="Value", id="header-value-input"),
-                button_label="Add header",
+                button_label="Add",
             ),
             empty_message="There are no headers.",
         )
@@ -70,19 +74,7 @@ in the body tab. Setting a header in this table will override the default value 
 """,
     )
 
-    DEFAULT_CSS = """\
-    HeadersTable {
-        height: auto;
-        width: 1fr;
-        border-left: inner $accent 0%;
-        margin-right: 1;
-
-        &:focus {
-            width: 1fr;
-            border-left: inner $accent;
-        }
-    }
-    """
+    BINDING_GROUP_TITLE = "Headers Table"
 
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove header"),

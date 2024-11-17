@@ -3,6 +3,7 @@ import subprocess
 from typing import Any
 
 from posting.themes import Theme
+from textual.theme import Theme as TextualTheme
 
 XRDB_MAPPING = {
     "color0": ["primary"],
@@ -16,7 +17,7 @@ XRDB_MAPPING = {
 }
 
 
-def load_xresources_themes() -> dict[str, Theme]:
+def load_xresources_themes() -> dict[str, TextualTheme]:
     """Runs xrdb -query and returns a dictionary of theme_name -> ColorSystem objects."""
     try:
         result = subprocess.run(

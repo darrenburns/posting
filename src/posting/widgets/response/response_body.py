@@ -24,6 +24,8 @@ can be used for JSON responses by setting the `pager_json` config to the command
 """,
     )
 
+    BINDING_GROUP_TITLE = "Response Body Text Area"
+
     @on(TextArea.Changed)
     def on_change(self, event: TextArea.Changed) -> None:
         empty = len(self.text) == 0

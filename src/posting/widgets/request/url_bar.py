@@ -6,17 +6,17 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
-from textual.design import ColorSystem
 from textual.events import Blur, Paste
 from textual.message import Message
 from textual.widgets import Input, Button, Label
+from textual.theme import Theme
 from textual_autocomplete import DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
 from posting.config import SETTINGS
 from posting.help_screen import HelpData
 
 from posting.highlighters import VariablesAndUrlHighlighter
-from posting.themes import Theme
+from posting.themes import UrlStyles, VariableStyles
 from posting.variables import (
     extract_variable_name,
     get_variable_at_cursor,
@@ -53,23 +53,7 @@ It's recommended you create a new request before pasting a curl command, to avoi
 """,
     )
 
-    DEFAULT_CSS = """\
-    UrlInput {
-        border: none;
-        width: 1fr;
-        &:focus {
-            border: none;
-            padding: 0 1;
-            & .input--cursor {
-              color: $text;
-              background: $accent-lighten-2;
-            }
-        }
-        &.error {
-            border-left: thick $error;
-        }
-    }
-    """
+    BINDING_GROUP_TITLE = "URL Input"
 
     BINDINGS = [
         Binding("down", "app.focus_next", "Focus next", show=False),
@@ -95,8 +79,7 @@ It's recommended you create a new request before pasting a curl command, to avoi
 
     def on_mount(self):
         self.highlighter = VariablesAndUrlHighlighter(self)
-        self.on_theme_change(self.app.themes[self.app.theme])
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
@@ -110,10 +93,22 @@ It's recommended you create a new request before pasting a curl command, to avoi
 
     def on_theme_change(self, theme: Theme) -> None:
         super().on_theme_change(theme)
-        if theme.variable:
-            self.highlighter.variable_styles = theme.variable.fill_with_defaults(theme)
-        if theme.url:
-            self.highlighter.url_styles = theme.url.fill_with_defaults(theme)
+        theme_variables = self.app.theme_variables
+        self.highlighter.variable_styles = VariableStyles(
+            resolved=theme_variables.get("variable-resolved")
+            or theme_variables.get("text-success"),
+            unresolved=theme_variables.get("variable-unresolved")
+            or theme_variables.get("text-error"),
+        )
+
+        self.highlighter.url_styles = UrlStyles(
+            base=theme_variables.get("url-base")
+            or theme_variables.get("text-secondary"),
+            protocol=theme_variables.get("url-protocol")
+            or theme_variables.get("text-accent"),
+            separator=theme_variables.get("url-separator")
+            or theme_variables.get("foreground-muted"),
+        )
 
     def on_paste(self, event: Paste):
         if not event.text.startswith("curl "):
@@ -125,24 +120,6 @@ It's recommended you create a new request before pasting a curl command, to avoi
 class SendRequestButton(Button, can_focus=False):
     """
     The button for sending the request.
-    """
-
-    DEFAULT_CSS = """\
-    SendRequestButton {
-        padding: 0 1;
-        height: 1;
-        min-width: 10;
-        background: $primary;
-        color: $text;
-        border: none;
-        text-style: none;
-        &:hover {
-            text-style: b;
-            padding: 0 1;
-            border: none;
-            background: $primary-darken-1;
-        }
-    }
     """
 
 
@@ -195,8 +172,8 @@ class UrlBar(Vertical):
         )
         self.screen.mount(self.auto_complete)
 
-        self.on_theme_change(self.app.themes[self.app.theme])
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.on_theme_change(self.app.current_theme)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
         self.app.env_changed_signal.subscribe(self, self.on_env_changed)
 
     @on(Input.Changed)
@@ -252,7 +229,7 @@ class UrlBar(Vertical):
     def _get_variable_candidates(self, target_state: TargetState) -> list[DropdownItem]:
         return [DropdownItem(main=f"${variable}") for variable in get_variables()]
 
-    def on_theme_change(self, theme: ColorSystem) -> None:
+    def on_theme_change(self, theme: Theme) -> None:
         markers = self._build_markers()
         self.trace_markers.update(markers)
         self.url_input.notify_style_update()

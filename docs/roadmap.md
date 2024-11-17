@@ -10,9 +10,10 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 
 - Keymaps. ✅
 - Pre-request and post-response scripts. ✅
-- Parse cURL commands.
+- Parse cURL commands. ✅
 - Watching environment files for changes & updating the UI. ✅
 - Editing key/value editor rows without having to delete/re-add them.
+- Realtime - WebSocket and SSE.
 - Quickly open MDN links for headers.
 - Templates. Create a `_template.posting.yaml` file (perhaps a checkbox in the new request modal for this). Any requests created in a collection will be based off of the nearest template (looking upwards to the collection root). Note that this is not "inheritance" - it's a means of quickly pre-filling values in requests based on a template request.
 - Saving recently used environments to a file.
