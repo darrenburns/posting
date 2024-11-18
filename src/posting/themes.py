@@ -48,23 +48,6 @@ class SyntaxTheme(BaseModel):
     json_null: str | None = Field(default=None)
     """The style to apply to JSON null values."""
 
-    def to_text_area_syntax_styles(self, fallback_theme: "Theme") -> dict[str, Style]:
-        """Convert this theme to a TextAreaTheme.
-
-        If a fallback theme is provided, it will be used to fill in any missing
-        styles.
-        """
-        syntax_styles = {
-            "string": Style.parse(self.json_string or fallback_theme.primary),
-            "number": Style.parse(self.json_number or fallback_theme.accent),
-            "boolean": Style.parse(self.json_boolean or fallback_theme.accent),
-            "json.null": Style.parse(self.json_null or fallback_theme.secondary),
-            "json.label": (
-                Style.parse(self.json_key or fallback_theme.primary) + Style(bold=True)
-            ),
-        }
-        return syntax_styles
-
 
 class VariableStyles(BaseModel):
     """The style to apply to variables."""
@@ -168,33 +151,6 @@ class Theme(BaseModel):
                     "method",
                 }
             )
-        )
-
-    def to_text_area_theme(self) -> TextAreaTheme:
-        """Retrieve the TextAreaTheme corresponding to this theme."""
-        if isinstance(self.syntax, SyntaxTheme):
-            syntax = self.syntax.to_text_area_syntax_styles(self)
-        else:
-            syntax = TextAreaTheme.get_builtin_theme(self.syntax)
-
-        text_area = self.text_area
-        return TextAreaTheme(
-            name=uuid.uuid4().hex,
-            syntax_styles=syntax,
-            gutter_style=Style.parse(text_area.gutter) if text_area.gutter else None,
-            cursor_style=Style.parse(text_area.cursor) if text_area.cursor else None,
-            cursor_line_style=Style.parse(text_area.cursor_line)
-            if text_area.cursor_line
-            else None,
-            cursor_line_gutter_style=Style.parse(text_area.cursor_line_gutter)
-            if text_area.cursor_line_gutter
-            else None,
-            bracket_matching_style=Style.parse(text_area.matched_bracket)
-            if text_area.matched_bracket
-            else None,
-            selection_style=Style.parse(text_area.selection)
-            if text_area.selection
-            else None,
         )
 
     def to_textual_theme(self) -> TextualTheme:
