@@ -5,15 +5,16 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 import httpx
+from rich.console import RenderableType
 from textual.content import Content
 
 from posting.importing.curl import CurlImport
-from textual import on, log, work
+from textual import messages, on, log, work
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, ReturnType
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -1087,3 +1088,24 @@ class Posting(App[None], inherit_bindings=False):
 
         self.set_focus(None)
         await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
+
+    def exit(
+        self,
+        result: ReturnType | None = None,
+        return_code: int = 0,
+        message: RenderableType | None = None,
+    ) -> None:
+        """Exit the app, and return the supplied result.
+
+        Args:
+            result: Return value.
+            return_code: The return code. Use non-zero values for error codes.
+            message: Optional message to display on exit.
+        """
+        self._exit = True
+        self._return_value = result
+        self._return_code = return_code
+        self.post_message(messages.ExitApp())
+        if message:
+            self._exit_renderables.append(message)
+            self._exit_renderables = list(set(self._exit_renderables))

@@ -12,7 +12,7 @@ from textual.message import Message
 from textual.reactive import Reactive, reactive
 from textual.theme import Theme as TextualTheme
 from textual.widgets import Checkbox, Label, Select, TextArea
-from textual.widgets.text_area import Selection, TextAreaTheme
+from textual.widgets.text_area import Selection, TextAreaTheme, ThemeDoesNotExist
 from typing_extensions import Literal
 
 from posting.config import SETTINGS
@@ -152,7 +152,13 @@ class PostingTextArea(TextArea):
         builtin_theme = theme.variables.get("syntax-theme")
         if isinstance(builtin_theme, str):
             # A builtin theme was requested
-            self.theme = builtin_theme
+            try:
+                self.theme = builtin_theme
+            except ThemeDoesNotExist:
+                self.app.exit(
+                    return_code=1,
+                    message=f"The syntax theme {builtin_theme!r} is invalid.",
+                )
         else:
             # Generate a TextAreaTheme from the Textual them
             text_area_theme = Theme.text_area_theme_from_theme_variables(
