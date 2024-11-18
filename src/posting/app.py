@@ -1,6 +1,5 @@
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
-from itertools import cycle
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -682,7 +681,7 @@ class MainScreen(Screen[None]):
         try:
             curl_import = CurlImport(event.curl_command)
             request_model = curl_import.to_request_model()
-        except Exception as e:
+        except Exception:
             self.notify(
                 title="Import error",
                 message="Couldn't import curl command.",
