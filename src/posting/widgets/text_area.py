@@ -16,6 +16,7 @@ from textual.widgets.text_area import Selection, TextAreaTheme, ThemeDoesNotExis
 from typing_extensions import Literal
 
 from posting.config import SETTINGS
+from posting.exit_codes import GENERAL_ERROR
 from posting.themes import Theme
 from posting.widgets.select import PostingSelect
 
@@ -156,7 +157,7 @@ class PostingTextArea(TextArea):
                 self.theme = builtin_theme
             except ThemeDoesNotExist:
                 self.app.exit(
-                    return_code=1,
+                    return_code=GENERAL_ERROR,
                     message=f"The syntax theme {builtin_theme!r} is invalid.",
                 )
         else:
