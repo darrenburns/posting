@@ -112,7 +112,7 @@ The table below lists all available configuration options and their environment 
 | `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
 | `watch_env_files` (`POSTING_WATCH_ENV_FILES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload environment files when they change. |
 | `watch_themes` (`POSTING_WATCH_THEMES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload themes in the theme directory when they change on disk. |
-| `watch_collection_files` (`POSTING_WATCH_COLLECTION_FILES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload collection files when they change on disk. |
+| `watch_collection_files` (`POSTING_WATCH_COLLECTION_FILES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload collection files when they change on disk. Right now, this is limited to reloading Python scripts in the collection. |
 | `animation` (`POSTING_ANIMATION`) | `"none"`, `"basic"`, `"full"` (Default: `"none"`) | Controls the animation level. |
 | `response.prettify_json` (`POSTING_RESPONSE__PRETTIFY_JSON`) | `true`, `false` (Default: `true`) | If enabled, JSON responses will be pretty-formatted. |
 | `response.show_size_and_time` (`POSTING_RESPONSE__SHOW_SIZE_AND_TIME`) | `true`, `false` (Default: `true`) | If enabled, the size and time taken for the response will be displayed in the response area border subtitle. |
