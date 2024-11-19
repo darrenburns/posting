@@ -227,7 +227,7 @@
         };
 
         config = mkIf cfg.enable {
-          home.rackages =
+          home.packages =
             [cfg.package]
             ++ lib.optional cfg.settings.use_xresources pkgs.xorg.xrdb;
           home.file =
