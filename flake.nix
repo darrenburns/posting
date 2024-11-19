@@ -49,7 +49,7 @@
           };
         mkStringOption = desc:
           mkOption {
-            type = types.str;
+            type = types.nullOr types.str;
             default = null;
             description = desc;
           };
