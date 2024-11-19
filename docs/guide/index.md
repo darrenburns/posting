@@ -17,6 +17,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # install Posting (will also quickly install Python 3.12 if needed)
 uv tool install --python 3.12 posting
+
+# run the TUI
+uv tool run --python 3.12 posting
 ```
 
 `uv` can also be installed via Homebrew, Cargo, Winget, pipx, and more. See the [installation guide](https://docs.astral.sh/uv/getting-started/installation/) for more information.
