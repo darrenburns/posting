@@ -266,6 +266,7 @@
                 background = mkColorOption "Background colors";
                 surface = mkColorOption "Panels, etc";
                 error = mkColorOption "Error messages";
+                success = mkColorOption "Success messages";
                 warning = mkColorOption "Warning messages";
 
                 text_area = {
