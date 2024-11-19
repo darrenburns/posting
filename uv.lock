@@ -909,7 +909,7 @@ requires-dist = [
     { name = "pyperclip", specifier = ">=1.9.0,<2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1,<2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2,<7.0.0" },
-    { name = "textual", extras = ["syntax"], specifier = "==0.86.1" },
+    { name = "textual", extras = ["syntax"], specifier = "==0.86.3" },
     { name = "textual-autocomplete", specifier = "==3.0.0a12" },
     { name = "watchfiles", specifier = ">=0.24.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.1,<7.0.0" },
@@ -1342,7 +1342,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.86.1"
+version = "0.86.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
@@ -1350,9 +1350,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/56/c6/435723343db6a65ed92950d1e20ded920c4c22e6e785ea0e369abd4ac1c7/textual-0.86.1.tar.gz", hash = "sha256:a6e68de5383415f222f26b4049c2a92ed204071fdfebe3d729f8dd373ca5f519", size = 1496752 }
+sdist = { url = "https://files.pythonhosted.org/packages/4a/a6/c62991e51e3030a7e0bfb196f22c9c57a36257d52b09f6a6b6c78aaa6508/textual-0.86.3.tar.gz", hash = "sha256:3c4d68612243af351e8b2d3dabe44d3cf87624624d7ea657f4d718853206188f", size = 1498694 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/a3/2b7bfd8d0665072a77459f51b600445939aee8a9d25bc3d546c9ac879a19/textual-0.86.1-py3-none-any.whl", hash = "sha256:ebc2bfd92c2f1a451c12dcbcfda002598a2fc9793d1684be83514b5fba75f915", size = 646857 },
+    { url = "https://files.pythonhosted.org/packages/df/77/82e0593c98895e7bc18f15323c353d30e74fc0d2096a6d326fc31fddcc88/textual-0.86.3-py3-none-any.whl", hash = "sha256:ffe85bc749de7d71e0e048af301b6027abfca8942263ffb680620261cd1baa6f", size = 647192 },
 ]
 
 [package.optional-dependencies]
