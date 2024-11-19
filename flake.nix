@@ -36,204 +36,214 @@
           package = mkPackageOption pkgs "posting" {};
           settings = mkOption {
             type = types.submodule {
-              theme = mkOption {
-                type =
-                  types.enum [
-                    "textual-dark"
-                    "textual-light"
-                    "nord"
-                    "gruvbox"
-                    "catppuccin-mocha"
-                    "dracula"
-                    "tokyo-night"
-                    "monokai"
-                    "flexoki"
-                    "catppuccin-latte"
-                    "solarized-light"
-                    "galaxy"
-                    "nebula"
-                    "sunset"
-                    "aurora"
-                    "nautilus"
-                    "cobalt"
-                    "twilight"
-                    "hacker"
-                    "manuscript"
-                  ]
-                  ++ (builtins.map (theme: theme.name) cfg.themes);
-                default = "galaxy";
-                description = "Sets the theme of the application.";
-              };
-              load_user_themes = mkOption {
-                type = types.bool;
-                default = true;
-                description = "If enabled, load user themes from the theme directory, allowing them to be specified in config and selected via the command palette.";
-              };
-              load_builtin_themes = mkOption {
-                type = types.bool;
-                default = true;
-                description = "If enabled, load builtin themes, allowing them to be specified in config and selected via the command palette.";
-              };
-              theme_directory = mkOption {
-                type = types.str;
-                default = "${config.xdg.dataHome}/posting/themes";
-                description = "The directory containing user themes.";
-              };
-              layout = mkOption {
-                type = types.enum ["horizontal" "vertical"];
-                default = "horizontal";
-                description = "Sets the layout of the application.";
-              };
-              use_host_environment = mkOption {
-                type = types.bool;
-                default = true;
-                description = "Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use.";
-              };
-              watch_env_files = mkOption {
-                type = types.bool;
-                default = true;
-                description = "If enabled, automatically reload environment files when they change.";
-              };
-              animation = mkOption {
-                type = types.enum ["none" "basic" "full"];
-                default = "none";
-                description = "Controls the animation level.";
-              };
-              response = mkOption {
-                type = types.submodule {
-                  prettify_json = mkOption {
-                    type = types.bool;
-                    default = true;
-                    description = "If enabled, JSON responses will be pretty-formatted.";
-                  };
-                  show_size_and_time = mkOption {
-                    type = types.bool;
-                    default = true;
-                    description = "If enabled, the size and time taken for the response will be displayed in the response area border subtitle.";
-                  };
+              options = {
+                theme = mkOption {
+                  type =
+                    types.enum [
+                      "textual-dark"
+                      "textual-light"
+                      "nord"
+                      "gruvbox"
+                      "catppuccin-mocha"
+                      "dracula"
+                      "tokyo-night"
+                      "monokai"
+                      "flexoki"
+                      "catppuccin-latte"
+                      "solarized-light"
+                      "galaxy"
+                      "nebula"
+                      "sunset"
+                      "aurora"
+                      "nautilus"
+                      "cobalt"
+                      "twilight"
+                      "hacker"
+                      "manuscript"
+                    ]
+                    ++ (builtins.map (theme: theme.name) cfg.themes);
+                  default = "galaxy";
+                  description = "Sets the theme of the application.";
                 };
-                default = {};
-                description = "Response settings.";
-              };
-              heading = mkOption {
-                type = types.submodule {
-                  visible = mkOption {
-                    type = types.bool;
-                    default = true;
-                    description = "Show/hide the app header.";
+                load_user_themes = mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = "If enabled, load user themes from the theme directory, allowing them to be specified in config and selected via the command palette.";
+                };
+                load_builtin_themes = mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = "If enabled, load builtin themes, allowing them to be specified in config and selected via the command palette.";
+                };
+                theme_directory = mkOption {
+                  type = types.str;
+                  default = "${config.xdg.dataHome}/posting/themes";
+                  description = "The directory containing user themes.";
+                };
+                layout = mkOption {
+                  type = types.enum ["horizontal" "vertical"];
+                  default = "horizontal";
+                  description = "Sets the layout of the application.";
+                };
+                use_host_environment = mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = "Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use.";
+                };
+                watch_env_files = mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = "If enabled, automatically reload environment files when they change.";
+                };
+                animation = mkOption {
+                  type = types.enum ["none" "basic" "full"];
+                  default = "none";
+                  description = "Controls the animation level.";
+                };
+                response = mkOption {
+                  type = types.submodule {
+                    options = {
+                      prettify_json = mkOption {
+                        type = types.bool;
+                        default = true;
+                        description = "If enabled, JSON responses will be pretty-formatted.";
+                      };
+                      show_size_and_time = mkOption {
+                        type = types.bool;
+                        default = true;
+                        description = "If enabled, the size and time taken for the response will be displayed in the response area border subtitle.";
+                      };
+                    };
                   };
-                  show_host = mkOption {
-                    type = types.bool;
-                    default = true;
-                    description = "Show/hide the version in the app header.";
+                  default = {};
+                  description = "Response settings.";
+                };
+                heading = mkOption {
+                  type = types.submodule {
+                    options = {
+                      visible = mkOption {
+                        type = types.bool;
+                        default = true;
+                        description = "Show/hide the app header.";
+                      };
+                      show_host = mkOption {
+                        type = types.bool;
+                        default = true;
+                        description = "Show/hide the version in the app header.";
+                      };
+                      show_version = mkOption {
+                        type = types.bool;
+                        default = true;
+                        description = "Show/hide the version in the app header.";
+                      };
+                      hostname = mkOption {
+                        type = types.nullOr types.str;
+                        default = null;
+                        description = "The hostname to display in the app header. You may use Rich markup here. If unset, the hostname provided via `socket.gethostname()` will be used.";
+                      };
+                    };
                   };
-                  show_version = mkOption {
-                    type = types.bool;
-                    default = true;
-                    description = "Show/hide the version in the app header.";
+                  default = {};
+                  description = "URL bar settings.";
+                };
+                url_bar.show_value_preview = mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = "Show/hide the variable value preview below the URL bar.";
+                };
+                collection_browser = mkOption {
+                  type = types.submodule {
+                    options = {
+                      position = mkOption {
+                        type = types.enum ["left" "right"];
+                        default = "left";
+                        description = "The position of the collection browser on the screen.";
+                      };
+                      show_on_startup = mkOption {
+                        type = types.bool;
+                        default = true;
+                        description = "Show/hide the collection browser on startup Can always be toggled using the command palette.";
+                      };
+                    };
                   };
-                  hostname = mkOption {
+                  default = {};
+                  description = "Collection browser settings.";
+                };
+                pager = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Command to use for paging text.";
+                };
+                pager_json = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Command to use for paging JSON.";
+                };
+                editor = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Command to use for opening files in an external editor.";
+                };
+                ssl = {
+                  ca_bundle = mkOption {
                     type = types.nullOr types.str;
                     default = null;
-                    description = "The hostname to display in the app header. You may use Rich markup here. If unset, the hostname provided via `socket.gethostname()` will be used.";
+                    description = "Absolute path to a CA bundle file/dir. If not set, the Certifi CA bundle will be used.";
                   };
-                };
-                default = {};
-                description = "URL bar settings.";
-              };
-              url_bar.show_value_preview = mkOption {
-                type = types.bool;
-                default = true;
-                description = "Show/hide the variable value preview below the URL bar.";
-              };
-              collection_browser = mkOption {
-                type = types.submodule {
-                  position = mkOption {
-                    type = types.enum ["left" "right"];
-                    default = "left";
-                    description = "The position of the collection browser on the screen.";
-                  };
-                  show_on_startup = mkOption {
-                    type = types.bool;
-                    default = true;
-                    description = "Show/hide the collection browser on startup Can always be toggled using the command palette.";
-                  };
-                };
-                default = {};
-                description = "Collection browser settings.";
-              };
-              pager = mkOption {
-                type = types.nullOr types.str;
-                default = null;
-                description = "Command to use for paging text.";
-              };
-              pager_json = mkOption {
-                type = types.nullOr types.str;
-                default = null;
-                description = "Command to use for paging JSON.";
-              };
-              editor = mkOption {
-                type = types.nullOr types.str;
-                default = null;
-                description = "Command to use for opening files in an external editor.";
-              };
-              ssl = {
-                ca_bundle = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Absolute path to a CA bundle file/dir. If not set, the Certifi CA bundle will be used.";
-                };
-                certificate_path = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Absolute path to a client SSL certificate file or directory.";
-                };
-                key_file = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Absolute path to a client SSL key file.";
-                };
-                password = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Password to decrypt the key file if it's encrypted.";
-                };
-              };
-              focus = mkOption {
-                type = types.submodule {
-                  on_startup = mkOption {
-                    type = types.enum ["url" "method" "collection"];
-                    default = "url";
-                    description = "Automatically focus the URL bar, method, or collection browser when the app starts.";
-                  };
-                  on_response = mkOption {
-                    type = types.nullOr (types.enum ["body" "tabs"]);
+                  certificate_path = mkOption {
+                    type = types.nullOr types.str;
                     default = null;
-                    description = "Automatically focus the URL bar, method, or collection browser when the app starts.";
+                    description = "Absolute path to a client SSL certificate file or directory.";
                   };
-                  on_request_open = mkOption {
-                    type = types.nullOr (types.enum ["headers" "body" "query" "info" "url" "method"]);
+                  key_file = mkOption {
+                    type = types.nullOr types.str;
                     default = null;
-                    description = "Automatically focus the specified target when a request is opened from the collection browser.";
+                    description = "Absolute path to a client SSL key file.";
+                  };
+                  password = mkOption {
+                    type = types.nullOr types.str;
+                    default = null;
+                    description = "Password to decrypt the key file if it's encrypted.";
                   };
                 };
-                default = {};
-                description = "Focus settings.";
-              };
-              text_input.blinking_cursor = mkOption {
-                type = types.bool;
-                default = true;
-                description = "If enabled, the cursor will blink in input widgets and text area widgets.";
-              };
-              command_palette.theme_preview = mkOption {
-                type = types.bool;
-                default = true;
-                description = "If enabled, the command palette will display a preview of the selected theme when the cursor is over it. This will slow down cursor movement and so is disabled by default.";
-              };
-              use_xresources = mkOption {
-                type = types.bool;
-                default = false;
-                description = "Try to create themes called `xresources-dark` and `xresources-light`";
+                focus = mkOption {
+                  type = types.submodule {
+                    options = {
+                      on_startup = mkOption {
+                        type = types.enum ["url" "method" "collection"];
+                        default = "url";
+                        description = "Automatically focus the URL bar, method, or collection browser when the app starts.";
+                      };
+                      on_response = mkOption {
+                        type = types.nullOr (types.enum ["body" "tabs"]);
+                        default = null;
+                        description = "Automatically focus the URL bar, method, or collection browser when the app starts.";
+                      };
+                      on_request_open = mkOption {
+                        type = types.nullOr (types.enum ["headers" "body" "query" "info" "url" "method"]);
+                        default = null;
+                        description = "Automatically focus the specified target when a request is opened from the collection browser.";
+                      };
+                    };
+                  };
+                  default = {};
+                  description = "Focus settings.";
+                };
+                text_input.blinking_cursor = mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = "If enabled, the cursor will blink in input widgets and text area widgets.";
+                };
+                command_palette.theme_preview = mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = "If enabled, the command palette will display a preview of the selected theme when the cursor is over it. This will slow down cursor movement and so is disabled by default.";
+                };
+                use_xresources = mkOption {
+                  type = types.bool;
+                  default = false;
+                  description = "Try to create themes called `xresources-dark` and `xresources-light`";
+                };
               };
             };
             default = {};
