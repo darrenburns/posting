@@ -81,7 +81,7 @@
                   "hacker"
                   "manuscript"
                 ]
-                ++ (builtins.map (theme: theme.name) cfg.themes));
+                ++ (builtins.attrNames cfg.themes));
               default = "galaxy";
               description = "Sets the theme of the application.";
             };
