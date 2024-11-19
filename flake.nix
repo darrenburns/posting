@@ -236,14 +236,14 @@
                 description = "Try to create themes called `xresources-dark` and `xresources-light`";
               };
             };
-            themes = mkOption {
-              type = types.listOf ((pkgs.formats.yaml {}).type);
-              default = [];
-              description = "List of user-defined themes. See <https://github.com/darrenburns/posting/blob/main/docs/guide/themes.md>";
-            };
+            default = {};
+            description = "Settings for the Posting API client. See <https://github.com/darrenburns/posting/blob/main/docs/guide/config.md>";
           };
-          default = {};
-          description = "Settings for the Posting API client. See <https://github.com/darrenburns/posting/blob/main/docs/guide/config.md>";
+          themes = mkOption {
+            type = types.listOf ((pkgs.formats.yaml {}).type);
+            default = [];
+            description = "List of user-defined themes. See <https://github.com/darrenburns/posting/blob/main/docs/guide/themes.md>";
+          };
         };
 
         config = mkIf cfg.enable {
