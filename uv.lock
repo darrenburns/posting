@@ -870,7 +870,7 @@ wheels = [
 
 [[package]]
 name = "posting"
-version = "2.1.1"
+version = "2.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -909,8 +909,8 @@ requires-dist = [
     { name = "pyperclip", specifier = ">=1.9.0,<2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1,<2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2,<7.0.0" },
-    { name = "textual", extras = ["syntax"], specifier = "==0.86.1" },
-    { name = "textual-autocomplete", specifier = "==3.0.0a12" },
+    { name = "textual", extras = ["syntax"], specifier = "==0.86.2" },
+    { name = "textual-autocomplete", specifier = "==3.0.0a13" },
     { name = "watchfiles", specifier = ">=0.24.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.1,<7.0.0" },
 ]
@@ -1342,7 +1342,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.86.1"
+version = "0.86.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
@@ -1350,9 +1350,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/56/c6/435723343db6a65ed92950d1e20ded920c4c22e6e785ea0e369abd4ac1c7/textual-0.86.1.tar.gz", hash = "sha256:a6e68de5383415f222f26b4049c2a92ed204071fdfebe3d729f8dd373ca5f519", size = 1496752 }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/d2/2f08cbc8c9290c9aeca93840e63c5d208ca6e50a7cddef9fa9cafca7cd68/textual-0.86.2.tar.gz", hash = "sha256:43073f9eb52d0f38a5af2f124ba68b378f91d260df4b1c92f384a3b5cbbbcb70", size = 1498282 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/a3/2b7bfd8d0665072a77459f51b600445939aee8a9d25bc3d546c9ac879a19/textual-0.86.1-py3-none-any.whl", hash = "sha256:ebc2bfd92c2f1a451c12dcbcfda002598a2fc9793d1684be83514b5fba75f915", size = 646857 },
+    { url = "https://files.pythonhosted.org/packages/01/c3/d7f602e00e05acd0c966409884a26c66e9748e542a88960f09ff7af95f5c/textual-0.86.2-py3-none-any.whl", hash = "sha256:2c0744feda959554aff1f169341e6e1fba6e51cdc45fb0a878675307d5719ca6", size = 647190 },
 ]
 
 [package.optional-dependencies]
@@ -1363,15 +1363,15 @@ syntax = [
 
 [[package]]
 name = "textual-autocomplete"
-version = "3.0.0a12"
+version = "3.0.0a13"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "textual" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/e6/5a743d325e871f813a23377bf776b96a540705aa83b5e9afc5580b28e67e/textual_autocomplete-3.0.0a12.tar.gz", hash = "sha256:1d2c9e4d24c7f575abc8c612cb6abfff4706f6aaab9b939506b95dae84549309", size = 16852 }
+sdist = { url = "https://files.pythonhosted.org/packages/bd/d3/7837e2ee1807c72e2a8a185c6e5e729dbe68161d8476055d989f3a2db348/textual_autocomplete-3.0.0a13.tar.gz", hash = "sha256:db5a4ae956dd7d6dece53f7f695e97f2ab75819dd96b8a1c064ec5966b3ab113", size = 95332 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/66/27950ba6137131acdeecf26432bb0384092ca900a0a07e3037ea32e1a7d3/textual_autocomplete-3.0.0a12-py3-none-any.whl", hash = "sha256:c446cc19fc771a1cc741f75446d96b9e7a633bd8c8913a2af7c2eae68a5cb3e6", size = 17456 },
+    { url = "https://files.pythonhosted.org/packages/b5/ef/466bd6222661085bda6547e53db520aabbb44f0a0de4d7cea4be948a3a3c/textual_autocomplete-3.0.0a13-py3-none-any.whl", hash = "sha256:aa31f454b9edbe6787469c3113ade91977d7f8ab4aced660af63951266d15cdb", size = 17366 },
 ]
 
 [[package]]

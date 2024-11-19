@@ -148,6 +148,9 @@ class Settings(BaseSettings):
     watch_collection_files: bool = Field(default=True)
     """If enabled, automatically reload collection files when they change."""
 
+    watch_themes: bool = Field(default=True)
+    """If enabled, automatically reload themes in the theme directory when they change on disk."""
+
     text_input: TextInputSettings = Field(default_factory=TextInputSettings)
     """General configuration for inputs and text area widgets."""
 

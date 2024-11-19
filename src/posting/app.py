@@ -1,19 +1,19 @@
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
-from itertools import cycle
 from pathlib import Path
 from typing import Any, Literal, cast
 
 import httpx
+from rich.console import RenderableType
 from textual.content import Content
 
 from posting.importing.curl import CurlImport
-from textual import on, log, work
+from textual import messages, on, log, work
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, ReturnType
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -44,7 +44,7 @@ from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
-from posting.themes import BUILTIN_THEMES, load_user_themes
+from posting.themes import BUILTIN_THEMES, load_user_theme, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables, update_variables
@@ -681,7 +681,7 @@ class MainScreen(Screen[None]):
         try:
             curl_import = CurlImport(event.curl_command)
             request_model = curl_import.to_request_model()
-        except Exception as e:
+        except Exception:
             self.notify(
                 title="Import error",
                 message="Couldn't import curl command.",
@@ -932,6 +932,22 @@ class Posting(App[None], inherit_bindings=False):
                         # of the available scripts.
                         pass
 
+    @work(exclusive=True, group="theme-watcher")
+    async def watch_themes(self) -> None:
+        """Watching the theme directory for changes."""
+        async for changes in awatch(self.settings.theme_directory):
+            print("Theme changes detected")
+            for change_type, file_path in changes:
+                if file_path.endswith((".yml", ".yaml")):
+                    theme = load_user_theme(Path(file_path))
+                    if theme and theme.name == self.theme:
+                        self.register_theme(theme)
+                        self.set_reactive(App.theme, theme.name)
+                        try:
+                            self._watch_theme(theme.name)
+                        except Exception as e:
+                            print(f"Error refreshing CSS: {e}")
+
     def on_mount(self) -> None:
         settings = SETTINGS.get()
 
@@ -986,6 +1002,9 @@ class Posting(App[None], inherit_bindings=False):
 
         if self.settings.watch_collection_files:
             self.watch_collection_files()
+
+        if self.settings.watch_themes:
+            self.watch_themes()
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(
@@ -1087,3 +1106,24 @@ class Posting(App[None], inherit_bindings=False):
 
         self.set_focus(None)
         await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
+
+    def exit(
+        self,
+        result: ReturnType | None = None,
+        return_code: int = 0,
+        message: RenderableType | None = None,
+    ) -> None:
+        """Exit the app, and return the supplied result.
+
+        Args:
+            result: Return value.
+            return_code: The return code. Use non-zero values for error codes.
+            message: Optional message to display on exit.
+        """
+        self._exit = True
+        self._return_value = result
+        self._return_code = return_code
+        self.post_message(messages.ExitApp())
+        if message:
+            self._exit_renderables.append(message)
+            self._exit_renderables = list(set(self._exit_renderables))

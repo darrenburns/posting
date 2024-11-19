@@ -3,12 +3,9 @@ from textual import events
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Center
-from textual.geometry import Offset
 from textual.screen import ModalScreen
 from textual.widget import Widget
 from textual.widgets import Label
-
-from posting.jumper import JumpInfo
 
 if TYPE_CHECKING:
     from posting.jumper import Jumper
@@ -77,7 +74,8 @@ class JumpOverlay(ModalScreen[str | Widget | None]):
         for offset, jump_info in self.overlays.items():
             key, _widget = jump_info
             label = Label(key, classes="textual-jump-label")
-            label.styles.offset = offset
+            x, y = offset
+            label.styles.margin = y, x
             yield label
         with Center(id="textual-jump-info"):
             yield Label("Press a key to jump")

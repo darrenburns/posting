@@ -15,9 +15,9 @@ dependencies = [
     "pyyaml>=6.0.2,<7.0.0",
     "pydantic-settings>=2.4.0,<3.0.0",
     "python-dotenv>=1.0.1,<2.0.0",
-    "textual[syntax]==0.86.1",
+    "textual[syntax]==0.86.2",
     # pinned intentionally
-    "textual-autocomplete==3.0.0a12",
+    "textual-autocomplete==3.0.0a13",
     # pinned intentionally
     "watchfiles>=0.24.0",
 ]

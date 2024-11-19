@@ -47,10 +47,10 @@ def load_xresources_themes() -> dict[str, TextualTheme]:
             name="xresources-dark",
             **supplied_colors,
             dark=True,
-        ),
+        ).to_textual_theme(),
         "xresources-light": Theme(
             name="xresources-light",
             **supplied_colors,
             dark=False,
-        ),
+        ).to_textual_theme(),
     }

@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- Fixed crash when invalid syntax theme is specified. Posting now exits cleanly with an error message.
+
 ## 2.2.0 [17th November 2024]
 
 ### Added
