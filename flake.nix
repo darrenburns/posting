@@ -233,7 +233,7 @@
           home.file =
             {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;}
             // builtins.listToAttrs (map (theme: {
-                name = "${cfg.theme_directory}/${theme.name}.yaml";
+                name = "${cfg.settings.theme_directory}/${theme.name}.yaml";
                 value = {text = builtins.toJSON theme;};
               })
               cfg.themes);
