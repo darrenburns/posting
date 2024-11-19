@@ -59,7 +59,7 @@
                   "hacker"
                   "manuscript"
                 ]
-                ++ builtins.map (theme: theme.name) cfg.themes;
+                ++ (builtins.map (theme: theme.name) cfg.themes);
               default = "galaxy";
               description = "Sets the theme of the application.";
             };
@@ -229,7 +229,7 @@
         config = mkIf cfg.enable {
           home.packages =
             [cfg.package]
-            ++ lib.optional cfg.settings.use_xresources pkgs.xorg.xrdb;
+            ++ (lib.optional cfg.settings.use_xresources pkgs.xorg.xrdb);
           home.file =
             {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;}
             // builtins.listToAttrs (map (theme: {
