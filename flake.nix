@@ -221,7 +221,7 @@
           };
           themes = mkOption {
             type = types.listOf ((pkgs.formats.yaml {}).type);
-            default = {};
+            default = [];
             description = "List of user-defined themes. See <https://github.com/darrenburns/posting/blob/main/docs/guide/themes.md>";
           };
         };
