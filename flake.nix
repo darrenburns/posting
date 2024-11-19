@@ -36,8 +36,7 @@
           package = mkPackageOption pkgs "posting" {};
           settings = {
             theme = mkOption {
-              type =
-                types.enum [
+              type = types.enum ([
                   "textual-dark"
                   "textual-light"
                   "nord"
@@ -59,7 +58,7 @@
                   "hacker"
                   "manuscript"
                 ]
-                ++ (builtins.map (theme: theme.name) cfg.themes);
+                ++ (builtins.map (theme: theme.name) cfg.themes));
               default = "galaxy";
               description = "Sets the theme of the application.";
             };
