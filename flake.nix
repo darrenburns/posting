@@ -22,51 +22,7 @@
         }
       );
 
-      flake.modules.homeManager.default = {
-        config,
-        lib,
-        pkgs,
-        ...
-      }: let
-        inherit (lib) mkOption mkIf mkEnableOption mkPackageOption types;
-        cfg = config.programs.posting;
-      in {
-        options.programs.posting = {
-          enable = mkEnableOption "Posting API client";
-          package = mkPackageOption pkgs "posting" {};
-          settings = mkOption {
-            type = (pkgs.formats.yaml {}).type;
-            default = {};
-            example = {
-              theme = "galaxy";
-              layout = "horizontal";
-              response.prettify_json = false;
-              heading = {
-                visible = true;
-                show_host = false;
-              };
-            };
-            description = "Posting configuration settings. See <https://github.com/darrenburns/posting/blob/main/docs/guide/configuration.md>";
-          };
-          themes = mkOption {
-            type = types.listOf ((pkgs.formats.yaml {}).type);
-            default = {};
-            description = "List of user-defined themes. See <https://github.com/darrenburns/posting/blob/main/docs/guide/themes.md>";
-          };
-        };
-
-        config = mkIf cfg.enable {
-          home.packages = [cfg.package];
-          home.file =
-            {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;}
-            // builtins.listToAttrs (map (theme: {
-                name = ".local/share/posting/themes/${theme.name}.yaml";
-                value = {text = builtins.toJSON theme;};
-              })
-              cfg.themes);
-          nixpkgs.overlays = [flake.overlays.default];
-        };
-      };
+      flake.modules.homeManager.default = args: import ./home-manager.nix args // {overlay = flake.overlays.default;};
 
       perSystem = {
         pkgs,
