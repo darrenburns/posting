@@ -229,7 +229,7 @@
         config = mkIf cfg.enable {
           home.rackages =
             [cfg.package]
-            ++ lib.optional cfg.use_xresources pkgs.xorg.xrdb;
+            ++ lib.optional cfg.settings.use_xresources pkgs.xorg.xrdb;
           home.file =
             {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;}
             // builtins.listToAttrs (map (theme: {
