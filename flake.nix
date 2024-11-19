@@ -155,7 +155,7 @@
               description = "Command to use for paging text.";
             };
             pager_json = mkOption {
-              types = types.str;
+              type = types.str;
               default = null;
               description = "Command to use for paging JSON.";
             };
