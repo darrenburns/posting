@@ -173,7 +173,7 @@
               certificate_path = mkOption {
                 type = types.nullOr types.str;
                 default = null;
-                desciption = "Absolute path to a client SSL certificate file or directory.";
+                description = "Absolute path to a client SSL certificate file or directory.";
               };
               key_file = mkOption {
                 type = types.nullOr types.str;
