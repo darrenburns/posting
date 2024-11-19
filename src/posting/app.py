@@ -1004,7 +1004,6 @@ class Posting(App[None], inherit_bindings=False):
             self.watch_collection_files()
 
         if self.settings.watch_themes:
-            print("Watching themes")
             self.watch_themes()
 
     def get_default_screen(self) -> MainScreen:

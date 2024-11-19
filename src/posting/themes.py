@@ -338,7 +338,7 @@ def load_user_theme(path: Path) -> TextualTheme | None:
             raise ValueError(f"Invalid theme file {path}. A `name` is required.")
 
 
-galaxy_primary = Color.parse("#8A2BE2")
+galaxy_primary = Color.parse("#C45AFF")
 galaxy_secondary = Color.parse("#a684e8")
 galaxy_warning = Color.parse("#FFD700")
 galaxy_error = Color.parse("#FF4500")
@@ -363,6 +363,7 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
         panel=galaxy_panel.hex,
         dark=True,
         variables={
+            "input-cursor-background": "#C45AFF",
             "footer-background": "transparent",
         },
     ),

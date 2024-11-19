@@ -502,13 +502,14 @@ Select {
 }
 
 .textual-jump-label {
-  layer: textual-jump;
   dock: top;
   color: $text-accent;
   background: $accent-muted;
   text-style: bold;
   padding: 0 1;
   margin-right: 1;
+  height: 1;
+  width: auto;
 }
 
 #textual-jump-info {
