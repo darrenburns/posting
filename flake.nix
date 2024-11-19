@@ -32,7 +32,7 @@
         cfg = config.programs.posting;
         hexColor = lib.mkOptionType {
           name = "Hex Color";
-          definition = "A hex-encoded color string.";
+          description = "A hex-encoded color string.";
           check = x:
             builtins.isString x
             && (
