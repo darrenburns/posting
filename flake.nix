@@ -30,6 +30,29 @@
       }: let
         inherit (lib) mkOption mkIf mkEnableOption mkPackageOption types;
         cfg = config.programs.posting;
+        hexColor = lib.mkOptionType {
+          name = "Hex Color";
+          definition = "A hex-encoded color string.";
+          check = x:
+            builtins.isString x
+            && (
+              (builtins.match "#[0-9a-fA-F]{6}" x)
+              != null
+              || (cfg.settings.use_xresources && (builtins.match "\*((color[0-47-8])|background)" x) != null)
+            );
+          merge = lib.mergeOneOption;
+        };
+        mkColorOption = desc:
+          mkOption {
+            type = hexColor;
+            description = desc;
+          };
+        mkStringOption = desc:
+          mkOption {
+            type = types.str;
+            default = null;
+            description = desc;
+          };
       in {
         options.programs.posting = {
           enable = mkEnableOption "Posting API client";
@@ -219,8 +242,65 @@
             };
           };
           themes = mkOption {
-            type = types.listOf ((pkgs.formats.yaml {}).type);
-            default = [];
+            type = types.attrsOf (types.submodule {
+              options = {
+                author = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Author of the theme.";
+                };
+                description = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Description of the theme.";
+                };
+                homepage = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Homepage of the theme.";
+                };
+
+                primary = mkColorOption "Buttons, fixed table columns";
+                secondary = mkColorOption "Method selector, some minor labels";
+                accent = mkColorOption "Header text, scrollbars, cursors, focus highlights";
+                background = mkColorOption "Background colors";
+                surface = mkColorOption "Panels, etc";
+                error = mkColorOption "Error messages";
+                warning = mkColorOption "Warning messages";
+
+                text_area = {
+                  cursor = mkStringOption "The block cursor";
+                  cursor_line = mkStringOption "The line the cursor is on";
+                  selection = mkStringOption "The selected text";
+                  gutter = mkStringOption "The gutter";
+                  matched_bracket = mkStringOption "The matched bracket";
+                };
+
+                url = {
+                  base = mkStringOption "The 'base' of the URL";
+                  protocol = mkStringOption "The protocol";
+                };
+
+                syntax = {
+                  json_key = mkStringOption "JSON keys";
+                  json_number = mkStringOption "JSON numbers";
+                  json_string = mkStringOption "JSON strings";
+                  json_boolean = mkStringOption "JSON booleans";
+                  json_null = mkStringOption "JSON null values";
+                };
+
+                method = {
+                  get = mkStringOption "GET method";
+                  post = mkStringOption "POST method";
+                  put = mkStringOption "PUT method";
+                  delete = mkStringOption "PATCH method";
+                  patch = mkStringOption "PATCH method";
+                  options = mkStringOption "OPTIONS method";
+                  head = mkStringOption "HEAD method";
+                };
+              };
+            });
+            default = {};
             description = "List of user-defined themes. See <https://github.com/darrenburns/posting/blob/main/docs/guide/themes.md>";
           };
         };
@@ -231,11 +311,12 @@
             ++ (lib.optional cfg.settings.use_xresources pkgs.xorg.xrdb);
           home.file =
             {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;}
-            // builtins.listToAttrs (map (theme: {
-                name = "${cfg.settings.theme_directory}/${theme.name}.yaml";
-                value = {text = builtins.toJSON theme;};
+            // (lib.mapAttrs' (name: value: {
+                name = "${cfg.settings.theme_directory}/${name}.yaml";
+                value = {text = builtins.toJSON value;};
               })
               cfg.themes);
+
           nixpkgs.overlays = [flake.overlays.default];
         };
       };
