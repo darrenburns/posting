@@ -56,6 +56,10 @@ If you'd prefer to use `pipx`, that works too: `pipx install posting`.
 
 Note that Python 3.13 is not currently supported.
 
+### Nix
+
+This repository contains a Nix flake that can be used to install Posting on NixOS. The package is exposed as `outputs.packages.${system}.default`. The flake also provides an overlay at `outputs.overlays.default`. Lastly, if you'd like to configure Posting with Nix, the flake exposes a Home Manager module that allows for this to be done. Adding `outputs.modules.homeManager.default` to your Home Manager imports will add the `programs.posting` option. You can find documentation for this option [here](https://posting.sh/guide/home_manager).
+
 ## Learn More
 
 Learn more about Posting at [https://posting.sh](https://posting.sh).
