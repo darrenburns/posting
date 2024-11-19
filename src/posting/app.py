@@ -44,7 +44,7 @@ from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
-from posting.themes import BUILTIN_THEMES, load_user_themes
+from posting.themes import BUILTIN_THEMES, load_user_theme, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables, update_variables
@@ -932,6 +932,22 @@ class Posting(App[None], inherit_bindings=False):
                         # of the available scripts.
                         pass
 
+    @work(exclusive=True, group="theme-watcher")
+    async def watch_themes(self) -> None:
+        """Watching the theme directory for changes."""
+        async for changes in awatch(self.settings.theme_directory):
+            print("Theme changes detected")
+            for change_type, file_path in changes:
+                if file_path.endswith((".yml", ".yaml")):
+                    theme = load_user_theme(Path(file_path))
+                    if theme and theme.name == self.theme:
+                        self.register_theme(theme)
+                        self.set_reactive(App.theme, theme.name)
+                        try:
+                            self._watch_theme(theme.name)
+                        except Exception as e:
+                            print(f"Error refreshing CSS: {e}")
+
     def on_mount(self) -> None:
         settings = SETTINGS.get()
 
@@ -986,6 +1002,10 @@ class Posting(App[None], inherit_bindings=False):
 
         if self.settings.watch_collection_files:
             self.watch_collection_files()
+
+        if self.settings.watch_themes:
+            print("Watching themes")
+            self.watch_themes()
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(

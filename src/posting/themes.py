@@ -1,3 +1,4 @@
+from pathlib import Path
 import uuid
 from pydantic import BaseModel, Field
 from rich.style import Style
@@ -328,6 +329,15 @@ def load_user_themes() -> dict[str, TextualTheme]:
     return themes
 
 
+def load_user_theme(path: Path) -> TextualTheme | None:
+    with path.open() as theme_file:
+        theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
+        try:
+            return Theme(**theme_content).to_textual_theme()
+        except KeyError:
+            raise ValueError(f"Invalid theme file {path}. A `name` is required.")
+
+
 galaxy_primary = Color.parse("#8A2BE2")
 galaxy_secondary = Color.parse("#a684e8")
 galaxy_warning = Color.parse("#FFD700")
@@ -353,7 +363,6 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
         panel=galaxy_panel.hex,
         dark=True,
         variables={
-            "input-cursor-background": galaxy_primary.hex,
             "footer-background": "transparent",
         },
     ),
