@@ -112,6 +112,11 @@
               default = true;
               description = "If enabled, automatically reload environment files when they change.";
             };
+            watch_themes = mkOption {
+              type = types.bool;
+              default = true;
+              description = "If enabled, automatically reload themes in the theme directory when they change on disk.";
+            };
             animation = mkOption {
               type = types.enum ["none" "basic" "full"];
               default = "none";
