@@ -4,12 +4,16 @@ from typing import Any
 from urllib.parse import urlparse
 
 import yaml
+from openapi_pydantic import OpenAPI, Reference, SecurityScheme
 from pathlib import Path
 
 
 from posting.collection import (
     VALID_HTTP_METHODS,
     APIInfo,
+    Auth,
+    BasicAuth,
+    BearerTokenAuth,
     Collection,
     ExternalDocs,
     FormItem,
@@ -70,21 +74,56 @@ def extract_server_variables(spec: dict[str, Any]) -> dict[str, dict[str, str]]:
             "description": f"Server URL {i+1}: {server.get('description', '')}",
         }
 
-    # # Extract security schemes
-    # security_schemes = spec.get("components", {}).get("securitySchemes", {})
-    # for scheme_name, scheme in security_schemes.items():
-    #     if scheme["type"] == "apiKey":
-    #         variables[f"{scheme_name.upper()}_API_KEY"] = {
-    #             "value": "YOUR_API_KEY_HERE",
-    #             "description": f"API Key for {scheme_name} authentication",
-    #         }
-    #     elif scheme["type"] == "http" and scheme["scheme"] == "bearer":
-    #         variables[f"{scheme_name.upper()}_BEARER_TOKEN"] = {
-    #             "value": "YOUR_BEARER_TOKEN_HERE",
-    #             "description": f"Bearer token for {scheme_name} authentication",
-    #         }
-
     return variables
+
+
+def security_scheme_to_variables(
+    name: str,
+    security_scheme: SecurityScheme | Reference,
+) -> dict[str, dict[str, str]]:
+    match security_scheme:
+        case SecurityScheme(type="http", scheme="basic"):
+            return {
+                f"{name.upper()}_USERNAME": {
+                    "value": "YOUR USERNAME HERE",
+                    "description": f"Username for {name} authentication",
+                },
+                f"{name.upper()}_PASSWORD": {
+                    "value": "YOUR PASSWORD HERE",
+                    "description": f"Password for {name} authentication",
+                },
+            }
+        case SecurityScheme(type="http", scheme="bearer"):
+            return {
+                f"{name.upper()}_BEARER_TOKEN": {
+                    "value": "YOUR BEARER TOKEN HERE",
+                    "description": f"Token for {name} authentication",
+                },
+            }
+        case _:
+            return {}
+
+
+def security_scheme_to_auth(
+    name: str,
+    security_scheme: SecurityScheme | Reference,
+) -> Auth | None:
+    match security_scheme:
+        case SecurityScheme(type="http", scheme="basic"):
+            return Auth(
+                type="basic",
+                basic=BasicAuth(
+                    username=f"${{{name.upper()}_USERNAME}}",
+                    password=f"${{{name.upper()}_PASSWORD}}",
+                ),
+            )
+        case SecurityScheme(type="http", scheme="bearer"):
+            return Auth(
+                type="bearer_token",
+                bearer_token=BearerTokenAuth(token=f"${{{name.upper()}_BEARER_TOKEN}}"),
+            )
+        case _:
+            return None
 
 
 def generate_readme(
@@ -184,9 +223,16 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
         name=collection_name,
     )
 
+    openapi = OpenAPI.model_validate(spec)
+    security_schemes = openapi.components.securitySchemes or {}
+
     env_files: list[Path] = []
     for server in servers:
-        variables = extract_server_variables(server)
+        security_variables = {}
+        for scheme_name, scheme in security_schemes.items():
+            security_variables.update(security_scheme_to_variables(scheme_name, scheme))
+
+        variables = {**extract_server_variables(server), **security_variables}
         env_filename = generate_unique_env_filename(collection_name, server["url"])
         env_file = create_env_file(spec_path.parent, env_filename, variables)
         console.print(
@@ -209,6 +255,14 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                 method=method,
                 url=f"${{BASE_URL}}{path}",
             )
+
+            # Add auth
+            for security in operation.get("security", []):
+                for scheme_name, _scopes in security.items():
+                    if scheme := security_schemes.get(scheme_name):
+                        request.auth = security_scheme_to_auth(scheme_name, scheme)
+                        break
+
             # Add query parameters
             for param in operation.get("parameters", []):
                 if param["in"] == "query":
