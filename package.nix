@@ -21,19 +21,7 @@ in
       pyyaml
       pydantic-settings
       python-dotenv
-      (pkgs.textual-autocomplete.overridePythonAttrs
-        (old: rec {
-          version = "3.0.0a12";
-          src = pkgs.fetchPypi {
-            pname = "textual_autocomplete";
-            inherit version;
-            hash = "sha256-HSyeTSTH9XWryMYSy2q//0cG9qqrm5OVBrldroRUkwk=";
-          };
-
-          postPatch = ''
-            sed -i "/^requires-python =.*/a version = '${version}'" pyproject.toml
-          '';
-        }))
+      pkgs.textual-autocomplete
       (textual.overridePythonAttrs (old: rec {
         version = "0.86.2";
         src = pkgs.fetchFromGitHub {
