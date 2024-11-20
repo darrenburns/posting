@@ -242,65 +242,7 @@
             };
           };
           themes = mkOption {
-            type = types.attrsOf (types.submodule {
-              options = {
-                author = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Author of the theme.";
-                };
-                description = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Description of the theme.";
-                };
-                homepage = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Homepage of the theme.";
-                };
-
-                primary = mkColorOption "Buttons, fixed table columns";
-                secondary = mkColorOption "Method selector, some minor labels";
-                accent = mkColorOption "Header text, scrollbars, cursors, focus highlights";
-                background = mkColorOption "Background colors";
-                surface = mkColorOption "Panels, etc";
-                error = mkColorOption "Error messages";
-                success = mkColorOption "Success messages";
-                warning = mkColorOption "Warning messages";
-
-                text_area = {
-                  cursor = mkStringOption "The block cursor";
-                  cursor_line = mkStringOption "The line the cursor is on";
-                  selection = mkStringOption "The selected text";
-                  gutter = mkStringOption "The gutter";
-                  matched_bracket = mkStringOption "The matched bracket";
-                };
-
-                url = {
-                  base = mkStringOption "The 'base' of the URL";
-                  protocol = mkStringOption "The protocol";
-                };
-
-                syntax = {
-                  json_key = mkStringOption "JSON keys";
-                  json_number = mkStringOption "JSON numbers";
-                  json_string = mkStringOption "JSON strings";
-                  json_boolean = mkStringOption "JSON booleans";
-                  json_null = mkStringOption "JSON null values";
-                };
-
-                method = {
-                  get = mkStringOption "GET method";
-                  post = mkStringOption "POST method";
-                  put = mkStringOption "PUT method";
-                  delete = mkStringOption "PATCH method";
-                  patch = mkStringOption "PATCH method";
-                  options = mkStringOption "OPTIONS method";
-                  head = mkStringOption "HEAD method";
-                };
-              };
-            });
+            type = types.attrsOf (pkgs.formats.yaml {}).type;
             default = {};
             description = "List of user-defined themes. See <https://github.com/darrenburns/posting/blob/main/docs/guide/themes.md>";
           };
