@@ -35,12 +35,12 @@ in
           '';
         }))
       (textual.overridePythonAttrs (old: rec {
-        version = "0.86.1";
+        version = "0.86.2";
         src = pkgs.fetchFromGitHub {
           owner = "Textualize";
           repo = "textual";
           rev = "refs/tags/v${version}";
-          hash = "sha256-5msCFv79nAmoaP9gZxV3DXMLTyVlSFb+qyA5jHWwc50=";
+          hash = "sha256-cQYBa1vba/fuv/j0D/MNUboQNTc913UG4dp8a1EPql4=";
         };
 
         postPatch = ''
