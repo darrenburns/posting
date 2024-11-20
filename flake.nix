@@ -268,7 +268,7 @@
         pkgs,
         system,
         ...
-      }: {
+      }: rec {
         _module.args.pkgs = import inputs.nixpkgs {
           inherit system;
           overlays = [
@@ -276,6 +276,10 @@
           ];
         };
         packages.default = pkgs.callPackage ./package.nix {};
+        devShells.default = pkgs.mkShell {
+          inputsFrom = [packages.default];
+          packages = [pkgs.python312Packages.textual-dev];
+        };
       };
     };
 }
