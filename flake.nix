@@ -32,14 +32,9 @@
         cfg = config.programs.posting;
         hexColor = lib.mkOptionType {
           name = "Hex Color";
-          description = "color (hex or xresources identifier)";
+          description = "hex-encoded color string";
           check = x:
-            builtins.isString x
-            && (
-              (builtins.match "#[0-9a-fA-F]{6}" x)
-              != null
-              || (builtins.match "\\*((color[0-47-8])|background)" x) != null
-            );
+            builtins.isString x && (builtins.match "#[0-9a-fA-F]{6}" x) != null;
           merge = lib.mergeOneOption;
         };
         mkColorOption = desc:
@@ -59,29 +54,31 @@
           package = mkPackageOption pkgs "posting" {};
           settings = {
             theme = mkOption {
-              type = types.enum ([
-                  "textual-dark"
-                  "textual-light"
-                  "nord"
-                  "gruvbox"
-                  "catppuccin-mocha"
-                  "dracula"
-                  "tokyo-night"
-                  "monokai"
-                  "flexoki"
-                  "catppuccin-latte"
-                  "solarized-light"
-                  "galaxy"
-                  "nebula"
-                  "sunset"
-                  "aurora"
-                  "nautilus"
-                  "cobalt"
-                  "twilight"
-                  "hacker"
-                  "manuscript"
-                ]
-                ++ (builtins.attrNames cfg.themes));
+              type =
+                types.enum ([
+                    "textual-dark"
+                    "textual-light"
+                    "nord"
+                    "gruvbox"
+                    "catppuccin-mocha"
+                    "dracula"
+                    "tokyo-night"
+                    "monokai"
+                    "flexoki"
+                    "catppuccin-latte"
+                    "solarized-light"
+                    "galaxy"
+                    "nebula"
+                    "sunset"
+                    "aurora"
+                    "nautilus"
+                    "cobalt"
+                    "twilight"
+                    "hacker"
+                    "manuscript"
+                  ]
+                  ++ lib.optional cfg.settings.load_user_themes (builtins.attrNames cfg.themes))
+                ++ lib.optionals cfg.settings.use_xresources ["xresources-dark" "xresources-light"];
               default = "galaxy";
               description = "Sets the theme of the application.";
             };
@@ -263,14 +260,6 @@
         };
 
         config = mkIf cfg.enable {
-          assertions = lib.flatten (lib.mapAttrsToList (theme_name: theme:
-            lib.mapAttrsToList (item: color: {
-              assertion = !(((builtins.match "\\*((color[0-4][7-8])|(background))" color) != null) && !cfg.settings.use_xresources);
-              message = "Color option '${item}' in theme '${theme_name}' uses an xresources color, but 'settings.use_xresources' is set to false. Posting can only use xresources colors if this setting is set to true.";
-            })
-            (lib.filterAttrs (n: _: lib.elem n ["primary" "secondary" "accent" "background" "surface" "error" "success" "warning"]) theme))
-          cfg.themes);
-
           home.packages =
             [cfg.package]
             ++ (lib.optional cfg.settings.use_xresources pkgs.xorg.xrdb);
