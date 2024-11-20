@@ -1,3 +1,32 @@
+## Unreleased
+
+### Fixed
+
+- Fixed crash when invalid syntax theme is specified. Posting now exits cleanly with an error message.
+
+## 2.2.0 [17th November 2024]
+
+### Added
+
+- Added 15 new themes (4 specific to Posting, 11 inherited from Textual's new theme system).
+- Themes are now in submenu of command palette.
+- Keybinding assistant can now be displayed as a sidebar, teaching you keybindings as you go.
+- New tooltips when hovering over collection browser keybinds in the app footer.
+
+### Changed 
+
+- Syntax highlighting colours now derive automatically from the current theme.
+- URL bar highlighting now derives automatically from the current theme.
+- Method colour-coding in the collection browser is now derived automatically from the current theme.
+- Jump mode UI has been refined to be more readable.
+- Various refinements to existing themes.
+- Options and descriptions in command palette reworded and reordered for clarity.
+- Updated to Textual 0.86.1.
+
+### Fixed
+
+- Fixed error notification not rendering correctly when HTTP request times out.
+
 ## 2.1.1 [12th November 2024]
 
 ### Fixed

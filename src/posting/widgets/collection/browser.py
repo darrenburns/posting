@@ -54,32 +54,34 @@ Sub-collections cannot be deleted from the UI yet.
 """,
     )
 
+    BINDING_GROUP_TITLE = "Collection Browser"
+
     BINDINGS = [
         Binding(
             "d",
             "duplicate_request",
             "Dupe",
-            # tooltip="Duplicate the request under the cursor and show the 'New Request' modal to change the name/description.",
+            tooltip="Duplicate the request under the cursor and show the 'New Request' modal to change the name/description.",
         ),
         Binding(
             "D",
             "quick_duplicate_request",
             "Quick Dupe",
             show=False,
-            # tooltip="Duplicate the request and automatically assign a unique name.",
+            tooltip="Duplicate the request and automatically assign a unique name.",
         ),
         Binding(
             "backspace",
             "delete_request_with_confirmation",
             "Delete",
-            # tooltip="Delete the request under the cursor.",
+            tooltip="Delete the request under the cursor.",
         ),
         Binding(
             "shift+backspace",
             "delete_request",
             "Delete",
             show=False,
-            # tooltip="Delete the collection under the cursor.",
+            tooltip="Delete the collection under the cursor.",
         ),
     ]
 
@@ -180,10 +182,23 @@ Sub-collections cannot be deleted from the UI yet.
             if self._cursor_node is not node:
                 node_label.stylize(Style(dim=True, bold=True))
         else:
-            method_style = getattr(
-                self.app.theme_object.method, node.data.method.lower(), "dim"
+            theme_vars = self.app.theme_variables
+            default_styles = {
+                "get": theme_vars.get("text-primary"),
+                "post": theme_vars.get("text-success"),
+                "put": theme_vars.get("text-warning"),
+                "delete": theme_vars.get("text-error"),
+                "options": theme_vars.get("text-muted"),
+                "head": theme_vars.get("text-muted"),
+            }
+
+            method = node.data.method.lower()
+            method_style = theme_vars.get(
+                f"method-{method}",
+                default_styles.get(method),
             )
-            open_indicator = "█ " if node is self.currently_open else " "
+
+            open_indicator = ">" if node is self.currently_open else " "
             method = (
                 f"{node.data.method[:3]}" if isinstance(node.data, RequestModel) else ""
             )
@@ -569,26 +584,6 @@ class RequestPreview(VerticalScroll):
 
 
 class CollectionBrowser(Vertical):
-    DEFAULT_CSS = """\
-    CollectionBrowser {
-        height: 1fr;
-        dock: left;
-        width: auto;
-        max-width: 33%;
-        & Tree {
-            background: transparent;
-            width: auto;
-        }
-
-        #empty-collection-label {
-           color: $text-muted;
-           padding: 1 2;
-           width: 24;
-        }
-
-    }
-    """
-
     def __init__(
         self,
         collection: Collection | None = None,

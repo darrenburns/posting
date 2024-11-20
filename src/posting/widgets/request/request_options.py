@@ -20,10 +20,6 @@ class RequestOptions(VerticalScroll):
             background: transparent;
             &:focus {
                 border: none;
-                background: $accent 20%;
-                color: $text;
-                padding: 0 1 0 0;
-                border-left: wide $accent;
                 & .toggle--label {
                     text-style: not underline;
                 }

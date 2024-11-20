@@ -9,30 +9,6 @@ from posting.widgets.variable_input import VariableInput
 
 
 class RequestMetadata(VerticalScroll):
-    DEFAULT_CSS = """
-    RequestMetadata {
-        padding: 0 2;
-        & Input {
-            width: 1fr;
-            margin-bottom: 1;
-        }
-        & PostingTextArea {
-            margin-bottom: 1;
-        }
-        & Button {
-            dock: bottom;
-            width: 1fr;
-        }
-        & PostingTextArea#request-path {
-            color: $text-muted;
-            margin: 0;
-            padding: 0;
-            height: auto;
-            max-height: 2;
-        }
-    }
-    """
-
     request: Reactive[RequestModel | None] = reactive(None, init=False)
 
     def watch_request(self, request: RequestModel | None) -> None:

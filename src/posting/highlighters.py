@@ -36,9 +36,9 @@ def highlight_variables(text: Text, styles: VariableStyles) -> None:
     for match in find_variables(text.plain):
         variable_name, start, end = match
         if variable_name not in get_variables():
-            text.stylize(Style.parse(styles.unresolved), start, end)
+            text.stylize(Style.parse(styles.unresolved or "dim"), start, end)
         else:
-            text.stylize(Style.parse(styles.resolved), start, end)
+            text.stylize(Style.parse(styles.resolved or ""), start, end)
 
 
 class VariableHighlighter(Highlighter):

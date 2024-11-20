@@ -10,12 +10,14 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.reactive import Reactive, reactive
+from textual.theme import Theme as TextualTheme
 from textual.widgets import Checkbox, Label, Select, TextArea
 from textual.widgets.text_area import Selection, TextAreaTheme, ThemeDoesNotExist
 from typing_extensions import Literal
 
 from posting.config import SETTINGS
-from posting.themes import SyntaxTheme, Theme
+from posting.exit_codes import GENERAL_ERROR
+from posting.themes import Theme
 from posting.widgets.select import PostingSelect
 
 
@@ -23,80 +25,6 @@ class TextAreaFooter(Horizontal):
     """The bar that appears above the response body, allowing
     you to customise the syntax highlighting, wrapping, line numbers,
     etc.
-    """
-
-    DEFAULT_CSS = """\
-    TextAreaFooter {
-        dock: bottom;
-        height: 1;
-        width: 1fr;
-
-        &:focus-within {
-            background: $primary 55%;
-        }
-
-        &:disabled {
-            background: transparent;
-        }
-
-        & Select {
-            width: 8;
-            margin-left: 1;
-            & SelectCurrent {
-                width: 8;
-            }
-            & SelectOverlay {
-                width: 16;
-            }
-        }
-
-        & Checkbox {
-            margin: 0 1;
-            height: 1;
-            color: $text;
-            background: transparent;
-            padding: 0 1;
-            border: none;
-
-            &:focus {
-                padding: 0 1;
-                border: none;
-                background: $accent-lighten-1;
-                color: $text;
-
-                & .toggle--label {
-                    text-style: not underline;
-                }
-            }
-        }
-
-        #location-label {
-            width: auto;
-            color: $text 50%;
-            margin-left: 1;
-        }
-
-        #mode-label {
-            dock: left;
-            color: $text;
-            padding: 0 1;
-            display: none;
-            margin-left: 1;
-            &.visual-mode {
-                background: $secondary;
-                display: block;
-            }
-        }
-
-        #rw-label {
-            margin-left: 1;
-            color: $text-muted;
-            display: none;
-            &.read-only {
-                display: block;
-            }
-        }
-    }
     """
 
     BINDINGS = [
@@ -218,18 +146,25 @@ class PostingTextArea(TextArea):
         empty = len(self.text) == 0
         self.set_class(empty, "empty")
 
-        self.on_theme_change(self.app.themes[self.app.theme])
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.on_theme_change(self.app.current_theme)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
-    def on_theme_change(self, theme: Theme) -> None:
-        syntax_theme = theme.syntax
-        if isinstance(syntax_theme, str):
+    def on_theme_change(self, theme: TextualTheme) -> None:
+        builtin_theme = theme.variables.get("syntax-theme")
+        if isinstance(builtin_theme, str):
             # A builtin theme was requested
-            self.theme = syntax_theme
-        else:  # isinstance(syntax_theme, SyntaxTheme)
-            # A custom theme has been specified.
-            # Register the theme and immediately apply it.
-            text_area_theme = theme.to_text_area_theme()
+            try:
+                self.theme = builtin_theme
+            except ThemeDoesNotExist:
+                self.app.exit(
+                    return_code=GENERAL_ERROR,
+                    message=f"The syntax theme {builtin_theme!r} is invalid.",
+                )
+        else:
+            # Generate a TextAreaTheme from the Textual them
+            text_area_theme = Theme.text_area_theme_from_theme_variables(
+                self.app.theme_variables
+            )
             self.register_theme(text_area_theme)
             self.theme = text_area_theme.name
 
@@ -310,6 +245,7 @@ class PostingTextArea(TextArea):
                 self.text = temp_file.read()
 
         os.remove(temp_file_name)
+        self.app.refresh()
 
 
 BRACKETS = set("()[]{}")

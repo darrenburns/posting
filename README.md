@@ -54,6 +54,8 @@ posting
 
 If you'd prefer to use `pipx`, that works too: `pipx install posting`.
 
+Note that Python 3.13 is not currently supported.
+
 ## Learn More
 
 Learn more about Posting at [https://posting.sh](https://posting.sh).

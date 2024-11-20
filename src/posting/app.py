@@ -4,20 +4,21 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 import httpx
+from rich.console import RenderableType
+from textual.content import Content
 
 from posting.importing.curl import CurlImport
-from rich.console import Group
-from rich.text import Text
-from textual import on, log, work
+from textual import messages, on, log, work
 from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, ReturnType
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.signal import Signal
+from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
 from textual.widgets import (
     Button,
@@ -27,7 +28,6 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
-from textual.widgets.text_area import TextAreaTheme
 from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
@@ -44,7 +44,7 @@ from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
-from posting.themes import BUILTIN_THEMES, Theme, load_user_themes
+from posting.themes import BUILTIN_THEMES, load_user_theme, load_user_themes
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables, update_variables
@@ -78,30 +78,12 @@ from posting.xresources import load_xresources_themes
 class AppHeader(Horizontal):
     """The header of the app."""
 
-    DEFAULT_CSS = """\
-    AppHeader {
-        color: $accent-lighten-2;
-        padding: 0 3;
-        margin-top: 1;
-        height: 1;
-
-        & > #app-title {
-            dock: left;
-        }
-
-        & > #app-user-host {
-            dock: right;
-            color: $text-muted;
-        }
-    }
-    """
-
     def compose(self) -> ComposeResult:
         settings = SETTINGS.get().heading
         if settings.show_version:
-            yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+            yield Label(f"[b]Posting[/] [dim]{VERSION}[/]", id="app-title")
         else:
-            yield Label("Posting", id="app-title")
+            yield Label("[b]Posting[/]", id="app-title")
         if settings.show_host:
             yield Label(get_user_host_string(), id="app-user-host")
 
@@ -120,6 +102,7 @@ class AppBody(Vertical):
 
 class MainScreen(Screen[None]):
     AUTO_FOCUS = None
+    BINDING_GROUP_TITLE = "Main Screen"
     BINDINGS = [
         Binding(
             "ctrl+j,alt+enter",
@@ -356,11 +339,12 @@ class MainScreen(Screen[None]):
                 # use the CA bundle.
                 verify = cert_config.ca_bundle
 
+            timeout = request_model.options.timeout
             async with httpx.AsyncClient(
                 verify=verify,
                 cert=cert,
                 proxy=request_model.options.proxy_url or None,
-                timeout=request_model.options.timeout,
+                timeout=timeout,
                 auth=request_model.auth.to_httpx_auth() if request_model.auth else None,
             ) as client:
                 script_context.request = request_model
@@ -425,7 +409,7 @@ class MainScreen(Screen[None]):
             self.notify(
                 severity="error",
                 title="Connect timeout",
-                message=f"Couldn't connect within {connect_timeout} seconds.",
+                message=f"Couldn't connect within {timeout} seconds.",
             )
         except Exception as e:
             log.error("Error sending request", e)
@@ -697,10 +681,10 @@ class MainScreen(Screen[None]):
         try:
             curl_import = CurlImport(event.curl_command)
             request_model = curl_import.to_request_model()
-        except Exception as e:
+        except Exception:
             self.notify(
                 title="Import error",
-                message=f"Couldn't import curl command.",
+                message="Couldn't import curl command.",
                 timeout=5,
                 severity="error",
             )
@@ -819,6 +803,7 @@ class Posting(App[None], inherit_bindings=False):
     AUTO_FOCUS = None
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
+    BINDING_GROUP_TITLE = "Global Keybinds"
     BINDINGS = [
         Binding(
             "ctrl+p",
@@ -861,27 +846,6 @@ class Posting(App[None], inherit_bindings=False):
     ) -> None:
         SETTINGS.set(settings)
 
-        available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
-
-        if settings.load_builtin_themes:
-            available_themes |= BUILTIN_THEMES
-
-        if settings.use_xresources:
-            available_themes |= load_xresources_themes()
-
-        if settings.load_user_themes:
-            available_themes |= load_user_themes()
-
-        self.themes = available_themes
-        """The themes that are available to the app, potentially including
-        themes loaded from the user's themes directory and xresources themes
-        if those configuration options are enabled."""
-
-        # We need to call super.__init__ after the themes are loaded,
-        # because our `get_css_variables` override depends on
-        # the themes dict being available.
-        super().__init__()
-
         self.settings = settings
         """Settings object which is built via pydantic-settings,
         essentially a direct translation of the config.yaml file."""
@@ -910,9 +874,7 @@ class Posting(App[None], inherit_bindings=False):
         session (until the app is quit). This can be done via the scripting
         interface: pre-request or post-response scripts."""
 
-    theme: Reactive[str] = reactive("galaxy", init=False)
-    """The currently selected theme. Changing this reactive should
-    trigger a complete refresh via the `watch_theme` method."""
+        super().__init__()
 
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
@@ -970,7 +932,50 @@ class Posting(App[None], inherit_bindings=False):
                         # of the available scripts.
                         pass
 
+    @work(exclusive=True, group="theme-watcher")
+    async def watch_themes(self) -> None:
+        """Watching the theme directory for changes."""
+        async for changes in awatch(self.settings.theme_directory):
+            print("Theme changes detected")
+            for change_type, file_path in changes:
+                if file_path.endswith((".yml", ".yaml")):
+                    theme = load_user_theme(Path(file_path))
+                    if theme and theme.name == self.theme:
+                        self.register_theme(theme)
+                        self.set_reactive(App.theme, theme.name)
+                        try:
+                            self._watch_theme(theme.name)
+                        except Exception as e:
+                            print(f"Error refreshing CSS: {e}")
+
     def on_mount(self) -> None:
+        settings = SETTINGS.get()
+
+        available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
+
+        if settings.load_builtin_themes:
+            available_themes |= BUILTIN_THEMES
+        else:
+            for theme in TEXTUAL_THEMES.values():
+                self.unregister_theme(theme.name)
+
+        if settings.use_xresources:
+            available_themes |= load_xresources_themes()
+
+        if settings.load_user_themes:
+            available_themes |= load_user_themes()
+
+        for theme in available_themes.values():
+            self.register_theme(theme)
+
+        unwanted_themes = [
+            "textual-ansi",
+        ]
+        for theme_name in unwanted_themes:
+            self.unregister_theme(theme_name)
+
+        self.theme = settings.theme
+
         self.set_keymap(self.settings.keymap)
         self.jumper = Jumper(
             {
@@ -992,13 +997,14 @@ class Posting(App[None], inherit_bindings=False):
             },
             screen=self.screen,
         )
-        self.theme_change_signal = Signal[Theme](self, "theme-changed")
-        self.theme = self.settings.theme
         if self.settings.watch_env_files:
             self.watch_environment_files()
 
         if self.settings.watch_collection_files:
             self.watch_collection_files()
+
+        if self.settings.watch_themes:
+            self.watch_themes()
 
     def get_default_screen(self) -> MainScreen:
         self.main_screen = MainScreen(
@@ -1008,25 +1014,8 @@ class Posting(App[None], inherit_bindings=False):
         )
         return self.main_screen
 
-    def get_css_variables(self) -> dict[str, str]:
-        if self.theme:
-            theme = self.themes.get(self.theme)
-            if theme:
-                color_system = theme.to_color_system().generate()
-            else:
-                color_system = {}
-        else:
-            color_system = {}
-        return {**super().get_css_variables(), **color_system}
-
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
-
-    def command_theme(self, theme: str) -> None:
-        self.theme = theme
-        self.notify(
-            f"Theme is now [b]{theme!r}[/].", title="Theme updated", timeout=2.5
-        )
 
     def action_save_screenshot(
         self,
@@ -1052,22 +1041,15 @@ class Posting(App[None], inherit_bindings=False):
         if not self.settings.command_palette.theme_preview:
             return
 
-        prompt: Group = event.highlighted_event.option.prompt
-        # TODO: This is making quite a lot of assumptions. Fragile, but the only
-        # way I can think of doing it given the current Textual APIs.
-        command_name = prompt.renderables[0]
-        if isinstance(command_name, Text):
-            command_name = command_name.plain
-        command_name = command_name.strip()
-        if ":" in command_name:
-            name, value = command_name.split(":", maxsplit=1)
-            name = name.strip()
-            value = value.strip()
-            if name == "theme":
-                if value in self.themes:
-                    self.theme = value
+        prompt = event.highlighted_event.option.prompt
+        themes = self.available_themes.keys()
+        if isinstance(prompt, Content):
+            candidate = prompt.plain
+            if candidate in themes:
+                self.theme = candidate
             else:
                 self.theme = self._original_theme
+            self.call_next(self.screen._update_styles)
 
     @on(CommandPalette.Closed)
     def palette_closed(self, event: CommandPalette.Closed) -> None:
@@ -1078,34 +1060,6 @@ class Posting(App[None], inherit_bindings=False):
             return
         if not event.option_selected:
             self.theme = self._original_theme
-
-    def watch_theme(self, theme: str | None) -> None:
-        self.refresh_css(animate=False)
-        self.screen._update_styles()
-        if theme:
-            theme_object = self.themes[theme]
-            if syntax := getattr(theme_object, "syntax", None):
-                if isinstance(syntax, str):
-                    valid_themes = {
-                        theme.name for theme in TextAreaTheme.builtin_themes()
-                    }
-                    valid_themes.add("posting")
-                    if syntax not in valid_themes:
-                        # Default to the posting theme for text areas
-                        # if the specified theme is invalid.
-                        theme_object.syntax = "posting"
-                        self.notify(
-                            f"Theme {theme!r} has an invalid value for 'syntax': {syntax!r}. Defaulting to 'posting'.",
-                            title="Invalid theme",
-                            severity="warning",
-                            timeout=7,
-                        )
-
-            self.theme_change_signal.publish(theme_object)
-
-    @property
-    def theme_object(self) -> Theme:
-        return self.themes[self.theme]
 
     def action_toggle_jump_mode(self) -> None:
         self._jumping = not self._jumping
@@ -1128,7 +1082,7 @@ class Posting(App[None], inherit_bindings=False):
                         self.set_focus(target_widget)
                     else:
                         target_widget.post_message(
-                            Click(0, 0, 0, 0, 0, False, False, False)
+                            Click(target_widget, 0, 0, 0, 0, 0, False, False, False)
                         )
 
             elif isinstance(target, Widget):
@@ -1152,3 +1106,24 @@ class Posting(App[None], inherit_bindings=False):
 
         self.set_focus(None)
         await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
+
+    def exit(
+        self,
+        result: ReturnType | None = None,
+        return_code: int = 0,
+        message: RenderableType | None = None,
+    ) -> None:
+        """Exit the app, and return the supplied result.
+
+        Args:
+            result: Return value.
+            return_code: The return code. Use non-zero values for error codes.
+            message: Optional message to display on exit.
+        """
+        self._exit = True
+        self._return_value = result
+        self._return_code = return_code
+        self.post_message(messages.ExitApp())
+        if message:
+            self._exit_renderables.append(message)
+            self._exit_renderables = list(set(self._exit_renderables))

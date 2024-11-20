@@ -42,19 +42,17 @@ class ResponseArea(Vertical):
             }
         }
         &.success .border-title-status {
-            color: $text;
-            background: $success;
+            color: $text-success;
+            background: $success-muted;
         }
         &.warning .border-title-status {
-            color: $text;
-            background: $warning;
+            color: $text-warning;
+            background: $warning-muted;
         }
         &.error .border-title-status {
-            color: $text;
-            background: $error;
+            color: $text-error;
+            background: $error-muted;
         }
-
-
     }
     """
     response: Reactive[httpx.Response | None] = reactive(None)
@@ -63,7 +61,7 @@ class ResponseArea(Vertical):
         self.border_title = "Response"
         self._latest_response: httpx.Response | None = None
         self.add_class("section")
-        self.app.theme_change_signal.subscribe(self, self.on_theme_change)
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
     def compose(self) -> ComposeResult:
         with ResponseTabbedContent(disabled=self.response is None):

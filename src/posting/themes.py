@@ -1,7 +1,10 @@
+from pathlib import Path
 import uuid
 from pydantic import BaseModel, Field
 from rich.style import Style
+from textual.color import Color
 from textual.design import ColorSystem
+from textual.theme import Theme as TextualTheme
 from textual.widgets.text_area import TextAreaTheme
 import yaml
 from posting.config import SETTINGS
@@ -45,23 +48,6 @@ class SyntaxTheme(BaseModel):
 
     json_null: str | None = Field(default=None)
     """The style to apply to JSON null values."""
-
-    def to_text_area_syntax_styles(self, fallback_theme: "Theme") -> dict[str, Style]:
-        """Convert this theme to a TextAreaTheme.
-
-        If a fallback theme is provided, it will be used to fill in any missing
-        styles.
-        """
-        syntax_styles = {
-            "string": Style.parse(self.json_string or fallback_theme.primary),
-            "number": Style.parse(self.json_number or fallback_theme.accent),
-            "boolean": Style.parse(self.json_boolean or fallback_theme.accent),
-            "json.null": Style.parse(self.json_null or fallback_theme.secondary),
-            "json.label": (
-                Style.parse(self.json_key or fallback_theme.primary) + Style(bold=True)
-            ),
-        }
-        return syntax_styles
 
 
 class VariableStyles(BaseModel):
@@ -168,48 +154,174 @@ class Theme(BaseModel):
             )
         )
 
-    def to_text_area_theme(self) -> TextAreaTheme:
-        """Retrieve the TextAreaTheme corresponding to this theme."""
-        syntax_styles: dict[str, Style] = {}
-        if isinstance(self.syntax, SyntaxTheme):
-            syntax_styles = self.syntax.to_text_area_syntax_styles(self)
+    def to_textual_theme(self) -> TextualTheme:
+        """Convert this theme to a Textual Theme.
 
-        text_area = self.text_area
+        Returns:
+            A Textual Theme instance with all properties and variables set.
+        """
+        theme_data = {
+            "name": self.name,
+            "primary": self.primary,
+            "secondary": self.secondary,
+            "background": self.background,
+            "surface": self.surface,
+            "panel": self.panel,
+            "warning": self.warning,
+            "error": self.error,
+            "success": self.success,
+            "accent": self.accent,
+            "dark": self.dark,
+        }
+
+        variables = {}
+        if self.url:
+            url_styles = self.url.fill_with_defaults(self)
+            variables.update(
+                {
+                    "url-base": url_styles.base,
+                    "url-protocol": url_styles.protocol,
+                    "url-separator": url_styles.separator,
+                }
+            )
+
+        if self.variable:
+            var_styles = self.variable.fill_with_defaults(self)
+            variables.update(
+                {
+                    "variable-resolved": var_styles.resolved,
+                    "variable-unresolved": var_styles.unresolved,
+                }
+            )
+
+        if self.method:
+            variables.update(
+                {
+                    "method-get": self.method.get,
+                    "method-post": self.method.post,
+                    "method-put": self.method.put,
+                    "method-delete": self.method.delete,
+                    "method-patch": self.method.patch,
+                    "method-options": self.method.options,
+                    "method-head": self.method.head,
+                }
+            )
+
+        if self.text_area:
+            if self.text_area.gutter:
+                variables["text-area-gutter"] = self.text_area.gutter
+            if self.text_area.cursor:
+                variables["text-area-cursor"] = self.text_area.cursor
+            if self.text_area.cursor_line:
+                variables["text-area-cursor-line"] = self.text_area.cursor_line
+            if self.text_area.cursor_line_gutter:
+                variables["text-area-cursor-line-gutter"] = (
+                    self.text_area.cursor_line_gutter
+                )
+            if self.text_area.matched_bracket:
+                variables["text-area-matched-bracket"] = self.text_area.matched_bracket
+            if self.text_area.selection:
+                variables["text-area-selection"] = self.text_area.selection
+
+        if isinstance(self.syntax, SyntaxTheme):
+            if self.syntax.json_key:
+                variables["syntax-json-key"] = self.syntax.json_key
+            if self.syntax.json_string:
+                variables["syntax-json-string"] = self.syntax.json_string
+            if self.syntax.json_number:
+                variables["syntax-json-number"] = self.syntax.json_number
+            if self.syntax.json_boolean:
+                variables["syntax-json-boolean"] = self.syntax.json_boolean
+            if self.syntax.json_null:
+                variables["syntax-json-null"] = self.syntax.json_null
+        elif isinstance(self.syntax, str):
+            variables["syntax-theme"] = self.syntax
+        else:
+            variables["syntax-theme"] = "css"
+
+        theme_data = {k: v for k, v in theme_data.items() if v is not None}
+        theme_data["variables"] = {k: v for k, v in variables.items() if v is not None}
+
+        return TextualTheme(**theme_data)
+
+    @staticmethod
+    def text_area_theme_from_theme_variables(
+        theme_variables: dict[str, str],
+    ) -> TextAreaTheme:
+        """Create a TextArea theme from a dictionary of theme variables.
+
+        Args:
+            theme_variables: A dictionary of theme variables.
+
+        Returns:
+            A TextAreaTheme instance configured based on the Textual theme's colors and variables.
+        """
+        variables = theme_variables or {}
+
+        # Infer reasonable default syntax styles from the theme variables.
+        syntax_styles = {
+            "string": Style.parse(
+                variables.get("syntax-json-string", variables["text-accent"])
+            ),
+            "number": Style.parse(
+                variables.get("syntax-json-number", variables["text-secondary"])
+            ),
+            "boolean": Style.parse(
+                variables.get("syntax-json-boolean", variables["text-success"])
+            ),
+            "json.null": Style.parse(
+                variables.get("syntax-json-null", variables["text-warning"])
+            ),
+            "json.label": Style.parse(
+                variables.get("syntax-json-key", variables["text-primary"])
+            ),
+        }
+
         return TextAreaTheme(
             name=uuid.uuid4().hex,
             syntax_styles=syntax_styles,
-            gutter_style=Style.parse(text_area.gutter) if text_area.gutter else None,
-            cursor_style=Style.parse(text_area.cursor) if text_area.cursor else None,
-            cursor_line_style=Style.parse(text_area.cursor_line)
-            if text_area.cursor_line
+            gutter_style=Style.parse(variables.get("text-area-gutter"))
+            if "text-area-gutter" in variables
             else None,
-            cursor_line_gutter_style=Style.parse(text_area.cursor_line_gutter)
-            if text_area.cursor_line_gutter
+            cursor_style=Style.parse(variables.get("text-area-cursor"))
+            if "text-area-cursor" in variables
             else None,
-            bracket_matching_style=Style.parse(text_area.matched_bracket)
-            if text_area.matched_bracket
+            cursor_line_style=Style.parse(variables.get("text-area-cursor-line"))
+            if "text-area-cursor-line" in variables
             else None,
-            selection_style=Style.parse(text_area.selection)
-            if text_area.selection
+            cursor_line_gutter_style=Style.parse(
+                variables.get("text-area-cursor-line-gutter")
+            )
+            if "text-area-cursor-line-gutter" in variables
+            else None,
+            bracket_matching_style=Style.parse(
+                variables.get("text-area-matched-bracket")
+            )
+            if "text-area-matched-bracket" in variables
+            else None,
+            selection_style=Style.parse(variables.get("text-area-selection"))
+            if "text-area-selection" in variables
             else None,
         )
 
 
-def load_user_themes() -> dict[str, Theme]:
+def load_user_themes() -> dict[str, TextualTheme]:
     """Load user themes from "~/.config/posting/themes".
 
     Returns:
         A dictionary mapping theme names to theme objects.
     """
     directory = SETTINGS.get().theme_directory
-    themes: dict[str, Theme] = {}
+    themes: dict[str, TextualTheme] = {}
     for path in directory.iterdir():
         path_suffix = path.suffix
         if path_suffix == ".yaml" or path_suffix == ".yml":
             with path.open() as theme_file:
                 theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
                 try:
-                    themes[theme_content["name"]] = Theme(**theme_content)
+                    themes[theme_content["name"]] = Theme(
+                        **theme_content
+                    ).to_textual_theme()
                 except KeyError:
                     raise ValueError(
                         f"Invalid theme file {path}. A `name` is required."
@@ -217,114 +329,130 @@ def load_user_themes() -> dict[str, Theme]:
     return themes
 
 
-BUILTIN_THEMES: dict[str, Theme] = {
-    "posting": Theme(
-        name="posting",
-        primary="#004578",
-        secondary="#0178D4",
-        warning="#ffa62b",
-        error="#ba3c5b",
-        success="#4EBF71",
-        accent="#ffa62b",
-        dark=True,
-        syntax="posting",
-    ),
-    "monokai": Theme(
-        name="monokai",
-        primary="#F92672",  # Pink
-        secondary="#66D9EF",  # Light Blue
-        warning="#FD971F",  # Orange
-        error="#F92672",  # Pink (same as primary for consistency)
-        success="#A6E22E",  # Green
-        accent="#AE81FF",  # Purple
-        background="#272822",  # Dark gray-green
-        surface="#3E3D32",  # Slightly lighter gray-green
-        panel="#3E3D32",  # Same as surface for consistency
-        dark=True,
-        syntax="monokai",
-    ),
-    "solarized-light": Theme(
-        name="solarized-light",
-        primary="#268bd2",
-        secondary="#2aa198",
-        warning="#cb4b16",
-        error="#dc322f",
-        success="#859900",
-        accent="#6c71c4",
-        background="#fdf6e3",
-        surface="#eee8d5",
-        panel="#eee8d5",
-        syntax="github_light",
-    ),
-    "nautilus": Theme(
-        name="nautilus",
-        primary="#0077BE",  # Ocean Blue
-        secondary="#20B2AA",  # Light Sea Green
-        warning="#FFD700",  # Gold (like sunlight on water)
-        error="#FF6347",  # Tomato (like a warning buoy)
-        success="#32CD32",  # Lime Green (like seaweed)
-        accent="#FF8C00",  # Dark Orange (like a sunset over water)
-        dark=True,
-        background="#001F3F",  # Dark Blue (deep ocean)
-        surface="#003366",  # Navy Blue (shallower water)
-        panel="#005A8C",  # Steel Blue (water surface)
-        syntax="posting",
-    ),
-    "galaxy": Theme(
+def load_user_theme(path: Path) -> TextualTheme | None:
+    with path.open() as theme_file:
+        theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
+        try:
+            return Theme(**theme_content).to_textual_theme()
+        except KeyError:
+            raise ValueError(f"Invalid theme file {path}. A `name` is required.")
+
+
+galaxy_primary = Color.parse("#C45AFF")
+galaxy_secondary = Color.parse("#a684e8")
+galaxy_warning = Color.parse("#FFD700")
+galaxy_error = Color.parse("#FF4500")
+galaxy_success = Color.parse("#00FA9A")
+galaxy_accent = Color.parse("#FF69B4")
+galaxy_background = Color.parse("#0F0F1F")
+galaxy_surface = Color.parse("#1E1E3F")
+galaxy_panel = Color.parse("#2D2B55")
+galaxy_contrast_text = galaxy_background.get_contrast_text(1.0)
+
+BUILTIN_THEMES: dict[str, TextualTheme] = {
+    "galaxy": TextualTheme(
         name="galaxy",
-        primary="#8A2BE2",  # Improved Deep Magenta (Blueviolet)
-        secondary="#a684e8",
-        warning="#FFD700",  # Gold, more visible than orange
-        error="#FF4500",  # OrangeRed, vibrant but less harsh than pure red
-        success="#00FA9A",  # Medium Spring Green, kept for vibrancy
-        accent="#FF69B4",  # Hot Pink, for a pop of color
+        primary=galaxy_primary.hex,
+        secondary=galaxy_secondary.hex,
+        warning=galaxy_warning.hex,
+        error=galaxy_error.hex,
+        success=galaxy_success.hex,
+        accent=galaxy_accent.hex,
+        background=galaxy_background.hex,
+        surface=galaxy_surface.hex,
+        panel=galaxy_panel.hex,
         dark=True,
-        background="#0F0F1F",  # Very Dark Blue, almost black
-        surface="#1E1E3F",  # Dark Blue-Purple
-        panel="#2D2B55",  # Slightly Lighter Blue-Purple
-        syntax="monokai",
+        variables={
+            "input-cursor-background": "#C45AFF",
+            "footer-background": "transparent",
+        },
     ),
-    "nebula": Theme(
+    "nebula": TextualTheme(
         name="nebula",
-        primary="#4169E1",  # Royal Blue, more vibrant than Midnight Blue
-        secondary="#9400D3",  # Dark Violet, more vibrant than Indigo Dye
-        warning="#FFD700",  # Kept Gold for warnings
-        error="#FF1493",  # Deep Pink, more nebula-like than Crimson
-        success="#00FF7F",  # Spring Green, slightly more vibrant
-        accent="#FF00FF",  # Magenta, for a true neon accent
+        primary="#4A9CFF",
+        secondary="#66D9EF",
+        warning="#FFB454",
+        error="#FF5555",
+        success="#50FA7B",
+        accent="#FF79C6",
+        surface="#193549",
+        panel="#1F4662",
+        background="#0D2137",
         dark=True,
-        background="#0A0A23",  # Dark Navy, closer to a night sky
-        surface="#1C1C3C",  # Dark Blue-Purple
-        panel="#2E2E5E",  # Slightly Lighter Blue-Purple
-        syntax="dracula",
+        variables={
+            "input-selection-background": "#4A9CFF 35%",
+        },
     ),
-    "alpine": Theme(
-        name="alpine",
-        primary="#4A90E2",  # Clear Sky Blue
-        secondary="#81A1C1",  # Misty Blue
-        warning="#EBCB8B",  # Soft Sunlight
-        error="#BF616A",  # Muted Red
-        success="#A3BE8C",  # Alpine Meadow Green
-        accent="#5E81AC",  # Mountain Lake Blue
+    "sunset": TextualTheme(
+        name="sunset",
+        primary="#FF7E5F",
+        secondary="#FEB47B",
+        warning="#FFD93D",
+        error="#FF5757",
+        success="#98D8AA",
+        accent="#B983FF",
+        background="#2B2139",
+        surface="#362C47",
+        panel="#413555",
         dark=True,
-        background="#2E3440",  # Dark Slate Grey
-        surface="#3B4252",  # Darker Blue-Grey
-        panel="#434C5E",  # Lighter Blue-Grey
+        variables={
+            "input-cursor-background": "#FF7E5F",
+            "input-selection-background": "#FF7E5F 35%",
+            "footer-background": "transparent",
+            "button-color-foreground": "#2B2139",
+            "method-get": "#FF7E5F",
+        },
     ),
-    "cobalt": Theme(
+    "aurora": TextualTheme(
+        name="aurora",
+        primary="#45FFB3",
+        secondary="#A1FCDF",
+        accent="#DF7BFF",
+        warning="#FFE156",
+        error="#FF6B6B",
+        success="#64FFDA",
+        background="#0A1A2F",
+        surface="#142942",
+        panel="#1E3655",
+        dark=True,
+        variables={
+            "input-cursor-background": "#45FFB3",
+            "input-selection-background": "#45FFB3 35%",
+            "footer-background": "transparent",
+            "button-color-foreground": "#0A1A2F",
+            "method-post": "#DF7BFF",
+        },
+    ),
+    "nautilus": TextualTheme(
+        name="nautilus",
+        primary="#0077BE",
+        secondary="#20B2AA",
+        warning="#FFD700",
+        error="#FF6347",
+        success="#32CD32",
+        accent="#FF8C00",
+        background="#001F3F",
+        surface="#003366",
+        panel="#005A8C",
+        dark=True,
+    ),
+    "cobalt": TextualTheme(
         name="cobalt",
-        primary="#334D5C",  # Deep Cobalt Blue
-        secondary="#4878A6",  # Slate Blue
-        warning="#FFAA22",  # Amber, suitable for warnings related to primary
-        error="#E63946",  # Red, universally recognized for errors
-        success="#4CAF50",  # Green, commonly used for success indication
-        accent="#D94E64",  # Candy Apple Red
+        primary="#334D5C",
+        secondary="#66B2FF",
+        warning="#FFAA22",
+        error="#E63946",
+        success="#4CAF50",
+        accent="#D94E64",
+        surface="#27343B",
+        panel="#2D3E46",
+        background="#1F262A",
         dark=True,
-        surface="#27343B",  # Dark Lead
-        panel="#2D3E46",  # Storm Gray
-        background="#1F262A",  # Charcoal
+        variables={
+            "input-selection-background": "#4A9CFF 35%",
+        },
     ),
-    "twilight": Theme(
+    "twilight": TextualTheme(
         name="twilight",
         primary="#367588",
         secondary="#5F9EA0",
@@ -332,22 +460,59 @@ BUILTIN_THEMES: dict[str, Theme] = {
         error="#FF6347",
         success="#00FA9A",
         accent="#FF7F50",
-        dark=True,
         background="#191970",
         surface="#3B3B6D",
         panel="#4C516D",
-    ),
-    "hacker": Theme(
-        name="hacker",
-        primary="#00FF00",  # Bright Green (Lime)
-        secondary="#32CD32",  # Lime Green
-        warning="#ADFF2F",  # Green Yellow
-        error="#FF4500",  # Orange Red (for contrast)
-        success="#00FA9A",  # Medium Spring Green
-        accent="#39FF14",  # Neon Green
         dark=True,
-        background="#0D0D0D",  # Almost Black
-        surface="#1A1A1A",  # Very Dark Gray
-        panel="#2A2A2A",  # Dark Gray
+    ),
+    "hacker": TextualTheme(
+        name="hacker",
+        primary="#00FF00",
+        secondary="#3A9F3A",
+        warning="#00FF66",
+        error="#FF0000",
+        success="#00DD00",
+        accent="#00FF33",
+        background="#000000",
+        surface="#0A0A0A",
+        panel="#111111",
+        dark=True,
+        variables={
+            "method-get": "#00FF00",
+            "method-post": "#00DD00",
+            "method-put": "#00BB00",
+            "method-delete": "#FF0000",
+            "method-patch": "#00FF33",
+            "method-options": "#3A9F3A",
+            "method-head": "#00FF66",
+        },
+    ),
+    "manuscript": TextualTheme(
+        name="manuscript",
+        primary="#2C4251",  # Ink blue
+        secondary="#6B4423",  # Aged leather brown
+        accent="#8B4513",  # Rich leather accent
+        warning="#B4846C",  # Faded sepia
+        error="#A94442",  # Muted red ink
+        success="#2D5A27",  # Library green
+        background="#F5F1E9",  # Aged paper
+        surface="#EBE6D9",  # Textured paper
+        panel="#E0DAC8",  # Parchment
+        dark=False,
+        variables={
+            "input-cursor-background": "#2C4251",
+            "input-selection-background": "#2C4251 25%",
+            "footer-background": "#2C4251",
+            "footer-key-foreground": "#F5F1E9",
+            "footer-description-foreground": "#F5F1E9",
+            "button-color-foreground": "#F5F1E9",
+            "method-get": "#2C4251",  # Ink blue
+            "method-post": "#2D5A27",  # Library green
+            "method-put": "#6B4423",  # Leather brown
+            "method-delete": "#A94442",  # Red ink
+            "method-patch": "#8B4513",  # Rich leather
+            "method-options": "#4A4A4A",  # Dark gray ink
+            "method-head": "#5C5C5C",  # Gray ink
+        },
     ),
 }

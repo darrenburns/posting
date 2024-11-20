@@ -1,7 +1,8 @@
 ## Overview
 
 Posting ships with several built-in themes, and also supports custom, user-made themes.
-With themes, you can customise most aspects of the color palette used in the application, as well as the syntax highlighting.
+
+When editing a theme on disk, Posting can show a live preview of the theme in effect, making it easy to design and test themes.
 
 ### Creating a theme
 
@@ -35,6 +36,12 @@ theme: example
 ```
 
 Note that the theme name is *not* defined by the filename, but by the `name` field in the theme file.
+
+!!! tip
+
+    If you edit a theme on disk while Posting is using it, the UI will automatically
+    refresh to reflect the changes you've made. This is enabled by default, but if you'd
+    like to disable it, you can set `watch_themes` to `false` in your `config.yaml`.
 
 #### Syntax highlighting
 
@@ -75,8 +82,6 @@ method:
   put: 'bold #b8e986'
   delete: 'strikethrough #b8e986'
 ```
-
-
 
 ### X resources themes
 
