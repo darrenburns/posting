@@ -38,7 +38,7 @@
             && (
               (builtins.match "#[0-9a-fA-F]{6}" x)
               != null
-              || (cfg.settings.use_xresources && (builtins.match "\\*((color[0-47-8])|background)" x) != null)
+              || (builtins.match "\\*((color[0-47-8])|background)" x) != null
             );
           merge = lib.mergeOneOption;
         };
@@ -263,6 +263,16 @@
         };
 
         config = mkIf cfg.enable {
+          assertions =
+            builtins.map ({
+              name,
+              value,
+            }: {
+              assertion = !(((builtins.match "\\*((color[0-4][7-8])|(background))" value) != null) && !cfg.settings.use_xresources);
+              message = "Color option '${name}' uses an xresources color, but 'settings.use_xresources' is set to false. Posting can only use xresources colors if this setting is set to true.";
+            })
+            (lib.attrsToList (lib.filterAttrs (n: _: lib.elem n ["primary" "secondary" "accent" "background" "surface" "error" "success" "warning"])));
+
           home.packages =
             [cfg.package]
             ++ (lib.optional cfg.settings.use_xresources pkgs.xorg.xrdb);
