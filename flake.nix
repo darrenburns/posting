@@ -263,15 +263,13 @@
         };
 
         config = mkIf cfg.enable {
-          assertions =
-            builtins.map ({
-              name,
-              value,
-            }: {
-              assertion = !(((builtins.match "\\*((color[0-4][7-8])|(background))" value) != null) && !cfg.settings.use_xresources);
-              message = "Color option '${name}' uses an xresources color, but 'settings.use_xresources' is set to false. Posting can only use xresources colors if this setting is set to true.";
+          assertions = lib.flatten (lib.mapAttrsToList (theme_name: theme:
+            lib.mapAttrsToList (item: color: {
+              assertion = !(((builtins.match "\\*((color[0-4][7-8])|(background))" color) != null) && !cfg.settings.use_xresources);
+              message = "Color option '${item}' in theme '${theme_name}' uses an xresources color, but 'settings.use_xresources' is set to false. Posting can only use xresources colors if this setting is set to true.";
             })
-            (lib.attrsToList (lib.filterAttrs (n: _: lib.elem n ["primary" "secondary" "accent" "background" "surface" "error" "success" "warning"])));
+            (lib.filterAttrs (n: _: lib.elem n ["primary" "secondary" "accent" "background" "surface" "error" "success" "warning"]) theme))
+          cfg.themes);
 
           home.packages =
             [cfg.package]
