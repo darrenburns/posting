@@ -148,11 +148,7 @@
                 default = true;
                 description = "Show/hide the version in the app header.";
               };
-              hostname = mkOption {
-                type = types.nullOr types.str;
-                default = null;
-                description = "The hostname to display in the app header. You may use Rich markup here. If unset, the hostname provided via `socket.gethostname()` will be used.";
-              };
+              hostname = mkStringOption "The hostname to display in the app header. You may use Rich markup here. If unset, the hostname provided via `socket.gethostname()` will be used.";
             };
             url_bar.show_value_preview = mkOption {
               type = types.bool;
@@ -171,42 +167,14 @@
                 description = "Show/hide the collection browser on startup Can always be toggled using the command palette.";
               };
             };
-            pager = mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              description = "Command to use for paging text.";
-            };
-            pager_json = mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              description = "Command to use for paging JSON.";
-            };
-            editor = mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              description = "Command to use for opening files in an external editor.";
-            };
+            pager = mkStringOption "Command to use for paging text.";
+            pager_json = mkStringOption "Command to use for paging JSON.";
+            editor = mkStringOption "Command to use for opening files in an external editor.";
             ssl = {
-              ca_bundle = mkOption {
-                type = types.nullOr types.str;
-                default = null;
-                description = "Absolute path to a CA bundle file/dir. If not set, the Certifi CA bundle will be used.";
-              };
-              certificate_path = mkOption {
-                type = types.nullOr types.str;
-                default = null;
-                description = "Absolute path to a client SSL certificate file or directory.";
-              };
-              key_file = mkOption {
-                type = types.nullOr types.str;
-                default = null;
-                description = "Absolute path to a client SSL key file.";
-              };
-              password = mkOption {
-                type = types.nullOr types.str;
-                default = null;
-                description = "Password to decrypt the key file if it's encrypted.";
-              };
+              ca_bundle = mkStringOption "Absolute path to a CA bundle file/dir. If not set, the Certifi CA bundle will be used.";
+              certificate_path = mkStringOption "Absolute path to a client SSL certificate file or directory.";
+              key_file = mkStringOption "Absolute path to a client SSL key file.";
+              password = mkStringOption "Password to decrypt the key file if it's encrypted.";
             };
             focus = {
               on_startup = mkOption {
@@ -244,21 +212,9 @@
           themes = mkOption {
             type = types.attrsOf (types.submodule {
               options = {
-                author = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Author of the theme.";
-                };
-                description = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Description of the theme.";
-                };
-                homepage = mkOption {
-                  type = types.nullOr types.str;
-                  default = null;
-                  description = "Homepage of the theme.";
-                };
+                author = mkStringOption "Author of the theme.";
+                description = mkStringOption "Description of the theme.";
+                homepage = mkStringOption "Homepage of the theme.";
 
                 primary = mkColorOption "Buttons, fixed table columns";
                 secondary = mkColorOption "Method selector, some minor labels";
