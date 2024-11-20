@@ -256,7 +256,7 @@
             {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;}
             // (lib.mapAttrs' (name: value: {
                 name = "${cfg.settings.theme_directory}/${name}.yaml";
-                value = {text = builtins.toJSON value;};
+                value = {text = builtins.toJSON (value // {inherit name;});};
               })
               cfg.themes);
 
