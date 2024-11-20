@@ -824,6 +824,18 @@ wheels = [
 ]
 
 [[package]]
+name = "openapi-pydantic"
+version = "0.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/24/83/c6dd05cd518e1217b2096d04f959d7868396a3a99faf9669d14007668c38/openapi_pydantic-0.5.0.tar.gz", hash = "sha256:a48f88e2904a056e1ef6d4728cfb2f36aa3213ce194fb09fc04259b9007165f0", size = 60403 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/81/87f16c4bf2e73ea337b5bb1e074e3ddbdf3e5aabaaf3f8551aad6a9ac9fa/openapi_pydantic-0.5.0-py3-none-any.whl", hash = "sha256:06458efd34969446f42d96d51de39cdef4a9b19daf3cc456a2dfa697458ac542", size = 95858 },
+]
+
+[[package]]
 name = "packaging"
 version = "24.1"
 source = { registry = "https://pypi.org/simple" }
@@ -870,12 +882,13 @@ wheels = [
 
 [[package]]
 name = "posting"
-version = "2.2.0"
+version = "2.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "click-default-group" },
     { name = "httpx", extra = ["brotli"] },
+    { name = "openapi-pydantic" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyperclip" },
@@ -904,6 +917,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.7,<9.0.0" },
     { name = "click-default-group", specifier = ">=1.2.4,<2.0.0" },
     { name = "httpx", extras = ["brotli"], specifier = ">=0.27.2,<1.0.0" },
+    { name = "openapi-pydantic", specifier = ">=0.5.0" },
     { name = "pydantic", specifier = ">=2.9.2,<3.0.0" },
     { name = "pydantic-settings", specifier = ">=2.4.0,<3.0.0" },
     { name = "pyperclip", specifier = ">=1.9.0,<2.0.0" },

@@ -218,6 +218,15 @@ class CurlImport:
                     except Exception:
                         # If we can't parse it, keep it as a header
                         remaining_headers.append((name, value))
+
+                elif auth_type_lower == "bearer":
+                    # Bearer token auth
+                    try:
+                        auth = Auth.bearer_token_auth(auth_value)
+                    except Exception:
+                        # If we can't parse it, keep it as a header
+                        remaining_headers.append((name, value))
+
                 else:
                     # Unknown auth type, keep as header
                     remaining_headers.append((name, value))
