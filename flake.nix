@@ -38,7 +38,7 @@
             && (
               (builtins.match "#[0-9a-fA-F]{6}" x)
               != null
-              || (cfg.settings.use_xresources && (builtins.match "\*((color[0-47-8])|background)" x) != null)
+              || (cfg.settings.use_xresources && (builtins.match "\\*((color[0-47-8])|background)" x) != null)
             );
           merge = lib.mergeOneOption;
         };
