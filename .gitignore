@@ -18,3 +18,7 @@ snapshot_report.html
 *.afdesign*
 *.afphoto
 *.afphoto*
+
+# pyinstaller artifacts
+posting.spec
+__main__.spec

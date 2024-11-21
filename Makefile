@@ -13,3 +13,13 @@ test-snapshot-update:
 .PHONY: test-ci
 test-ci:
 	$(run) pytest --cov=posting tests/ --cov-report term-missing $(ARGS)
+
+.PHONY: build
+build:
+	$(run) pyinstaller -n posting -F --collect-all textual --collect-all posting  src/posting/__main__.py
+
+.PHONY: clean
+clean:
+	rm -f *.spec
+	rm -rf build
+	rm -rf dist
