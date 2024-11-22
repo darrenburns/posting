@@ -104,6 +104,13 @@ Example flake using Posting:
     };
   };
 }
+
+```
+
+**Note on XResources**: if you wish to use the XResources themes, the home-manager module will take care of installing xrdb for you. However, if you're adding posting to your packages list manually, you will either have to add xrdb as well or use an override on Posting:
+
+```nix
+environment.systemPackages = [pkgs.posting.override {use_xresources = true;}];
 ```
 
 ## Learn More
