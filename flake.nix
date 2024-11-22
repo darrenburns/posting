@@ -54,31 +54,30 @@
           package = mkPackageOption pkgs "posting" {};
           settings = {
             theme = mkOption {
-              type =
-                types.enum ([
-                    "textual-dark"
-                    "textual-light"
-                    "nord"
-                    "gruvbox"
-                    "catppuccin-mocha"
-                    "dracula"
-                    "tokyo-night"
-                    "monokai"
-                    "flexoki"
-                    "catppuccin-latte"
-                    "solarized-light"
-                    "galaxy"
-                    "nebula"
-                    "sunset"
-                    "aurora"
-                    "nautilus"
-                    "cobalt"
-                    "twilight"
-                    "hacker"
-                    "manuscript"
-                  ]
-                  ++ lib.optional cfg.settings.load_user_themes (builtins.attrNames cfg.themes))
-                ++ lib.optionals cfg.settings.use_xresources ["xresources-dark" "xresources-light"];
+              type = types.enum ([
+                  "textual-dark"
+                  "textual-light"
+                  "nord"
+                  "gruvbox"
+                  "catppuccin-mocha"
+                  "dracula"
+                  "tokyo-night"
+                  "monokai"
+                  "flexoki"
+                  "catppuccin-latte"
+                  "solarized-light"
+                  "galaxy"
+                  "nebula"
+                  "sunset"
+                  "aurora"
+                  "nautilus"
+                  "cobalt"
+                  "twilight"
+                  "hacker"
+                  "manuscript"
+                ]
+                ++ lib.optional cfg.settings.load_user_themes (builtins.attrNames cfg.themes)
+                ++ lib.optionals cfg.settings.use_xresources ["xresources-dark" "xresources-light"]);
               default = "galaxy";
               description = "Sets the theme of the application.";
             };
