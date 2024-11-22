@@ -264,9 +264,13 @@
         };
 
         config = mkIf cfg.enable {
-          home.packages =
-            [cfg.package]
-            ++ (lib.optional cfg.settings.use_xresources pkgs.xorg.xrdb);
+          home.packages = [
+            (
+              if cfg.settings.use_xresources
+              then cfg.package.override {inherit (cfg.settings) use_xresources;}
+              else cfg.package
+            )
+          ];
           home.file =
             {".config/posting/config.yaml".text = builtins.toJSON cfg.settings;}
             // (lib.mapAttrs' (name: value: {
