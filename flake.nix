@@ -76,8 +76,8 @@
                   "hacker"
                   "manuscript"
                 ]
-                ++ lib.optional cfg.settings.load_user_themes (builtins.attrNames cfg.themes)
-                ++ lib.optionals cfg.settings.use_xresources ["xresources-dark" "xresources-light"]);
+                ++ (lib.optional cfg.settings.load_user_themes (builtins.attrNames cfg.themes))
+                ++ (lib.optionals cfg.settings.use_xresources ["xresources-dark" "xresources-light"]));
               default = "galaxy";
               description = "Sets the theme of the application.";
             };
