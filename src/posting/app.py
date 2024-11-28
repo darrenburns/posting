@@ -953,6 +953,10 @@ class Posting(App[None], inherit_bindings=False):
                         try:
                             self._watch_theme(theme.name)
                         except Exception as e:
+                            # I don't think we want to notify here, as editors often
+                            # use heuristics to determine whether to save a file. This could
+                            # prove jarring if we pop up a notification without the user
+                            # explicitly saving the file in their editor.
                             print(f"Error refreshing CSS: {e}")
 
     def on_mount(self) -> None:
