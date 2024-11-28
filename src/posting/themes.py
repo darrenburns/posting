@@ -312,7 +312,11 @@ class UserThemeLoadResult(NamedTuple):
 
 
 def load_user_themes() -> UserThemeLoadResult:
-    """Load user themes from "~/.config/posting/themes".
+    """Load user themes from the theme directory.
+
+    The theme directory is defined in the settings file as `theme_directory`.
+
+    You can locate it on the command line with `posting locate themes`.
 
     Returns:
         A dictionary mapping theme names to theme objects.
