@@ -13,7 +13,7 @@ from textual.command import CommandPalette
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult, ReturnType
+from textual.app import App, ComposeResult, InvalidThemeError, ReturnType
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -44,7 +44,11 @@ from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
-from posting.themes import BUILTIN_THEMES, load_user_theme, load_user_themes
+from posting.themes import (
+    BUILTIN_THEMES,
+    load_user_theme,
+    load_user_themes,
+)
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables, update_variables
@@ -936,10 +940,13 @@ class Posting(App[None], inherit_bindings=False):
     async def watch_themes(self) -> None:
         """Watching the theme directory for changes."""
         async for changes in awatch(self.settings.theme_directory):
-            print("Theme changes detected")
             for change_type, file_path in changes:
                 if file_path.endswith((".yml", ".yaml")):
-                    theme = load_user_theme(Path(file_path))
+                    try:
+                        theme = load_user_theme(Path(file_path))
+                    except Exception as e:
+                        print(f"Couldn't load theme from {str(file_path)}: {e}.")
+                        continue
                     if theme and theme.name == self.theme:
                         self.register_theme(theme)
                         self.set_reactive(App.theme, theme.name)
@@ -963,7 +970,17 @@ class Posting(App[None], inherit_bindings=False):
             available_themes |= load_xresources_themes()
 
         if settings.load_user_themes:
-            available_themes |= load_user_themes()
+            loaded_themes, failed_themes = load_user_themes()
+            available_themes |= loaded_themes
+
+            # Display a single message for all failed themes.
+            if failed_themes:
+                self.notify(
+                    "\n".join(f"• {path.name}" for path, _ in failed_themes),
+                    title=f"Failed to read {len(failed_themes)} theme{'s' if len(failed_themes) > 1 else ''}",
+                    severity="error",
+                    timeout=8,
+                )
 
         for theme in available_themes.values():
             self.register_theme(theme)
@@ -974,7 +991,19 @@ class Posting(App[None], inherit_bindings=False):
         for theme_name in unwanted_themes:
             self.unregister_theme(theme_name)
 
-        self.theme = settings.theme
+        try:
+            self.theme = settings.theme
+        except InvalidThemeError:
+            # This can happen if the user has a custom theme that is invalid,
+            # e.g. a color is invalid or the YAML cannot be parsed.
+            self.theme = "galaxy"
+            self.notify(
+                "Check theme file for syntax errors, invalid colors, etc.\n"
+                "Falling back to [b i]galaxy[/] theme.",
+                title=f"Couldn't apply theme {settings.theme!r}",
+                severity="error",
+                timeout=8,
+            )
 
         self.set_keymap(self.settings.keymap)
         self.jumper = Jumper(
