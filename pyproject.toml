@@ -1,6 +1,6 @@
 [project]
 name = "posting"
-version = "2.3.0"
+version = "2.3.1"
 description = "The modern API client that lives in your terminal."
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }

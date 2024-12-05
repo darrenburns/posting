@@ -1,9 +1,10 @@
 from pathlib import Path
+from typing import NamedTuple
 import uuid
 from pydantic import BaseModel, Field
 from rich.style import Style
+from textual.app import InvalidThemeError
 from textual.color import Color
-from textual.design import ColorSystem
 from textual.theme import Theme as TextualTheme
 from textual.widgets.text_area import TextAreaTheme
 import yaml
@@ -140,20 +141,6 @@ class Theme(BaseModel):
     description: str | None = Field(default=None, exclude=True)
     homepage: str | None = Field(default=None, exclude=True)
 
-    def to_color_system(self) -> ColorSystem:
-        """Convert this theme to a ColorSystem."""
-        return ColorSystem(
-            **self.model_dump(
-                exclude={
-                    "text_area",
-                    "syntax",
-                    "variable",
-                    "url",
-                    "method",
-                }
-            )
-        )
-
     def to_textual_theme(self) -> TextualTheme:
         """Convert this theme to a Textual Theme.
 
@@ -162,6 +149,9 @@ class Theme(BaseModel):
         """
         theme_data = {
             "name": self.name,
+            "dark": self.dark,
+        }
+        colors = {
             "primary": self.primary,
             "secondary": self.secondary,
             "background": self.background,
@@ -171,8 +161,14 @@ class Theme(BaseModel):
             "error": self.error,
             "success": self.success,
             "accent": self.accent,
-            "dark": self.dark,
         }
+
+        # Validate the colors before converting to a Textual theme.
+        for color in colors.values():
+            if color is not None:
+                Color.parse(color)
+
+        theme_data = {**colors, **theme_data}
 
         variables = {}
         if self.url:
@@ -242,7 +238,8 @@ class Theme(BaseModel):
         theme_data = {k: v for k, v in theme_data.items() if v is not None}
         theme_data["variables"] = {k: v for k, v in variables.items() if v is not None}
 
-        return TextualTheme(**theme_data)
+        textual_theme = TextualTheme(**theme_data)
+        return textual_theme
 
     @staticmethod
     def text_area_theme_from_theme_variables(
@@ -305,37 +302,53 @@ class Theme(BaseModel):
         )
 
 
-def load_user_themes() -> dict[str, TextualTheme]:
-    """Load user themes from "~/.config/posting/themes".
+class UserThemeLoadResult(NamedTuple):
+    loaded_themes: dict[str, TextualTheme]
+    """A dictionary mapping theme names to Textual themes."""
+
+    failed_themes: list[tuple[Path, Exception]]
+    """A list of tuples containing the path to the failed theme and the exception that was raised
+    while trying to load the theme."""
+
+
+def load_user_themes() -> UserThemeLoadResult:
+    """Load user themes from the theme directory.
+
+    The theme directory is defined in the settings file as `theme_directory`.
+
+    You can locate it on the command line with `posting locate themes`.
 
     Returns:
         A dictionary mapping theme names to theme objects.
     """
     directory = SETTINGS.get().theme_directory
     themes: dict[str, TextualTheme] = {}
+    failed_themes: list[tuple[Path, Exception]] = []
+
     for path in directory.iterdir():
         path_suffix = path.suffix
         if path_suffix == ".yaml" or path_suffix == ".yml":
-            with path.open() as theme_file:
-                theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
-                try:
-                    themes[theme_content["name"]] = Theme(
-                        **theme_content
-                    ).to_textual_theme()
-                except KeyError:
-                    raise ValueError(
-                        f"Invalid theme file {path}. A `name` is required."
-                    )
-    return themes
+            try:
+                theme = load_user_theme(path)
+                if theme:
+                    themes[theme.name] = theme
+            except Exception as e:
+                failed_themes.append((path, e))
+
+    return UserThemeLoadResult(loaded_themes=themes, failed_themes=failed_themes)
 
 
 def load_user_theme(path: Path) -> TextualTheme | None:
     with path.open() as theme_file:
-        theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
+        try:
+            theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
+        except Exception as e:
+            raise InvalidThemeError(f"Could not parse theme file: {str(e)}.")
+
         try:
             return Theme(**theme_content).to_textual_theme()
-        except KeyError:
-            raise ValueError(f"Invalid theme file {path}. A `name` is required.")
+        except Exception:
+            raise InvalidThemeError(f"Invalid theme file at {str(path)}.")
 
 
 galaxy_primary = Color.parse("#C45AFF")
