@@ -33,7 +33,7 @@ from posting.collection import (
     Collection,
     Cookie,
     Header,
-    HttpRequestMethod,
+    RequestType,
     Options,
     RequestModel,
 )
@@ -61,7 +61,7 @@ from posting.widgets.datatable import PostingDataTable
 from posting.variables import load_variables
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
-from posting.widgets.request.method_selection import MethodSelector
+from posting.widgets.request.request_type_selection import RequestTypeSelector
 
 from posting.widgets.request.query_editor import ParamsTable
 from posting.widgets.request.request_auth import RequestAuth
@@ -162,7 +162,7 @@ class MainScreen(Screen[None]):
         ),
     ]
 
-    selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
+    selected_request_type: Reactive[RequestType] = reactive("GET", init=False)
     """The currently selected method of the request."""
     current_layout: Reactive[PostingLayout] = reactive("vertical", init=False)
     """The current layout of the app."""
@@ -432,9 +432,9 @@ class MainScreen(Screen[None]):
     async def send_via_worker(self) -> None:
         await self.send_request()
 
-    @on(MethodSelector.MethodChanged)
-    def on_method_selector_changed(self, event: MethodSelector.MethodChanged) -> None:
-        self.selected_method = event.value
+    @on(RequestTypeSelector.TypeChanged)
+    def request_type_changed(self, event: RequestTypeSelector.TypeChanged) -> None:
+        self.selected_request_type = event.value
 
     @on(Button.Pressed, selector="SendRequestButton")
     @on(Input.Submitted, selector="UrlInput")
@@ -666,7 +666,7 @@ class MainScreen(Screen[None]):
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
             description=self.request_metadata.description,
-            method=self.selected_method,
+            method=self.selected_request_type,
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
             headers=headers,
@@ -702,7 +702,7 @@ class MainScreen(Screen[None]):
 
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
-        self.selected_method = request_model.method
+        self.selected_request_type = request_model.method
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
         self.params_table.replace_all_rows(
@@ -739,8 +739,8 @@ class MainScreen(Screen[None]):
         return self.query_one(UrlBar)
 
     @property
-    def method_selector(self) -> MethodSelector:
-        return self.query_one(MethodSelector)
+    def method_selector(self) -> RequestTypeSelector:
+        return self.query_one(RequestTypeSelector)
 
     @property
     def url_input(self) -> UrlInput:

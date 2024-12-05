@@ -23,7 +23,7 @@ from posting.variables import (
     get_variables,
 )
 from posting.widgets.input import PostingInput
-from posting.widgets.request.method_selection import MethodSelector
+from posting.widgets.request.request_type_selection import RequestTypeSelector
 from posting.widgets.response.response_trace import Event
 from posting.widgets.variable_autocomplete import VariableAutoComplete
 
@@ -152,7 +152,7 @@ class UrlBar(Vertical):
 
     def compose(self) -> ComposeResult:
         with Horizontal():
-            yield MethodSelector(id="method-selector")
+            yield RequestTypeSelector(id="method-selector")
             yield UrlInput(
                 placeholder="Enter a URL or paste a curl command...",
                 id="url-input",

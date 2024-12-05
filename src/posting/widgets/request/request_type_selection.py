@@ -4,40 +4,42 @@ from rich.console import RenderableType
 from textual import on
 from textual.binding import Binding
 from textual.message import Message
-from textual.widgets import Select
-from posting.collection import HttpRequestMethod
+from textual.widgets import OptionList, Select
+from textual.widgets.option_list import Separator
+from posting.collection import RequestType
 from posting.help_screen import HelpData
 
 from posting.widgets.select import PostingSelect
 
 
-class MethodSelector(PostingSelect[str]):
+class RequestTypeSelector(PostingSelect[str]):
     help = HelpData(
-        title="Method Selector",
+        title="Request Type Selector",
         description="""\
-Select the HTTP method for the request.
-You can select a method by typing a single letter. For example, pressing `g`
-will set the method to `GET`.
-The dropdown does not need to be expanded in order to select a method.
+Select the type of the request.
+You can select a type by typing a single letter. For example, pressing `g`
+will set the type to `GET`.
+The dropdown does not need to be expanded in order to select a type.
 """,
     )
 
-    BINDING_GROUP_TITLE = "HTTP Method Selector"
+    BINDING_GROUP_TITLE = "Request Type Selector"
 
     BINDINGS = [
-        Binding("g", "select_method('GET')", "GET", show=False),
-        Binding("p", "select_method('POST')", "POST", show=False),
-        Binding("a", "select_method('PATCH')", "PATCH", show=False),
-        Binding("u", "select_method('PUT')", "PUT", show=False),
-        Binding("d", "select_method('DELETE')", "DELETE", show=False),
-        Binding("o", "select_method('OPTIONS')", "OPTIONS", show=False),
-        Binding("h", "select_method('HEAD')", "HEAD", show=False),
+        Binding("g", "select_type('GET')", "GET", show=False),
+        Binding("p", "select_type('POST')", "POST", show=False),
+        Binding("a", "select_type('PATCH')", "PATCH", show=False),
+        Binding("u", "select_type('PUT')", "PUT", show=False),
+        Binding("d", "select_type('DELETE')", "DELETE", show=False),
+        Binding("o", "select_type('OPTIONS')", "OPTIONS", show=False),
+        Binding("h", "select_type('HEAD')", "HEAD", show=False),
+        Binding("w", "select_type('WEBSOCKET')", "WEBSOCKET", show=False),
     ]
 
     def __init__(
         self,
         *,
-        prompt: str = "Method",
+        prompt: str = "Type",
         value: str = "GET",
         name: str | None = None,
         id: str | None = None,
@@ -54,6 +56,7 @@ The dropdown does not need to be expanded in order to select a method.
                 ("P[u]A[/]TCH", "PATCH"),
                 ("[u]H[/]EAD", "HEAD"),
                 ("[u]O[/]PTIONS", "OPTIONS"),
+                ("[u]W[/]ebSocket", "WEBSOCKET"),
             ],
             prompt=prompt,
             allow_blank=False,
@@ -66,12 +69,12 @@ The dropdown does not need to be expanded in order to select a method.
         )
 
     @dataclass
-    class MethodChanged(Message):
-        value: HttpRequestMethod
-        select: "MethodSelector"
+    class TypeChanged(Message):
+        value: RequestType
+        select: "RequestTypeSelector"
 
         @property
-        def control(self) -> "MethodSelector":
+        def control(self) -> "RequestTypeSelector":
             return self.select
 
     @on(Select.Changed)
@@ -79,8 +82,8 @@ The dropdown does not need to be expanded in order to select a method.
         event.stop()
         if event.value is not Select.BLANK:
             self.post_message(
-                MethodSelector.MethodChanged(value=event.value, select=self)
+                RequestTypeSelector.TypeChanged(value=event.value, select=self)
             )
 
-    def action_select_method(self, method: str) -> None:
-        self.value = method
+    def action_select_type(self, type: RequestType) -> None:
+        self.value = type

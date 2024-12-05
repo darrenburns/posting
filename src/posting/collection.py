@@ -14,8 +14,18 @@ from posting.variables import SubstitutionError
 from posting.version import VERSION
 
 
-HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
-VALID_HTTP_METHODS = get_args(HttpRequestMethod)
+HttpMethod = Literal[
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "HEAD",
+    "OPTIONS",
+]
+RequestType = HttpMethod | Literal["WEBSOCKET"]
+
+VALID_HTTP_METHODS = get_args(RequestType)
 
 
 def str_presenter(dumper, data):
@@ -156,7 +166,7 @@ class RequestModel(BaseModel):
     description: str = Field(default="")
     """The description of the request."""
 
-    method: HttpRequestMethod = Field(default="GET")
+    method: RequestType = Field(default="GET")
     """The HTTP method of the request."""
 
     url: str = Field(default="")

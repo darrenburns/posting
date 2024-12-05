@@ -9,7 +9,7 @@ from posting.collection import (
     Auth,
     FormItem,
     Header,
-    HttpRequestMethod,
+    RequestType,
     Options,
     QueryParam,
     RequestBody,
@@ -76,7 +76,7 @@ class CurlImport:
         args, extras = parser.parse_known_intermixed_args(tokens)
         # Extract components
         self.method = cast(
-            HttpRequestMethod,
+            RequestType,
             args.request
             or (
                 "POST"
