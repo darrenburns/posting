@@ -34,8 +34,10 @@ class Jumper:
     def get_overlays(self) -> dict[Offset, JumpInfo]:
         """Return a dictionary of all the jump targets"""
         screen = self.screen
+
         children: list[Widget] = screen.walk_children(Widget)
         overlays: dict[Offset, JumpInfo] = {}
+        print(self.screen, overlays)
         ids_to_keys = self.ids_to_keys
         for child in children:
             try:

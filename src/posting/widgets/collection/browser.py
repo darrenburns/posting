@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import partial
 import os
 from pathlib import Path
-from typing import Union
+from typing import Literal, Union
 from urllib.parse import urlparse
 from rich.style import Style
 from rich.text import Text, TextType
@@ -586,6 +586,7 @@ class RequestPreview(VerticalScroll):
 class CollectionBrowser(Vertical):
     def __init__(
         self,
+        mode: Literal["http", "realtime"] = "http",
         collection: Collection | None = None,
         name: str | None = None,
         id: str | None = None,

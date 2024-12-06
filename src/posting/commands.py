@@ -70,52 +70,52 @@ class PostingProvider(Provider):
                     [expand_request_command, expand_response_command]
                 )
 
+        commands_to_show.append(
+            (
+                "view: Toggle collection browser",
+                screen.action_toggle_collection_browser,
+                "Toggle the collection browser sidebar",
+                True,
+            ),
+        )
+
+        if not app.ansi_color:
             commands_to_show.append(
                 (
-                    "view: Toggle collection browser",
-                    screen.action_toggle_collection_browser,
-                    "Toggle the collection browser sidebar",
+                    "theme: Change theme",
+                    app.action_change_theme,
+                    "Change the current theme",
                     True,
                 ),
             )
 
-            if not app.ansi_color:
-                commands_to_show.append(
-                    (
-                        "theme: Change theme",
-                        app.action_change_theme,
-                        "Change the current theme",
-                        True,
-                    ),
-                )
-
-            if screen.query("HelpPanel"):
-                commands_to_show.append(
-                    (
-                        "help: Hide keybindings sidebar",
-                        app.action_hide_help_panel,
-                        "Hide the keybindings sidebar",
-                        True,
-                    ),
-                )
-            else:
-                commands_to_show.append(
-                    (
-                        "help: Show keybindings sidebar",
-                        app.action_show_help_panel,
-                        "Display keybindings for the focused widget in a sidebar",
-                        True,
-                    ),
-                )
-
+        if screen.query("HelpPanel"):
             commands_to_show.append(
                 (
-                    "app: Quit Posting",
-                    app.action_quit,
-                    "Quit Posting and return to the command line",
+                    "help: Hide keybindings sidebar",
+                    app.action_hide_help_panel,
+                    "Hide the keybindings sidebar",
                     True,
                 ),
             )
+        else:
+            commands_to_show.append(
+                (
+                    "help: Show keybindings sidebar",
+                    app.action_show_help_panel,
+                    "Display keybindings for the focused widget in a sidebar",
+                    True,
+                ),
+            )
+
+        commands_to_show.append(
+            (
+                "app: Quit Posting",
+                app.action_quit,
+                "Quit Posting and return to the command line",
+                True,
+            ),
+        )
 
         return tuple(commands_to_show)
 

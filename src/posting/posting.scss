@@ -155,6 +155,10 @@ UrlBar {
   height: 3;
   padding: 1 3 0 3;
 
+  & #realtime-label {
+    padding: 0 1;
+  }
+
   & #method-selector {
       width: 11;
 
@@ -200,7 +204,7 @@ UrlBar {
   }
 }
 
-SendRequestButton {
+UrlCallToAction {
   min-width: 8;
   background: $accent-muted;
   color: $text-accent;

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
@@ -117,9 +117,9 @@ It's recommended you create a new request before pasting a curl command, to avoi
         self.post_message(CurlMessage(event.text))
 
 
-class SendRequestButton(Button, can_focus=False):
+class UrlCallToAction(Button, can_focus=False):
     """
-    The button for sending the request.
+    The button for sending the request or connecting to a WebSocket.
     """
 
 
@@ -137,6 +137,7 @@ class UrlBar(Vertical):
 
     def __init__(
         self,
+        mode: Literal["http", "realtime"] = "http",
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -145,6 +146,7 @@ class UrlBar(Vertical):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.cached_base_urls: list[str] = []
         self._trace_events: set[Event] = set()
+        self.mode = mode
 
     def on_env_changed(self, _: None) -> None:
         self._display_variable_at_cursor()
@@ -152,13 +154,24 @@ class UrlBar(Vertical):
 
     def compose(self) -> ComposeResult:
         with Horizontal():
-            yield RequestTypeSelector(id="method-selector")
+            if self.mode == "http":
+                yield RequestTypeSelector(id="method-selector")
+            else:
+                yield Label("Realtime", variant="success", id="realtime-label")
+
+            if self.mode == "http":
+                placeholder = "Enter a URL or paste a curl command..."
+            else:
+                placeholder = "Enter a WebSocket URL..."
+
             yield UrlInput(
-                placeholder="Enter a URL or paste a curl command...",
+                placeholder=placeholder,
                 id="url-input",
             )
-            yield Label(id="trace-markers")
-            yield SendRequestButton("Send")
+            if self.mode == "http":
+                yield Label(id="trace-markers")
+
+            yield UrlCallToAction("Send" if self.mode == "http" else "Connect")
 
         variable_value_bar = Label(id="variable-value-bar")
         if SETTINGS.get().url_bar.show_value_preview:
@@ -231,7 +244,9 @@ class UrlBar(Vertical):
 
     def on_theme_change(self, theme: Theme) -> None:
         markers = self._build_markers()
-        self.trace_markers.update(markers)
+        if self.mode == "http":
+            self.trace_markers.update(markers)
+
         self.url_input.notify_style_update()
         self.url_input.refresh()
 
@@ -239,9 +254,9 @@ class UrlBar(Vertical):
         """Log an event to the request trace."""
         self._trace_events.add(event)
         markers = self._build_markers()
-        self.trace_markers.update(markers)
-
-        self.trace_markers.set_class(len(self._trace_events) > 0, "has-events")
+        if self.mode == "http":
+            self.trace_markers.update(markers)
+            self.trace_markers.set_class(len(self._trace_events) > 0, "has-events")
 
     def _build_markers(self) -> Text:
         def get_marker(event_base: str) -> Text:

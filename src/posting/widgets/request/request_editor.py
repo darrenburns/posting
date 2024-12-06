@@ -42,7 +42,7 @@ class RequestEditor(Vertical):
                 with TabPane("Body", id="body-pane"):
                     with Horizontal(id="request-body-type-select-container"):
                         yield PostingSelect(
-                            # These values are also referred to inside MainScreen.
+                            # These values are also referred to inside HttpScreen.
                             # When we load a request, we need to set the correct
                             # value in the select.
                             options=[
