@@ -157,16 +157,74 @@ class Scripts(BaseModel):
     """A relative path to a script that will be run after the response is received."""
 
 
+class WebSocketSnippet(BaseModel):
+    """A snippet of text that can be quickly retrieved and inserted into a WebSocket message."""
+
+    text: str
+    """The text of the snippet."""
+
+    note: str = Field(default="")
+    """An optional note to help the user remember what the snippet is for."""
+
+    language: Literal["text", "json", "xml"] = Field(default="json")
+    """The language of the snippet, used to set the default syntax highlighting."""
+
+
+class WebSocketScripts(Scripts):
+    """The scripts associated with the websocket request."""
+
+    on_send: str | None = Field(default=None)
+    """A relative path to a script that will be run before the message is sent."""
+
+    on_receive: str | None = Field(default=None)
+    """A relative path to a script that will be run after the message is received."""
+
+
 @total_ordering
-class RequestModel(BaseModel):
+class WebsocketRequestModel(BaseModel):
+    """A request model for websocket requests."""
+
     name: str = Field(default="")
-    """The name of the request. This is used to identify the request in the UI.
-    Before saving a request, the name may be None."""
+    """The name of the request. This is used to identify the request in the UI."""
 
     description: str = Field(default="")
     """The description of the request."""
 
-    method: RequestType = Field(default="GET")
+    url: str = Field(default="")
+    """The URL of the request."""
+
+    path: Path | None = Field(default=None, exclude=True)
+    """The path of the request on the file system (i.e. where the yaml is).
+    Before saving a request, the path may be None."""
+
+    auth: Auth | None = Field(default=None)
+    """The authentication information for the request."""
+
+    headers: list[Header] = Field(default_factory=list)
+    """The headers of the request."""
+
+    params: list[QueryParam] = Field(default_factory=list)
+    """The query parameters of the request."""
+
+    snippets: list[WebSocketSnippet] = Field(default_factory=list)
+    """The snippets associated with the websocket request."""
+
+    posting_version: str = Field(default=VERSION)
+    """The version of Posting."""
+
+    scripts: WebSocketScripts = Field(default_factory=WebSocketScripts)
+    """The scripts associated with the websocket request."""
+
+
+@total_ordering
+class RequestModel(BaseModel):
+    name: str = Field(default="")
+    """The name of the request. This is used to identify the request in the UI."""
+
+    description: str = Field(default="")
+    """The description of the request."""
+
+    method: HttpMethod = Field(default="GET")
     """The HTTP method of the request."""
 
     url: str = Field(default="")
