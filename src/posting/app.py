@@ -43,6 +43,7 @@ from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.realtime_screen import RealtimeScreen
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
 from posting.themes import (
     BUILTIN_THEMES,
@@ -104,7 +105,7 @@ class AppBody(Vertical):
     """
 
 
-class MainScreen(Screen[None]):
+class HttpScreen(Screen[None]):
     AUTO_FOCUS = None
     BINDING_GROUP_TITLE = "Main Screen"
     BINDINGS = [
@@ -806,6 +807,7 @@ class MainScreen(Screen[None]):
 class Posting(App[None], inherit_bindings=False):
     AUTO_FOCUS = None
     COMMANDS = {PostingProvider}
+    MODES = {"http": "http_screen", "realtime": "realtime_screen"}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDING_GROUP_TITLE = "Global Keybinds"
     BINDINGS = [
@@ -865,9 +867,6 @@ class Posting(App[None], inherit_bindings=False):
         supplying a collection directory, or if they let Posting auto-discover
         it in some way (likely just using the default collection)."""
 
-        self.animation_level = settings.animation
-        """The level of animation to use in the app. This is used by Textual."""
-
         self.env_changed_signal = Signal[None](self, "env-changed")
         """Signal that is published when the environment has changed.
         This means one or more of the loaded environment files (in
@@ -879,6 +878,12 @@ class Posting(App[None], inherit_bindings=False):
         interface: pre-request or post-response scripts."""
 
         super().__init__()
+
+        # The animation is set AFTER the app is initialized intentionally,
+        # as it needs to override the default approach taken by Textual in
+        # App.__init__().
+        self.animation_level = settings.animation
+        """The level of animation to use in the app. This is used by Textual."""
 
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
@@ -1039,16 +1044,27 @@ class Posting(App[None], inherit_bindings=False):
         if self.settings.watch_themes:
             self.watch_themes()
 
-    def get_default_screen(self) -> MainScreen:
-        self.main_screen = MainScreen(
+    def get_default_screen(self) -> HttpScreen | RealtimeScreen:
+        # Handles HTTP requests.
+        self.http_screen = HttpScreen(
             collection=self.collection,
             layout=self.settings.layout,
             environment_files=self.environment_files,
         )
-        return self.main_screen
+
+        # Realtime - handles WebSockets and SSE connections.
+        self.realtime_screen = RealtimeScreen(
+            collection=self.collection,
+            environment_files=self.environment_files,
+        )
+
+        self.install_screen(self.http_screen, "http_screen")
+        self.install_screen(self.realtime_screen, "realtime_screen")
+
+        return self.http_screen
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
-        self.main_screen.current_layout = layout
+        self.http_screen.current_layout = layout
 
     def action_save_screenshot(
         self,

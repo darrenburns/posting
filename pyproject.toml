@@ -61,6 +61,9 @@ dev-dependencies = [
     "mkdocs-material>=9.5.30",
 ]
 
+[tool.uv.sources]
+textual = { path = "../textual", editable = true }
+
 [tool.hatch.metadata]
 allow-direct-references = true
 

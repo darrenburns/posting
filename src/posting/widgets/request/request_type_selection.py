@@ -33,7 +33,6 @@ The dropdown does not need to be expanded in order to select a type.
         Binding("d", "select_type('DELETE')", "DELETE", show=False),
         Binding("o", "select_type('OPTIONS')", "OPTIONS", show=False),
         Binding("h", "select_type('HEAD')", "HEAD", show=False),
-        Binding("w", "select_type('WEBSOCKET')", "WEBSOCKET", show=False),
     ]
 
     def __init__(
@@ -56,7 +55,6 @@ The dropdown does not need to be expanded in order to select a type.
                 ("P[u]A[/]TCH", "PATCH"),
                 ("[u]H[/]EAD", "HEAD"),
                 ("[u]O[/]PTIONS", "OPTIONS"),
-                ("[u]W[/]ebSocket", "WEBSOCKET"),
             ],
             prompt=prompt,
             allow_blank=False,

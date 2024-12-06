@@ -136,8 +136,15 @@ class RequestBody(BaseModel):
         return httpx_args
 
 
-def request_sort_key(request: RequestModel) -> tuple[int, str]:
-    method_order = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}
+def request_sort_key(request: RequestModel | WebsocketRequestModel) -> tuple[int, str]:
+    method_order = {
+        "GET": 0,
+        "POST": 1,
+        "PUT": 2,
+        "PATCH": 3,
+        "DELETE": 4,
+        "WEBSOCKET": 5,
+    }
     return (method_order.get(request.method.upper(), 5), request.name)
 
 
@@ -160,8 +167,8 @@ class Scripts(BaseModel):
 class WebSocketSnippet(BaseModel):
     """A snippet of text that can be quickly retrieved and inserted into a WebSocket message."""
 
-    text: str
-    """The text of the snippet."""
+    content: str
+    """The content of the snippet."""
 
     note: str = Field(default="")
     """An optional note to help the user remember what the snippet is for."""
@@ -214,6 +221,69 @@ class WebsocketRequestModel(BaseModel):
 
     scripts: WebSocketScripts = Field(default_factory=WebSocketScripts)
     """The scripts associated with the websocket request."""
+
+    def apply_template(self, variables: dict[str, Any]) -> None:
+        """Apply the template to the request model."""
+        try:
+            template = Template(self.url)
+            self.url = template.substitute(variables)
+
+            template = Template(self.description)
+            self.description = template.substitute(variables)
+
+            for header in self.headers:
+                template = Template(header.name)
+                header.name = template.substitute(variables)
+                template = Template(header.value)
+                header.value = template.substitute(variables)
+            for param in self.params:
+                template = Template(param.name)
+                param.name = template.substitute(variables)
+                template = Template(param.value)
+                param.value = template.substitute(variables)
+
+            if self.auth is not None:
+                if self.auth.basic is not None:
+                    template = Template(self.auth.basic.username)
+                    self.auth.basic.username = template.substitute(variables)
+                    template = Template(self.auth.basic.password)
+                    self.auth.basic.password = template.substitute(variables)
+                if self.auth.digest is not None:
+                    template = Template(self.auth.digest.username)
+                    self.auth.digest.username = template.substitute(variables)
+                    template = Template(self.auth.digest.password)
+                    self.auth.digest.password = template.substitute(variables)
+
+            for snippet in self.snippets:
+                template = Template(snippet.content)
+                snippet.content = template.substitute(variables)
+
+        except (KeyError, ValueError) as e:
+            raise SubstitutionError(f"Variable not defined: {e}")
+
+    def save_to_disk(self, path: Path) -> None:
+        """Save the request model to a YAML file."""
+        content = self.model_dump(exclude_defaults=True, exclude_none=True)
+        yaml_content = yaml.dump(
+            content,
+            None,
+            sort_keys=False,
+            allow_unicode=True,
+        )
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(yaml_content, encoding="utf-8")
+
+    def delete_from_disk(self) -> None:
+        if self.path:
+            self.path.unlink()
+
+    def __lt__(self, other: WebsocketRequestModel | RequestModel) -> bool:
+        return request_sort_key(self) < request_sort_key(other)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, WebsocketRequestModel):
+            return request_sort_key(self) == request_sort_key(other)
+        return NotImplemented
 
 
 @total_ordering

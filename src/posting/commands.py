@@ -17,9 +17,9 @@ class PostingProvider(Provider):
 
         commands_to_show: list[tuple[str, IgnoreReturnCallbackType, str, bool]] = []
 
-        from posting.app import MainScreen
+        from posting.app import HttpScreen
 
-        if isinstance(screen, MainScreen):
+        if isinstance(screen, HttpScreen):
             # Only show the option to change to the layout which isn't the current one.
             if screen.current_layout == "horizontal":
                 commands_to_show.append(
