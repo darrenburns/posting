@@ -49,3 +49,7 @@ class RealtimeScreen(Screen):
         """Toggle the collection browser."""
         collection_browser = self.collection_browser
         collection_browser.display = not collection_browser.display
+
+    @property
+    def collection_browser(self) -> CollectionBrowser:
+        return self.query_one(CollectionBrowser)

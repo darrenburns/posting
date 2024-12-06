@@ -595,10 +595,13 @@ class CollectionBrowser(Vertical):
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.collection = collection
+        self.mode = mode
 
     def compose(self) -> ComposeResult:
         self.styles.dock = SETTINGS.get().collection_browser.position
-        self.border_title = "Collection"
+        self.border_title = (
+            "Collection" if self.mode == "http" else "Realtime Collection"
+        )
         self.add_class("section")
         collection = self.collection
 
