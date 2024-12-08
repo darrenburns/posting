@@ -13,18 +13,42 @@ _VARIABLES_PATTERN = re.compile(
 
 
 class SharedVariables:
-    def __init__(self):
+    def __init__(self, current_env: str = "default.env") -> None:
+        self._current_env = current_env
         self._variables: dict[str, object] = {}
 
-    def get(self) -> dict[str, object]:
-        return self._variables.copy()
+    def get(self, env: str | None = None) -> dict[str, dict[str, object]]:
+        if env:
+            return self._variables.get(env, {}).copy()
+        return self._variables.get(self._current_env, {}).copy()
 
-    def set(self, variables: dict[str, object]) -> None:
-        self._variables = variables
+    def set(self, variables: dict[str, object], env: str | None = None) -> None:
+        if env:
+            self._variables[env] = variables
+        else:
+            self._variables[self._current_env] = variables
 
-    def update(self, new_variables: dict[str, object]) -> None:
-        self._variables.update(new_variables)
+    def update(self, new_variables: dict[str, object], 
+               env: str | None = None ) -> None:
+        if env:
+            self._variables[env].update(new_variables)
+        else:
+            self._variables[self._current_env].update(new_variables)
+        
+    def remove(self, key: str, env: str | None = None) -> None:
+        if env:
+            self._variables[env].pop(key, None)
+        else:
+            self._variables[self._current_env].pop(key, None)
+            
+    def get_envs(self) -> list[str]:
+        return list(self._variables.keys())
 
+    def set_current_env(self, env: str) -> None:
+        self._current_env = env
+    
+    def get_current_env(self) -> str:
+        return self._current_env
 
 VARIABLES = SharedVariables()
 
@@ -57,17 +81,24 @@ def load_variables(
     if existing_variables and not avoid_cache:
         return {key: value for key, value in existing_variables.items()}
 
-    variables: dict[str, object] = {
-        key: value
-        for file in environment_files
-        for key, value in dotenv_values(file).items()
-    }
+    envs: dict[str, dict[str, object]] = {}
+    for file in environment_files:
+        variables = envs.setdefault(file.name, {})
+        for key, value in dotenv_values(file).items():
+            variables[key] = value
+    
+    
     if use_host_environment:
+        variables = envs.setdefault("host_environment", {})
         host_env_variables = {key: value for key, value in os.environ.items()}
-        variables = {**variables, **host_env_variables}
+        variables.update({**variables, **host_env_variables})
 
-    VARIABLES.set(variables)
-    return variables
+    for env, variables in envs.items():
+        VARIABLES.set(variables, env=env)
+        
+    VARIABLES.set_current_env(environment_files[0].name)
+        
+    return get_variables()
 
 
 def update_variables(new_variables: dict[str, object]) -> None:
@@ -80,7 +111,23 @@ def update_variables(new_variables: dict[str, object]) -> None:
         new_variables: A dictionary containing the new variables to update or add.
     """
     VARIABLES.update(new_variables)
+    
+def remove_variable(key: str) -> None:
+    """Remove a variable from the shared variables.
 
+    Args:
+        key: The key of the variable to remove.
+    """
+    VARIABLES.remove(key)
+
+def get_environments() -> list[str]:
+    return list(VARIABLES.get_envs())
+
+def set_current_environment(env: str) -> None:
+    VARIABLES.set_current_env(env)
+    
+def get_current_environment() -> str:
+    return VARIABLES._current_env
 
 @lru_cache()
 def find_variables(template_str: str) -> list[tuple[str, int, int]]:
