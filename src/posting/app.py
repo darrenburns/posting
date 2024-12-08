@@ -880,30 +880,30 @@ class Posting(App[None], inherit_bindings=False):
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
 
-    @work(exclusive=True, group="environment-watcher")
-    async def watch_environment_files(self) -> None:
-        """Watching files that were passed in as the environment."""
-        async for changes in awatch(*self.environment_files):
-            # Reload the variables from the environment files.
-            load_variables(
-                self.environment_files,
-                self.settings.use_host_environment,
-                avoid_cache=True,
-            )
-            # Overlay the session variables on top of the environment variables.
-            update_variables(self.session_env)
+    # @work(exclusive=True, group="environment-watcher")
+    # async def watch_environment_files(self) -> None:
+    #     """Watching files that were passed in as the environment."""
+    #     async for changes in awatch(*self.environment_files):
+    #         # Reload the variables from the environment files.
+    #         load_variables(
+    #             self.environment_files,
+    #             self.settings.use_host_environment,
+    #             avoid_cache=True,
+    #         )
+    #         # Overlay the session variables on top of the environment variables.
+    #         update_variables(self.session_env)
 
-            # Notify the app that the environment has changed,
-            # which will trigger a reload of the variables in the relevant widgets.
-            # Widgets subscribed to this signal can reload as needed.
-            # For example, AutoComplete dropdowns will want to reload their
-            # candidate variables when the environment changes.
-            self.env_changed_signal.publish(None)
-            self.notify(
-                title="Environment changed",
-                message=f"Reloaded {len(changes)} dotenv files",
-                timeout=3,
-            )
+    #         # Notify the app that the environment has changed,
+    #         # which will trigger a reload of the variables in the relevant widgets.
+    #         # Widgets subscribed to this signal can reload as needed.
+    #         # For example, AutoComplete dropdowns will want to reload their
+    #         # candidate variables when the environment changes.
+    #         self.env_changed_signal.publish(None)
+    #         self.notify(
+    #             title="Environment changed",
+    #             message=f"Reloaded {len(changes)} dotenv files",
+    #             timeout=3,
+    #         )
 
     @work(exclusive=True, group="collection-watcher")
     async def watch_collection_files(self) -> None:
@@ -998,8 +998,8 @@ class Posting(App[None], inherit_bindings=False):
             },
             screen=self.screen,
         )
-        if self.settings.watch_env_files:
-            self.watch_environment_files()
+        # if self.settings.watch_env_files:
+        #     self.watch_environment_files()
 
         if self.settings.watch_collection_files:
             self.watch_collection_files()
