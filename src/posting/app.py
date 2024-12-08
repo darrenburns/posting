@@ -41,6 +41,7 @@ from posting.collection import (
 from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
+from posting.environment_screen import EnvironmentScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
@@ -565,7 +566,7 @@ class MainScreen(Screen[None]):
     async def action_new_request(self) -> None:
         """Open the new request flow."""
         await self.collection_tree.new_request_flow(None)
-
+        
     def watch_current_layout(self, layout: Literal["horizontal", "vertical"]) -> None:
         """Update the current layout of the app to be horizontal or vertical."""
         classes = {"horizontal", "vertical"}
@@ -1105,7 +1106,17 @@ class Posting(App[None], inherit_bindings=False):
                 self.screen.set_focus(focused)
 
         self.set_focus(None)
-        await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
+        await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)        
+        
+    async def show_environment(self) -> None:
+        focused = self.focused
+
+        def reset_focus(_) -> None:
+            if focused:
+                self.screen.set_focus(focused)
+
+        self.set_focus(None)
+        await self.push_screen(EnvironmentScreen(widget=focused), callback=reset_focus)
 
     def exit(
         self,
