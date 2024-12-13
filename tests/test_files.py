@@ -42,7 +42,7 @@ def test_is_valid_filename(filename, expected):
 
 
 def test_is_valid_filename_with_none():
-    assert is_valid_filename(None) == False
+    assert is_valid_filename(None) is False
 
 
 @pytest.mark.parametrize(
