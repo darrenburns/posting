@@ -116,6 +116,15 @@ class PostingProvider(Provider):
                     True,
                 ),
             )
+            
+            commands_to_show.append(
+                (
+                "environment: Show environment variables",
+                app.show_environment,
+                "Show the environment variables screen",
+                True,
+                )
+            )
 
         return tuple(commands_to_show)
 
