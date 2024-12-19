@@ -3,15 +3,15 @@ from textual.containers import VerticalScroll
 from textual.reactive import Reactive, reactive
 from textual.widgets import Input, Label
 
-from posting.collection import RequestModel
+from posting.collection import HttpRequestModel
 from posting.widgets.text_area import PostingTextArea, ReadOnlyTextArea
 from posting.widgets.variable_input import VariableInput
 
 
 class RequestMetadata(VerticalScroll):
-    request: Reactive[RequestModel | None] = reactive(None, init=False)
+    request: Reactive[HttpRequestModel | None] = reactive(None, init=False)
 
-    def watch_request(self, request: RequestModel | None) -> None:
+    def watch_request(self, request: HttpRequestModel | None) -> None:
         """When the request changes, update the form."""
         if request is None:
             self.request_name_input.value = ""

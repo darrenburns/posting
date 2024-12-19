@@ -29,7 +29,7 @@ from posting.collection import (
     Header,
     RequestType,
     Options,
-    RequestModel,
+    HttpRequestModel,
 )
 
 from posting.config import SETTINGS
@@ -562,7 +562,7 @@ class HttpScreen(Screen[None]):
         # In this case, we're saving an existing request to disk.
         request_model = self.build_request_model(self.request_options.to_model())
         assert isinstance(
-            request_model, RequestModel
+            request_model, HttpRequestModel
         ), "currently open node should contain a request model"
 
         # At this point, either we're reusing the pre-existing home for the request
@@ -640,7 +640,7 @@ class HttpScreen(Screen[None]):
 
     def build_httpx_request(
         self,
-        request_model: RequestModel,
+        request_model: HttpRequestModel,
         client: httpx.AsyncClient,
     ) -> httpx.Request:
         """Build an httpx request from the UI."""
@@ -654,7 +654,7 @@ class HttpScreen(Screen[None]):
         await self.response_trace.log_event(event, info)
         self.url_bar.log_event(event, info)
 
-    def build_request_model(self, request_options: Options) -> RequestModel:
+    def build_request_model(self, request_options: Options) -> HttpRequestModel:
         """Grab data from the UI and pull it into a request model. This model
         may be passed around, stored on disk, etc."""
         open_node = self.collection_tree.currently_open
@@ -678,7 +678,7 @@ class HttpScreen(Screen[None]):
                         value=request_body.content_type,
                     )
                 )
-        return RequestModel(
+        return HttpRequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
             description=self.request_metadata.description,
@@ -716,7 +716,7 @@ class HttpScreen(Screen[None]):
                 timeout=3,
             )
 
-    def load_request_model(self, request_model: RequestModel) -> None:
+    def load_request_model(self, request_model: HttpRequestModel) -> None:
         """Load a request model into the UI."""
         self.selected_request_type = request_model.method
         self.method_selector.value = request_model.method

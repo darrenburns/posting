@@ -136,7 +136,9 @@ class RequestBody(BaseModel):
         return httpx_args
 
 
-def request_sort_key(request: RequestModel | WebsocketRequestModel) -> tuple[int, str]:
+def request_sort_key(
+    request: HttpRequestModel | WebsocketRequestModel,
+) -> tuple[int, str]:
     method_order = {
         "GET": 0,
         "POST": 1,
@@ -187,9 +189,8 @@ class WebSocketScripts(Scripts):
     """A relative path to a script that will be run after the message is received."""
 
 
-@total_ordering
-class WebsocketRequestModel(BaseModel):
-    """A request model for websocket requests."""
+class RequestModel(BaseModel):
+    """A request model for any type of request."""
 
     name: str = Field(default="")
     """The name of the request. This is used to identify the request in the UI."""
@@ -203,6 +204,14 @@ class WebsocketRequestModel(BaseModel):
     path: Path | None = Field(default=None, exclude=True)
     """The path of the request on the file system (i.e. where the yaml is).
     Before saving a request, the path may be None."""
+
+    posting_version: str = Field(default=VERSION)
+    """The version of Posting."""
+
+
+@total_ordering
+class WebsocketRequestModel(RequestModel):
+    """A request model for websocket requests."""
 
     auth: Auth | None = Field(default=None)
     """The authentication information for the request."""
@@ -277,7 +286,8 @@ class WebsocketRequestModel(BaseModel):
         if self.path:
             self.path.unlink()
 
-    def __lt__(self, other: WebsocketRequestModel | RequestModel) -> bool:
+    # TODO - fix this ordering
+    def __lt__(self, other: WebsocketRequestModel | HttpRequestModel) -> bool:
         return request_sort_key(self) < request_sort_key(other)
 
     def __eq__(self, other: object) -> bool:
@@ -287,22 +297,11 @@ class WebsocketRequestModel(BaseModel):
 
 
 @total_ordering
-class RequestModel(BaseModel):
-    name: str = Field(default="")
-    """The name of the request. This is used to identify the request in the UI."""
-
-    description: str = Field(default="")
-    """The description of the request."""
+class HttpRequestModel(RequestModel):
+    """A request model for HTTP requests."""
 
     method: HttpMethod = Field(default="GET")
     """The HTTP method of the request."""
-
-    url: str = Field(default="")
-    """The URL of the request."""
-
-    path: Path | None = Field(default=None, exclude=True)
-    """The path of the request on the file system (i.e. where the yaml is).
-    Before saving a request, the path may be None."""
 
     body: RequestBody | None = Field(default=None)
     """The body of the request."""
@@ -323,9 +322,6 @@ class RequestModel(BaseModel):
 
     auth: Auth | None = Field(default=None)
     """The auth information for the request."""
-
-    posting_version: str = Field(default=VERSION)
-    """The version of Posting."""
 
     scripts: Scripts = Field(default_factory=Scripts)
     """The scripts associated with the request."""
@@ -418,11 +414,11 @@ class RequestModel(BaseModel):
         if self.path:
             self.path.unlink()
 
-    def __lt__(self, other: RequestModel) -> bool:
+    def __lt__(self, other: HttpRequestModel) -> bool:
         return request_sort_key(self) < request_sort_key(other)
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, RequestModel):
+        if isinstance(other, HttpRequestModel):
             return request_sort_key(self) == request_sort_key(other)
         return NotImplemented
 
@@ -455,7 +451,7 @@ class APIInfo(BaseModel):
 class Collection(BaseModel):
     path: Path
     name: str = Field(default="__default__")
-    requests: list[RequestModel] = Field(default_factory=list)
+    requests: list[HttpRequestModel] = Field(default_factory=list)
     children: list[Collection] = Field(default_factory=list)
     readme: str | None = Field(default=None)
 
@@ -578,7 +574,7 @@ class Collection(BaseModel):
             child.save_to_disk(path / child.name)
 
 
-def load_request_from_yaml(file_path: str) -> RequestModel:
+def load_request_from_yaml(file_path: str) -> HttpRequestModel:
     """Load a request model from a YAML file.
 
     Args:
@@ -589,4 +585,4 @@ def load_request_from_yaml(file_path: str) -> RequestModel:
     """
     with open(file_path, "r") as file:
         data = yaml.safe_load(file)
-        return RequestModel(**data, path=Path(file_path))
+        return HttpRequestModel(**data, path=Path(file_path))

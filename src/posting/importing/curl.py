@@ -13,7 +13,7 @@ from posting.collection import (
     Options,
     QueryParam,
     RequestBody,
-    RequestModel,
+    HttpRequestModel,
     Scripts,
 )
 
@@ -226,7 +226,7 @@ class CurlImport:
 
         return auth, remaining_headers
 
-    def to_request_model(self) -> RequestModel:
+    def to_request_model(self) -> HttpRequestModel:
         """Convert the parsed curl command into a RequestModel."""
         # Parse URL and extract query parameters
         parsed_url: ParseResult = urlparse(self.url)
@@ -266,7 +266,7 @@ class CurlImport:
 
         curl_command = self.curl_command.strip()
         description = f"Imported from curl at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}:\n{curl_command}"
-        return RequestModel(
+        return HttpRequestModel(
             method=self.method,
             url=base_url,  # Use the URL without query parameters
             headers=headers,

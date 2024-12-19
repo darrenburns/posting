@@ -1,7 +1,7 @@
 import sys
 import httpx
 
-from posting import Auth, Header, RequestModel, Posting
+from posting import Auth, Header, HttpRequestModel, Posting
 
 
 def setup(posting: Posting) -> None:
@@ -10,7 +10,7 @@ def setup(posting: Posting) -> None:
     posting.set_variable("setup_var", "ADDED IN SETUP")
 
 
-def on_request(request: RequestModel, posting: Posting) -> None:
+def on_request(request: HttpRequestModel, posting: Posting) -> None:
     new_header = "Foo-Bar-Baz!!!!!"
     header = Header(name="X-Custom-Header", value=new_header)
     request.headers.append(header)

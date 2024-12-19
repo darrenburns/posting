@@ -17,7 +17,7 @@ from textual.reactive import Reactive, reactive
 from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
-from posting.collection import Collection, RequestModel
+from posting.collection import Collection, HttpRequestModel, WebsocketRequestModel
 from posting.config import SETTINGS
 from posting.files import get_unique_request_filename
 from posting.help_screen import HelpData
@@ -34,7 +34,7 @@ TOGGLE_STYLE = Style.from_meta({"toggle": True}) + Style(dim=True)
 SUFFIX = ".posting.yaml"
 
 
-CollectionNode = Union[Collection, RequestModel]
+CollectionNode = Union[Collection, HttpRequestModel]
 
 
 class CollectionTree(PostingTree[CollectionNode]):
@@ -111,7 +111,7 @@ Sub-collections cannot be deleted from the UI yet.
 
     @dataclass
     class RequestAdded(Message):
-        request: RequestModel
+        request: HttpRequestModel
         node: TreeNode[CollectionNode]
         tree: "CollectionTree"
 
@@ -121,7 +121,7 @@ Sub-collections cannot be deleted from the UI yet.
 
     @dataclass
     class RequestSelected(Message):
-        request: RequestModel
+        request: HttpRequestModel
         node: TreeNode[CollectionNode]
         tree: "CollectionTree"
 
@@ -141,7 +141,7 @@ Sub-collections cannot be deleted from the UI yet.
     currently_open: Reactive[TreeNode[CollectionNode] | None] = reactive(None)
 
     def watch_currently_open(self, node: TreeNode[CollectionNode] | None) -> None:
-        if node and isinstance(node.data, RequestModel):
+        if node and isinstance(node.data, HttpRequestModel):
             self.post_message(
                 self.RequestSelected(
                     request=node.data,
@@ -200,7 +200,9 @@ Sub-collections cannot be deleted from the UI yet.
 
             open_indicator = ">" if node is self.currently_open else " "
             method = (
-                f"{node.data.method[:3]}" if isinstance(node.data, RequestModel) else ""
+                f"{node.data.method[:3]}"
+                if isinstance(node.data, HttpRequestModel)
+                else ""
             )
             node_label = Text.assemble(
                 open_indicator,
@@ -247,12 +249,12 @@ Sub-collections cannot be deleted from the UI yet.
     @on(Tree.NodeSelected)
     def on_node_selected(self, event: Tree.NodeSelected[CollectionNode]) -> None:
         event.stop()
-        if isinstance(event.node.data, RequestModel):
+        if isinstance(event.node.data, HttpRequestModel):
             self.currently_open = event.node
             self._clear_line_cache()
             self.refresh()
 
-    async def new_request_flow(self, templated_from: RequestModel | None) -> None:
+    async def new_request_flow(self, templated_from: HttpRequestModel | None) -> None:
         """Start the flow to create a new request.
 
         Args:
@@ -268,7 +270,7 @@ Sub-collections cannot be deleted from the UI yet.
             node_data = cursor_node.data
             if isinstance(node_data, Collection):
                 parent_node = cursor_node
-            elif isinstance(node_data, RequestModel):
+            elif isinstance(node_data, HttpRequestModel):
                 parent_node = cursor_node.parent or self.root
             else:
                 parent_node = self.root
@@ -312,7 +314,7 @@ Sub-collections cannot be deleted from the UI yet.
                 )
             else:
                 # We're creating an entirely new request from the sidebar
-                new_request = RequestModel(
+                new_request = HttpRequestModel(
                     name=request_name,
                     path=final_path,
                     description=request_description,
@@ -345,7 +347,7 @@ Sub-collections cannot be deleted from the UI yet.
 
             new_request_parent = pointer
             parent_collection = new_request_parent.data
-            sibling_requests: list[RequestModel] = (
+            sibling_requests: list[HttpRequestModel] = (
                 parent_collection.requests
                 if isinstance(parent_collection, Collection)
                 else []
@@ -420,7 +422,7 @@ Sub-collections cannot be deleted from the UI yet.
 
     def add_request(
         self,
-        request: RequestModel,
+        request: HttpRequestModel,
         parent_node: TreeNode[CollectionNode],
         after: TreeNode[CollectionNode] | int | None = None,
         before: TreeNode[CollectionNode] | int | None = None,
@@ -448,7 +450,7 @@ Sub-collections cannot be deleted from the UI yet.
             return
 
         current_request = cursor_node.data
-        if not isinstance(current_request, RequestModel):
+        if not isinstance(current_request, HttpRequestModel):
             return
 
         await self.new_request_flow(templated_from=current_request)
@@ -459,7 +461,7 @@ Sub-collections cannot be deleted from the UI yet.
             return
 
         cursor_request = cursor_node.data
-        if not isinstance(cursor_request, RequestModel):
+        if not isinstance(cursor_request, HttpRequestModel):
             return
 
         original_path = cursor_request.path if cursor_request.path is not None else None
@@ -490,7 +492,7 @@ Sub-collections cannot be deleted from the UI yet.
         if cursor_node is None:
             return
 
-        if isinstance(cursor_node.data, RequestModel):
+        if isinstance(cursor_node.data, HttpRequestModel):
             cursor_request = cursor_node.data
             cursor_request.delete_from_disk()
             cursor_node.remove()
@@ -502,12 +504,12 @@ Sub-collections cannot be deleted from the UI yet.
 
         def deletion_callback(confirmed: bool | None) -> None:
             if confirmed is True:
-                if cursor_node and isinstance(cursor_node.data, RequestModel):
+                if cursor_node and isinstance(cursor_node.data, HttpRequestModel):
                     cursor_request = cursor_node.data
                     cursor_request.delete_from_disk()
                     cursor_node.remove()
 
-        if isinstance(cursor_node.data, RequestModel):
+        if isinstance(cursor_node.data, HttpRequestModel):
             cursor_path = cursor_node.data.path
             collection_root_path = self.root.data.path if self.root.data else None
             if not cursor_path or not collection_root_path:
@@ -527,7 +529,7 @@ Sub-collections cannot be deleted from the UI yet.
                 callback=deletion_callback,
             )
 
-    def cache_request(self, request: RequestModel) -> None:
+    def cache_request(self, request: HttpRequestModel) -> None:
         def get_base_url(url: str) -> str | None:
             try:
                 parsed_url = urlparse(url)
@@ -570,13 +572,13 @@ class RequestPreview(VerticalScroll):
         }
     """
 
-    request: Reactive[RequestModel | None] = reactive(None)
+    request: Reactive[HttpRequestModel | None] = reactive(None)
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
         yield Static("", id="description")
 
-    def watch_request(self, request: RequestModel | None) -> None:
+    def watch_request(self, request: HttpRequestModel | None) -> None:
         self.set_class(request is None or not request.description, "hidden")
         if request:
             description = self.query_one("#description", Static)
@@ -599,16 +601,15 @@ class CollectionBrowser(Vertical):
 
     def compose(self) -> ComposeResult:
         self.styles.dock = SETTINGS.get().collection_browser.position
-        self.border_title = (
-            "Collection" if self.mode == "http" else "Realtime Collection"
-        )
+        self.border_title = "Collection"
         self.add_class("section")
         collection = self.collection
 
-        yield Static(
-            "[i]Collection is empty.[/]\n\nPress [b]ctrl+s[/b] to save the current request.\n\nPress [b]ctrl+h[/b] to toggle this panel.",
-            id="empty-collection-label",
-        )
+        if self.mode == "http":
+            yield Static(
+                "[i]Collection is empty.[/]\n\nPress [b]ctrl+s[/b] to save the current request.\n\nPress [b]ctrl+h[/b] to toggle this panel.",
+                id="empty-collection-label",
+            )
 
         tree = CollectionTree(
             label=collection.name,
@@ -625,7 +626,13 @@ class CollectionBrowser(Vertical):
         ) -> None:
             # Add the requests (leaf nodes)
             for request in collection.requests:
-                tree.add_request(request, parent_node)
+                if isinstance(request, HttpRequestModel) and self.mode == "http":
+                    tree.add_request(request, parent_node)
+                elif (
+                    isinstance(request, WebsocketRequestModel)
+                    and self.mode == "realtime"
+                ):
+                    tree.add_request(request, parent_node)
 
             # Add the subcollections (child nodes)
             for child_collection in collection.children:
@@ -644,13 +651,14 @@ class CollectionBrowser(Vertical):
 
     @on(CollectionTree.RequestAdded)
     def on_request_added(self, event: CollectionTree.RequestAdded) -> None:
-        self.query_one("#empty-collection-label").display = (
-            len(event.tree.root.children) == 0
-        )
+        if self.mode == "http":
+            self.query_one("#empty-collection-label").display = (
+                len(event.tree.root.children) == 0
+            )
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
-        if isinstance(event.node.data, RequestModel):
+        if isinstance(event.node.data, HttpRequestModel):
             self.request_preview.request = event.node.data
 
     @on(Tree.NodeHighlighted)
@@ -658,7 +666,7 @@ class CollectionBrowser(Vertical):
         node_data = event.node.data
         # TODO - display more preview data.
         #  It's already all in the node, just need to display it.
-        if isinstance(node_data, RequestModel):
+        if isinstance(node_data, HttpRequestModel):
             self.request_preview.request = node_data
         else:
             self.request_preview.request = None
@@ -668,10 +676,12 @@ class CollectionBrowser(Vertical):
             partial(self.collection_tree.scroll_to_node, event.node, animate=False),
         )
 
-    def update_currently_open_node(self, request_model: RequestModel) -> None:
+    def update_currently_open_node(self, request_model: HttpRequestModel) -> None:
         """Update the request tree node with the new request model."""
         currently_open = self.collection_tree.currently_open
-        if currently_open is not None and isinstance(currently_open.data, RequestModel):
+        if currently_open is not None and isinstance(
+            currently_open.data, HttpRequestModel
+        ):
             currently_open.data = request_model
             currently_open.set_label(request_model.name or "")
             self.collection_tree.cache_request(request_model)

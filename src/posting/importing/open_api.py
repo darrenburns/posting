@@ -16,7 +16,7 @@ from posting.collection import (
     Header,
     QueryParam,
     RequestBody,
-    RequestModel,
+    HttpRequestModel,
 )
 
 
@@ -203,7 +203,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
             if method not in VALID_HTTP_METHODS:
                 continue
 
-            request = RequestModel(
+            request = HttpRequestModel(
                 name=operation.get("summary", path.strip("/")),
                 description=operation.get("description", ""),
                 method=method,

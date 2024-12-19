@@ -34,7 +34,6 @@ class RealtimeScreen(Screen):
         yield AppHeader()
         yield UrlBar(mode="realtime")
         with AppBody():
-            # TODO: Filter the CollectionTree to only show realtime requests.
             collection_browser = CollectionBrowser(
                 mode="realtime", collection=self.collection
             )

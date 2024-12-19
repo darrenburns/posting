@@ -9,7 +9,7 @@ import threading
 from httpx import Response
 from textual.notifications import SeverityLevel
 
-from posting.collection import RequestModel
+from posting.collection import HttpRequestModel
 from posting.variables import get_variables, update_variables
 
 if TYPE_CHECKING:
@@ -27,7 +27,7 @@ class Posting:
         self._app: PostingApp = app
         """The Textual App instance for Posting."""
 
-        self.request: RequestModel | None = None
+        self.request: HttpRequestModel | None = None
         """The request that is currently being processed."""
 
         self.response: Response | None = None
