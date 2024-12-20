@@ -60,12 +60,12 @@ HelpPanel {
 }
 
 .section {
-  border: round $border 40%;
+  border: round $border 25%;
   border-title-color: $text-secondary 50%;
   border-title-align: right;
 
   &:focus-within {
-    border: round $accent 100%;
+    border: round $border 100%;
     border-title-color: $foreground;
     border-title-style: b;
   }

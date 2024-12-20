@@ -14,7 +14,7 @@ from posting.variables import (
 )
 
 
-_URL_REGEX = re.compile(r"(?P<protocol>https?)://(?P<base>[^/]+)(?P<path>/[^ ]*)?")
+_URL_REGEX = re.compile(r"(?P<protocol>https?|wss?)://(?P<base>[^/]+)(?P<path>/[^ ]*)?")
 
 
 def highlight_url(text: Text, styles: UrlStyles) -> None:
