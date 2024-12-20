@@ -242,7 +242,7 @@ class Posting(App[None], inherit_bindings=False):
             self.watch_themes()
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
-        self.http_screen.current_layout = layout
+        self.screen.current_layout = layout
 
     def action_save_screenshot(
         self,

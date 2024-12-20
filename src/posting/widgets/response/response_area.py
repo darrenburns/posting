@@ -30,31 +30,6 @@ class ResponseArea(Vertical):
         "border-title-status",
     }
 
-    DEFAULT_CSS = """\
-    ResponseArea {
-        border-subtitle-color: $text-muted;
-        & ResponseTextArea.empty {
-            display: none;
-        }
-        &.response-ready{
-            & Crosshatch {
-                display: none;
-            }
-        }
-        &.success .border-title-status {
-            color: $text-success;
-            background: $success-muted;
-        }
-        &.warning .border-title-status {
-            color: $text-warning;
-            background: $warning-muted;
-        }
-        &.error .border-title-status {
-            color: $text-error;
-            background: $error-muted;
-        }
-    }
-    """
     response: Reactive[httpx.Response | None] = reactive(None)
 
     def on_mount(self) -> None:

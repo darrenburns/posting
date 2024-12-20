@@ -12,11 +12,12 @@ from textual import on, log, work
 from textual.reactive import Reactive, reactive
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Container, Horizontal, Vertical
 from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets import (
     Button,
+    ContentSwitcher,
     Footer,
     Input,
     Label,
@@ -227,8 +228,15 @@ class HttpScreen(Screen[None]):
                 self.settings.collection_browser.show_on_startup
             )
             yield collection_browser
-            yield RequestEditor()
-            yield ResponseArea()
+            with ContentSwitcher(
+                id="app-body-switcher", initial="app-body-http-container"
+            ):
+                with Container(id="app-body-http-container"):
+                    yield RequestEditor(id="request-editor")
+                    yield ResponseArea(id="response-area")
+                with Container(id="app-body-websocket-container"):
+                    yield Label("WebSocket")
+
         yield Footer(show_command_palette=False)
 
     def get_and_run_script(
@@ -616,6 +624,13 @@ class HttpScreen(Screen[None]):
         # and vice-versa.
         request_editor.set_class(section == "response", "hidden")
         response_area.set_class(section == "request", "hidden")
+
+    def watch_selected_request_type(self, request_type: RequestType) -> None:
+        body_content_switcher = self.query_one("#app-body-switcher")
+        if request_type == "WEBSOCKET":
+            body_content_switcher.current = "app-body-websocket-container"
+        else:
+            body_content_switcher.current = "app-body-http-container"
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:

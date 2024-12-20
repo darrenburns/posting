@@ -99,7 +99,8 @@ AppHeader {
 }
 
 AppBody {
-  &.layout-horizontal {
+  
+  &.layout-horizontal #app-body-http-container {
     layout: horizontal;
 
     & KeyValueInput {
@@ -110,7 +111,7 @@ AppBody {
     }
   }
   
-  &.layout-vertical {
+  &.layout-vertical #app-body-http-container {
     layout: vertical;
     
     & KeyValueInput {
@@ -322,6 +323,30 @@ RequestEditor {
   & #no-body-label {
       height: 1fr;
       hatch: right $surface-lighten-1 70%;
+  }
+}
+
+ResponseArea {
+  border-subtitle-color: $text-muted;
+  & ResponseTextArea.empty {
+      display: none;
+  }
+  &.response-ready{
+      & Crosshatch {
+          display: none;
+      }
+  }
+  &.success .border-title-status {
+      color: $text-success;
+      background: $success-muted;
+  }
+  &.warning .border-title-status {
+      color: $text-warning;
+      background: $warning-muted;
+  }
+  &.error .border-title-status {
+      color: $text-error;
+      background: $error-muted;
   }
 }
 
