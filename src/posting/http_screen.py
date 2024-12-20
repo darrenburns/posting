@@ -208,7 +208,7 @@ class HttpScreen(Screen[None]):
         if focus_on_startup == "url":
             target = self.url_bar.url_input
         elif focus_on_startup == "method":
-            target = self.method_selector
+            target = self.request_type_selector
         elif focus_on_startup == "collection":
             target = self.collection_browser.collection_tree
         else:
@@ -485,7 +485,7 @@ class HttpScreen(Screen[None]):
                 "query": self.request_editor.query_editor.query_key_input,
                 "info": self.request_metadata.request_name_input,
                 "url": self.url_input,
-                "method": self.method_selector,
+                "method": self.request_type_selector,
             }
             if target := targets.get(focus_on_request_open):
                 self.set_focus(target)
@@ -503,7 +503,7 @@ class HttpScreen(Screen[None]):
 
     def action_change_method(self) -> None:
         """Change the method of the request."""
-        method_selector = self.method_selector
+        method_selector = self.request_type_selector
         method_selector.focus()
         method_selector.expanded = not method_selector.expanded
 
@@ -719,7 +719,7 @@ class HttpScreen(Screen[None]):
     def load_request_model(self, request_model: HttpRequestModel) -> None:
         """Load a request model into the UI."""
         self.selected_request_type = request_model.method
-        self.method_selector.value = request_model.method
+        self.request_type_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
         self.params_table.replace_all_rows(
             [(param.name, param.value) for param in request_model.params]
@@ -791,7 +791,7 @@ class HttpScreen(Screen[None]):
         return self.query_one(UrlBar)
 
     @property
-    def method_selector(self) -> RequestTypeSelector:
+    def request_type_selector(self) -> RequestTypeSelector:
         return self.query_one(RequestTypeSelector)
 
     @property

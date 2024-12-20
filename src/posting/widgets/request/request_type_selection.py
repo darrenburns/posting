@@ -4,8 +4,7 @@ from rich.console import RenderableType
 from textual import on
 from textual.binding import Binding
 from textual.message import Message
-from textual.widgets import OptionList, Select
-from textual.widgets.option_list import Separator
+from textual.widgets import Select
 from posting.collection import RequestType
 from posting.help_screen import HelpData
 
@@ -33,6 +32,7 @@ The dropdown does not need to be expanded in order to select a type.
         Binding("d", "select_type('DELETE')", "DELETE", show=False),
         Binding("o", "select_type('OPTIONS')", "OPTIONS", show=False),
         Binding("h", "select_type('HEAD')", "HEAD", show=False),
+        Binding("w", "select_type('WEBSOCKET')", "WEBSOCKET", show=False),
     ]
 
     def __init__(
@@ -55,6 +55,7 @@ The dropdown does not need to be expanded in order to select a type.
                 ("P[u]A[/]TCH", "PATCH"),
                 ("[u]H[/]EAD", "HEAD"),
                 ("[u]O[/]PTIONS", "OPTIONS"),
+                ("[u]W[/]EBSOCKET", "WEBSOCKET"),
             ],
             prompt=prompt,
             allow_blank=False,
