@@ -30,6 +30,7 @@ from posting.collection import (
     RequestType,
     Options,
     HttpRequestModel,
+    WebsocketRequestModel,
 )
 
 from posting.config import SETTINGS
@@ -323,6 +324,8 @@ class HttpScreen(Screen[None]):
         if password := cert_config.password:
             httpx_cert_config.append(password.get_secret_value())
 
+        from posting.app import Posting
+
         app = cast("Posting", self.app)
         script_context = PostingContext(app)
 
@@ -477,7 +480,16 @@ class HttpScreen(Screen[None]):
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
         """Load a request model into the UI when a request is selected."""
-        self.load_request_model(event.request)
+        request = event.request
+        if isinstance(request, HttpRequestModel):
+            # TODO - move content switcher to http mode
+            self.load_http_request_model(request)
+        elif isinstance(request, WebsocketRequestModel):
+            # TODO - move content switcher to websocket mode
+            self.load_websocket_request_model(request)
+
+        # TODO - ensure that the focus is set correctly for websocket requests
+        # since some of the focus targets may not exist for websocket requests.
         if focus_on_request_open := self.settings.focus.on_request_open:
             targets = {
                 "headers": self.headers_table,
@@ -709,14 +721,22 @@ class HttpScreen(Screen[None]):
                 severity="error",
             )
         else:
-            self.load_request_model(request_model)
+            self.load_http_request_model(request_model)
             self.notify(
                 title="Curl request imported",
                 message=f"Successfully imported request to {curl_import.url}",
                 timeout=3,
             )
 
-    def load_request_model(self, request_model: HttpRequestModel) -> None:
+    def load_websocket_request_model(
+        self, request_model: WebsocketRequestModel
+    ) -> None:
+        """Load a request model into the UI."""
+        self.selected_request_type = request_model.method
+        self.request_type_selector.value = request_model.method
+        self.url_input.value = str(request_model.url)
+
+    def load_http_request_model(self, request_model: HttpRequestModel) -> None:
         """Load a request model into the UI."""
         self.selected_request_type = request_model.method
         self.request_type_selector.value = request_model.method

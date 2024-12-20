@@ -17,7 +17,12 @@ from textual.reactive import Reactive, reactive
 from textual.widgets import Static, Tree
 from textual.widgets.tree import TreeNode
 
-from posting.collection import Collection, RequestModel
+from posting.collection import (
+    Collection,
+    HttpRequestModel,
+    RequestModel,
+    WebsocketRequestModel,
+)
 from posting.config import SETTINGS
 from posting.files import get_unique_request_filename
 from posting.help_screen import HelpData
@@ -191,6 +196,7 @@ Sub-collections cannot be deleted from the UI yet.
                 "delete": theme_vars.get("text-error"),
                 "options": theme_vars.get("text-muted"),
                 "head": theme_vars.get("text-muted"),
+                "websocket": theme_vars.get("text-accent"),
             }
 
             method = node.data.method.lower()
@@ -201,8 +207,14 @@ Sub-collections cannot be deleted from the UI yet.
 
             open_indicator = ">" if node is self.currently_open else " "
             method = (
-                f"{node.data.method[:3]}" if isinstance(node.data, RequestModel) else ""
+                f"{node.data.method[:3]}"
+                if isinstance(node.data, HttpRequestModel)
+                else " WS"
             )
+            method_style = Style(
+                color=method_style, italic=isinstance(node.data, WebsocketRequestModel)
+            )
+
             node_label = Text.assemble(
                 open_indicator,
                 Text(method, style=method_style),
