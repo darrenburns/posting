@@ -64,6 +64,8 @@ from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
 from posting.widgets.rich_log import RichLogIO
+from posting.widgets.websocket.replies import Replies
+from posting.widgets.websocket.websocket_composer import WebsocketComposer
 
 
 class AppHeader(Horizontal):
@@ -235,7 +237,8 @@ class HttpScreen(Screen[None]):
                     yield RequestEditor(id="request-editor")
                     yield ResponseArea(id="response-area")
                 with Container(id="app-body-websocket-container"):
-                    yield Label("WebSocket")
+                    yield WebsocketComposer(classes="section")
+                    yield Replies(classes="section")
 
         yield Footer(show_command_palette=False)
 

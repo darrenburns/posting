@@ -54,18 +54,18 @@ HelpPanel {
   height: auto;
   max-height: 70%;
   border: wide $background-lighten-2;
-  border-title-color: $text;
+  border-title-color: $foreground;
   border-title-background: $background;
   border-title-style: bold;
 }
 
 .section {
-  border: round $accent 40%;
+  border: round $border 40%;
   border-title-color: $text-accent 50%;
   border-title-align: right;
 
   &:focus-within {
-    border: round $accent 100%;
+    border: round $border 100%;
     border-title-color: $foreground;
     border-title-style: b;
   }
@@ -99,7 +99,6 @@ AppHeader {
 }
 
 AppBody {
-  
   &.layout-horizontal #app-body-http-container {
     layout: horizontal;
 
@@ -117,6 +116,15 @@ AppBody {
     & KeyValueInput {
       layout: horizontal;
     }
+  }
+}
+
+WebsocketComposer {
+
+  & MessageEditor {
+  }
+
+  & Replies {
   }
 }
 
@@ -230,14 +238,12 @@ KeyValueInput {
   }
 
   & > Button {
-      background: $primary;
-      color: $text;
-      text-style: none;
+      background: $primary-muted;
+      color: $text-primary;
       min-width: 0;
       width: 7;
       margin: 0 1;
       &:hover {
-          text-style: b;
           padding: 0 1;
           border: none;
           background: $primary-darken-1;
