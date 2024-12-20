@@ -211,17 +211,18 @@ UrlBar {
       color: $text-muted 30%;
       background: $surface;
   }
-}
 
-UrlCallToAction {
-  min-width: 8;
-  background: $accent-muted;
-  color: $text-accent;
-  text-style: b;
-  &:hover {
-      background-tint: $text-accent 10%;
+  UrlCallToAction {
+    min-width: 8;
+    background: $accent-muted;
+    color: $text-accent;
+    text-style: b;
+    &:hover {
+        background-tint: $text-accent 10%;
+    }
   }
 }
+
 
 KeyValueInput {
   height: auto;

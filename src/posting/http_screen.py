@@ -68,7 +68,10 @@ from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
 from posting.widgets.rich_log import RichLogIO
 from posting.widgets.websocket.replies import Replies
-from posting.widgets.websocket.websocket_composer import WebsocketComposer
+from posting.widgets.websocket.websocket_composer import (
+    WebSocketDisconnected,
+    WebsocketComposer,
+)
 
 
 class AppHeader(Horizontal):
@@ -637,20 +640,14 @@ class HttpScreen(Screen[None]):
         request_editor.set_class(section == "response", "hidden")
         response_area.set_class(section == "request", "hidden")
 
-    def watch_selected_request_type(
-        self, previous_request_type: RequestType, request_type: RequestType
-    ) -> None:
-        if previous_request_type == "WEBSOCKET" and request_type != "WEBSOCKET":
-            self.websocket.close()
-            self.session.close()
-            self._ws_incoming_worker.cancel()
-            self._ws_outgoing_worker.cancel()
-
+    def watch_selected_request_type(self, request_type: RequestType) -> None:
         body_content_switcher = self.query_one("#app-body-switcher")
         if request_type == "WEBSOCKET":
             body_content_switcher.current = "app-body-websocket-container"
+            self.url_bar.mode = "realtime"
         else:
             body_content_switcher.current = "app-body-http-container"
+            self.url_bar.mode = "http"
 
     @on(TextArea.Changed, selector="RequestBodyTextArea")
     def on_request_body_change(self, event: TextArea.Changed) -> None:

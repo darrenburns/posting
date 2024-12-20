@@ -8,6 +8,7 @@ from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
 from textual.events import Blur, Paste
 from textual.message import Message
+from textual.reactive import Reactive, reactive
 from textual.widgets import Input, Button, Label
 from textual.theme import Theme
 from textual_autocomplete import DropdownItem
@@ -135,9 +136,10 @@ class UrlBar(Vertical):
         "not-started-marker",
     }
 
+    mode: Reactive[str] = reactive("http", init=False)
+
     def __init__(
         self,
-        mode: Literal["http", "realtime"] = "http",
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -146,7 +148,6 @@ class UrlBar(Vertical):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.cached_base_urls: list[str] = []
         self._trace_events: set[Event] = set()
-        self.mode = mode
 
     def on_env_changed(self, _: None) -> None:
         self._display_variable_at_cursor()
@@ -154,10 +155,7 @@ class UrlBar(Vertical):
 
     def compose(self) -> ComposeResult:
         with Horizontal():
-            if self.mode == "http":
-                yield RequestTypeSelector(id="method-selector")
-            else:
-                yield Label("Realtime", variant="success", id="realtime-label")
+            yield RequestTypeSelector(id="method-selector")
 
             if self.mode == "http":
                 placeholder = "Enter a URL or paste a curl command..."
@@ -176,6 +174,12 @@ class UrlBar(Vertical):
         variable_value_bar = Label(id="variable-value-bar")
         if SETTINGS.get().url_bar.show_value_preview:
             yield variable_value_bar
+
+    def watch_mode(self, mode: Literal["http", "realtime"]) -> None:
+        if mode == "http":
+            self.cta.label = "Send"
+        else:
+            self.cta.label = "Connect"
 
     def on_mount(self) -> None:
         self.auto_complete = VariableAutoComplete(
@@ -306,3 +310,8 @@ class UrlBar(Vertical):
     def url_input(self) -> UrlInput:
         """Get the URL input."""
         return self.query_one("#url-input", UrlInput)
+
+    @property
+    def cta(self) -> UrlCallToAction:
+        """Get the call to action button."""
+        return self.query_one(UrlCallToAction)
