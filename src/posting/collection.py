@@ -198,6 +198,9 @@ class RequestModel(BaseModel):
     description: str = Field(default="")
     """The description of the request."""
 
+    type: Literal["http", "websocket"] = Field(default="http")
+    """The type of request."""
+
     url: str = Field(default="")
     """The URL of the request."""
 
@@ -230,6 +233,10 @@ class WebsocketRequestModel(RequestModel):
 
     scripts: WebSocketScripts = Field(default_factory=WebSocketScripts)
     """The scripts associated with the websocket request."""
+
+    @property
+    def method(self) -> str:
+        return "WEBSOCKET"
 
     def apply_template(self, variables: dict[str, Any]) -> None:
         """Apply the template to the request model."""
@@ -585,4 +592,7 @@ def load_request_from_yaml(file_path: str) -> HttpRequestModel:
     """
     with open(file_path, "r") as file:
         data = yaml.safe_load(file)
-        return HttpRequestModel(**data, path=Path(file_path))
+        if data.get("type") == "websocket":
+            return WebsocketRequestModel(**data, path=Path(file_path))
+        else:
+            return HttpRequestModel(**data, path=Path(file_path))

@@ -1,0 +1,39 @@
+name: Echo WebSocket Server
+description: |
+  A simple WebSocket echo server that will echo back any messages sent to it.
+  Send a message and it will be returned back to you.
+
+url: wss://ws.postman-echo.com/raw
+type: websocket
+
+headers:
+  - name: User-Agent
+    value: Posting-WebSocket-Client
+    enabled: true
+
+params:
+  - name: encoding
+    value: text
+    enabled: true
+
+snippets:
+  - content: "Hello, WebSocket!"
+    note: "Simple text greeting"
+    language: text
+  
+  - content: |
+      {
+        "message": "Hello from JSON",
+        "timestamp": "${timestamp}"
+      }
+    note: "JSON message example with variable"
+    language: json
+
+scripts:
+  setup: null
+  on_request: null
+  on_response: null
+  on_send: null
+  on_receive: null
+
+posting_version: "0.1.0"

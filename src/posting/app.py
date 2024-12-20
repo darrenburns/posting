@@ -4,16 +4,12 @@ from typing import Literal
 from rich.console import RenderableType
 from textual.content import Content
 
-from textual import messages, on, log, work
+from textual import messages, on, work
 from textual.command import CommandPalette
-from textual.css.query import NoMatches
-from textual.events import Click
-from textual.reactive import Reactive, reactive
 from textual.app import App, InvalidThemeError, ReturnType
 from textual.binding import Binding
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
-from textual.widget import Widget
 from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
@@ -23,9 +19,6 @@ from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
 from posting.help_screen import HelpScreen
 from posting.http_screen import HttpScreen
-from posting.jump_overlay import JumpOverlay
-from posting.jumper import Jumper
-from posting.realtime_screen import RealtimeScreen
 from posting.scripts import uncache_module
 from posting.themes import (
     BUILTIN_THEMES,
@@ -42,7 +35,6 @@ from posting.xresources import load_xresources_themes
 class Posting(App[None], inherit_bindings=False):
     AUTO_FOCUS = None
     COMMANDS = {PostingProvider}
-    MODES = {"http": "http_screen", "realtime": "realtime_screen"}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDING_GROUP_TITLE = "Global Keybinds"
     BINDINGS = [
@@ -68,7 +60,6 @@ class Posting(App[None], inherit_bindings=False):
             tooltip="Open the help dialog for the currently focused widget.",
             id="help",
         ),
-        Binding("ctrl+i", "toggle_mode", "Toggle mode.", show=False),
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
 
@@ -192,22 +183,6 @@ class Posting(App[None], inherit_bindings=False):
 
     def on_mount(self) -> None:
         settings = SETTINGS.get()
-        # Handles HTTP requests.
-        self.http_screen = HttpScreen(
-            collection=self.collection,
-            layout=self.settings.layout,
-            environment_files=self.environment_files,
-        )
-
-        # Realtime - handles WebSockets and SSE connections.
-        self.realtime_screen = RealtimeScreen(
-            collection=self.collection,
-            environment_files=self.environment_files,
-        )
-
-        self.install_screen(self.http_screen, "http_screen")
-        self.install_screen(self.realtime_screen, "realtime_screen")
-
         available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 
         if settings.load_builtin_themes:
@@ -266,11 +241,6 @@ class Posting(App[None], inherit_bindings=False):
         if self.settings.watch_themes:
             self.watch_themes()
 
-        self.switch_mode("http")
-
-    def action_toggle_mode(self) -> None:
-        self.switch_mode("realtime" if self.current_mode == "http" else "http")
-
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.http_screen.current_layout = layout
 
@@ -317,6 +287,13 @@ class Posting(App[None], inherit_bindings=False):
             return
         if not event.option_selected:
             self.theme = self._original_theme
+
+    def get_default_screen(self) -> HttpScreen:
+        return HttpScreen(
+            collection=self.collection,
+            layout=self.settings.layout,
+            environment_files=self.environment_files,
+        )
 
     async def action_help(self) -> None:
         focused = self.focused

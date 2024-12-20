@@ -626,13 +626,7 @@ class CollectionBrowser(Vertical):
         ) -> None:
             # Add the requests (leaf nodes)
             for request in collection.requests:
-                if isinstance(request, HttpRequestModel) and self.mode == "http":
-                    tree.add_request(request, parent_node)
-                elif (
-                    isinstance(request, WebsocketRequestModel)
-                    and self.mode == "realtime"
-                ):
-                    tree.add_request(request, parent_node)
+                tree.add_request(request, parent_node)
 
             # Add the subcollections (child nodes)
             for child_collection in collection.children:
