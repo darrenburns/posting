@@ -1,8 +1,11 @@
+import asyncio
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
 from pathlib import Path
 from typing import Any, Literal, cast
 
+from aiohttp import ClientWebSocketResponse
+import aiohttp
 import httpx
 from textual.css.query import NoMatches
 from textual.events import Click
@@ -182,6 +185,7 @@ class HttpScreen(Screen[None]):
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
+        self.websocket: ClientWebSocketResponse | None = None
 
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
@@ -458,9 +462,14 @@ class HttpScreen(Screen[None]):
         else:
             self.url_input.remove_class("error")
 
-    @work(exclusive=True)
+    @work(group="send-request", exclusive=True)
     async def send_via_worker(self) -> None:
-        await self.send_request()
+        if self.selected_request_type == "WEBSOCKET":
+            print("Connecting to websocket")
+            url_value = self.url_input.value
+            await self.websocket_composer.send_message_or_connect(url_value)
+        else:
+            await self.send_request()
 
     @on(RequestTypeSelector.TypeChanged)
     def request_type_changed(self, event: RequestTypeSelector.TypeChanged) -> None:
@@ -628,7 +637,15 @@ class HttpScreen(Screen[None]):
         request_editor.set_class(section == "response", "hidden")
         response_area.set_class(section == "request", "hidden")
 
-    def watch_selected_request_type(self, request_type: RequestType) -> None:
+    def watch_selected_request_type(
+        self, previous_request_type: RequestType, request_type: RequestType
+    ) -> None:
+        if previous_request_type == "WEBSOCKET" and request_type != "WEBSOCKET":
+            self.websocket.close()
+            self.session.close()
+            self._ws_incoming_worker.cancel()
+            self._ws_outgoing_worker.cancel()
+
         body_content_switcher = self.query_one("#app-body-switcher")
         if request_type == "WEBSOCKET":
             body_content_switcher.current = "app-body-websocket-container"
@@ -891,3 +908,7 @@ class HttpScreen(Screen[None]):
     @property
     def response_script_output(self) -> ScriptOutput:
         return self.query_one(ScriptOutput)
+
+    @property
+    def websocket_composer(self) -> WebsocketComposer:
+        return self.query_one(WebsocketComposer)

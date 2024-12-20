@@ -7,7 +7,10 @@ from posting.widgets.text_area import TextEditor, PostingTextArea, TextAreaFoote
 class MessageEditor(Vertical):
     def compose(self) -> ComposeResult:
         text_area = PostingTextArea(
-            language="json", tab_behavior="indent", show_line_numbers=True
+            language="json",
+            tab_behavior="indent",
+            show_line_numbers=True,
+            id="ws-message-text-area",
         )
         yield TextEditor(
             text_area=text_area, footer=TextAreaFooter(text_area=text_area)
