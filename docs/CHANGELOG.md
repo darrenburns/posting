@@ -15,6 +15,16 @@
 - Fixed crash when invalid syntax theme is specified. Posting now exits cleanly with an error message.
 - Fixed a crash relating to theme editing.
 
+### 2.3.0 [19th November 2024]
+
+### Added
+
+- Added support for live theme editing. If the currently active theme is on disk (in a theme YAML file), Posting will automatically reload the theme when it changes.
+
+### Changed
+
+- Minor styling refinements to the default "galaxy" theme.
+
 ## 2.2.0 [17th November 2024]
 
 ### Added
