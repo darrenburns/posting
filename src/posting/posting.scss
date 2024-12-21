@@ -119,12 +119,16 @@ AppBody {
   }
 }
 
-WebsocketComposer {
+WebSocketContainer {
 
   & MessageEditor {
   }
 
   & Replies {
+
+    & RichLog#replies-rich-log {
+      background: transparent;
+    }
   }
 }
 
