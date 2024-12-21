@@ -4,6 +4,7 @@
 
 - Added support for WebSocket connections.
 - Added support for selecting text in the URL bar.
+- When one or more theme files cannot be parsed, Posting now displays a toast notification describing which ones are invalid.
 
 ### Changed
 
