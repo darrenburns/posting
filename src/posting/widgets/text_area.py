@@ -506,7 +506,7 @@ class ReadOnlyTextArea(PostingTextArea):
         else:
             text_to_copy = self.text
             message = f"Copied ({len(text_to_copy)} characters)."
-            title = "Response copied"
+            title = "Text copied"
 
         try:
             import pyperclip

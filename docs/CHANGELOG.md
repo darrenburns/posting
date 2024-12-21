@@ -18,6 +18,7 @@ will copy to the system clipboard.
 - Fixed crash when invalid syntax theme is specified. Posting now exits cleanly with an error message.
 - Fixed a crash relating to theme editing.
 - Fixed being able to insert newline characters into read-only text areas (this had visual impact only) such as in the path to the request on disk in the `Info` tab.
+- Fixed wording of toast message when all text copied from a read-only text area.
 
 ### 2.3.0 [19th November 2024]
 
