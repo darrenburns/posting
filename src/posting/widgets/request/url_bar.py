@@ -178,8 +178,10 @@ class UrlBar(Vertical):
     def watch_mode(self, mode: Literal["http", "realtime"]) -> None:
         if mode == "http":
             self.cta.label = "Send"
+            self.trace_markers.display = True
         else:
             self.cta.label = "Connect"
+            self.trace_markers.display = False
 
     def on_mount(self) -> None:
         self.auto_complete = VariableAutoComplete(
@@ -261,6 +263,14 @@ class UrlBar(Vertical):
         if self.mode == "http":
             self.trace_markers.update(markers)
             self.trace_markers.set_class(len(self._trace_events) > 0, "has-events")
+
+    def websocket_connected_state(self) -> None:
+        if self.mode == "realtime":
+            self.cta.label = "Disconnect"
+
+    def websocket_disconnected_state(self) -> None:
+        if self.mode == "realtime":
+            self.cta.label = "Connect"
 
     def _build_markers(self) -> Text:
         def get_marker(event_base: str) -> Text:

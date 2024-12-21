@@ -69,9 +69,11 @@ from posting.widgets.response.script_output import ScriptOutput
 from posting.widgets.rich_log import RichLogIO
 from posting.widgets.websocket.replies import Replies
 from posting.widgets.websocket.websocket_composer import (
+    WebSocketConnected,
     WebSocketDisconnected,
     WebsocketComposer,
 )
+from posting.widgets.websocket.websocket_container import WebSocketContainer
 
 
 class AppHeader(Horizontal):
@@ -243,9 +245,7 @@ class HttpScreen(Screen[None]):
                 with Container(id="app-body-http-container"):
                     yield RequestEditor(id="request-editor")
                     yield ResponseArea(id="response-area")
-                with Container(id="app-body-websocket-container"):
-                    yield WebsocketComposer(classes="section")
-                    yield Replies(classes="section")
+                yield WebSocketContainer(id="app-body-websocket-container")
 
         yield Footer(show_command_palette=False)
 
@@ -740,6 +740,14 @@ class HttpScreen(Screen[None]):
             scripts=self.request_scripts.to_model(),
             **request_editor_args,
         )
+
+    @on(WebSocketConnected)
+    def on_websocket_connected(self, event: WebSocketConnected) -> None:
+        self.url_bar.websocket_connected_state()
+
+    @on(WebSocketDisconnected)
+    def on_websocket_disconnected(self, event: WebSocketDisconnected) -> None:
+        self.url_bar.websocket_disconnected_state()
 
     def on_curl_message(self, event: CurlMessage):
         try:

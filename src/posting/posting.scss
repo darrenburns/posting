@@ -214,6 +214,7 @@ UrlBar {
 
   UrlCallToAction {
     min-width: 8;
+    width: auto;
     background: $accent-muted;
     color: $text-accent;
     text-style: b;

@@ -76,13 +76,13 @@ class WebsocketComposer(Vertical):
         self.post_message(WebSocketConnected())
 
     async def send_message_or_connect(self, url_value: str) -> None:
-        if not self.connected:
+        if not self.is_connected:
             await self.connect_websocket(url_value)
         else:
             await self.send_message(self.message_editor_content)
 
     async def send_message(self, message: str) -> None:
-        if not self.connected:
+        if not self.is_connected:
             print("Session closed - cannot send message")
             return
 
@@ -99,10 +99,6 @@ class WebsocketComposer(Vertical):
                 log.error("Websocket error", message.data)
 
         self.post_message(WebSocketDisconnected())
-
-    @on(Replies.Incoming)
-    async def on_incoming_message(self, message: Replies.Incoming) -> None:
-        self.notify(title="Websocket", message=message.message)
 
     @on(WebSocketConnected)
     def on_websocket_connected(self, event: WebSocketConnected) -> None:
@@ -124,9 +120,13 @@ class WebsocketComposer(Vertical):
         return f"WebSocket [{text_success} on {success_muted}] CONNECTED [/]"
 
     @property
+    def is_connected(self) -> bool:
+        return self.session is not None and not self.session.closed
+
+    @property
     def message_editor_content(self) -> str:
         return self.query_one("#ws-message-text-area", PostingTextArea).text
 
     @property
-    def connected(self) -> bool:
-        return self.session is not None and not self.session.closed
+    def replies(self) -> Replies:
+        return self.query_one(Replies)
