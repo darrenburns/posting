@@ -1,8 +1,19 @@
 ## Unreleased
 
+### Added
+
+- Added support for WebSocket connections.
+- Added support for selecting text in the URL bar.
+
+### Changed
+
+- `ctrl+c`, `ctrl+v`, `ctrl+x` now work in the URL bar and text areas for copy and pasting.
+- `ctrl+q` is now used to quit the app.
+
 ### Fixed
 
 - Fixed crash when invalid syntax theme is specified. Posting now exits cleanly with an error message.
+- Fixed a crash relating to theme editing.
 
 ## 2.2.0 [17th November 2024]
 
