@@ -262,6 +262,9 @@ class PostingTextArea(TextArea):
         self.app.refresh()
 
     def on_key(self, event: events.Key) -> None:
+        if self.read_only:
+            return
+
         character = event.character
 
         if character in self.OPENING_BRACKETS:

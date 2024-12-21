@@ -13,7 +13,7 @@ class WebSocketContainer(Vertical):
 
     @on(Replies.Incoming)
     def on_incoming(self, event: Replies.Incoming) -> None:
-        self.replies.add_reply(event.message)
+        self.replies.add_reply(event)
 
     @property
     def composer(self) -> WebsocketComposer:

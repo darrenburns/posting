@@ -130,6 +130,28 @@ WebSocketContainer {
       background: transparent;
     }
   }
+
+  & Reply {
+    height: auto;
+    & .reply-header {
+      height: 1;
+      color: $text-disabled;
+      background: $panel;
+    }
+    & .reply-label {
+      dock: left;
+    }
+    & .reply-timestamp {
+      dock: right;
+    }
+
+    & .reply-text-area {
+      height: auto;
+      min-height: 1;
+      max-height: 100%;
+      background: transparent;
+    }
+  }
 }
 
 DataTable {
