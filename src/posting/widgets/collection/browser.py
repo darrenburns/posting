@@ -659,7 +659,6 @@ class CollectionBrowser(Vertical):
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
-        print("Selected request", event.node.data)
         if isinstance(event.node.data, RequestModel):
             self.request_preview.request = event.node.data
 
