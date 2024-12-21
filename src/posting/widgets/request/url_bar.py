@@ -157,13 +157,8 @@ class UrlBar(Vertical):
         with Horizontal():
             yield RequestTypeSelector(id="method-selector")
 
-            if self.mode == "http":
-                placeholder = "Enter a URL or paste a curl command..."
-            else:
-                placeholder = "Enter a WebSocket URL..."
-
             yield UrlInput(
-                placeholder=placeholder,
+                placeholder="Enter a URL or paste a curl command...",
                 id="url-input",
             )
             if self.mode == "http":
@@ -179,9 +174,11 @@ class UrlBar(Vertical):
         if mode == "http":
             self.cta.label = "Send"
             self.trace_markers.display = True
+            self.url_input.placeholder = "Enter a URL or paste a curl command..."
         else:
             self.cta.label = "Connect"
             self.trace_markers.display = False
+            self.url_input.placeholder = "Enter a WebSocket URL..."
 
     def on_mount(self) -> None:
         self.auto_complete = VariableAutoComplete(

@@ -5,10 +5,12 @@
 - Added support for WebSocket connections.
 - Added support for selecting text in the URL bar.
 - When one or more theme files cannot be parsed, Posting now displays a toast notification describing which ones are invalid.
+- Posting now has an internal clipboard buffer which can be used to copy and paste text within the application using `ctrl+c`, `ctrl+v`, `ctrl+x`. If supported by the terminal emulator and/or multiplexer, `ctrl+c` and `ctrl+x` will *also* copy to the system clipboard.
 
 ### Changed
 
-- `ctrl+c`, `ctrl+v`, `ctrl+x` now work in the URL bar and text areas for copy and pasting.
+- `ctrl+c`, `ctrl+v`, `ctrl+x` now work in the URL bar and text areas for copy and pasting. If supported by the terminal emulator and/or multiplexer, `ctrl+c` and `ctrl+x` will *also* copy to the system clipboard.
+will copy to the system clipboard.
 - `ctrl+q` is now used to quit the app.
 
 ### Fixed
