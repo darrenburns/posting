@@ -11,6 +11,7 @@ from posting.widgets.variable_input import VariableInput
 class FormTable(PostingDataTable):
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove row"),
+        Binding("space", action="toggle_row", description="Enable/disable row"),
     ]
 
     def on_mount(self):
@@ -18,14 +19,15 @@ class FormTable(PostingDataTable):
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
+        self.row_disable = True
         self.add_columns("Key", "Value")
 
     def to_model(self) -> list[FormItem]:
         form_data: list[FormItem] = []
-        # TODO - handle enabled/disabled...
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            form_data.append(FormItem(name=row[0], value=row[1], enabled=True))
+            checkbox: PostingDataTable.Checkbox = row[0]
+            form_data.append(FormItem(name=row[1], value=row[2], enabled=checkbox.checked))
         return form_data
 
 

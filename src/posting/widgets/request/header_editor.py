@@ -78,6 +78,7 @@ in the body tab. Setting a header in this table will override the default value 
 
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove header"),
+        Binding("space", action="toggle_row", description="Enable/disable header"),
     ]
 
     def on_mount(self):
@@ -85,6 +86,7 @@ in the body tab. Setting a header in this table will override the default value 
         self.cursor_type = "row"
         self.zebra_stripes = True
         self.fixed_columns = 1
+        self.row_disable = True
         self.add_columns(*["Header", "Value"])
 
     def watch_has_focus(self, value: bool) -> None:
@@ -95,13 +97,15 @@ in the body tab. Setting a header in this table will override the default value 
         headers: dict[str, str] = {}
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            headers[row[0]] = row[1]
+            checkbox: PostingDataTable.Checkbox = row[0]
+            if checkbox.checked:
+                headers[row[1]] = row[2]
         return headers
 
     def to_model(self) -> list[Header]:
         headers: list[Header] = []
-        # TODO - handle enabled/disabled...
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            headers.append(Header(name=row[0], value=row[1], enabled=True))
+            checkbox: PostingDataTable.Checkbox = row[0]
+            headers.append(Header(name=row[1], value=row[2], enabled=checkbox.checked))
         return headers

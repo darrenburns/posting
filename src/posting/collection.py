@@ -121,7 +121,7 @@ class RequestBody(BaseModel):
         if self.form_data:
             # Ensure we don't delete duplicate keys
             httpx_args["data"] = tuples_to_dict(
-                [(item.name, item.value) for item in self.form_data]
+                [(item.name, item.value) for item in self.form_data if item.enabled]
             )
         return httpx_args
 
