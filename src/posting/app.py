@@ -74,6 +74,14 @@ from posting.widgets.response.script_output import ScriptOutput
 from posting.widgets.rich_log import RichLogIO
 from posting.xresources import load_xresources_themes
 
+# TODO: textual_autocomplete need to be updated to support the new API
+from textual_autocomplete._autocomplete2 import AutoComplete, AutoCompleteList
+def AutoComplete_compose(self) -> ComposeResult:
+    option_list = AutoCompleteList()
+    option_list.can_focus = False
+    yield option_list
+
+AutoComplete.compose = AutoComplete_compose
 
 class AppHeader(Horizontal):
     """The header of the app."""

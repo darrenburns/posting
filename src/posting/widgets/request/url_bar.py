@@ -69,8 +69,9 @@ It's recommended you create a new request before pasting a curl command, to avoi
         def control(self) -> "UrlInput":
             return self.input
 
+    # rename to Blurred2 to avoid conflict with the superclass
     @dataclass
-    class Blurred(Message):
+    class Blurred2(Message):
         input: "UrlInput"
 
         @property
@@ -86,7 +87,7 @@ It's recommended you create a new request before pasting a curl command, to avoi
         self.remove_class("error")
 
     def on_blur(self, _: Blur) -> None:
-        self.post_message(self.Blurred(self))
+        self.post_message(self.Blurred2(self))
 
     def watch_cursor_position(self, cursor_position: int) -> None:
         self.post_message(self.CursorMoved(cursor_position, self.value, self))
@@ -183,8 +184,8 @@ class UrlBar(Vertical):
         except NoMatches:
             return
 
-    @on(UrlInput.Blurred)
-    def on_blur(self, event: UrlInput.Blurred) -> None:
+    @on(UrlInput.Blurred2)
+    def on_blur(self, event: UrlInput.Blurred2) -> None:
         try:
             self.variable_value_bar.update("")
         except NoMatches:
