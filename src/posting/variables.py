@@ -8,7 +8,7 @@ from dotenv import dotenv_values
 
 
 _VARIABLES_PATTERN = re.compile(
-    r"\$(?:([a-zA-Z_][a-zA-Z0-9_]*)|{([a-zA-Z_][a-zA-Z0-9_]*)})"
+    r"(?<!\$)\$(?:\{([a-zA-Z_]\w*)\}|([a-zA-Z_]\w*)|$)"
 )
 
 
@@ -86,116 +86,45 @@ def update_variables(new_variables: dict[str, object]) -> None:
 def find_variables(template_str: str) -> list[tuple[str, int, int]]:
     return [
         (m.group(1) or m.group(2), m.start(), m.end())
-        for m in re.finditer(_VARIABLES_PATTERN, template_str)
+        for m in re.finditer(_VARIABLES_PATTERN, template_str) if m.group(1) or m.group(2)
     ]
 
 
 @lru_cache()
-def is_cursor_within_variable(cursor: int, text: str) -> bool:
+def variable_range_at_cursor(cursor: int, text: str) -> tuple[int, int] | None:
     if not text or cursor < 0 or cursor > len(text):
-        return False
+        return None
 
-    # Check for ${var} syntax
-    start = text.rfind("${", 0, cursor)
-    if start != -1:
-        end = text.find("}", start)
-        if end != -1 and start < cursor <= end:
-            return True
-
-    # Check for $ followed by { (cursor between $ and {)
-    if (
-        cursor > 0
-        and text[cursor - 1] == "$"
-        and cursor < len(text)
-        and text[cursor] == "{"
-    ):
-        return True
-
-    # Check for $var syntax
-    last_dollar = text.rfind("$", 0, cursor)
-    if last_dollar == -1:
-        return False
-
-    # Check if cursor is within a valid variable name
-    for i in range(last_dollar + 1, len(text)):
-        if i >= cursor:
-            return True
-        if not (text[i].isalnum() or text[i] == "_"):
-            return False
-
-    return True
+    for match in _VARIABLES_PATTERN.finditer(text):
+        start, end = match.span()
+        if start < cursor and (cursor < end or cursor == end == len(text)):
+            return start, end
+    return None
 
 
-@lru_cache()
+def is_cursor_within_variable(cursor: int, text: str) -> bool:
+    return variable_range_at_cursor(cursor, text) is not None
+
+
 def find_variable_start(cursor: int, text: str) -> int:
-    if not text:
-        return cursor
-
-    # Check for ${var} syntax
-    start = text.rfind("${", 0, cursor)
-    if start != -1 and start < cursor <= text.find("}", start):
-        return start
-
-    # Check for $ followed by { (cursor between $ and {)
-    if (
-        cursor > 0
-        and text[cursor - 1] == "$"
-        and cursor < len(text)
-        and text[cursor] == "{"
-    ):
-        return cursor - 1
-
-    # Check for $var syntax
-    for i in range(cursor - 1, -1, -1):
-        if text[i] == "$":
-            if i + 1 < len(text) and text[i + 1] == "{":
-                return i
-            if all(c.isalnum() or c == "_" for c in text[i + 1 : cursor]):
-                return i
-
-    return cursor  # No valid variable start found
+    variable_range = variable_range_at_cursor(cursor, text)
+    return variable_range[0] if variable_range is not None else cursor
 
 
-@lru_cache()
 def find_variable_end(cursor: int, text: str) -> int:
     if not text:
         return cursor
 
-    # Check for ${var} syntax
-    start = text.rfind("${", 0, cursor)
-    if start != -1:
-        end = text.find("}", start)
-        if end != -1 and start < cursor <= end + 1:  # Include the closing brace
-            return end + 1
-
-    # Check for $ followed by { (cursor between $ and {)
-    if (
-        cursor > 0
-        and text[cursor - 1] == "$"
-        and cursor < len(text)
-        and text[cursor] == "{"
-    ):
-        end = text.find("}", cursor)
-        if end != -1:
-            return end + 1
-
-    # Check for $var syntax
-    for i in range(cursor, len(text)):
-        if not (text[i].isalnum() or text[i] == "_"):
-            return i
-
-    return len(text)
+    variable_range = variable_range_at_cursor(cursor, text)
+    return variable_range[1] if variable_range is not None else len(text)
 
 
-@lru_cache()
 def get_variable_at_cursor(cursor: int, text: str) -> str | None:
-    if not is_cursor_within_variable(cursor, text):
+    variable_range = variable_range_at_cursor(cursor, text)
+    if variable_range is None:
         return None
 
-    start = find_variable_start(cursor, text)
-    end = find_variable_end(cursor, text)
-
-    return text[start:end]
+    return text[variable_range[0]: variable_range[1]]
 
 
 @lru_cache()
