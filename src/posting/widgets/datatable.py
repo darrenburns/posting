@@ -35,6 +35,7 @@ PostingDataTable {
         super().__init__(*args, **kwargs)
         self.cursor_vertical_escape = True
         self.row_disable = False
+        self._fixed_columns_bak = None
 
     @dataclass
     class Checkbox:
@@ -102,7 +103,9 @@ PostingDataTable {
         return super().add_column(label, width=width, key=key, default=default)
 
     def action_toggle_fixed_columns(self) -> None:
-        self.fixed_columns = 1 if self.fixed_columns == 0 else 0
+        if self._fixed_columns_bak is None:
+            self._fixed_columns_bak = self.fixed_columns
+        self.fixed_columns = self._fixed_columns_bak if self.fixed_columns == 0 else 0
 
     def remove_row(self, row_key: RowKey | str) -> None:
         self.post_message(self.RowsRemoved(self))
