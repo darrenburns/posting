@@ -8,7 +8,7 @@ from dotenv import dotenv_values
 
 
 _VARIABLES_PATTERN = re.compile(
-    r"(?<!\$)\$(?:\{([a-zA-Z_]\w*)\}|([a-zA-Z_]\w*)|$)"
+    r"(?:(?:^|[^\$])(?:\$\$)*)(\$(?:\{([a-zA-Z_]\w*)\}|([a-zA-Z_]\w*)|$))"
 )
 
 
@@ -85,8 +85,8 @@ def update_variables(new_variables: dict[str, object]) -> None:
 @lru_cache()
 def find_variables(template_str: str) -> list[tuple[str, int, int]]:
     return [
-        (m.group(1) or m.group(2), m.start(), m.end())
-        for m in re.finditer(_VARIABLES_PATTERN, template_str) if m.group(1) or m.group(2)
+        (m.group(2) or m.group(3), m.start(1), m.end(1))
+        for m in re.finditer(_VARIABLES_PATTERN, template_str) if m.group(2) or m.group(3)
     ]
 
 
@@ -96,8 +96,8 @@ def variable_range_at_cursor(cursor: int, text: str) -> tuple[int, int] | None:
         return None
 
     for match in _VARIABLES_PATTERN.finditer(text):
-        start, end = match.span()
-        if start < cursor and (cursor < end or cursor == end == len(text)):
+        start, end = match.span(1)
+        if start < cursor and (cursor < end or not match.group(2) and cursor == end == len(text)):
             return start, end
     return None
 
