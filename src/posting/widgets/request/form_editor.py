@@ -15,7 +15,7 @@ class FormTable(PostingDataTable):
     ]
 
     def on_mount(self):
-        self.fixed_columns = 1
+        self.fixed_columns = 2
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True

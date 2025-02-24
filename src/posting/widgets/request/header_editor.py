@@ -85,7 +85,7 @@ in the body tab. Setting a header in this table will override the default value 
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
-        self.fixed_columns = 1
+        self.fixed_columns = 2
         self.row_disable = True
         self.add_columns(*["Header", "Value"])
 
