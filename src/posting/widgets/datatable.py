@@ -5,6 +5,7 @@ from textual import on
 from textual.binding import Binding
 from textual.coordinate import Coordinate
 from textual.message import Message
+from textual.message_pump import MessagePump
 from textual.widgets import DataTable
 from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey
 
@@ -59,8 +60,12 @@ PostingDataTable {
         key: str | None = None,
         label: str | Text | None = None,
         explicit_by_user: bool = True,
+        sender: MessagePump | None = None,
     ) -> RowKey:
-        self.post_message(self.RowsAdded(self, explicit_by_user=explicit_by_user))
+        msg = self.RowsAdded(self, explicit_by_user=explicit_by_user)
+        if sender:
+            msg.set_sender(sender)
+        self.post_message(msg)
         return super().add_row(*cells, height=height, key=key, label=label)
 
     def action_toggle_fixed_columns(self) -> None:
