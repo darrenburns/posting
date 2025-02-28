@@ -3,6 +3,14 @@
 ### Fixed
 
 - Fixed crash when invalid syntax theme is specified. Posting now exits cleanly with an error message.
+- Fixed toast message on copying text referring to "Response text" regardless of what text was copied.
+- Fixed error handling and messaging when themes contain invalid syntax, invalid values. Includes batching errors and displaying multiple in one message.
+
+## 2.3.0 [19th November 2024]
+
+### Added
+
+- Editing a theme on disk will result in the UI refreshing in real-time to reflect changes.
 
 ## 2.2.0 [17th November 2024]
 
