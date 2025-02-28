@@ -865,9 +865,6 @@ class Posting(App[None], inherit_bindings=False):
         supplying a collection directory, or if they let Posting auto-discover
         it in some way (likely just using the default collection)."""
 
-        self.animation_level = settings.animation
-        """The level of animation to use in the app. This is used by Textual."""
-
         self.env_changed_signal = Signal[None](self, "env-changed")
         """Signal that is published when the environment has changed.
         This means one or more of the loaded environment files (in
@@ -879,6 +876,12 @@ class Posting(App[None], inherit_bindings=False):
         interface: pre-request or post-response scripts."""
 
         super().__init__()
+
+        # The animation is set AFTER the app is initialized intentionally,
+        # as it needs to override the default approach taken by Textual in
+        # App.__init__().
+        self.animation_level = settings.animation
+        """The level of animation to use in the app. This is used by Textual."""
 
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
