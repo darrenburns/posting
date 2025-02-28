@@ -545,9 +545,9 @@ class MainScreen(Screen[None]):
 
         # In this case, we're saving an existing request to disk.
         request_model = self.build_request_model(self.request_options.to_model())
-        assert isinstance(
-            request_model, RequestModel
-        ), "currently open node should contain a request model"
+        assert isinstance(request_model, RequestModel), (
+            "currently open node should contain a request model"
+        )
 
         # At this point, either we're reusing the pre-existing home for the request
         # on disk, or the new location on disk which was assigned during the "new request flow"
