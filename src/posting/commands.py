@@ -7,6 +7,9 @@ if TYPE_CHECKING:
     from posting.app import Posting
 
 
+CommandType = tuple[str, IgnoreReturnCallbackType, str, bool]
+
+
 class PostingProvider(Provider):
     @property
     def commands(
@@ -42,21 +45,30 @@ class PostingProvider(Provider):
 
             # Change the available commands depending on what is currently
             # maximized on the main screen.
-            reset_command = (
+            expand_section_callback: IgnoreReturnCallbackType = partial[None](
+                screen.expand_section, None
+            )
+            reset_command: CommandType = (
                 "view: Reset",
-                partial(screen.expand_section, None),
+                expand_section_callback,
                 "Reset the size of the request & response sections",
                 True,
             )
-            expand_request_command = (
+            expand_request_callback: IgnoreReturnCallbackType = partial[None](
+                screen.expand_section, "request"
+            )
+            expand_request_command: CommandType = (
                 "view: Expand request section",
-                partial(screen.expand_section, "request"),
+                expand_request_callback,
                 "Expand the request section and hide the response section",
                 True,
             )
-            expand_response_command = (
+            expand_response_callback: IgnoreReturnCallbackType = partial[None](
+                screen.expand_section, "response"
+            )
+            expand_response_command: CommandType = (
                 "view: Expand response section",
-                partial(screen.expand_section, "response"),
+                expand_response_callback,
                 "Expand the response section and hide the request section",
                 True,
             )
@@ -70,52 +82,55 @@ class PostingProvider(Provider):
                     [expand_request_command, expand_response_command]
                 )
 
+            toggle_collection_browser_callback: IgnoreReturnCallbackType = partial[
+                None
+            ](screen.action_toggle_collection_browser)
+            toggle_collection_browser_command: CommandType = (
+                "view: Toggle collection browser",
+                toggle_collection_browser_callback,
+                "Toggle the collection browser sidebar",
+                True,
+            )
+            commands_to_show.append(toggle_collection_browser_command)
+
+        # Global commands, not specific to the MainScreen.
+        if not app.ansi_color:
             commands_to_show.append(
                 (
-                    "view: Toggle collection browser",
-                    screen.action_toggle_collection_browser,
-                    "Toggle the collection browser sidebar",
+                    "theme: Change theme",
+                    app.action_change_theme,
+                    "Change the current theme",
                     True,
                 ),
             )
 
-            if not app.ansi_color:
-                commands_to_show.append(
-                    (
-                        "theme: Change theme",
-                        app.action_change_theme,
-                        "Change the current theme",
-                        True,
-                    ),
-                )
-
-            if screen.query("HelpPanel"):
-                commands_to_show.append(
-                    (
-                        "help: Hide keybindings sidebar",
-                        app.action_hide_help_panel,
-                        "Hide the keybindings sidebar",
-                        True,
-                    ),
-                )
-            else:
-                commands_to_show.append(
-                    (
-                        "help: Show keybindings sidebar",
-                        app.action_show_help_panel,
-                        "Display keybindings for the focused widget in a sidebar",
-                        True,
-                    ),
-                )
-
+        if screen.query("HelpPanel"):
             commands_to_show.append(
                 (
-                    "app: Quit Posting",
-                    app.action_quit,
-                    "Quit Posting and return to the command line",
+                    "help: Hide keybindings sidebar",
+                    app.action_hide_help_panel,
+                    "Hide the keybindings sidebar",
                     True,
                 ),
             )
+        else:
+            commands_to_show.append(
+                (
+                    "help: Show keybindings sidebar",
+                    app.action_show_help_panel,
+                    "Display keybindings for the focused widget in a sidebar",
+                    True,
+                ),
+            )
+
+        commands_to_show.append(
+            (
+                "app: Quit Posting",
+                app.action_quit,
+                "Quit Posting and return to the command line",
+                True,
+            ),
+        )
 
         return tuple(commands_to_show)
 
