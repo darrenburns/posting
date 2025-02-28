@@ -94,6 +94,7 @@ def on_request(request: RequestModel, posting: Posting) -> None:
     # Set auth on the request.
     request.auth = Auth.basic_auth("username", "password")
     # request.auth = Auth.digest_auth("username", "password")
+    # request.auth = Auth.bearer_token_auth("token")
 
     # This will be captured and written to the log.
     print("Request is being sent!")

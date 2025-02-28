@@ -22,7 +22,7 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 - Changing the environment at runtime - probably via command palette - push a new command palette screen where you can search for and select one of the previously used environments.
 - Variable completion autocompletion TextAreas.
 - Variable resolution highlighting in TextAreas.
-- Bearer token auth (can be done now by adding header).
+- Bearer token auth ✅
 - API key auth (can be done now by adding header).
 - OAuth2 (need to scope out what's involved here).
 - Add "quit" to command palette and footer ✅
