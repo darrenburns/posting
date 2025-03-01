@@ -3,6 +3,7 @@
 ### Added
 
 - Added "Export to curl" option in the command palette, to copy the request to your clipboard as a curl command.
+- Allow for customisation of "open in editor" and "open in pager" keys (`open-in-editor` and `open-in-pager` in the keymap).
 
 ### Changed
 
