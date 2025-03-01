@@ -97,8 +97,7 @@ in the body tab. Setting a header in this table will override the default value 
         headers: dict[str, str] = {}
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            checkbox: PostingDataTable.Checkbox = self.rows[row_index].label
-            if checkbox.checked:
+            if self.is_row_enabled_at(row_index):
                 headers[row[0]] = row[1]
         return headers
 
@@ -106,6 +105,5 @@ in the body tab. Setting a header in this table will override the default value 
         headers: list[Header] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            checkbox: PostingDataTable.Checkbox = self.rows[row_index].label
-            headers.append(Header(name=row[0], value=row[1], enabled=checkbox.checked))
+            headers.append(Header(name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)))
         return headers

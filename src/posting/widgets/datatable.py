@@ -181,6 +181,11 @@ PostingDataTable {
         except CellDoesNotExist:
             pass
 
+    def is_row_enabled_at(self, row_index: int) -> bool:
+        row_key = self._row_locations.get_key(row_index)
+        checkbox: PostingDataTable.Checkbox = self.rows[row_key].label
+        return checkbox.checked
+
     def __rich_repr__(self):
         yield "id", self.id
         yield "classes", self.classes

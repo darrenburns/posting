@@ -26,8 +26,7 @@ class FormTable(PostingDataTable):
         form_data: list[FormItem] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            checkbox: PostingDataTable.Checkbox = self.rows[row_index].label
-            form_data.append(FormItem(name=row[0], value=row[1], enabled=checkbox.checked))
+            form_data.append(FormItem(name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)))
         return form_data
 
 
