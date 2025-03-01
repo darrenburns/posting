@@ -408,7 +408,7 @@ class TestVariables:
 
         async def run_before(pilot: Pilot):
             await pilot.press("j", "j", "enter")
-            await pilot.press("ctrl+l")
+            await pilot.press("ctrl+l", "right")
 
         assert snap_compare(app, run_before=run_before)
 
@@ -442,7 +442,7 @@ class TestCustomThemeSimple:
 
         async def run_before(pilot: Pilot):
             await pilot.press("j", "j", "enter")
-            await pilot.press("ctrl+l", *"/$lol/")
+            await pilot.press("ctrl+l", "right", *"/$lol/")
             await pilot.press("ctrl+o", "w")
 
         assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
@@ -488,7 +488,7 @@ class TestCustomThemeComplex:
 
         async def run_before(pilot: Pilot):
             await pilot.press("j", "j", "enter")
-            await pilot.press("ctrl+l", *"/$lol/")
+            await pilot.press("ctrl+l", "right", *"/$lol/")
             await pilot.press("ctrl+o", "w")
 
         assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
