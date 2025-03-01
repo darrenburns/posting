@@ -413,7 +413,7 @@ class MainScreen(Screen[None]):
             self.notify(
                 severity="error",
                 title="Connect timeout",
-                message=f"Couldn't connect within {timeout} seconds.",
+                message=f"Couldn't connect within {request_options.timeout} seconds.",
             )
         except Exception as e:
             log.error("Error sending request", e)
