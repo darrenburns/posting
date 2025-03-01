@@ -17,13 +17,12 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - name: Set up uv
-        # Install a specific uv version using the installer
-        run: curl -LsSf https://astral.sh/uv/0.3.3/install.sh | sh
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
+      - name: Install a specific version of uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version-file: ".python-version"
+          version: "0.3.3"
+          enable-cache: true
+      - run: uv python install  # Will read from .python-version
       - name: Install Dependencies
         run: uv sync --all-extras --dev
       - name: Run Tests
