@@ -11,7 +11,7 @@ from posting.widgets.variable_input import VariableInput
 class FormTable(PostingDataTable):
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove row"),
-        Binding("space", action="toggle_row", description="Enable/disable row"),
+        Binding("space", action="toggle_row", description="Toggle row"),
     ]
 
     def on_mount(self):
@@ -26,7 +26,11 @@ class FormTable(PostingDataTable):
         form_data: list[FormItem] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            form_data.append(FormItem(name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)))
+            form_data.append(
+                FormItem(
+                    name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)
+                )
+            )
         return form_data
 
 
@@ -46,5 +50,7 @@ class FormEditor(Vertical):
     def to_model(self) -> list[FormItem]:
         return self.query_one(FormTable).to_model()
 
-    def replace_all_rows(self, rows: Iterable[Iterable[str]], enableStates: Iterable[bool] | None = None) -> None:
+    def replace_all_rows(
+        self, rows: Iterable[Iterable[str]], enableStates: Iterable[bool] | None = None
+    ) -> None:
         self.query_one(FormTable).replace_all_rows(rows, enableStates)

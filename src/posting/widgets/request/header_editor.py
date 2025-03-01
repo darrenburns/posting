@@ -78,7 +78,7 @@ in the body tab. Setting a header in this table will override the default value 
 
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove header"),
-        Binding("space", action="toggle_row", description="Enable/disable header"),
+        Binding("space", action="toggle_row", description="Toggle header"),
     ]
 
     def on_mount(self):
@@ -105,5 +105,9 @@ in the body tab. Setting a header in this table will override the default value 
         headers: list[Header] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            headers.append(Header(name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)))
+            headers.append(
+                Header(
+                    name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)
+                )
+            )
         return headers

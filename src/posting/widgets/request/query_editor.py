@@ -16,7 +16,7 @@ class ParamsTable(PostingDataTable):
 
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove row"),
-        Binding("space", action="toggle_row", description="Enable/disable row"),
+        Binding("space", action="toggle_row", description="Toggle row"),
     ]
 
     def on_mount(self):
@@ -35,7 +35,11 @@ class ParamsTable(PostingDataTable):
         params: list[QueryParam] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            params.append(QueryParam(name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)))
+            params.append(
+                QueryParam(
+                    name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)
+                )
+            )
         return params
 
 
