@@ -1053,6 +1053,14 @@ class Posting(App[None], inherit_bindings=False):
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
 
+    def command_export_to_curl(self) -> None:
+        main_screen = self.main_screen
+        request_model = main_screen.build_request_model(
+            main_screen.request_options.to_model()
+        )
+        curl_command = request_model.to_curl()
+        self.notify(curl_command, title="Exported to cURL")
+
     def action_save_screenshot(
         self,
     ) -> str:
