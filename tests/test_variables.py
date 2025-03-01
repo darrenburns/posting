@@ -60,6 +60,13 @@ def test_find_variables(text: str, expected: list[tuple[str, int, int]]):
         ("${}", -1, None),
         ("${}", 2, None),
         ("${}", 3, None),
+        # Escaped braces
+        ("$${name}", 0, None),
+        ("$${name}", 1, None),
+        ("$${name}", 2, None),
+        ("$${name}", 3, None),
+        ("$${name}", 4, None),
+        ("$${name}", 5, None),
     ],
 )
 def test_variable_range_at_cursor(
