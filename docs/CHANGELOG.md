@@ -1,3 +1,9 @@
+## 2.4.0 [1st March 2025]
+
+### Changed
+
+- Upgraded Textual from version 0.86.0 to 2.1.1.
+
 ## 2.3.1 [1st March 2025]
 
 ### Changed
