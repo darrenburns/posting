@@ -29,7 +29,7 @@
 | src/posting/tuple\_to\_multidict.py                   |       10 |        0 |    100% |           |
 | src/posting/types.py                                  |        3 |        0 |    100% |           |
 | src/posting/user\_host.py                             |       11 |        2 |     82% |     14-15 |
-| src/posting/variables.py                              |       66 |        9 |     86% |66-67, 119, 128, 150-154 |
+| src/posting/variables.py                              |       66 |        5 |     92% |66-67, 119, 151, 154 |
 | src/posting/version.py                                |        2 |        0 |    100% |           |
 | src/posting/widgets/\_\_init\_\_.py                   |        0 |        0 |    100% |           |
 | src/posting/widgets/center\_middle.py                 |        3 |        0 |    100% |           |
@@ -50,7 +50,7 @@
 | src/posting/widgets/request/request\_metadata.py      |       40 |        3 |     92% |     17-19 |
 | src/posting/widgets/request/request\_options.py       |       79 |       16 |     80% |116-121, 126, 133-134, 139-146 |
 | src/posting/widgets/request/request\_scripts.py       |       81 |       32 |     60% |53-71, 81-110, 118, 126, 226-229 |
-| src/posting/widgets/request/url\_bar.py               |      158 |       35 |     78% |33-34, 70, 81, 103-106, 139-140, 172-173, 179-180, 184, 187-211, 241-242 |
+| src/posting/widgets/request/url\_bar.py               |      159 |       17 |     89% |34-35, 71, 104-107, 140-141, 173-174, 180-181, 196-199, 241-242 |
 | src/posting/widgets/response/cookies\_table.py        |        8 |        0 |    100% |           |
 | src/posting/widgets/response/response\_area.py        |      110 |       21 |     81% |84-85, 110-111, 132-135, 141, 161, 165, 173-181, 185-188 |
 | src/posting/widgets/response/response\_body.py        |       12 |        0 |    100% |           |
@@ -65,7 +65,7 @@
 | src/posting/widgets/variable\_autocomplete.py         |       40 |        7 |     82% | 49, 74-80 |
 | src/posting/widgets/variable\_input.py                |       20 |        0 |    100% |           |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
-|                                             **TOTAL** | **4287** | **1094** | **74%** |           |
+|                                             **TOTAL** | **4288** | **1072** | **75%** |           |
 
 
 ## Setup coverage badge
