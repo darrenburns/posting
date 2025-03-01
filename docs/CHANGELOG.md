@@ -6,6 +6,7 @@
 - Fixed toast message on copying text referring to "Response text" regardless of what text was copied.
 - Fixed error handling and messaging when themes contain invalid syntax, invalid values. Includes batching errors and displaying multiple in one message.
 - Fixed animation level config no longer being respected.
+- Fixed missing `get_variable` method in scripting API that was described in docs but not implemented.
 
 ## 2.3.0 [19th November 2024]
 
