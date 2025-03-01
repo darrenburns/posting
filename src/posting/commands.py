@@ -97,9 +97,9 @@ class PostingProvider(Provider):
         if not app.ansi_color:
             commands_to_show.append(
                 (
-                    "theme: Change theme",
+                    "theme: Preview theme",
                     app.action_change_theme,
-                    "Change the current theme",
+                    "Preview a theme for the current session",
                     True,
                 ),
             )
