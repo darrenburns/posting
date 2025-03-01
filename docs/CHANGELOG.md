@@ -1,6 +1,6 @@
 ## Unreleased
 
-
+### Changed
 
 - Renamed "Change theme" to "Preview theme" in command palette, and update description to not imply the change persists across sessions (use the config file for persistent changes).
 
