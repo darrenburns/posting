@@ -1,8 +1,22 @@
 ## Unreleased
 
+### Changed
+
+- Renamed "Change theme" to "Preview theme" in command palette, and update description to not imply the change persists across sessions (use the config file for persistent changes).
+
 ### Fixed
 
 - Fixed crash when invalid syntax theme is specified. Posting now exits cleanly with an error message.
+- Fixed toast message on copying text referring to "Response text" regardless of what text was copied.
+- Fixed error handling and messaging when themes contain invalid syntax, invalid values. Includes batching errors and displaying multiple in one message.
+- Fixed animation level config no longer being respected.
+- Fixed missing `get_variable` method in scripting API that was described in docs but not implemented.
+
+## 2.3.0 [19th November 2024]
+
+### Added
+
+- Editing a theme on disk will result in the UI refreshing in real-time to reflect changes.
 
 ## 2.2.0 [17th November 2024]
 
