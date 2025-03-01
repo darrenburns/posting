@@ -1,5 +1,5 @@
 import pytest
-from src.posting.variables import find_variables, variable_range_at_cursor
+from posting.variables import find_variables, variable_range_at_cursor
 
 
 @pytest.mark.parametrize(
