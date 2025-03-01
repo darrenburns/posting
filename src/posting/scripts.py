@@ -42,6 +42,20 @@ class Posting:
         """
         return get_variables()
 
+    def get_variable(self, name: str, default: object | None = None) -> object | None:
+        """Get a session variable. This doesn't include variables set via environment files
+        or env vars.
+
+        Use the `variables` property to get a dict containing all
+        variables, including those set via environment files or
+        env vars.
+
+        Args:
+            name: The name of the variable to get.
+            default: The default value to return if the variable is not found.
+        """
+        return self._app.session_env.get(name, default)
+
     def set_variable(self, name: str, value: object) -> None:
         """Set a session variable, which persists until the app shuts
         down, and overrides any variables loaded from the environment
