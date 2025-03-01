@@ -29,7 +29,7 @@
 | src/posting/tuple\_to\_multidict.py                   |       10 |        0 |    100% |           |
 | src/posting/types.py                                  |        3 |        0 |    100% |           |
 | src/posting/user\_host.py                             |       11 |        2 |     82% |     14-15 |
-| src/posting/variables.py                              |      102 |       21 |     79% |66-67, 103, 112, 122, 132, 137, 146, 152, 156, 162, 167-169, 178-180, 184-185, 219, 222 |
+| src/posting/variables.py                              |       66 |        5 |     92% |66-67, 116, 148, 151 |
 | src/posting/version.py                                |        2 |        0 |    100% |           |
 | src/posting/widgets/\_\_init\_\_.py                   |        0 |        0 |    100% |           |
 | src/posting/widgets/center\_middle.py                 |        3 |        0 |    100% |           |
@@ -65,7 +65,7 @@
 | src/posting/widgets/variable\_autocomplete.py         |       40 |        7 |     82% | 49, 74-80 |
 | src/posting/widgets/variable\_input.py                |       20 |        0 |    100% |           |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
-|                                             **TOTAL** | **4217** | **1018** | **76%** |           |
+|                                             **TOTAL** | **4181** | **1002** | **76%** |           |
 
 
 ## Setup coverage badge
