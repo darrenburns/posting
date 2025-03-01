@@ -22,7 +22,7 @@ editor: vim
 Alternatively, you can set the `POSTING_EDITOR` environment variable.
 
 ```bash
-POSTING_EDITOR=vim
+export POSTING_EDITOR=vim
 ```
 
 If neither is set, Posting will try to use the `EDITOR` environment variable.
@@ -43,7 +43,7 @@ pager: less
 Alternatively, you can set the `POSTING_PAGER` environment variable.
 
 ```bash
-POSTING_PAGER=less
+export POSTING_PAGER=less
 ```
 
 ### JSON Pager
@@ -59,7 +59,7 @@ pager_json: jq
 Alternatively, you can set the `POSTING_PAGER_JSON` environment variable.
 
 ```bash
-POSTING_PAGER_JSON=jq
+export POSTING_PAGER_JSON=jq
 ```
 
 If neither is set, Posting will try to use the default pager lookup rules discussed earlier.
