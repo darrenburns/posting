@@ -6,9 +6,9 @@
 |------------------------------------------------------ | -------: | -------: | ------: | --------: |
 | src/posting/\_\_init\_\_.py                           |        3 |        0 |    100% |           |
 | src/posting/\_\_main\_\_.py                           |       78 |       45 |     42% |21-28, 32-41, 63-71, 79-91, 105-124, 143 |
-| src/posting/app.py                                    |      573 |      116 |     80% |191, 195, 230-231, 239-246, 267, 273-288, 300, 302, 304, 320-321, 331-333, 340, 361-362, 399-400, 407-419, 439, 451, 518, 526, 543-559, 681-693, 885-901, 910-933, 938-949, 959-960, 963, 1001, 1004, 1007, 1018, 1023, 1033, 1044-1052, 1061-1062, 1076-1077, 1088-1095, 1104-1105, 1128-1129 |
+| src/posting/app.py                                    |      583 |      123 |     79% |195, 199, 234-235, 243-250, 271, 277-292, 304, 306, 308, 324-325, 335-337, 344, 365-366, 403-404, 411-423, 443, 455, 522, 530, 547-563, 685-697, 892-908, 917-940, 945-963, 973-974, 977, 985, 1003-1007, 1037, 1040, 1043, 1054, 1059, 1069, 1080-1088, 1097-1098, 1112-1113, 1124-1131, 1140-1141, 1164-1165 |
 | src/posting/collection.py                             |      290 |       72 |     75% |23-26, 42-48, 56, 120, 211-212, 226-229, 232-243, 280-281, 328-329, 335-368, 383-384, 413-414, 433-440 |
-| src/posting/commands.py                               |       47 |        5 |     89% |7, 25, 65, 67, 93 |
+| src/posting/commands.py                               |       53 |        5 |     91% |7, 28, 77, 79, 108 |
 | src/posting/config.py                                 |      112 |        2 |     98% |  222, 239 |
 | src/posting/exit\_codes.py                            |        1 |        0 |    100% |           |
 | src/posting/files.py                                  |       63 |       27 |     57% |68, 92-94, 110-146 |
@@ -23,9 +23,9 @@
 | src/posting/messages.py                               |        6 |        0 |    100% |           |
 | src/posting/request\_headers.py                       |        8 |        0 |    100% |           |
 | src/posting/save\_request.py                          |        9 |        0 |    100% |           |
-| src/posting/scripts.py                                |       76 |       16 |     79% |16, 63-65, 69-70, 103-104, 131, 136, 162, 168, 197-200 |
+| src/posting/scripts.py                                |       78 |       17 |     78% |16, 57, 77-79, 83-84, 117-118, 145, 150, 176, 182, 211-214 |
 | src/posting/suggesters.py                             |        1 |        1 |      0% |         2 |
-| src/posting/themes.py                                 |      162 |       10 |     94% |145, 240, 325-326, 333-338 |
+| src/posting/themes.py                                 |      176 |        7 |     96% |236, 335-336, 345-346, 350-351 |
 | src/posting/tuple\_to\_multidict.py                   |       10 |        0 |    100% |           |
 | src/posting/types.py                                  |        3 |        0 |    100% |           |
 | src/posting/user\_host.py                             |       11 |        2 |     82% |     14-15 |
@@ -45,7 +45,7 @@
 | src/posting/widgets/request/method\_selection.py      |       29 |        1 |     97% |        75 |
 | src/posting/widgets/request/query\_editor.py          |       31 |        4 |     87% |29-30, 36-37 |
 | src/posting/widgets/request/request\_auth.py          |      104 |       39 |     62% |21, 49, 117-127, 134-151, 161-164, 169-181, 192-195 |
-| src/posting/widgets/request/request\_body.py          |       82 |       61 |     26% |43-47, 52-57, 59-106, 111-116, 121-132 |
+| src/posting/widgets/request/request\_body.py          |       11 |        0 |    100% |           |
 | src/posting/widgets/request/request\_editor.py        |       81 |        3 |     96% |23, 125, 138 |
 | src/posting/widgets/request/request\_metadata.py      |       40 |        3 |     92% |     17-19 |
 | src/posting/widgets/request/request\_options.py       |       79 |       16 |     80% |116-121, 126, 133-134, 139-146 |
@@ -60,12 +60,12 @@
 | src/posting/widgets/rich\_log.py                      |       26 |        0 |    100% |           |
 | src/posting/widgets/select.py                         |       18 |        5 |     72% |17-20, 24, 30 |
 | src/posting/widgets/tabbed\_content.py                |       12 |        6 |     50% |14-16, 19-21 |
-| src/posting/widgets/text\_area.py                     |      278 |      104 |     63% |80-82, 128, 158-159, 179-188, 191-214, 217-248, 350, 355, 358-363, 366, 369, 372, 375, 378, 381, 384, 387, 390-413, 416, 419, 423-437, 441-448, 452-459, 463, 503, 515, 520-525 |
+| src/posting/widgets/text\_area.py                     |      419 |      231 |     45% |86-88, 134, 172-173, 193-202, 205-228, 231-262, 268-272, 277-282, 284-331, 336-341, 346-357, 459, 464, 467-472, 475, 478, 481, 484, 487, 490, 493, 496, 499-522, 525, 528, 532-546, 550-557, 561-568, 572, 575-643, 646-651, 656-667, 707, 719, 724-729 |
 | src/posting/widgets/tree.py                           |       22 |        6 |     73% |     34-39 |
 | src/posting/widgets/variable\_autocomplete.py         |       40 |        7 |     82% | 49, 74-80 |
 | src/posting/widgets/variable\_input.py                |       20 |        0 |    100% |           |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
-|                                             **TOTAL** | **4181** | **1002** | **76%** |           |
+|                                             **TOTAL** | **4283** | **1073** | **75%** |           |
 
 
 ## Setup coverage badge
