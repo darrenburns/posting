@@ -1,4 +1,4 @@
-## Unreleased
+## 2.3.1 [1st March 2025]
 
 ### Changed
 
