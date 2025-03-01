@@ -20,7 +20,7 @@ jobs:
       - name: Install a specific version of uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.3.3"
+          version: "0.6.3"
           enable-cache: true
       - run: uv python install  # Will read from .python-version
       - name: Install Dependencies
