@@ -15,7 +15,7 @@ class FormTable(PostingDataTable):
     ]
 
     def on_mount(self):
-        self.fixed_columns = 2
+        self.fixed_columns = 1
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
@@ -26,8 +26,8 @@ class FormTable(PostingDataTable):
         form_data: list[FormItem] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            checkbox: PostingDataTable.Checkbox = row[0]
-            form_data.append(FormItem(name=row[1], value=row[2], enabled=checkbox.checked))
+            checkbox: PostingDataTable.Checkbox = self.rows[row_index].label
+            form_data.append(FormItem(name=row[0], value=row[1], enabled=checkbox.checked))
         return form_data
 
 
@@ -47,5 +47,5 @@ class FormEditor(Vertical):
     def to_model(self) -> list[FormItem]:
         return self.query_one(FormTable).to_model()
 
-    def replace_all_rows(self, rows: Iterable[Iterable[str]]) -> None:
-        self.query_one(FormTable).replace_all_rows(rows)
+    def replace_all_rows(self, rows: Iterable[Iterable[str]], enableStates: Iterable[bool] | None = None) -> None:
+        self.query_one(FormTable).replace_all_rows(rows, enableStates)

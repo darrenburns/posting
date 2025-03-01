@@ -7,7 +7,7 @@ from textual.coordinate import Coordinate
 from textual.message import Message
 from textual.message_pump import MessagePump
 from textual.widgets import DataTable
-from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey, ColumnKey
+from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey
 
 
 class PostingDataTable(DataTable[str | Text]):
@@ -35,7 +35,6 @@ PostingDataTable {
         super().__init__(*args, **kwargs)
         self.cursor_vertical_escape = True
         self.row_disable = False
-        self._fixed_columns_bak = None
 
     @dataclass
     class Checkbox:
@@ -81,34 +80,16 @@ PostingDataTable {
         explicit_by_user: bool = True,
         sender: MessagePump | None = None,
     ) -> RowKey:
-        if self.row_disable:
-            if len(cells) == len(self.columns):
-                cells = (self.Checkbox(cells[0] == 'True'),) + cells[1:]
-            else:
-                cells = (self.Checkbox(True),) + cells
         msg = self.RowsAdded(self, explicit_by_user=explicit_by_user)
         if sender:
             msg.set_sender(sender)
         self.post_message(msg)
+        if self.row_disable and label is None:
+            label = self.Checkbox(True)
         return super().add_row(*cells, height=height, key=key, label=label)
 
-    def add_column(
-        self,
-        label: str | Text | None,
-        *,
-        width: int | None = None,
-        key: str | None = None,
-        default: str | Text | None = None,
-    ) -> ColumnKey:
-        if self.row_disable and len(self.columns) == 0:
-            super().add_column("", width=1, key="checkbox")
-
-        return super().add_column(label, width=width, key=key, default=default)
-
     def action_toggle_fixed_columns(self) -> None:
-        if self._fixed_columns_bak is None:
-            self._fixed_columns_bak = self.fixed_columns
-        self.fixed_columns = self._fixed_columns_bak if self.fixed_columns == 0 else 0
+        self.fixed_columns = 1 if self.fixed_columns == 0 else 0
 
     def remove_row(self, row_key: RowKey | str) -> None:
         self.post_message(self.RowsRemoved(self))
@@ -122,10 +103,14 @@ PostingDataTable {
         self._column_width_refresh()
         return self
 
-    def replace_all_rows(self, rows: Iterable[Iterable[str]]) -> None:
+    def replace_all_rows(self, rows: Iterable[Iterable[str]], enableStates: Iterable[bool] | None = None) -> None:
         self.clear()
-        for row in rows:
-            self.add_row(*row, explicit_by_user=False)
+        if self.row_disable and enableStates:
+            for row, enable in zip(rows, enableStates):
+                self.add_row(*row, explicit_by_user=False, label=self.Checkbox(enable))
+        else:
+            for row in rows:
+                self.add_row(*row, explicit_by_user=False)
         self._column_width_refresh()
 
     def _column_width_refresh(self) -> None:
@@ -187,7 +172,7 @@ PostingDataTable {
         try:
             cursor_cell_key = self.coordinate_to_cell_key(self.cursor_coordinate)
             cursor_row_key, _ = cursor_cell_key
-            checkbox: PostingDataTable.Checkbox = self.get_cell(cursor_row_key, "checkbox")
+            checkbox: PostingDataTable.Checkbox = self.rows[cursor_row_key].label
             checkbox.toggle()
             # HACK: Without such increment, the table is refreshed
             # only when focus changes to another column.

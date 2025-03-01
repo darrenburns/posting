@@ -85,7 +85,7 @@ in the body tab. Setting a header in this table will override the default value 
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
-        self.fixed_columns = 2
+        self.fixed_columns = 1
         self.row_disable = True
         self.add_columns(*["Header", "Value"])
 
@@ -97,15 +97,15 @@ in the body tab. Setting a header in this table will override the default value 
         headers: dict[str, str] = {}
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            checkbox: PostingDataTable.Checkbox = row[0]
+            checkbox: PostingDataTable.Checkbox = self.rows[row_index].label
             if checkbox.checked:
-                headers[row[1]] = row[2]
+                headers[row[0]] = row[1]
         return headers
 
     def to_model(self) -> list[Header]:
         headers: list[Header] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            checkbox: PostingDataTable.Checkbox = row[0]
-            headers.append(Header(name=row[1], value=row[2], enabled=checkbox.checked))
+            checkbox: PostingDataTable.Checkbox = self.rows[row_index].label
+            headers.append(Header(name=row[0], value=row[1], enabled=checkbox.checked))
         return headers

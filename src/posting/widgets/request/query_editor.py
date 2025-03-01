@@ -20,7 +20,7 @@ class ParamsTable(PostingDataTable):
     ]
 
     def on_mount(self):
-        self.fixed_columns = 2
+        self.fixed_columns = 1
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
@@ -33,11 +33,10 @@ class ParamsTable(PostingDataTable):
 
     def to_model(self) -> list[QueryParam]:
         params: list[QueryParam] = []
-        # TODO - handle enabled/disabled...
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            checkbox: PostingDataTable.Checkbox = row[0]
-            params.append(QueryParam(name=row[1], value=row[2], enabled=checkbox.checked))
+            checkbox: PostingDataTable.Checkbox = self.rows[row_index].label
+            params.append(QueryParam(name=row[0], value=row[1], enabled=checkbox.checked))
         return params
 
 
