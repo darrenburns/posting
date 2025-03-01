@@ -1,5 +1,9 @@
 ## 2.4.0 [1st March 2025]
 
+### Added
+
+- Added "Export to curl" option in the command palette, to copy the request to your clipboard as a curl command.
+
 ### Changed
 
 - Upgraded Textual from version 0.86.0 to 2.1.1.
