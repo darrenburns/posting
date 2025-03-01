@@ -69,14 +69,6 @@ It's recommended you create a new request before pasting a curl command, to avoi
         def control(self) -> "UrlInput":
             return self.input
 
-    @dataclass
-    class Blurred(Message):
-        input: "UrlInput"
-
-        @property
-        def control(self) -> "UrlInput":
-            return self.input
-
     def on_mount(self):
         self.highlighter = VariablesAndUrlHighlighter(self)
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
@@ -84,9 +76,6 @@ It's recommended you create a new request before pasting a curl command, to avoi
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
         self.remove_class("error")
-
-    def on_blur(self, _: Blur) -> None:
-        self.post_message(self.Blurred(self))
 
     def watch_cursor_position(self, cursor_position: int) -> None:
         self.post_message(self.CursorMoved(cursor_position, self.value, self))

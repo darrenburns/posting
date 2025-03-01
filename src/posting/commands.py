@@ -43,6 +43,16 @@ class PostingProvider(Provider):
                     ),
                 )
 
+            if screen.url_bar.url_input.value.strip() != "":
+                commands_to_show.append(
+                    (
+                        "export: copy as curl",
+                        app.command_export_to_curl,
+                        "Copy the current request as a curl command",
+                        True,
+                    ),
+                )
+
             # Change the available commands depending on what is currently
             # maximized on the main screen.
             expand_section_callback: IgnoreReturnCallbackType = partial[None](

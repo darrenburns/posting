@@ -136,8 +136,8 @@ class TextAreaFooter(Horizontal):
 
 class PostingTextArea(TextArea):
     BINDINGS = [
-        Binding("f3,ctrl+P", "open_in_pager", "Pager"),
-        Binding("f4,ctrl+E", "open_in_editor", "Editor"),
+        Binding("f3,ctrl+P", "open_in_pager", "Pager", id="open-in-pager"),
+        Binding("f4,ctrl+E", "open_in_editor", "Editor", id="open-in-editor"),
     ]
 
     OPENING_BRACKETS = {
@@ -263,6 +263,9 @@ class PostingTextArea(TextArea):
 
     def on_key(self, event: events.Key) -> None:
         character = event.character
+
+        if self.read_only:
+            return
 
         if character in self.OPENING_BRACKETS:
             opener = character
@@ -570,77 +573,6 @@ class ReadOnlyTextArea(PostingTextArea):
     def on_focus(self) -> None:
         if self.select_on_focus:
             self.select_all()
-
-    def on_key(self, event: events.Key) -> None:
-        character = event.character
-
-        if character in self.OPENING_BRACKETS:
-            opener = character
-            closer = self.OPENING_BRACKETS[opener]
-            self.insert(f"{opener}{closer}")
-            self.move_cursor_relative(columns=-1)
-            event.prevent_default()
-        elif character in self.CLOSING_BRACKETS:
-            # If we're currently at a closing bracket and
-            # we type the same closing bracket, move the cursor
-            # instead of inserting a character.
-            if self._matching_bracket_location:
-                row, col = self.cursor_location
-                line = self.document.get_line(row)
-                if character == line[col]:
-                    event.prevent_default()
-                    self.move_cursor_relative(columns=1)
-        elif event.key == "enter":
-            row, column = self.cursor_location
-            line = self.document.get_line(row)
-            if not line:
-                return
-
-            column = min(column, len(line) - 1)
-            character_locations = self._yield_character_locations_reverse(
-                (row, max(0, column - 1))
-            )
-            rstrip_line = line[: column + 1].rstrip()
-            anchor_char = rstrip_line[-1] if rstrip_line else None
-            get_content_start_column = self.get_content_start_column
-            get_column_width = self.get_column_width
-            try:
-                for character, _location in character_locations:
-                    # Ignore whitespace
-                    if character.isspace():
-                        continue
-                    elif character in self.OPENING_BRACKETS:
-                        # We found an opening bracket on this line,
-                        # so check the indentation of the line.
-                        # The newly created line should have increased
-                        # indentation.
-                        content_start_col = get_content_start_column(line)
-                        width = get_column_width(row, content_start_col)
-                        width_to_indent = max(
-                            width + self.indent_width, self.indent_width
-                        )
-
-                        target_location = row + 1, column + width_to_indent
-                        insert_text = "\n" + " " * width_to_indent
-                        if anchor_char in self.CLOSING_BRACKETS:
-                            # If there's a bracket under the cursor, we should
-                            # ensure that gets indented too.
-                            insert_text += "\n" + " " * content_start_col
-
-                        self.insert(insert_text)
-                        self.cursor_location = target_location
-                        event.prevent_default()
-                        break
-                    else:
-                        content_start_col = get_content_start_column(line)
-                        width = get_column_width(row, content_start_col)
-                        self.insert("\n" + " " * width)
-                        event.prevent_default()
-                        break
-            except IndexError:
-                return
-
-        self._restart_blink()
 
     def get_content_start_column(self, line: str) -> int:
         content_start_col = 0

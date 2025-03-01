@@ -1,3 +1,15 @@
+## 2.4.0 [1st March 2025]
+
+### Added
+
+- Added "Export to curl" option in the command palette, to copy the request to your clipboard as a curl command.
+    - Added `curl_export_extra_args` config to allow for adding extra arguments to the curl command copied to your clipboard.
+- Allow for customisation of "open in editor" and "open in pager" keys (`open-in-editor` and `open-in-pager` in the keymap).
+
+### Changed
+
+- Upgraded Textual from version 0.86.0 to 2.1.1.
+
 ## 2.3.1 [1st March 2025]
 
 ### Changed

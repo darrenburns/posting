@@ -86,7 +86,8 @@ def update_variables(new_variables: dict[str, object]) -> None:
 def find_variables(template_str: str) -> list[tuple[str, int, int]]:
     return [
         (m.group(2) or m.group(3), m.start(1), m.end(1))
-        for m in re.finditer(_VARIABLES_PATTERN, template_str) if m.group(2) or m.group(3)
+        for m in re.finditer(_VARIABLES_PATTERN, template_str)
+        if m.group(2) or m.group(3)
     ]
 
 
@@ -97,7 +98,9 @@ def variable_range_at_cursor(cursor: int, text: str) -> tuple[int, int] | None:
 
     for match in _VARIABLES_PATTERN.finditer(text):
         start, end = match.span(1)
-        if start < cursor and (cursor < end or not match.group(2) and cursor == end == len(text)):
+        if start < cursor and (
+            cursor < end or not match.group(2) and cursor == end == len(text)
+        ):
             return start, end
     return None
 
@@ -124,7 +127,7 @@ def get_variable_at_cursor(cursor: int, text: str) -> str | None:
     if variable_range is None:
         return None
 
-    return text[variable_range[0]: variable_range[1]]
+    return text[variable_range[0] : variable_range[1]]
 
 
 @lru_cache()
