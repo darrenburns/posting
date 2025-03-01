@@ -143,7 +143,7 @@ class KeyValueEditor(Vertical):
     @on(KeyValueInput.New)
     def add_key_value_pair(self, event: KeyValueInput.New) -> None:
         table = self.table
-        table.add_row(event.key, event.value)
+        table.add_row(event.key, event.value, sender=table)
         table.move_cursor(row=table.row_count - 1)
 
     @on(PostingDataTable.RowsRemoved)
