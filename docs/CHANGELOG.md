@@ -10,6 +10,10 @@
 
 - Upgraded Textual from version 0.86.0 to 2.1.1.
 
+### Fixed
+
+- Fixed variable preview not being shown below URL bar when cursor is over a variable.
+
 ## 2.3.1 [1st March 2025]
 
 ### Changed
