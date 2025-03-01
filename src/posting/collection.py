@@ -280,9 +280,20 @@ class RequestModel(BaseModel):
         if self.path:
             self.path.unlink()
 
-    def to_curl(self) -> str:
-        """Convert the request model to a cURL command."""
+    def to_curl(self, extra_args: str = "") -> str:
+        """Convert the request model to a cURL command.
+
+        Optionally supply extra arguments to insert into the command.
+
+        Args:
+            extra_args: A string of extra arguments to insert into the command.
+
+        Returns:
+            A string of the cURL command that can be used via the command line.
+        """
         parts = ["curl"]
+        if extra_args:
+            parts.append(extra_args)
 
         if self.method != "GET":
             parts.append(f"-X {self.method}")

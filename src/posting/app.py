@@ -1061,7 +1061,9 @@ class Posting(App[None], inherit_bindings=False):
             main_screen.request_options.to_model()
         )
 
-        curl_command = request_model.to_curl()
+        curl_command = request_model.to_curl(
+            extra_args=self.settings.curl_export_extra_args
+        )
 
         if os.getenv("TERM_PROGRAM") == "Apple_Terminal":
             # Apple terminal doesn't support OSC 52, so we need to use
