@@ -706,10 +706,10 @@ class MainScreen(Screen[None]):
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
         self.params_table.replace_all_rows(
-            [(param.name, param.value) for param in request_model.params]
+            [(str(param.enabled), param.name, param.value) for param in request_model.params]
         )
         self.headers_table.replace_all_rows(
-            [(header.name, header.value) for header in request_model.headers]
+            [(str(header.enabled), header.name, header.value) for header in request_model.headers]
         )
         if request_model.body:
             if request_model.body.content:
@@ -720,7 +720,7 @@ class MainScreen(Screen[None]):
                 self.request_editor.form_editor.replace_all_rows([])
             elif request_model.body.form_data:
                 self.request_editor.form_editor.replace_all_rows(
-                    (param.name, param.value) for param in request_model.body.form_data
+                    (str(param.enabled), param.name, param.value) for param in request_model.body.form_data
                 )
                 self.request_editor.request_body_type_select.value = "form-body-editor"
                 self.request_body_text_area.text = ""

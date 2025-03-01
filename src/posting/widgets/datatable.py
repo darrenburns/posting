@@ -82,7 +82,10 @@ PostingDataTable {
         sender: MessagePump | None = None,
     ) -> RowKey:
         if self.row_disable:
-            cells = (self.Checkbox(True),) + cells
+            if len(cells) == len(self.columns):
+                cells = (self.Checkbox(cells[0] == 'True'),) + cells[1:]
+            else:
+                cells = (self.Checkbox(True),) + cells
         msg = self.RowsAdded(self, explicit_by_user=explicit_by_user)
         if sender:
             msg.set_sender(sender)
