@@ -1,5 +1,6 @@
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
+import os
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -17,6 +18,7 @@ from textual.app import App, ComposeResult, InvalidThemeError, ReturnType
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
+from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
@@ -1058,8 +1060,31 @@ class Posting(App[None], inherit_bindings=False):
         request_model = main_screen.build_request_model(
             main_screen.request_options.to_model()
         )
+
         curl_command = request_model.to_curl()
-        self.notify(curl_command, title="Exported to cURL")
+
+        if os.getenv("TERM_PROGRAM") == "Apple_Terminal":
+            # Apple terminal doesn't support OSC 52, so we need to use
+            # pyperclip to copy the command to the clipboard.
+            try:
+                import pyperclip
+
+                pyperclip.copy(curl_command)
+            except pyperclip.PyperclipException as exc:
+                self.notify(
+                    str(exc),
+                    title="Clipboard error",
+                    severity="error",
+                    timeout=10,
+                )
+            else:
+                self.notify(escape(curl_command), title="Copied to clipboard")
+        else:
+            self.notify(
+                escape(curl_command),
+                title="Copied to clipboard",
+            )
+            self.app.copy_to_clipboard(curl_command)
 
     def action_save_screenshot(
         self,
