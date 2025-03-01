@@ -22,7 +22,7 @@ editor: vim
 Alternatively, you can set the `POSTING_EDITOR` environment variable.
 
 ```bash
-POSTING_EDITOR=vim
+export POSTING_EDITOR=vim
 ```
 
 If neither is set, Posting will try to use the `EDITOR` environment variable.
@@ -43,7 +43,7 @@ pager: less
 Alternatively, you can set the `POSTING_PAGER` environment variable.
 
 ```bash
-POSTING_PAGER=less
+export POSTING_PAGER=less
 ```
 
 ### JSON Pager
@@ -59,7 +59,30 @@ pager_json: jq
 Alternatively, you can set the `POSTING_PAGER_JSON` environment variable.
 
 ```bash
-POSTING_PAGER_JSON=jq
+export POSTING_PAGER_JSON=jq
 ```
 
 If neither is set, Posting will try to use the default pager lookup rules discussed earlier.
+
+## Exporting to curl
+
+> *Added in Posting 2.4.0*
+
+Open the command palette and select `export: copy as curl`.
+This will transform the open request into a cURL command, and copy it to your clipboard.
+
+![Screenshot of command palette with the export: copy as curl option](../assets/curl-export.png)
+
+You can optionally supply extra arguments to pass to curl by setting the `curl_export_extra_args` setting in your `config.yaml` file.
+
+```yaml title="config.yaml"
+curl_export_extra_args: "--verbose -w %{time_total} %{http_code}"
+```
+
+This will be inserted directly into the command that gets copied to your clipboard, immediately after `curl `,
+producing a command like the following:
+
+```bash
+curl --verbose -w %{time_total} %{http_code} -X POST ...
+```
+

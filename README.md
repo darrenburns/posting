@@ -19,6 +19,7 @@ Some notable features include:
 - extensive configuration
 - "open in $EDITOR"
 - import curl commands by pasting them into the URL bar
+- export requests as cURL commands
 - import OpenAPI specs
 - a command palette for quickly accessing functionality
 

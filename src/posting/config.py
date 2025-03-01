@@ -206,6 +206,9 @@ class Settings(BaseSettings):
     keymap: dict[str, str] = Field(default_factory=dict)
     """A dictionary mapping binding IDs to key combinations."""
 
+    curl_export_extra_args: str = Field(default="")
+    """Extra arguments to pass to curl when exporting a request as a curl command."""
+
     @classmethod
     def settings_customise_sources(
         cls,
