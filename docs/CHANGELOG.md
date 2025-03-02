@@ -8,6 +8,8 @@
 - Added ability to quickly search for request by name and jump to it (press `ctrl+shift+p` to open the search popup).
 - Added configurable keybinding `search-requests` (default: `ctrl+shift+p`).
 - A few more screenshots were added to the "Navigation" guide.
+- Added new headers to autocompletion: `Accept-Charset`, `DNT`, `Upgrade`, `Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-User`, `Sec-Fetch-Dest`, and `Service-Worker-Navigation-Preload`.
+- Removed some headers from autocompletion (due to being deprecated or response-only headers).
 
 ### Changed
 
