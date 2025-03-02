@@ -6,7 +6,10 @@ When editing a theme on disk, Posting can show a live preview of the theme in ef
 
 ### Creating a theme
 
-You can check where Posting will look for themes by running `posting locate themes` in your terminal. Place custom themes in this directory and Posting will load them on startup. Theme files must be suffixed with `.yaml`, but the rest of the filename is unused by Posting.
+You can check where Posting will look for user-defined themes by running `posting locate themes` in your terminal.
+Place custom themes in this directory and Posting will load them on startup.
+Theme files must be suffixed with `.yaml`, but the rest of the filename is unused by Posting.
+Built-in themes are *not* in this directory, but are part of the Posting code itself.
 
 Here's an example theme file:
 

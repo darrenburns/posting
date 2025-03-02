@@ -1,10 +1,16 @@
-## 2.4.0 [1st March 2025]
+## 2.4.0 [2nd March 2025]
 
 ### Added
 
+- Added ability to toggle rows in tables on and off (press `space` or click the checkbox to toggle).
 - Added "Export to curl" option in the command palette, to copy the request to your clipboard as a curl command.
-    - Added `curl_export_extra_args` config to allow for adding extra arguments to the curl command copied to your clipboard.
+- Added `curl_export_extra_args` config to allow for adding extra arguments to the curl command copied to your clipboard.
 - Allow for customisation of "open in editor" and "open in pager" keys (`open-in-editor` and `open-in-pager` in the keymap).
+- Added ability to quickly search for request by name and jump to it (press `ctrl+shift+p` to open the search popup).
+- Added configurable keybinding `search-requests` (default: `ctrl+shift+p`).
+- A few more screenshots were added to the "Navigation" guide.
+- Added new headers to autocompletion: `Accept-Charset`, `DNT`, `Upgrade`, `Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-User`, `Sec-Fetch-Dest`, and `Service-Worker-Navigation-Preload`.
+- Removed some headers from autocompletion (due to being deprecated or response-only headers).
 
 ### Changed
 
@@ -13,6 +19,7 @@
 ### Fixed
 
 - Fixed variable preview not being shown below URL bar when cursor is over a variable.
+- Fixed `ctrl+?` keybinding not opening contextual help on some terminals.
 
 ## 2.3.1 [1st March 2025]
 

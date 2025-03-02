@@ -69,6 +69,7 @@ class HeadersTable(PostingDataTable):
         description="""\
 A table of HTTP headers that will be sent with the request.
 Press `backspace` to delete a header.
+Press `space` to toggle a header on and off.
 Posting will automatically attach a `User-Agent` header to outgoing requests in order to identify itself, and set the `Content-Type` depending on the content
 in the body tab. Setting a header in this table will override the default value in these cases.
 """,

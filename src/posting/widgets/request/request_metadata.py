@@ -26,8 +26,8 @@ class RequestMetadata(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
-        yield Label("Name [dim]optional[/dim]")
-        yield VariableInput(placeholder="Enter a name...", id="name-input")
+        yield Label("Name [dim]optional[/dim]…")
+        yield VariableInput(placeholder="Enter a name…", id="name-input")
         yield Label("Description [dim]optional[/dim]")
         yield PostingTextArea(id="description-textarea")
         yield Label("Path [dim]read-only[/dim]")

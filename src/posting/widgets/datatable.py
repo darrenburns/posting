@@ -183,19 +183,30 @@ PostingDataTable {
         try:
             cursor_cell_key = self.coordinate_to_cell_key(self.cursor_coordinate)
             cursor_row_key, _ = cursor_cell_key
-            checkbox: PostingDataTable.Checkbox = self.rows[cursor_row_key].label
+            self.toggle_row(cursor_row_key)
+        except CellDoesNotExist:
+            pass
+
+    def toggle_row(self, row_key: RowKey) -> None:
+        try:
+            checkbox: PostingDataTable.Checkbox = self.rows[row_key].label
+        except KeyError:
+            return
+        else:
             checkbox.toggle()
             # HACK: Without such increment, the table is refreshed
             # only when focus changes to another column.
             self._update_count += 1
             self.refresh()
-        except CellDoesNotExist:
-            pass
 
     def is_row_enabled_at(self, row_index: int) -> bool:
         row_key = self._row_locations.get_key(row_index)
-        checkbox: PostingDataTable.Checkbox = self.rows[row_key].label
-        return checkbox.checked
+        try:
+            checkbox: PostingDataTable.Checkbox = self.rows[row_key].label
+        except KeyError:
+            return True
+        else:
+            return checkbox.checked
 
     def render_line(self, y: int) -> Strip:
         strip = super().render_line(y)
@@ -217,6 +228,12 @@ PostingDataTable {
             strip = strip.apply_style(Style(dim=True))
             strip = strip.apply_filter(DimFilter(), Color(0, 0, 0))
         return strip
+
+    @on(DataTable.RowLabelSelected)
+    def _on_row_label_selected(self, event: DataTable.RowLabelSelected) -> None:
+        if self.row_disable:
+            event.prevent_default()
+            self.toggle_row(event.row_key)
 
     def __rich_repr__(self):
         yield "id", self.id
