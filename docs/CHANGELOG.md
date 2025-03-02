@@ -7,6 +7,7 @@
 - Allow for customisation of "open in editor" and "open in pager" keys (`open-in-editor` and `open-in-pager` in the keymap).
 - Added ability to quickly search for request by name and jump to it (press `ctrl+shift+p` to open the search popup).
 - Added configurable keybinding `search-requests` (default: `ctrl+shift+p`).
+- A few more screenshots were added to the "Navigation" guide.
 
 ### Changed
 
@@ -15,6 +16,7 @@
 ### Fixed
 
 - Fixed variable preview not being shown below URL bar when cursor is over a variable.
+- Fixed `ctrl+?` keybinding not opening contextual help on some terminals.
 
 ## 2.3.1 [1st March 2025]
 

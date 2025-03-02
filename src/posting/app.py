@@ -728,7 +728,7 @@ class MainScreen(Screen[None]):
                     name=node.data.name if node.data.path else node.data.name,
                     callback=lambda request=node.data: load_and_select_request(request),
                     help_text=(
-                        str(node.data.path.relative_to(collection_path).parent)
+                        str(node.data.path.relative_to(collection_path))
                         if node.data.path
                         else ""
                     ),
@@ -871,7 +871,7 @@ class Posting(App[None], inherit_bindings=False):
             id="quit",
         ),
         Binding(
-            "f1,ctrl+question_mark",
+            "f1,ctrl+question_mark,ctrl+shift+slash",
             "help",
             "Help",
             tooltip="Open the help dialog for the currently focused widget.",
