@@ -10,7 +10,7 @@ from textual.content import Content
 
 from posting.importing.curl import CurlImport
 from textual import messages, on, log, work
-from textual.command import CommandPalette
+from textual.command import CommandListItem, CommandPalette, SimpleCommand
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
@@ -161,6 +161,14 @@ class MainScreen(Screen[None]):
             show=False,
             tooltip="Toggle the collection browser.",
             id="toggle-collection",
+        ),
+        Binding(
+            "ctrl+P,ctrl+shift+p",
+            "open_request_search_palette",
+            "Search requests",
+            show=True,
+            tooltip="Search for a request by name.",
+            id="search-requests",
         ),
     ]
 
@@ -702,16 +710,47 @@ class MainScreen(Screen[None]):
                 timeout=3,
             )
 
+    def action_open_request_search_palette(self) -> None:
+        """Open the request search palette."""
+        collection_tree_nodes = list(self.collection_tree.walk_nodes())
+
+        def load_and_select_request(request: RequestModel) -> None:
+            self.load_request_model(request)
+            for node in collection_tree_nodes:
+                if node.data == request:
+                    self.collection_tree.select_node(node)
+                    break
+
+        collection_path = self.collection.path
+        self.app.search_commands(
+            [
+                SimpleCommand(
+                    name=node.data.name if node.data.path else node.data.name,
+                    callback=lambda request=node.data: load_and_select_request(request),
+                    help_text=(
+                        str(node.data.path.relative_to(collection_path))
+                        if node.data.path
+                        else ""
+                    ),
+                )
+                for node in collection_tree_nodes
+                if isinstance(node.data, RequestModel)
+            ],
+            placeholder="Search for a request…",
+        )
+
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
         self.selected_method = request_model.method
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
         self.params_table.replace_all_rows(
-            [(param.name, param.value) for param in request_model.params]
+            ((param.name, param.value) for param in request_model.params),
+            (param.enabled for param in request_model.params),
         )
         self.headers_table.replace_all_rows(
-            [(header.name, header.value) for header in request_model.headers]
+            ((header.name, header.value) for header in request_model.headers),
+            (header.enabled for header in request_model.headers),
         )
         if request_model.body:
             if request_model.body.content:
@@ -722,7 +761,11 @@ class MainScreen(Screen[None]):
                 self.request_editor.form_editor.replace_all_rows([])
             elif request_model.body.form_data:
                 self.request_editor.form_editor.replace_all_rows(
-                    (param.name, param.value) for param in request_model.body.form_data
+                    (
+                        (param.name, param.value)
+                        for param in request_model.body.form_data
+                    ),
+                    (param.enabled for param in request_model.body.form_data),
                 )
                 self.request_editor.request_body_type_select.value = "form-body-editor"
                 self.request_body_text_area.text = ""
@@ -834,7 +877,7 @@ class Posting(App[None], inherit_bindings=False):
             id="quit",
         ),
         Binding(
-            "f1,ctrl+question_mark",
+            "f1,ctrl+question_mark,ctrl+shift+slash",
             "help",
             "Help",
             tooltip="Open the help dialog for the currently focused widget.",

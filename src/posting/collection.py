@@ -3,7 +3,7 @@ from functools import total_ordering
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from pathlib import Path
 from string import Template
-from typing import Any, Literal, get_args
+from typing import Any, Generator, Literal, get_args
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
 import rich
@@ -121,7 +121,7 @@ class RequestBody(BaseModel):
         if self.form_data:
             # Ensure we don't delete duplicate keys
             httpx_args["data"] = tuples_to_dict(
-                [(item.name, item.value) for item in self.form_data]
+                [(item.name, item.value) for item in self.form_data if item.enabled]
             )
         return httpx_args
 
