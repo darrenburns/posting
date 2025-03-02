@@ -10,6 +10,7 @@ from textual.events import Blur, Paste
 from textual.message import Message
 from textual.widgets import Input, Button, Label
 from textual.theme import Theme
+from textual.widgets.input import Selection
 from textual_autocomplete import DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
 from posting.config import SETTINGS
@@ -77,8 +78,8 @@ It's recommended you create a new request before pasting a curl command, to avoi
     def on_change(self, event: Input.Changed) -> None:
         self.remove_class("error")
 
-    def watch_cursor_position(self, cursor_position: int) -> None:
-        self.post_message(self.CursorMoved(cursor_position, self.value, self))
+    def watch_selection(self, selection: Selection) -> None:
+        self.post_message(self.CursorMoved(selection.end, self.value, self))
 
     def on_theme_change(self, theme: Theme) -> None:
         super().on_theme_change(theme)
@@ -172,8 +173,8 @@ class UrlBar(Vertical):
         except NoMatches:
             return
 
-    @on(UrlInput.Blurred)
-    def on_blur(self, event: UrlInput.Blurred) -> None:
+    @on(Input.Blurred)
+    def on_blur(self, event: Input.Blurred) -> None:
         try:
             self.variable_value_bar.update("")
         except NoMatches:
@@ -189,7 +190,6 @@ class UrlBar(Vertical):
         cursor_position = url_input.cursor_position
         value = url_input.value
         variable_at_cursor = get_variable_at_cursor(cursor_position, value)
-
         variables = get_variables()
         try:
             variable_bar = self.variable_value_bar
