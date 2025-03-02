@@ -562,3 +562,17 @@ class TestScripts:
             await pilot.press("ctrl+m")  # expand response section
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestDisableRowInTable:
+    def test_disable_row_in_table(self, snap_compare):
+        """Check that a row can be disabled in a table."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.press("ctrl+o", "q")
+            await pilot.press("j", "j", "space", "j")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)

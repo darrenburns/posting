@@ -1,11 +1,16 @@
 from dataclasses import dataclass
 from typing import Any, Iterable, Self
+from rich.style import Style
 from rich.text import Text
 from textual import on
+from textual.app import RenderResult
 from textual.binding import Binding
+from textual.color import Color
 from textual.coordinate import Coordinate
+from textual.filter import DimFilter
 from textual.message import Message
 from textual.message_pump import MessagePump
+from textual.strip import Strip
 from textual.widgets import DataTable
 from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey
 
@@ -34,6 +39,24 @@ PostingDataTable {
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.cursor_vertical_escape = True
+        """The cursor can escape the table by pressing up when it's at the top (will focus previous widget in focus chain)."""
+        self.row_disable = False
+        """If True, rows will have a checkbox added to them and can be disabled with space bar."""
+
+    @dataclass
+    class Checkbox:
+        """A checkbox, added to rows to make them enable/disable."""
+
+        data_table: "PostingDataTable"
+        checked: bool = False
+
+        def __rich__(self) -> RenderResult:
+            return Text("✔︎" if self.checked else " ")
+
+        def toggle(self) -> bool:
+            """Toggle the checkbox."""
+            self.checked = not self.checked
+            return self.checked
 
     @dataclass
     class RowsRemoved(Message):
@@ -66,6 +89,8 @@ PostingDataTable {
         if sender:
             msg.set_sender(sender)
         self.post_message(msg)
+        if self.row_disable and label is None:
+            label = self.Checkbox(self, True)
         return super().add_row(*cells, height=height, key=key, label=label)
 
     def action_toggle_fixed_columns(self) -> None:
@@ -83,10 +108,20 @@ PostingDataTable {
         self._column_width_refresh()
         return self
 
-    def replace_all_rows(self, rows: Iterable[Iterable[str]]) -> None:
+    def replace_all_rows(
+        self, rows: Iterable[Iterable[str]], enable_states: Iterable[bool] | None = None
+    ) -> None:
         self.clear()
-        for row in rows:
-            self.add_row(*row, explicit_by_user=False)
+        if self.row_disable and enable_states:
+            for row, enable in zip(rows, enable_states):
+                self.add_row(
+                    *row,
+                    explicit_by_user=False,
+                    label=self.Checkbox(self, enable),
+                )
+        else:
+            for row in rows:
+                self.add_row(*row, explicit_by_user=False)
         self._column_width_refresh()
 
     def _column_width_refresh(self) -> None:
@@ -143,6 +178,45 @@ PostingDataTable {
             self.remove_row(cursor_row_key)
         except CellDoesNotExist:
             pass
+
+    def action_toggle_row(self) -> None:
+        try:
+            cursor_cell_key = self.coordinate_to_cell_key(self.cursor_coordinate)
+            cursor_row_key, _ = cursor_cell_key
+            checkbox: PostingDataTable.Checkbox = self.rows[cursor_row_key].label
+            checkbox.toggle()
+            # HACK: Without such increment, the table is refreshed
+            # only when focus changes to another column.
+            self._update_count += 1
+            self.refresh()
+        except CellDoesNotExist:
+            pass
+
+    def is_row_enabled_at(self, row_index: int) -> bool:
+        row_key = self._row_locations.get_key(row_index)
+        checkbox: PostingDataTable.Checkbox = self.rows[row_key].label
+        return checkbox.checked
+
+    def render_line(self, y: int) -> Strip:
+        strip = super().render_line(y)
+        try:
+            row_key, _ = self._get_offsets(y)
+        except LookupError:
+            return Strip.blank(self.size.width)
+
+        try:
+            label = self.rows[row_key].label
+        except KeyError:
+            return strip
+
+        if label is None:
+            return strip
+
+        is_disabled = not label.checked
+        if self.row_disable and is_disabled:
+            strip = strip.apply_style(Style(dim=True))
+            strip = strip.apply_filter(DimFilter(), Color(0, 0, 0))
+        return strip
 
     def __rich_repr__(self):
         yield "id", self.id
