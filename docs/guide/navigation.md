@@ -33,6 +33,12 @@ Scrollbars can also be clicked and dragged.
 
 If you hold shift and scroll using the trackpad or mousewheel, the content will scroll horizontally (if there's a horizontal scrollbar).
 
+## Searching and jumping to requests
+
+Press <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>p</kbd> to open the search popup (configurable using the `search-requests` keybinding, see [keymap](./keymap.md)).
+
+Type the name of the request you want to jump to and press <kbd>enter</kbd>.
+
 ## Contextual help
 
 Many widgets have additional bindings for navigation other than those displayed in the footer. You can view the full list of keybindings for the currently
