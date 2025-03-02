@@ -736,7 +736,7 @@ class MainScreen(Screen[None]):
                 for node in collection_tree_nodes
                 if isinstance(node.data, RequestModel)
             ],
-            placeholder="Search for a request",
+            placeholder="Search for a request…",
         )
 
     def load_request_model(self, request_model: RequestModel) -> None:
