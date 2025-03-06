@@ -53,14 +53,18 @@ from posting.themes import (
 )
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
-from posting.variables import SubstitutionError, get_variables, update_variables
+from posting.variables import (
+    SubstitutionError,
+    get_variables,
+    load_variables,
+    update_variables,
+)
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
 from posting.widgets.datatable import PostingDataTable
-from posting.variables import load_variables
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
@@ -228,14 +232,16 @@ class MainScreen(Screen[None]):
         self,
         path_to_script: str,
         default_function_name: str,
+        write_logs_to_ui: bool = True,
         *args: Any,
     ) -> None:
         """
         Get and run a function from a script.
 
         Args:
-            script_path: Path to the script, relative to the collection path.
+            path_to_script: Path to the script, relative to the collection path.
             default_function_name: Default function name to use if not specified in the path.
+            write_logs_to_ui: Whether to write logs to the UI.
             *args: Arguments to pass to the script function.
         """
         script_path = Path(path_to_script)
@@ -259,7 +265,7 @@ class MainScreen(Screen[None]):
             )
             raise
 
-        if script_function is not None:
+        if script_function is not None and write_logs_to_ui:
             try:
                 script_output = self.response_script_output
                 script_output.log_function_call_start(
@@ -329,6 +335,7 @@ class MainScreen(Screen[None]):
                     self.get_and_run_script(
                         setup_script,
                         "setup",
+                        True,
                         script_context,
                     )
                 except Exception:
@@ -369,6 +376,8 @@ class MainScreen(Screen[None]):
                         self.get_and_run_script(
                             on_request,
                             "on_request",
+                            True,
+                            # The args below are passed to the script function.
                             request_model,
                             script_context,
                         )
@@ -407,6 +416,8 @@ class MainScreen(Screen[None]):
                         self.get_and_run_script(
                             on_response,
                             "on_response",
+                            True,
+                            # The args below are passed to the script function.
                             response,
                             script_context,
                         )
@@ -1103,6 +1114,33 @@ class Posting(App[None], inherit_bindings=False):
         request_model = main_screen.build_request_model(
             main_screen.request_options.to_model()
         )
+
+        if setup_script := request_model.scripts.setup:
+            try:
+                main_screen.get_and_run_script(
+                    setup_script,
+                    "setup",
+                    False,
+                    PostingContext(self),
+                )
+            except Exception:
+                self.notify(
+                    "Error running setup script",
+                    title="Error in script",
+                    severity="error",
+                )
+
+        variables = get_variables()
+        try:
+            request_model.apply_template(variables)
+        except SubstitutionError as e:
+            log.error(e)
+            self.notify(
+                str(e),
+                title="Undefined variable",
+                severity="warning",
+            )
+            pass
 
         curl_command = request_model.to_curl(
             extra_args=self.settings.curl_export_extra_args

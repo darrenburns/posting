@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Iterable, Self
 from rich.style import Style
 from rich.text import Text
@@ -48,15 +48,21 @@ PostingDataTable {
         """A checkbox, added to rows to make them enable/disable."""
 
         data_table: "PostingDataTable"
-        checked: bool = False
+        checked: bool = True
+        text: Text = field(default_factory=lambda: Text("✔︎"))
 
         def __rich__(self) -> RenderResult:
-            return Text("✔︎" if self.checked else " ")
+            return self.text
 
         def toggle(self) -> bool:
             """Toggle the checkbox."""
             self.checked = not self.checked
+            self.text = Text("✔︎" if self.checked else " ")
             return self.checked
+
+        @property
+        def plain(self) -> str:
+            return self.text.plain
 
     @dataclass
     class RowsRemoved(Message):

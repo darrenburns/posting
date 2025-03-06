@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- Fixed crash when toggling rows via clicking the checkbox.
+
 ## 2.4.0 [2nd March 2025]
 
 ### Added
