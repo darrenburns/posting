@@ -11,11 +11,11 @@ from textual.content import Content
 
 from posting.importing.curl import CurlImport
 from textual import messages, on, log, work
-from textual.command import CommandListItem, CommandPalette, SimpleCommand
+from textual.command import CommandPalette, SimpleCommand
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult, InvalidThemeError, ReturnType
+from textual.app import App, ComposeResult, InvalidThemeError
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -1004,7 +1004,7 @@ class Posting(App[None], inherit_bindings=False):
     async def watch_themes(self) -> None:
         """Watching the theme directory for changes."""
         async for changes in awatch(self.settings.theme_directory):
-            for change_type, file_path in changes:
+            for _change_type, file_path in changes:
                 if file_path.endswith((".yml", ".yaml")):
                     try:
                         theme = load_user_theme(Path(file_path))
@@ -1266,7 +1266,7 @@ class Posting(App[None], inherit_bindings=False):
 
     def exit(
         self,
-        result: ReturnType | None = None,
+        result: object | None = None,
         return_code: int = 0,
         message: RenderableType | None = None,
     ) -> None:
