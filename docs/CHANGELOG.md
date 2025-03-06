@@ -10,6 +10,7 @@
 
 - Fixed crash when toggling rows via clicking the checkbox
 - Fixed erroneous trailing ellipsis in `Info` tab.
+- Fixed error messages in toasts on read and write timeouts.
 
 ### Changed
 
