@@ -3,8 +3,9 @@ import shlex
 import subprocess
 import tempfile
 from dataclasses import dataclass
+from typing import Iterable
 
-from textual import on
+from textual import events, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
@@ -12,7 +13,12 @@ from textual.message import Message
 from textual.reactive import Reactive, reactive
 from textual.theme import Theme as TextualTheme
 from textual.widgets import Checkbox, Label, Select, TextArea
-from textual.widgets.text_area import Selection, TextAreaTheme, ThemeDoesNotExist
+from textual.widgets.text_area import (
+    Location,
+    Selection,
+    TextAreaTheme,
+    ThemeDoesNotExist,
+)
 from typing_extensions import Literal
 
 from posting.config import SETTINGS
@@ -74,7 +80,7 @@ class TextAreaFooter(Horizontal):
 
     def watch_selection(self, selection: Selection) -> None:
         row, column = selection.end
-        self.cursor_location_label.update(f"{row+1}:{column+1}")
+        self.cursor_location_label.update(f"{row + 1}:{column + 1}")
 
     def watch_visual_mode(self, value: bool) -> None:
         label = self.query_one("#mode-label", Label)
@@ -130,9 +136,17 @@ class TextAreaFooter(Horizontal):
 
 class PostingTextArea(TextArea):
     BINDINGS = [
-        Binding("f3,ctrl+P", "open_in_pager", "Pager"),
-        Binding("f4,ctrl+E", "open_in_editor", "Editor"),
+        Binding("f3,ctrl+P", "open_in_pager", "Pager", id="open-in-pager"),
+        Binding("f4,ctrl+E", "open_in_editor", "Editor", id="open-in-editor"),
     ]
+
+    OPENING_BRACKETS = {
+        "(": ")",
+        "[": "]",
+        "{": "}",
+    }
+
+    CLOSING_BRACKETS = {v: k for k, v in OPENING_BRACKETS.items()}
 
     def on_mount(self) -> None:
         self.indent_width = 2
@@ -246,6 +260,104 @@ class PostingTextArea(TextArea):
 
         os.remove(temp_file_name)
         self.app.refresh()
+
+    def on_key(self, event: events.Key) -> None:
+        character = event.character
+
+        if self.read_only:
+            return
+
+        if character in self.OPENING_BRACKETS:
+            opener = character
+            closer = self.OPENING_BRACKETS[opener]
+            self.insert(f"{opener}{closer}")
+            self.move_cursor_relative(columns=-1)
+            event.prevent_default()
+        elif character in self.CLOSING_BRACKETS:
+            # If we're currently at a closing bracket and
+            # we type the same closing bracket, move the cursor
+            # instead of inserting a character.
+            if self._matching_bracket_location:
+                row, col = self.cursor_location
+                line = self.document.get_line(row)
+                if character == line[col]:
+                    event.prevent_default()
+                    self.move_cursor_relative(columns=1)
+        elif event.key == "enter":
+            row, column = self.cursor_location
+            line = self.document.get_line(row)
+            if not line:
+                return
+
+            column = min(column, len(line) - 1)
+            character_locations = self._yield_character_locations_reverse(
+                (row, max(0, column - 1))
+            )
+            rstrip_line = line[: column + 1].rstrip()
+            anchor_char = rstrip_line[-1] if rstrip_line else None
+            get_content_start_column = self.get_content_start_column
+            get_column_width = self.get_column_width
+            try:
+                for character, _location in character_locations:
+                    # Ignore whitespace
+                    if character.isspace():
+                        continue
+                    elif character in self.OPENING_BRACKETS:
+                        # We found an opening bracket on this line,
+                        # so check the indentation of the line.
+                        # The newly created line should have increased
+                        # indentation.
+                        content_start_col = get_content_start_column(line)
+                        width = get_column_width(row, content_start_col)
+                        width_to_indent = max(
+                            width + self.indent_width, self.indent_width
+                        )
+
+                        target_location = row + 1, column + width_to_indent
+                        insert_text = "\n" + " " * width_to_indent
+                        if anchor_char in self.CLOSING_BRACKETS:
+                            # If there's a bracket under the cursor, we should
+                            # ensure that gets indented too.
+                            insert_text += "\n" + " " * content_start_col
+
+                        self.insert(insert_text)
+                        self.cursor_location = target_location
+                        event.prevent_default()
+                        break
+                    else:
+                        content_start_col = get_content_start_column(line)
+                        width = get_column_width(row, content_start_col)
+                        self.insert("\n" + " " * width)
+                        event.prevent_default()
+                        break
+            except IndexError:
+                return
+
+        self._restart_blink()
+
+    def get_content_start_column(self, line: str) -> int:
+        content_start_col = 0
+        for index, char in enumerate(line):
+            if not char.isspace():
+                content_start_col = index
+                break
+        return content_start_col
+
+    def _yield_character_locations_reverse(
+        self, start: Location
+    ) -> Iterable[tuple[str, Location]]:
+        row, column = start
+        document = self.document
+        line_count = document.line_count
+
+        while line_count > row >= 0:
+            line = document[row]
+            if column == -1:
+                column = len(line) - 1
+            while column >= 0:
+                yield line[column], (row, column)
+                column -= 1
+            row -= 1
 
 
 BRACKETS = set("()[]{}")
@@ -394,7 +506,7 @@ class ReadOnlyTextArea(PostingTextArea):
         else:
             text_to_copy = self.text
             message = f"Copied ({len(text_to_copy)} characters)."
-            title = "Response copied"
+            title = "Text copied"
 
         try:
             import pyperclip
@@ -461,6 +573,30 @@ class ReadOnlyTextArea(PostingTextArea):
     def on_focus(self) -> None:
         if self.select_on_focus:
             self.select_all()
+
+    def get_content_start_column(self, line: str) -> int:
+        content_start_col = 0
+        for index, char in enumerate(line):
+            if not char.isspace():
+                content_start_col = index
+                break
+        return content_start_col
+
+    def _yield_character_locations_reverse(
+        self, start: Location
+    ) -> Iterable[tuple[str, Location]]:
+        row, column = start
+        document = self.document
+        line_count = document.line_count
+
+        while line_count > row >= 0:
+            line = document[row]
+            if column == -1:
+                column = len(line) - 1
+            while column >= 0:
+                yield line[column], (row, column)
+                column -= 1
+            row -= 1
 
 
 class TextEditor(Vertical):

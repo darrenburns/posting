@@ -127,8 +127,8 @@ def on_response(response: httpx.Response, posting: Posting) -> None:
 
 The `Posting` object provides access to the application context and useful methods:
 
-- `set_variable(name: str, value: str) -> None`: Set a session variable
-- `get_variable(name: str) -> str | None`: Get a session variable
+- `set_variable(name: str, value: object) -> None`: Set a session variable
+- `get_variable(name: str, default: object | None = None) -> object | None`: Get a session variable
 - `clear_variable(name: str) -> None`: Clear a specific session variable
 - `clear_all_variables() -> None`: Clear all session variables
 - `notify(message: str, title: str = "", severity: str = "information", timeout: float | None = None)`: Send a notification to the user

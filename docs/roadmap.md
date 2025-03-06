@@ -38,7 +38,7 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 - External documentation. ✅
 - Uploading files.
 - Making it clear which HTTP headers are set automatically.  
-- Enabling and disabling rows in tables.
+- Enabling and disabling rows in tables. ✅
 - Highlighting variables in tables to show if they've resolved or not.  
 - File watcher so that if the request changes on disk then the UI updates to reflect it.
 - Custom themes, loaded from theme directory. ✅

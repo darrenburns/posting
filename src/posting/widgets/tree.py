@@ -1,6 +1,7 @@
-from typing import TypeVar
+from typing import Generator, TypeVar
 from textual.binding import Binding
 from textual.widgets import Tree
+from textual.widgets.tree import TreeNode
 
 T = TypeVar("T")
 
@@ -47,3 +48,8 @@ class PostingTree(Tree[T]):
             if node and node.allow_expand:
                 self.cursor_line = line
                 return
+
+    def walk_nodes(self) -> Generator[TreeNode[T], None, None]:
+        """Walk the nodes of the tree."""
+        for node in self._tree_nodes.values():
+            yield node

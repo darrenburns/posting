@@ -130,6 +130,27 @@ DataTable {
   }
 }
 
+PostingDataTable {
+    & > .datatable--header {
+      color: $text-success;
+      background: $surface;
+    }
+    & > .datatable--header-cursor {
+      color: $text;
+      background: $block-cursor-background;
+    }
+    &:blur {
+      & > .datatable--cursor {
+        background: transparent;
+      }
+      & > .datatable--header-cursor {
+        color: $text-success;
+        background: $surface;
+      }
+      
+    }
+}
+
 Input {
   border: none;
   width: 1fr;

@@ -1,8 +1,67 @@
-## Unreleased
+## 2.4.1 [6th March 2025]
+
+### Added
+
+- Added command palette option to export the request as a curl command *without* running setup scripts.
+- Added new documentation on working with the response in Posting and via external pagers/editors.
+- Added new documentation on saving requests into folder structures from within Posting.
+
+### Fixed
+
+- Fixed crash when toggling rows via clicking the checkbox
+- Fixed erroneous trailing ellipsis in `Info` tab.
+- Fixed error messages in toasts on read and write timeouts.
+
+### Changed
+
+- Variables will be substituted into exported curl commands.
+    - Undefined variables will be left as is (e.g. `$foo` will be left as `$foo` in the curl command)
+- Setup scripts will now run by default when exporting to curl.
+- Do not focus the URL bar when an error occurs on sending a request.
+- Small visual refinement in `Scripts` tab.
+
+## 2.4.0 [2nd March 2025]
+
+### Added
+
+- Added ability to toggle rows in tables on and off (press `space` or click the checkbox to toggle).
+- Added "Export to curl" option in the command palette, to copy the request to your clipboard as a curl command.
+- Added `curl_export_extra_args` config to allow for adding extra arguments to the curl command copied to your clipboard.
+- Allow for customisation of "open in editor" and "open in pager" keys (`open-in-editor` and `open-in-pager` in the keymap).
+- Added ability to quickly search for request by name and jump to it (press `ctrl+shift+p` to open the search popup).
+- Added configurable keybinding `search-requests` (default: `ctrl+shift+p`).
+- A few more screenshots were added to the "Navigation" guide.
+- Added new headers to autocompletion: `Accept-Charset`, `DNT`, `Upgrade`, `Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-User`, `Sec-Fetch-Dest`, and `Service-Worker-Navigation-Preload`.
+- Removed some headers from autocompletion (due to being deprecated or response-only headers).
+
+### Changed
+
+- Upgraded Textual from version 0.86.0 to 2.1.1.
+
+### Fixed
+
+- Fixed variable preview not being shown below URL bar when cursor is over a variable.
+- Fixed `ctrl+?` keybinding not opening contextual help on some terminals.
+
+## 2.3.1 [1st March 2025]
+
+### Changed
+
+- Renamed "Change theme" to "Preview theme" in command palette, and update description to not imply the change persists across sessions (use the config file for persistent changes).
 
 ### Fixed
 
 - Fixed crash when invalid syntax theme is specified. Posting now exits cleanly with an error message.
+- Fixed toast message on copying text referring to "Response text" regardless of what text was copied.
+- Fixed error handling and messaging when themes contain invalid syntax, invalid values. Includes batching errors and displaying multiple in one message.
+- Fixed animation level config no longer being respected.
+- Fixed missing `get_variable` method in scripting API that was described in docs but not implemented.
+
+## 2.3.0 [19th November 2024]
+
+### Added
+
+- Editing a theme on disk will result in the UI refreshing in real-time to reflect changes.
 
 ## 2.2.0 [17th November 2024]
 

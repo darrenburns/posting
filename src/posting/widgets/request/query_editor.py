@@ -16,6 +16,7 @@ class ParamsTable(PostingDataTable):
 
     BINDINGS = [
         Binding("backspace", action="remove_row", description="Remove row"),
+        Binding("space", action="toggle_row", description="Toggle row"),
     ]
 
     def on_mount(self):
@@ -23,6 +24,7 @@ class ParamsTable(PostingDataTable):
         self.show_header = False
         self.cursor_type = "row"
         self.zebra_stripes = True
+        self.row_disable = True
         self.add_columns("Key", "Value")
 
     def watch_has_focus(self, value: bool) -> None:
@@ -31,10 +33,13 @@ class ParamsTable(PostingDataTable):
 
     def to_model(self) -> list[QueryParam]:
         params: list[QueryParam] = []
-        # TODO - handle enabled/disabled...
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
-            params.append(QueryParam(name=row[0], value=row[1], enabled=True))
+            params.append(
+                QueryParam(
+                    name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)
+                )
+            )
         return params
 
 

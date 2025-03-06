@@ -1,6 +1,8 @@
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
+import os
 from pathlib import Path
+import sys
 from typing import Any, Literal, cast
 
 import httpx
@@ -9,14 +11,15 @@ from textual.content import Content
 
 from posting.importing.curl import CurlImport
 from textual import messages, on, log, work
-from textual.command import CommandPalette
+from textual.command import CommandPalette, SimpleCommand
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult, ReturnType
+from textual.app import App, ComposeResult, InvalidThemeError
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
+from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
@@ -44,17 +47,25 @@ from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
-from posting.themes import BUILTIN_THEMES, load_user_theme, load_user_themes
+from posting.themes import (
+    BUILTIN_THEMES,
+    load_user_theme,
+    load_user_themes,
+)
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
-from posting.variables import SubstitutionError, get_variables, update_variables
+from posting.variables import (
+    SubstitutionError,
+    get_variables,
+    load_variables,
+    update_variables,
+)
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
 from posting.widgets.datatable import PostingDataTable
-from posting.variables import load_variables
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
@@ -156,6 +167,14 @@ class MainScreen(Screen[None]):
             tooltip="Toggle the collection browser.",
             id="toggle-collection",
         ),
+        Binding(
+            "ctrl+P,ctrl+shift+p",
+            "open_request_search_palette",
+            "Search requests",
+            show=True,
+            tooltip="Search for a request by name.",
+            id="search-requests",
+        ),
     ]
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
@@ -214,14 +233,16 @@ class MainScreen(Screen[None]):
         self,
         path_to_script: str,
         default_function_name: str,
+        write_logs_to_ui: bool = True,
         *args: Any,
     ) -> None:
         """
         Get and run a function from a script.
 
         Args:
-            script_path: Path to the script, relative to the collection path.
+            path_to_script: Path to the script, relative to the collection path.
             default_function_name: Default function name to use if not specified in the path.
+            write_logs_to_ui: Whether to write logs to the UI.
             *args: Arguments to pass to the script function.
         """
         script_path = Path(path_to_script)
@@ -253,9 +274,13 @@ class MainScreen(Screen[None]):
                 )
 
                 rich_log = script_output.rich_log
-                stdout_log = RichLogIO(rich_log, "stdout")
-                stderr_log = RichLogIO(rich_log, "stderr")
 
+                if write_logs_to_ui:
+                    stdout_log = RichLogIO(rich_log, "stdout")
+                    stderr_log = RichLogIO(rich_log, "stderr")
+                else:
+                    stdout_log = sys.stdout
+                    stderr_log = sys.stderr
                 with redirect_stdout(stdout_log), redirect_stderr(stderr_log):
                     # Ensure we pass in the number of parameters the user has
                     # implicitly requested in their script.
@@ -315,6 +340,7 @@ class MainScreen(Screen[None]):
                     self.get_and_run_script(
                         setup_script,
                         "setup",
+                        True,
                         script_context,
                     )
                 except Exception:
@@ -355,6 +381,8 @@ class MainScreen(Screen[None]):
                         self.get_and_run_script(
                             on_request,
                             "on_request",
+                            True,
+                            # The args below are passed to the script function.
                             request_model,
                             script_context,
                         )
@@ -370,21 +398,11 @@ class MainScreen(Screen[None]):
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
-                print("-- sending request --")
-                print(request)
-                print(request.headers)
-                print("follow redirects =", request_options.follow_redirects)
-                print("verify =", request_options.verify_ssl)
-                print("attach cookies =", request_options.attach_cookies)
-                print("proxy =", request_model.options.proxy_url)
-                print("timeout =", request_model.options.timeout)
-                print("auth =", request_model.auth)
-
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
                 )
-                print("response cookies =", response.cookies)
+
                 self.post_message(HttpResponseReceived(response))
 
                 script_context.response = response
@@ -393,6 +411,8 @@ class MainScreen(Screen[None]):
                         self.get_and_run_script(
                             on_response,
                             "on_response",
+                            True,
+                            # The args below are passed to the script function.
                             response,
                             script_context,
                         )
@@ -409,13 +429,26 @@ class MainScreen(Screen[None]):
             self.notify(
                 severity="error",
                 title="Connect timeout",
-                message=f"Couldn't connect within {timeout} seconds.",
+                message=f"Couldn't connect within {request_options.timeout} seconds.",
+            )
+        except httpx.ReadTimeout as read_timeout:
+            log.error("Read timeout", read_timeout)
+            self.notify(
+                severity="error",
+                title="Read timeout",
+                message=f"Couldn't read data within {request_options.timeout} seconds.",
+            )
+        except httpx.WriteTimeout as write_timeout:
+            log.error("Write timeout", write_timeout)
+            self.notify(
+                severity="error",
+                title="Write timeout",
+                message=f"Couldn't send data within {request_options.timeout} seconds.",
             )
         except Exception as e:
             log.error("Error sending request", e)
             log.error("Type of error", type(e))
             self.url_input.add_class("error")
-            self.url_input.focus()
             self.notify(
                 severity="error",
                 title="Couldn't send request",
@@ -541,9 +574,9 @@ class MainScreen(Screen[None]):
 
         # In this case, we're saving an existing request to disk.
         request_model = self.build_request_model(self.request_options.to_model())
-        assert isinstance(
-            request_model, RequestModel
-        ), "currently open node should contain a request model"
+        assert isinstance(request_model, RequestModel), (
+            "currently open node should contain a request model"
+        )
 
         # At this point, either we're reusing the pre-existing home for the request
         # on disk, or the new location on disk which was assigned during the "new request flow"
@@ -696,16 +729,47 @@ class MainScreen(Screen[None]):
                 timeout=3,
             )
 
+    def action_open_request_search_palette(self) -> None:
+        """Open the request search palette."""
+        collection_tree_nodes = list(self.collection_tree.walk_nodes())
+
+        def load_and_select_request(request: RequestModel) -> None:
+            self.load_request_model(request)
+            for node in collection_tree_nodes:
+                if node.data == request:
+                    self.collection_tree.select_node(node)
+                    break
+
+        collection_path = self.collection.path
+        self.app.search_commands(
+            [
+                SimpleCommand(
+                    name=node.data.name if node.data.path else node.data.name,
+                    callback=lambda request=node.data: load_and_select_request(request),
+                    help_text=(
+                        str(node.data.path.relative_to(collection_path))
+                        if node.data.path
+                        else ""
+                    ),
+                )
+                for node in collection_tree_nodes
+                if isinstance(node.data, RequestModel)
+            ],
+            placeholder="Search for a request…",
+        )
+
     def load_request_model(self, request_model: RequestModel) -> None:
         """Load a request model into the UI."""
         self.selected_method = request_model.method
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
         self.params_table.replace_all_rows(
-            [(param.name, param.value) for param in request_model.params]
+            ((param.name, param.value) for param in request_model.params),
+            (param.enabled for param in request_model.params),
         )
         self.headers_table.replace_all_rows(
-            [(header.name, header.value) for header in request_model.headers]
+            ((header.name, header.value) for header in request_model.headers),
+            (header.enabled for header in request_model.headers),
         )
         if request_model.body:
             if request_model.body.content:
@@ -716,7 +780,11 @@ class MainScreen(Screen[None]):
                 self.request_editor.form_editor.replace_all_rows([])
             elif request_model.body.form_data:
                 self.request_editor.form_editor.replace_all_rows(
-                    (param.name, param.value) for param in request_model.body.form_data
+                    (
+                        (param.name, param.value)
+                        for param in request_model.body.form_data
+                    ),
+                    (param.enabled for param in request_model.body.form_data),
                 )
                 self.request_editor.request_body_type_select.value = "form-body-editor"
                 self.request_body_text_area.text = ""
@@ -800,6 +868,7 @@ class MainScreen(Screen[None]):
 
 
 class Posting(App[None], inherit_bindings=False):
+    ALLOW_SELECT = False
     AUTO_FOCUS = None
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
@@ -828,7 +897,7 @@ class Posting(App[None], inherit_bindings=False):
             id="quit",
         ),
         Binding(
-            "f1,ctrl+question_mark",
+            "f1,ctrl+question_mark,ctrl+shift+slash",
             "help",
             "Help",
             tooltip="Open the help dialog for the currently focused widget.",
@@ -861,9 +930,6 @@ class Posting(App[None], inherit_bindings=False):
         supplying a collection directory, or if they let Posting auto-discover
         it in some way (likely just using the default collection)."""
 
-        self.animation_level = settings.animation
-        """The level of animation to use in the app. This is used by Textual."""
-
         self.env_changed_signal = Signal[None](self, "env-changed")
         """Signal that is published when the environment has changed.
         This means one or more of the loaded environment files (in
@@ -875,6 +941,12 @@ class Posting(App[None], inherit_bindings=False):
         interface: pre-request or post-response scripts."""
 
         super().__init__()
+
+        # The animation is set AFTER the app is initialized intentionally,
+        # as it needs to override the default approach taken by Textual in
+        # App.__init__().
+        self.animation_level = settings.animation
+        """The level of animation to use in the app. This is used by Textual."""
 
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
@@ -936,16 +1008,23 @@ class Posting(App[None], inherit_bindings=False):
     async def watch_themes(self) -> None:
         """Watching the theme directory for changes."""
         async for changes in awatch(self.settings.theme_directory):
-            print("Theme changes detected")
-            for change_type, file_path in changes:
+            for _change_type, file_path in changes:
                 if file_path.endswith((".yml", ".yaml")):
-                    theme = load_user_theme(Path(file_path))
+                    try:
+                        theme = load_user_theme(Path(file_path))
+                    except Exception as e:
+                        print(f"Couldn't load theme from {str(file_path)}: {e}.")
+                        continue
                     if theme and theme.name == self.theme:
                         self.register_theme(theme)
                         self.set_reactive(App.theme, theme.name)
                         try:
                             self._watch_theme(theme.name)
                         except Exception as e:
+                            # I don't think we want to notify here, as editors often
+                            # use heuristics to determine whether to save a file. This could
+                            # prove jarring if we pop up a notification without the user
+                            # explicitly saving the file in their editor.
                             print(f"Error refreshing CSS: {e}")
 
     def on_mount(self) -> None:
@@ -963,7 +1042,17 @@ class Posting(App[None], inherit_bindings=False):
             available_themes |= load_xresources_themes()
 
         if settings.load_user_themes:
-            available_themes |= load_user_themes()
+            loaded_themes, failed_themes = load_user_themes()
+            available_themes |= loaded_themes
+
+            # Display a single message for all failed themes.
+            if failed_themes:
+                self.notify(
+                    "\n".join(f"• {path.name}" for path, _ in failed_themes),
+                    title=f"Failed to read {len(failed_themes)} theme{'s' if len(failed_themes) > 1 else ''}",
+                    severity="error",
+                    timeout=8,
+                )
 
         for theme in available_themes.values():
             self.register_theme(theme)
@@ -974,7 +1063,19 @@ class Posting(App[None], inherit_bindings=False):
         for theme_name in unwanted_themes:
             self.unregister_theme(theme_name)
 
-        self.theme = settings.theme
+        try:
+            self.theme = settings.theme
+        except InvalidThemeError:
+            # This can happen if the user has a custom theme that is invalid,
+            # e.g. a color is invalid or the YAML cannot be parsed.
+            self.theme = "galaxy"
+            self.notify(
+                "Check theme file for syntax errors, invalid colors, etc.\n"
+                "Falling back to [b i]galaxy[/] theme.",
+                title=f"Couldn't apply theme {settings.theme!r}",
+                severity="error",
+                timeout=8,
+            )
 
         self.set_keymap(self.settings.keymap)
         self.jumper = Jumper(
@@ -1016,6 +1117,69 @@ class Posting(App[None], inherit_bindings=False):
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
+
+    def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
+        main_screen = self.main_screen
+        request_model = main_screen.build_request_model(
+            main_screen.request_options.to_model()
+        )
+
+        # There are two options in the command palette for exporting to curl.
+        # Users can choose to run setup scripts attached to the request in order to
+        # set variables etc. or they can choose to skip setup scripts entirely.
+        if run_setup_scripts and (setup_script := request_model.scripts.setup):
+            try:
+                main_screen.get_and_run_script(
+                    setup_script,
+                    "setup",
+                    False,
+                    PostingContext(self),
+                )
+            except Exception:
+                self.notify(
+                    "Error running setup script",
+                    title="Error in script",
+                    severity="error",
+                )
+
+        variables = get_variables()
+        try:
+            request_model.apply_template(variables)
+        except SubstitutionError as e:
+            log.error(e)
+            self.notify(
+                str(e),
+                title="Undefined variable",
+                severity="warning",
+            )
+            pass
+
+        curl_command = request_model.to_curl(
+            extra_args=self.settings.curl_export_extra_args
+        )
+
+        if os.getenv("TERM_PROGRAM") == "Apple_Terminal":
+            # Apple terminal doesn't support OSC 52, so we need to use
+            # pyperclip to copy the command to the clipboard.
+            try:
+                import pyperclip
+
+                pyperclip.copy(curl_command)
+            except pyperclip.PyperclipException as exc:
+                self.notify(
+                    str(exc),
+                    title="Clipboard error",
+                    severity="error",
+                    timeout=10,
+                )
+            else:
+                self.notify(escape(curl_command), title="Copied to clipboard")
+        else:
+            self.notify(
+                escape(curl_command),
+                title="Copied to clipboard",
+            )
+            self.app.copy_to_clipboard(curl_command)
 
     def action_save_screenshot(
         self,
@@ -1109,7 +1273,7 @@ class Posting(App[None], inherit_bindings=False):
 
     def exit(
         self,
-        result: ReturnType | None = None,
+        result: object | None = None,
         return_code: int = 0,
         message: RenderableType | None = None,
     ) -> None:

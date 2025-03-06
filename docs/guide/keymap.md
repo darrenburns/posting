@@ -77,3 +77,6 @@ These are the IDs of the actions that you can change the keybinding for:
 - `help` - Open the help dialog for the currently focused widget. Default: `f1,ctrl+question_mark`.
 - `quit` - Quit the application. Default: `ctrl+c`.
 - `jump` - Enter jump mode. Default: `ctrl+o`.
+- `open-in-pager` - Open the content of the focused text area in your $PAGER/$POSTING_PAGER/$POSTING_PAGER_JSON. Default: `f3`.
+- `open-in-editor` - Open the content of the focused text area in your $EDITOR/$POSTING_EDITOR. Default: `f4`.
+- `search-requests` - Go to a request by name. Default: `ctrl+shift+p`.

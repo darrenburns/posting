@@ -17,6 +17,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # install Posting (will also quickly install Python 3.12 if needed)
 uv tool install --python 3.12 posting
+
+# Run posting
+posting
 ```
 
 `uv` can also be installed via Homebrew, Cargo, Winget, pipx, and more. See the [installation guide](https://docs.astral.sh/uv/getting-started/installation/) for more information.
@@ -47,6 +50,8 @@ brew install darrenburns/homebrew/posting
 ```
 
 Note that the Homebrew installation method requires compiling some Rust dependencies, and may take a few minutes to complete. -->
+
+
 
 ## A quick introduction
 
@@ -143,7 +148,39 @@ This shortcut works globally.
     You may also be able to send the request using ++alt+enter++.
     This only works on terminals that support the Kitty keyboard protocol.
 
+
+### Working with the response
+
+The response will be displayed in the main body of the UI.
+Press ++ctrl+o++ to enter "jump mode", and the ++a++ to move to the response `Body` tab.
+
+Press ++j++ or ++down++ to move the cursor down into the response body.
+This text area supports a bunch of different keyboard shortcuts for quickly navigating the response body.
+Text can be selected by holding ++shift++ and moving the cursor using the arrow keys (or `hjkl` keys for Vim fans).
+You can also select text by clicking and dragging with the mouse.
+
+Press ++y++ or ++c++ to copy the selected text to your clipboard.
+If no text is selected, the entire response body will be copied.
+
+!!! tip "Vim keys"
+
+    The response text area supports some Vim-inspired keyboard shortcuts.
+
+    - To select text without holding ++shift++, you can press ++v++ to enter visual mode, and use `hjkl` to navigate.
+    - If your cursor is at a bracket, you can press ++%++ to jump to the matching bracket.
+    - Press ++w++ to move the cursor to the next word, and ++b++ to move the cursor to the previous word.
+
+    Try experimenting to find out what's supported, and if you're desperately missing something, please start a discussion on [GitHub Discussions](https://github.com/darrenburns/posting/discussions).
+
+You can open the response using the command defined in your `$EDITOR`, `$POSTING_EDITOR`, `$POSTING_PAGER`, or `$POSTING_PAGER_JSON` environment variables.
+For example, if you set `$POSTING_PAGER_JSON` to `fx`, then press the corresponding keybind to open the pager when the response text area has focus, the response will be opened in the `fx` JSON viewer.
+
 ### Saving the request
 
 Finally, press ++ctrl+s++ to save the request to disk.
 Fill out the form on the modal that appears, and press ++enter++ or ++ctrl+n++ to write the request to disk.
+
+!!! tip "Folders"
+
+    Requests can be saved to folders - simply include a `/` in the `Directory` field when you save the request,
+    and Posting will create the required directory structure for you.

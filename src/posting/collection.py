@@ -1,8 +1,9 @@
 from __future__ import annotations
 from functools import total_ordering
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from pathlib import Path
 from string import Template
-from typing import Any, Literal, get_args
+from typing import Any, Generator, Literal, get_args
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
 import rich
@@ -11,7 +12,6 @@ import os
 from posting.auth import HttpxBearerTokenAuth
 from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
-
 from posting.version import VERSION
 
 
@@ -135,7 +135,7 @@ class RequestBody(BaseModel):
         if self.form_data:
             # Ensure we don't delete duplicate keys
             httpx_args["data"] = tuples_to_dict(
-                [(item.name, item.value) for item in self.form_data]
+                [(item.name, item.value) for item in self.form_data if item.enabled]
             )
         return httpx_args
 
@@ -296,6 +296,86 @@ class RequestModel(BaseModel):
     def delete_from_disk(self) -> None:
         if self.path:
             self.path.unlink()
+
+    def to_curl(self, extra_args: str = "") -> str:
+        """Convert the request model to a cURL command.
+
+        Optionally supply extra arguments to insert into the command.
+
+        Args:
+            extra_args: A string of extra arguments to insert into the command.
+
+        Returns:
+            A string of the cURL command that can be used via the command line.
+        """
+        parts = ["curl"]
+        if extra_args:
+            parts.append(extra_args)
+
+        if self.method != "GET":
+            parts.append(f"-X {self.method}")
+
+        for header in self.headers:
+            if header.enabled:
+                parts.append(f"-H '{header.name}: {header.value}'")
+
+        parsed_url = urlparse(self.url)
+        existing_params = parse_qsl(parsed_url.query)
+        if self.params:
+            for param in self.params:
+                if param.enabled:
+                    existing_params.append((param.name, param.value))
+
+        new_query = urlencode(existing_params)
+        new_url = urlunparse(
+            (
+                parsed_url.scheme,
+                parsed_url.netloc,
+                parsed_url.path,
+                parsed_url.params,
+                new_query,
+                parsed_url.fragment,
+            )
+        )
+
+        if self.body and self.body.content:
+            parts.append(f"-d '{self.body.content}'")
+
+        if self.body and self.body.form_data:
+            for item in self.body.form_data:
+                if item.enabled:
+                    parts.append(f"-F '{item.name}={item.value}'")
+
+        if self.auth:
+            if self.auth.type == "basic" and self.auth.basic:
+                parts.append(
+                    f"-u '{self.auth.basic.username}:{self.auth.basic.password}'"
+                )
+            elif self.auth.type == "digest" and self.auth.digest:
+                parts.append(
+                    f"--digest -u '{self.auth.digest.username}:{self.auth.digest.password}'"
+                )
+
+        for cookie in self.cookies:
+            if cookie.enabled:
+                parts.append(f"--cookie '{cookie.name}={cookie.value}'")
+
+        if not self.options.follow_redirects:
+            parts.append("--no-location")
+
+        if not self.options.verify_ssl:
+            parts.append("--insecure")
+
+        if self.options.timeout != 5.0:  # Only add if not the default
+            parts.append(f"--max-time {self.options.timeout}")
+
+        if self.options.proxy_url:
+            parts.append(f"--proxy '{self.options.proxy_url}'")
+
+        parts.append(f"'{new_url}'")
+
+        # Join with newlines for better readability, similar to other tools
+        return " \\\n  ".join(parts)
 
     def __lt__(self, other: RequestModel) -> bool:
         return request_sort_key(self) < request_sort_key(other)
