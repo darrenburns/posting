@@ -4,6 +4,8 @@ from textual import on, log
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.types import InputValidationOn
+from textual.validation import Length
 from textual.widgets import ContentSwitcher, Input, Label, Select, Static
 
 from posting.auth import HttpxBearerTokenAuth
@@ -61,24 +63,52 @@ class BearerTokenForm(Vertical):
         & #token-input {
             margin-bottom: 1;
         }
+
+        & #token-empty-label {
+            dock: right;
+            padding: 0 1;
+            color: $text-error;
+        }
     }
     """
 
     def compose(self) -> ComposeResult:
-        yield Label("Token")
+        with Horizontal():
+            yield Label("Token")
+            yield Label(
+                "Should not be empty",
+                id="token-empty-label",
+            )
         yield VariableInput(
             placeholder="Enter a token",
             password=True,
+            validators=[Length(minimum=1)],
+            validate_on=["changed"],
             id="token-input",
         )
 
+    def on_mount(self) -> None:
+        token_input = self.token_input
+        token_input.validate(token_input.value)
+
+    @on(Input.Changed)
+    def on_input_changed(self, event: Input.Changed) -> None:
+        result = event.validation_result
+        is_valid = False if result is None else result.is_valid
+        label = self.query_one("#token-empty-label", Label)
+        label.visible = not is_valid
+
     def set_values(self, token: str) -> None:
-        self.query_one("#token-input", Input).value = token
+        self.token_input.value = token
 
     def get_values(self) -> dict[str, str]:
         return {
-            "token": self.query_one("#token-input", Input).value,
+            "token": self.token_input.value,
         }
+
+    @property
+    def token_input(self) -> Input:
+        return self.query_one("#token-input", Input)
 
 
 class RequestAuth(VerticalScroll):
@@ -183,7 +213,9 @@ class RequestAuth(VerticalScroll):
             case "auth-form-bearer-token":
                 form_values = form.get_values()
                 token = form_values["token"]
-                return Auth(type="bearer_token", bearer_token=BearerTokenAuth(token=token))
+                return Auth(
+                    type="bearer_token", bearer_token=BearerTokenAuth(token=token)
+                )
             case _:
                 return None
 
@@ -216,7 +248,9 @@ class RequestAuth(VerticalScroll):
                 )
             case "bearer_token":
                 if auth.bearer_token is None:
-                    log.warning("Bearer auth selected, but no values provided for token.")
+                    log.warning(
+                        "Bearer auth selected, but no values provided for token."
+                    )
                     return
                 self.query_one("#auth-type-select", Select).value = "bearer-token"
                 self.query_one("#auth-form-bearer-token", BearerTokenForm).set_values(

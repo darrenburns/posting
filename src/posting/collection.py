@@ -77,7 +77,6 @@ class DigestAuth(BaseModel):
     password: str = Field(default="")
 
 
-
 class BearerTokenAuth(BaseModel):
     token: str = Field(default="")
 
