@@ -576,3 +576,25 @@ class TestDisableRowInTable:
             await pilot.press("j", "j", "space", "j")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestCurlExport:
+    def test_curl_export(self, snap_compare):
+        """Check that the curl export works correctly."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("enter")
+            await pilot.press("ctrl+p", *"curl", "enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_curl_export_no_setup(self, snap_compare):
+        """Check that the curl export works when setup scripts are not run."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("enter")
+            await pilot.press("ctrl+p", *"curl no setup", "enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)

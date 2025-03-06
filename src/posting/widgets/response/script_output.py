@@ -73,9 +73,9 @@ This log displays the output of scripts that executed during the last request.
             label.set_class(no_script, "-no-script")
 
             if success:
-                label.update("Success")
+                label.update("Success ✔︎")
             elif error:
-                label.update("Error")
+                label.update("Error ⨯")
             elif no_script:
                 label.update("-")
 

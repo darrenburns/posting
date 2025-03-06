@@ -2,6 +2,7 @@ import inspect
 from contextlib import redirect_stdout, redirect_stderr
 import os
 from pathlib import Path
+import sys
 from typing import Any, Literal, cast
 
 import httpx
@@ -10,11 +11,11 @@ from textual.content import Content
 
 from posting.importing.curl import CurlImport
 from textual import messages, on, log, work
-from textual.command import CommandListItem, CommandPalette, SimpleCommand
+from textual.command import CommandPalette, SimpleCommand
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
-from textual.app import App, ComposeResult, InvalidThemeError, ReturnType
+from textual.app import App, ComposeResult, InvalidThemeError
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -53,14 +54,18 @@ from posting.themes import (
 )
 from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
-from posting.variables import SubstitutionError, get_variables, update_variables
+from posting.variables import (
+    SubstitutionError,
+    get_variables,
+    load_variables,
+    update_variables,
+)
 from posting.version import VERSION
 from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
 from posting.widgets.datatable import PostingDataTable
-from posting.variables import load_variables
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
@@ -228,14 +233,16 @@ class MainScreen(Screen[None]):
         self,
         path_to_script: str,
         default_function_name: str,
+        write_logs_to_ui: bool = True,
         *args: Any,
     ) -> None:
         """
         Get and run a function from a script.
 
         Args:
-            script_path: Path to the script, relative to the collection path.
+            path_to_script: Path to the script, relative to the collection path.
             default_function_name: Default function name to use if not specified in the path.
+            write_logs_to_ui: Whether to write logs to the UI.
             *args: Arguments to pass to the script function.
         """
         script_path = Path(path_to_script)
@@ -267,9 +274,13 @@ class MainScreen(Screen[None]):
                 )
 
                 rich_log = script_output.rich_log
-                stdout_log = RichLogIO(rich_log, "stdout")
-                stderr_log = RichLogIO(rich_log, "stderr")
 
+                if write_logs_to_ui:
+                    stdout_log = RichLogIO(rich_log, "stdout")
+                    stderr_log = RichLogIO(rich_log, "stderr")
+                else:
+                    stdout_log = sys.stdout
+                    stderr_log = sys.stderr
                 with redirect_stdout(stdout_log), redirect_stderr(stderr_log):
                     # Ensure we pass in the number of parameters the user has
                     # implicitly requested in their script.
@@ -329,6 +340,7 @@ class MainScreen(Screen[None]):
                     self.get_and_run_script(
                         setup_script,
                         "setup",
+                        True,
                         script_context,
                     )
                 except Exception:
@@ -369,6 +381,8 @@ class MainScreen(Screen[None]):
                         self.get_and_run_script(
                             on_request,
                             "on_request",
+                            True,
+                            # The args below are passed to the script function.
                             request_model,
                             script_context,
                         )
@@ -384,21 +398,11 @@ class MainScreen(Screen[None]):
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
-                print("-- sending request --")
-                print(request)
-                print(request.headers)
-                print("follow redirects =", request_options.follow_redirects)
-                print("verify =", request_options.verify_ssl)
-                print("attach cookies =", request_options.attach_cookies)
-                print("proxy =", request_model.options.proxy_url)
-                print("timeout =", request_model.options.timeout)
-                print("auth =", request_model.auth)
-
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
                 )
-                print("response cookies =", response.cookies)
+
                 self.post_message(HttpResponseReceived(response))
 
                 script_context.response = response
@@ -407,6 +411,8 @@ class MainScreen(Screen[None]):
                         self.get_and_run_script(
                             on_response,
                             "on_response",
+                            True,
+                            # The args below are passed to the script function.
                             response,
                             script_context,
                         )
@@ -443,7 +449,6 @@ class MainScreen(Screen[None]):
             log.error("Error sending request", e)
             log.error("Type of error", type(e))
             self.url_input.add_class("error")
-            self.url_input.focus()
             self.notify(
                 severity="error",
                 title="Couldn't send request",
@@ -1002,7 +1007,7 @@ class Posting(App[None], inherit_bindings=False):
     async def watch_themes(self) -> None:
         """Watching the theme directory for changes."""
         async for changes in awatch(self.settings.theme_directory):
-            for change_type, file_path in changes:
+            for _change_type, file_path in changes:
                 if file_path.endswith((".yml", ".yaml")):
                     try:
                         theme = load_user_theme(Path(file_path))
@@ -1112,11 +1117,41 @@ class Posting(App[None], inherit_bindings=False):
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
 
-    def command_export_to_curl(self) -> None:
+    def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
         main_screen = self.main_screen
         request_model = main_screen.build_request_model(
             main_screen.request_options.to_model()
         )
+
+        # There are two options in the command palette for exporting to curl.
+        # Users can choose to run setup scripts attached to the request in order to
+        # set variables etc. or they can choose to skip setup scripts entirely.
+        if run_setup_scripts and (setup_script := request_model.scripts.setup):
+            try:
+                main_screen.get_and_run_script(
+                    setup_script,
+                    "setup",
+                    False,
+                    PostingContext(self),
+                )
+            except Exception:
+                self.notify(
+                    "Error running setup script",
+                    title="Error in script",
+                    severity="error",
+                )
+
+        variables = get_variables()
+        try:
+            request_model.apply_template(variables)
+        except SubstitutionError as e:
+            log.error(e)
+            self.notify(
+                str(e),
+                title="Undefined variable",
+                severity="warning",
+            )
+            pass
 
         curl_command = request_model.to_curl(
             extra_args=self.settings.curl_export_extra_args
@@ -1237,7 +1272,7 @@ class Posting(App[None], inherit_bindings=False):
 
     def exit(
         self,
-        result: ReturnType | None = None,
+        result: object | None = None,
         return_code: int = 0,
         message: RenderableType | None = None,
     ) -> None:
