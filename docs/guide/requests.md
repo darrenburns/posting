@@ -49,6 +49,11 @@ Press ++ctrl+s++ to save the currently open request.
 
 If you haven't saved the request yet, a dialog will appear, prompting you to give the request a name, and to select a directory to save it in.
 
+!!! tip "Folders"
+
+    Requests can be saved to folders - simply include a `/` in the `Directory` field when you save the request,
+    and Posting will create the required directory structure for you.
+
 If the request is already saved on disk, ++ctrl+s++ will overwrite the previous version with your new changes.
 
 ## Loading requests
