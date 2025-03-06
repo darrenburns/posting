@@ -48,11 +48,19 @@ class PostingProvider(Provider):
                     (
                         "export: copy as curl",
                         app.command_export_to_curl,
-                        "Copy the current request as a curl command",
+                        "Copy the request as a curl command",
                         True,
                     ),
                 )
 
+                commands_to_show.append(
+                    (
+                        "export: copy as curl (no setup scripts)",
+                        partial(app.command_export_to_curl, run_setup_scripts=False),
+                        "Copy the request as a curl command without setup scripts",
+                        True,
+                    ),
+                )
             # Change the available commands depending on what is currently
             # maximized on the main screen.
             expand_section_callback: IgnoreReturnCallbackType = partial[None](

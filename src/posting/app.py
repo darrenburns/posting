@@ -398,21 +398,11 @@ class MainScreen(Screen[None]):
                 request.headers["User-Agent"] = (
                     f"Posting/{VERSION} (Terminal-based API client)"
                 )
-                print("-- sending request --")
-                print(request)
-                print(request.headers)
-                print("follow redirects =", request_options.follow_redirects)
-                print("verify =", request_options.verify_ssl)
-                print("attach cookies =", request_options.attach_cookies)
-                print("proxy =", request_model.options.proxy_url)
-                print("timeout =", request_model.options.timeout)
-                print("auth =", request_model.auth)
-
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
                 )
-                print("response cookies =", response.cookies)
+
                 self.post_message(HttpResponseReceived(response))
 
                 script_context.response = response
@@ -445,7 +435,6 @@ class MainScreen(Screen[None]):
             log.error("Error sending request", e)
             log.error("Type of error", type(e))
             self.url_input.add_class("error")
-            self.url_input.focus()
             self.notify(
                 severity="error",
                 title="Couldn't send request",
@@ -1114,13 +1103,16 @@ class Posting(App[None], inherit_bindings=False):
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
 
-    def command_export_to_curl(self) -> None:
+    def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
         main_screen = self.main_screen
         request_model = main_screen.build_request_model(
             main_screen.request_options.to_model()
         )
 
-        if setup_script := request_model.scripts.setup:
+        # There are two options in the command palette for exporting to curl.
+        # Users can choose to run setup scripts attached to the request in order to
+        # set variables etc. or they can choose to skip setup scripts entirely.
+        if run_setup_scripts and (setup_script := request_model.scripts.setup):
             try:
                 main_screen.get_and_run_script(
                     setup_script,

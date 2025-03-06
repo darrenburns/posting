@@ -1,8 +1,20 @@
 ## Unreleased
 
+### Added
+
+- Added command palette option to export the request as a curl command *without* running setup scripts.
+
 ### Fixed
 
-- Fixed crash when toggling rows via clicking the checkbox.
+- Fixed crash when toggling rows via clicking the checkbox
+
+### Changed
+
+- Variables will be substituted into exported curl commands.
+    - Undefined variables will be left as is (e.g. `$foo` will be left as `$foo` in the curl command)
+- Setup scripts will now run by default when exporting to curl.
+- Do not focus the URL bar when an error occurs on sending a request.
+- Small visual refinement in `Scripts` tab.
 
 ## 2.4.0 [2nd March 2025]
 
