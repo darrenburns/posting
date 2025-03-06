@@ -2,6 +2,7 @@ import inspect
 from contextlib import redirect_stdout, redirect_stderr
 import os
 from pathlib import Path
+import sys
 from typing import Any, Literal, cast
 
 import httpx
@@ -265,7 +266,7 @@ class MainScreen(Screen[None]):
             )
             raise
 
-        if script_function is not None and write_logs_to_ui:
+        if script_function is not None:
             try:
                 script_output = self.response_script_output
                 script_output.log_function_call_start(
@@ -273,9 +274,13 @@ class MainScreen(Screen[None]):
                 )
 
                 rich_log = script_output.rich_log
-                stdout_log = RichLogIO(rich_log, "stdout")
-                stderr_log = RichLogIO(rich_log, "stderr")
 
+                if write_logs_to_ui:
+                    stdout_log = RichLogIO(rich_log, "stdout")
+                    stderr_log = RichLogIO(rich_log, "stderr")
+                else:
+                    stdout_log = sys.stdout
+                    stderr_log = sys.stderr
                 with redirect_stdout(stdout_log), redirect_stderr(stderr_log):
                     # Ensure we pass in the number of parameters the user has
                     # implicitly requested in their script.
