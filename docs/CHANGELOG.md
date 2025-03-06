@@ -3,10 +3,13 @@
 ### Added
 
 - Added command palette option to export the request as a curl command *without* running setup scripts.
+- Added new documentation on working with the response in Posting and via external pagers/editors.
+- Added new documentation on saving requests into folder structures from within Posting.
 
 ### Fixed
 
 - Fixed crash when toggling rows via clicking the checkbox
+- Fixed erroneous trailing ellipsis in `Info` tab.
 
 ### Changed
 

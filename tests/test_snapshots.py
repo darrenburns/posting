@@ -591,7 +591,7 @@ class TestCurlExport:
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
     def test_curl_export_no_setup(self, snap_compare):
-        """Check that the curl export works correctly when no setup script is defined."""
+        """Check that the curl export works when setup scripts are not run."""
 
         async def run_before(pilot: Pilot):
             await pilot.press("enter")
