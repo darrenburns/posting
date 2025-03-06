@@ -425,6 +425,20 @@ class MainScreen(Screen[None]):
                 title="Connect timeout",
                 message=f"Couldn't connect within {request_options.timeout} seconds.",
             )
+        except httpx.ReadTimeout as read_timeout:
+            log.error("Read timeout", read_timeout)
+            self.notify(
+                severity="error",
+                title="Read timeout",
+                message=f"Couldn't read data within {request_options.timeout} seconds.",
+            )
+        except httpx.WriteTimeout as write_timeout:
+            log.error("Write timeout", write_timeout)
+            self.notify(
+                severity="error",
+                title="Write timeout",
+                message=f"Couldn't send data within {request_options.timeout} seconds.",
+            )
         except Exception as e:
             log.error("Error sending request", e)
             log.error("Type of error", type(e))
