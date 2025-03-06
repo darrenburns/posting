@@ -595,6 +595,6 @@ class TestCurlExport:
 
         async def run_before(pilot: Pilot):
             await pilot.press("enter")
-            await pilot.press("ctrl+p", *"curl no", "enter")
+            await pilot.press("ctrl+p", *"curl no setup", "enter")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
