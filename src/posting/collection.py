@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, HttpUrl
 import rich
 import yaml
 import os
+from posting.auth import HttpxBearerTokenAuth
 from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
@@ -34,9 +35,10 @@ yaml.representer.SafeRepresenter.add_representer(
 
 
 class Auth(BaseModel):
-    type: Literal["basic", "digest"] | None = Field(default=None)
+    type: Literal["basic", "digest", "bearer_token"] | None = Field(default=None)
     basic: BasicAuth | None = Field(default=None)
     digest: DigestAuth | None = Field(default=None)
+    bearer_token: BearerTokenAuth | None = Field(default=None)
 
     def to_httpx_auth(self) -> httpx.Auth | None:
         if self.type == "basic":
@@ -45,6 +47,9 @@ class Auth(BaseModel):
         elif self.type == "digest":
             assert self.digest is not None
             return httpx.DigestAuth(self.digest.username, self.digest.password)
+        elif self.type == "bearer_token":
+            assert self.bearer_token is not None
+            return HttpxBearerTokenAuth(self.bearer_token.token)
         return None
 
     @classmethod
@@ -57,6 +62,10 @@ class Auth(BaseModel):
             type="digest", digest=DigestAuth(username=username, password=password)
         )
 
+    @classmethod
+    def bearer_token_auth(cls, token: str) -> Auth:
+        return cls(type="bearer_token", bearer_token=BearerTokenAuth(token=token))
+
 
 class BasicAuth(BaseModel):
     username: str = Field(default="")
@@ -66,6 +75,10 @@ class BasicAuth(BaseModel):
 class DigestAuth(BaseModel):
     username: str = Field(default="")
     password: str = Field(default="")
+
+
+class BearerTokenAuth(BaseModel):
+    token: str = Field(default="")
 
 
 class Header(BaseModel):
@@ -239,6 +252,9 @@ class RequestModel(BaseModel):
                     self.auth.digest.username = template.substitute(variables)
                     template = Template(self.auth.digest.password)
                     self.auth.digest.password = template.substitute(variables)
+                if self.auth.bearer_token is not None:
+                    template = Template(self.auth.bearer_token.token)
+                    self.auth.bearer_token.token = template.substitute(variables)
         except (KeyError, ValueError) as e:
             raise SubstitutionError(f"Variable not defined: {e}")
 

@@ -82,6 +82,14 @@ def test_curl_with_user_and_password():
     assert curl_import.url == "http://example.com"
 
 
+def test_curl_with_bearer_token():
+    """Test parsing of user credentials."""
+    curl_command = "curl http://example.com -H 'Authorization: Bearer my-token'"
+    curl_import = CurlImport(curl_command)
+    assert curl_import.headers == [("Authorization", "Bearer my-token")]
+    assert curl_import.url == "http://example.com"
+
+
 def test_curl_with_insecure():
     """Test parsing of --insecure flag."""
     curl_command = "curl -k http://example.com"
