@@ -1,3 +1,13 @@
+## 2.5.1 [7th March 2025]
+
+### Fixed
+
+- Fixed importing of `max-time` from curl commands.
+
+### Changed
+
+- When importing a request from curl, request metadata (name, description) will not be overwritten.
+
 ## 2.5.0 [7th March 2025]
 
 ### Added

@@ -67,6 +67,9 @@ class CurlImport:
         parser.add_argument("-e", "--referer", help="Referrer URL")
         parser.add_argument("-A", "--user-agent", help="User-Agent to send to server")
         parser.add_argument(
+            "-m", "--max-time", help="Maximum time to wait for a response"
+        )
+        parser.add_argument(
             "--digest",
             action="store_true",
             help="Use HTTP Digest Authentication",
