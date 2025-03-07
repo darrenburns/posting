@@ -551,22 +551,6 @@ class TestFocusAutoSwitchingConfig:
 
 @use_config("general.yaml")
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
-class TestScripts:
-    def test_script_runs(self, snap_compare):
-        """Check that a script runs correctly."""
-
-        async def run_before(pilot: Pilot):
-            await pilot.press("enter")
-            await pilot.press("ctrl+j")
-            await pilot.app.workers.wait_for_complete()
-            await pilot.press("ctrl+o", "f")  # jump to "Scripts"
-            await pilot.press("ctrl+m")  # expand response section
-
-        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
-
-
-@use_config("general.yaml")
-@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 class TestDisableRowInTable:
     def test_disable_row_in_table(self, snap_compare):
         """Check that a row can be disabled in a table."""
@@ -582,6 +566,8 @@ class TestDisableRowInTable:
 @use_config("general.yaml")
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 class TestCurlExport:
+    # TODO - there's an ordering dependency between the two tests here.
+
     def test_curl_export_no_setup(self, snap_compare):
         """Check that the curl export works when setup scripts are not run."""
 
@@ -599,3 +585,19 @@ class TestCurlExport:
             await pilot.press("ctrl+p", *"curl", "enter")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestScripts:
+    def test_script_runs(self, snap_compare):
+        """Check that a script runs correctly."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("enter")
+            await pilot.press("ctrl+j")
+            await pilot.app.workers.wait_for_complete()
+            await pilot.press("ctrl+o", "f")  # jump to "Scripts"
+            await pilot.press("ctrl+m")  # expand response section
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
