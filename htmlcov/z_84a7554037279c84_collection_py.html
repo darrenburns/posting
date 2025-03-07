@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for src/posting/collection.py: 77%</title>
+    <title>Coverage for src/posting/collection.py: 78%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>src/posting/collection.py</b>:
-            <span class="pc_cov">77%</span>
+            <span class="pc_cov">78%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">345 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">266<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">79<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">268<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">77<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_84a7554037279c84_commands_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-03-07 20:04 +0000
+            created at 2025-03-07 21:56 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -337,8 +337,8 @@
     <p class="mis show_mis"><span class="n"><a id="t255" href="#t255">255</a></span><span class="t">                <span class="key">if</span> <span class="nam">self</span><span class="op">.</span><span class="nam">auth</span><span class="op">.</span><span class="nam">bearer_token</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t256" href="#t256">256</a></span><span class="t">                    <span class="nam">template</span> <span class="op">=</span> <span class="nam">Template</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">auth</span><span class="op">.</span><span class="nam">bearer_token</span><span class="op">.</span><span class="nam">token</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t257" href="#t257">257</a></span><span class="t">                    <span class="nam">self</span><span class="op">.</span><span class="nam">auth</span><span class="op">.</span><span class="nam">bearer_token</span><span class="op">.</span><span class="nam">token</span> <span class="op">=</span> <span class="nam">template</span><span class="op">.</span><span class="nam">substitute</span><span class="op">(</span><span class="nam">variables</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t258" href="#t258">258</a></span><span class="t">        <span class="key">except</span> <span class="op">(</span><span class="nam">KeyError</span><span class="op">,</span> <span class="nam">ValueError</span><span class="op">)</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t259" href="#t259">259</a></span><span class="t">            <span class="key">raise</span> <span class="nam">SubstitutionError</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Variable not defined: </span><span class="op">{</span><span class="nam">e</span><span class="op">}</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t258" href="#t258">258</a></span><span class="t">        <span class="key">except</span> <span class="op">(</span><span class="nam">KeyError</span><span class="op">,</span> <span class="nam">ValueError</span><span class="op">)</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t259" href="#t259">259</a></span><span class="t">            <span class="key">raise</span> <span class="nam">SubstitutionError</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Variable not defined: </span><span class="op">{</span><span class="nam">e</span><span class="op">}</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t260" href="#t260">260</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t261" href="#t261">261</a></span><span class="t">    <span class="key">def</span> <span class="nam">to_httpx</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">client</span><span class="op">:</span> <span class="nam">httpx</span><span class="op">.</span><span class="nam">AsyncClient</span><span class="op">)</span> <span class="op">-></span> <span class="nam">httpx</span><span class="op">.</span><span class="nam">Request</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t262" href="#t262">262</a></span><span class="t">        <span class="str">"""Convert the request model to an httpx request."""</span>&nbsp;</span><span class="r"></span></p>
@@ -639,7 +639,7 @@
             <a class="nav" href="z_84a7554037279c84_commands_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-03-07 20:04 +0000
+            created at 2025-03-07 21:56 +0000
         </p>
     </div>
 </footer>
