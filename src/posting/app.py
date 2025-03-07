@@ -722,7 +722,7 @@ class MainScreen(Screen[None]):
                 severity="error",
             )
         else:
-            self.load_request_model(request_model)
+            self.load_request_model(request_model, overwrite_metadata=False)
             self.notify(
                 title="Curl request imported",
                 message=f"Successfully imported request to {curl_import.url}",
@@ -758,8 +758,17 @@ class MainScreen(Screen[None]):
             placeholder="Search for a request…",
         )
 
-    def load_request_model(self, request_model: RequestModel) -> None:
-        """Load a request model into the UI."""
+    def load_request_model(
+        self, request_model: RequestModel, overwrite_metadata: bool = True
+    ) -> None:
+        """Load a request model into the UI.
+
+        Args:
+            request_model: The request model to load.
+            overwrite_metadata: Whether to overwrite the metadata of the currently
+                open request. If False, only the request data will be loaded, and
+                the metadata (name, description, etc) will be left as is.
+        """
         self.selected_method = request_model.method
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
@@ -793,7 +802,12 @@ class MainScreen(Screen[None]):
             self.request_editor.form_editor.replace_all_rows([])
             self.request_editor.request_body_type_select.value = "no-body-label"
 
-        self.request_metadata.request = request_model
+        if overwrite_metadata:
+            # Sometimes we don't wish to write request metadata, for example, if we're
+            # importing a request from curl, the user may have already written their
+            # own metadata - we should not replace that.
+            self.request_metadata.request = request_model
+
         self.request_options.load_options(request_model.options)
         self.request_auth.load_auth(request_model.auth)
         self.request_scripts.load_scripts(request_model.scripts)

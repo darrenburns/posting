@@ -200,3 +200,48 @@ def test_curl_with_special_characters_in_data():
         ("param", "hello%20world"),
         ("key", "value%3Dtest"),
     ]
+
+
+def test_curl_imports_max_time():
+    """Test a complex example that includes max-time, which was previously not parsed and
+    caused imports to be incorrect (fixed in 2.5.1)."""
+    curl_command = """\
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: *' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Accept-Encoding: gzip' \
+  -d '{
+  "string": "Hello, world!",
+  "booleans": [true, false],
+  "numbers": [1, 2, 42],
+  "null": null
+}' \
+  -u 'darren:' \
+  --max-time 0.2 \
+  'https://postman-echo.com/post?key1=value1&another-key=another-value&number=123'
+"""
+    curl_import = CurlImport(curl_command)
+    assert curl_import.method == "POST"
+    assert (
+        curl_import.url
+        == "https://postman-echo.com/post?key1=value1&another-key=another-value&number=123"
+    )
+    assert curl_import.headers == [
+        ("Content-Type", "application/json"),
+        ("Accept", "*"),
+        ("Cache-Control", "no-cache"),
+        ("Accept-Encoding", "gzip"),
+    ]
+    assert (
+        curl_import.data
+        == """\
+{
+  "string": "Hello, world!",
+  "booleans": [true, false],
+  "numbers": [1, 2, 42],
+  "null": null
+}"""
+    )
+    assert curl_import.user == "darren:"
