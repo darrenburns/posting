@@ -1,3 +1,14 @@
+## 2.5.0 [7th March 2025]
+
+### Added
+
+- Added bearer token auth support in the `Auth` tab.
+- Added support for importing securitySchemes in OpenAPI specs.
+
+### Changed
+
+- OpenAPI specs are now parsed using an external library (`openapi-pydantic`).
+
 ## 2.4.1 [6th March 2025]
 
 ### Added
