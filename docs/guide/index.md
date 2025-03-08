@@ -182,5 +182,5 @@ Fill out the form on the modal that appears, and press ++enter++ or ++ctrl+n++ t
 
 !!! tip "Folders"
 
-    Requests can be saved to folders - simply include a `/` in the `Directory` field when you save the request,
+    Requests can be saved to folders - simply include a `/` in the `Path in collection` field when you save the request,
     and Posting will create the required directory structure for you.

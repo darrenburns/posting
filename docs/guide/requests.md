@@ -33,9 +33,9 @@ You'll be prompted to supply a name for the request.
 By default, this name is used to generate the filename, but you can also choose your own filename if you wish.
 
 !!! tip
-    If you already have a collection loaded, the directory will be pre-selected based on the location of the cursor in the collection tree, so moving the cursor to the correct location *before* pressing ++ctrl+n++ will save you from needing to type out the path.
+    If you already have a collection loaded, the path in the "New Request" dialog will be pre-filled based on the position of the cursor in the collection tree, so moving the cursor to the correct location *before* pressing ++ctrl+n++ will save you from needing to type out the path.
 
-Within the "Directory" field of this dialog, it's important to note that `.` refers to the currently loaded *collection* directory (that is, the directory that was loaded using the `--collection` option), and *not* necessarily the current working directory.
+Within the "Path in collection" field of this dialog, it's important to note that `.` refers to the currently loaded *collection* directory (that is, the directory that was loaded using the `--collection` option), and *not* necessarily the current working directory.
 
 ### Duplicating a request
 
@@ -51,7 +51,7 @@ If you haven't saved the request yet, a dialog will appear, prompting you to giv
 
 !!! tip "Folders"
 
-    Requests can be saved to folders - simply include a `/` in the `Directory` field when you save the request,
+    Requests can be saved to folders - simply include a `/` in the `Path in collection` field when you save the request,
     and Posting will create the required directory structure for you.
 
 If the request is already saved on disk, ++ctrl+s++ will overwrite the previous version with your new changes.
