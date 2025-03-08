@@ -145,7 +145,7 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
             yield Label("Path in collection")
             yield PostingInput(
                 self._initial_directory,
-                placeholder="Enter a collection path",
+                placeholder="Enter a path to save the request to",
                 id="directory-input",
                 validators=[DirectoryValidator()],
             )
