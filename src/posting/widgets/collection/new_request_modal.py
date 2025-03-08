@@ -142,10 +142,10 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 show_line_numbers=False,
             )
 
-            yield Label("Directory")
+            yield Label("Path in collection")
             yield PostingInput(
                 self._initial_directory,
-                placeholder="Enter a directory",
+                placeholder="Enter a collection path",
                 id="directory-input",
                 validators=[DirectoryValidator()],
             )
