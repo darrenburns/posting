@@ -1,3 +1,14 @@
+## Unreleased
+
+### Added
+
+- Validation and corresponding UI feedback in New Request modal.
+
+### Fixed
+
+- Fixed crash when attempting to delete a request that doesn't exist on disk.
+- Fixed being able to create requests with empty names.
+
 ## 2.5.1 [7th March 2025]
 
 ### Fixed
