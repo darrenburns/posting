@@ -8,11 +8,11 @@
 | src/posting/\_\_main\_\_.py                           |       77 |       45 |     42% |20-27, 31-40, 62-70, 78-90, 104-123, 142 |
 | src/posting/app.py                                    |      620 |      145 |     77% |210, 214, 251-252, 260-267, 292, 298-313, 325, 327, 329, 346-347, 357-359, 366, 389-390, 419-420, 427-452, 472, 484, 551, 559, 576-592, 714-726, 734-744, 971-987, 996-1019, 1024-1042, 1052-1053, 1056, 1064, 1082-1086, 1116, 1119, 1122, 1133, 1152-1153, 1178-1190, 1201, 1211, 1222-1230, 1239-1240, 1254-1255, 1266-1273, 1282-1283, 1306-1307 |
 | src/posting/auth.py                                   |        8 |        3 |     62% |  8, 11-12 |
-| src/posting/collection.py                             |      345 |       77 |     78% |24-27, 44-53, 67, 133, 224-225, 239-242, 245-257, 296-297, 312, 424-425, 431-464, 479-480, 509-510, 529-536 |
+| src/posting/collection.py                             |      349 |       80 |     77% |25-28, 45-54, 68, 134, 225-226, 240-243, 246-258, 297-301, 318, 430-431, 437-470, 485-486, 515-516, 535-542 |
 | src/posting/commands.py                               |       56 |        5 |     91% |7, 28, 95, 97, 126 |
 | src/posting/config.py                                 |      114 |        2 |     98% |  225, 242 |
 | src/posting/exit\_codes.py                            |        1 |        0 |    100% |           |
-| src/posting/files.py                                  |       63 |       27 |     57% |68, 92-94, 110-146 |
+| src/posting/files.py                                  |       63 |       26 |     59% |68, 94, 110-146 |
 | src/posting/help\_screen.py                           |       62 |        4 |     94% |   155-162 |
 | src/posting/highlight\_url.py                         |        0 |        0 |    100% |           |
 | src/posting/highlighters.py                           |       51 |        2 |     96% |    51, 64 |
@@ -35,10 +35,10 @@
 | src/posting/widgets/\_\_init\_\_.py                   |        0 |        0 |    100% |           |
 | src/posting/widgets/center\_middle.py                 |        3 |        0 |    100% |           |
 | src/posting/widgets/collection/browser.py             |      315 |       79 |     75% |120, 130, 139, 171, 266, 274, 288-289, 298, 306, 328, 342-344, 361, 365, 370, 434-440, 446-454, 457-482, 489-496, 499-525, 538-539, 669-677 |
-| src/posting/widgets/collection/new\_request\_modal.py |      122 |       12 |     90% |18, 48, 158, 178, 192-196, 199-203, 212, 217, 226-230 |
+| src/posting/widgets/collection/new\_request\_modal.py |      149 |        4 |     97% |18, 191, 271, 276 |
 | src/posting/widgets/confirmation.py                   |       39 |       21 |     46% |51-57, 60-64, 67-72, 76, 80, 84 |
 | src/posting/widgets/datatable.py                      |      166 |       37 |     78% |65, 96, 99, 103, 106-109, 130, 148, 154, 158, 161-173, 181-186, 193-194, 199-200, 212-213, 240-242 |
-| src/posting/widgets/input.py                          |       61 |       36 |     41% |24-36, 40, 56-57, 62-96 |
+| src/posting/widgets/input.py                          |       49 |       25 |     49% |25, 41-42, 47-81 |
 | src/posting/widgets/key\_value.py                     |       93 |       16 |     83% |22, 73-76, 79, 85-93, 145-147, 154 |
 | src/posting/widgets/request/\_\_init\_\_.py           |        0 |        0 |    100% |           |
 | src/posting/widgets/request/form\_editor.py           |       30 |        0 |    100% |           |
@@ -66,7 +66,7 @@
 | src/posting/widgets/variable\_autocomplete.py         |       40 |        7 |     82% | 49, 74-80 |
 | src/posting/widgets/variable\_input.py                |       20 |        0 |    100% |           |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
-|                                             **TOTAL** | **4483** | **1048** | **77%** |           |
+|                                             **TOTAL** | **4502** | **1031** | **77%** |           |
 
 
 ## Setup coverage badge
