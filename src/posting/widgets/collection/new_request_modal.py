@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
 from textual.screen import ModalScreen
-from textual.validation import ValidationResult, Validator
+from textual.validation import Length, ValidationResult, Validator
 from textual.widgets import Button, Footer, Input, Label
 from textual.widgets.tree import TreeNode
 from posting.files import is_valid_filename, request_file_exists
@@ -37,7 +37,7 @@ class FileNameValidator(Validator):
         return (
             self.success()
             if is_valid_filename(value)
-            else self.failure("File name cannot be empty")
+            else self.failure("Invalid file name")
         )
 
 
@@ -84,6 +84,21 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
             background: $surface;
             color: $text-muted;
         }
+
+        & .error-label {
+            color: $text-error;
+            dock: right;
+        }
+
+        & .form-label-row {
+            height: 1;
+        }
+
+        & #title-error-label,
+        & #file-name-error-label,
+        & #directory-error-label {
+            display: none;
+        }
     }
     """
 
@@ -115,14 +130,27 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
             vs.can_focus = False
             vs.border_title = "New request"
 
-            yield Label("Title")
+            with Horizontal(classes="form-label-row"):
+                yield Label("Title")
+                yield Label(
+                    "Must not be empty", id="title-error-label", classes="error-label"
+                )
+
             yield PostingInput(
                 self._initial_title,
                 placeholder="Enter a title",
+                validators=[
+                    Length(minimum=1, failure_description="Title cannot be empty")
+                ],
                 id="title-input",
             )
 
-            yield Label("File name [dim]optional[/dim]")
+            with Horizontal(classes="form-label-row"):
+                yield Label("File name [dim]optional[/]")
+                yield Label(
+                    "Not valid", id="file-name-error-label", classes="error-label"
+                )
+
             with Horizontal():
                 filename_input = PostingInput(
                     placeholder="Enter a file name",
@@ -135,17 +163,22 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
                 yield filename_input
                 yield Label(".posting.yaml", id="file-suffix-label")
 
-            yield Label("Description [dim]optional[/dim]")
+            yield Label("Description [dim]optional[/]")
             yield PostingTextArea(
                 self._initial_description,
                 id="description-textarea",
                 show_line_numbers=False,
             )
 
-            yield Label("Directory")
+            with Horizontal(classes="form-label-row"):
+                yield Label("Path in collection")
+                yield Label(
+                    "Not valid", id="directory-error-label", classes="error-label"
+                )
+
             yield PostingInput(
                 self._initial_directory,
-                placeholder="Enter a directory",
+                placeholder="Enter a path to save the request to",
                 id="directory-input",
                 validators=[DirectoryValidator()],
             )
@@ -188,19 +221,45 @@ class NewRequestModal(ModalScreen[NewRequestData | None]):
         description_textarea = self.description_textarea
         directory_input = self.directory_input
 
-        if not directory_input.is_valid:
-            self.notify(
-                "Directory must be relative to the collection root.",
-                severity="error",
-            )
-            return
+        directory_validation_result = directory_input.validate(directory_input.value)
+        file_name_validation_result = file_name_input.validate(file_name_input.value)
+        title_validation_result = title_input.validate(title_input.value)
 
-        if not file_name_input.is_valid:
-            self.notify(
-                "Invalid file name.",
-                severity="error",
-            )
+        title_error_label = self.query_one("#title-error-label", Label)
+        if title_validation_result is not None and not title_validation_result.is_valid:
+            description = title_validation_result.failures[0].description
+            if description is not None:
+                title_error_label.update(description)
+            title_error_label.display = "block"
             return
+        else:
+            title_error_label.display = "none"
+
+        file_name_error_label = self.query_one("#file-name-error-label", Label)
+        if (
+            file_name_validation_result is not None
+            and not file_name_validation_result.is_valid
+        ):
+            description = file_name_validation_result.failures[0].description
+            if description is not None:
+                file_name_error_label.update(description)
+            file_name_error_label.display = "block"
+            return
+        else:
+            file_name_error_label.display = "none"
+
+        directory_error_label = self.query_one("#directory-error-label", Label)
+        if (
+            directory_validation_result is not None
+            and not directory_validation_result.is_valid
+        ):
+            description = directory_validation_result.failures[0].description
+            if description is not None:
+                directory_error_label.update(description)
+            directory_error_label.display = "block"
+            return
+        else:
+            directory_error_label.display = "none"
 
         file_name = file_name_input.value
         title = title_input.value

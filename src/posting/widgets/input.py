@@ -20,21 +20,6 @@ class PostingInput(Input):
         self.on_theme_change(self.app.current_theme)
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
-    def render(self) -> RenderResult:
-        self.view_position = self.view_position
-        if not self.value:
-            placeholder = Text(self.placeholder, justify="left")
-            placeholder.stylize(self.get_component_rich_style("input--placeholder"))
-            if self.has_focus:
-                if self._cursor_visible:
-                    # If the placeholder is empty, there's no characters to stylise
-                    # to make the cursor flash, so use a single space character
-                    if len(placeholder) == 0:
-                        placeholder = Text(" ")
-                    placeholder.stylize(self.cursor_style, 0, 1)
-            return placeholder
-        return _InputRenderable(self, self._cursor_visible)
-
     @property
     def cursor_style(self) -> Style:
         return (

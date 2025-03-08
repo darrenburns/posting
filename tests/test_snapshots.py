@@ -204,6 +204,57 @@ description: bar
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
+    def test_cannot_create_request_without_name(self, snap_compare):
+        """Check that we cannot create a request without a name.
+
+        We should see a validation error appear in the modal.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+n")
+            await pilot.press("enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+
+    def test_cannot_create_request_with_duplicate_name(self, snap_compare):
+        """Check that we cannot create a request with a duplicate name.
+
+        We expect to see an error toast at the bottom right.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+n")
+            await pilot.press(*"echo")  # this name already exists
+            await pilot.press("enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_cannot_create_request_invalid_filename(self, snap_compare):
+        """Check that we cannot create a request with an invalid filename.
+
+        You should see a validation error next to the filename field.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+n", "x", "tab")
+            await pilot.press(*"..")
+            await pilot.press("enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(88, 28))
+
+    def test_cannot_supply_invalid_path_in_collection(self, snap_compare):
+        """Check that we cannot supply an invalid path in the collection.
+
+        You should see a validation error next to the filename field.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+n", "x", "tab", "tab", "tab")
+            await pilot.press(*"../")
+            await pilot.press("enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(88, 28))
+
 
 @use_config("general.yaml")
 class TestUserInterfaceShortcuts:

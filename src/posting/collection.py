@@ -3,12 +3,13 @@ from functools import total_ordering
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from pathlib import Path
 from string import Template
-from typing import Any, Generator, Literal, get_args
+from typing import Any, Literal, get_args
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
 import rich
 import yaml
 import os
+from textual import log
 from posting.auth import HttpxBearerTokenAuth
 from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
@@ -294,7 +295,12 @@ class RequestModel(BaseModel):
 
     def delete_from_disk(self) -> None:
         if self.path:
-            self.path.unlink()
+            try:
+                self.path.unlink()
+            except FileNotFoundError:
+                log.warning(
+                    f"Could not delete request {self.name!r} from disk: not found"
+                )
 
     def to_curl(self, extra_args: str = "") -> str:
         """Convert the request model to a cURL command.
