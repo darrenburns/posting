@@ -6,7 +6,6 @@ import pytest
 from textual.pilot import Pilot
 from textual.widgets import Input
 from posting.__main__ import make_posting
-from posting.scripts import clear_module_cache
 
 TEST_DIR = Path(__file__).parent
 CONFIG_DIR = TEST_DIR / "sample-configs"

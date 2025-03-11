@@ -2,7 +2,7 @@ from yaml import load, dump
 import yaml
 
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CLoader as Loader, Dumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
 
