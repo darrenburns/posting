@@ -7,32 +7,16 @@ from typing import Any, Literal, get_args
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
 import rich
-import yaml
 import os
 from textual import log
 from posting.auth import HttpxBearerTokenAuth
 from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
-
+from posting.yaml import dump, load, Loader
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 VALID_HTTP_METHODS = get_args(HttpRequestMethod)
-
-
-def str_presenter(dumper, data):
-    if data.count("\n") > 0:
-        data = "\n".join(
-            [line.rstrip() for line in data.splitlines()]
-        )  # Remove any trailing spaces, then put it back together again
-        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
-    return dumper.represent_scalar("tag:yaml.org,2002:str", data)
-
-
-yaml.add_representer(str, str_presenter)
-yaml.representer.SafeRepresenter.add_representer(
-    str, str_presenter
-)  # to use with safe_dump
 
 
 class Auth(BaseModel):
@@ -284,7 +268,7 @@ class RequestModel(BaseModel):
     def save_to_disk(self, path: Path) -> None:
         """Save the request model to a YAML file."""
         content = self.model_dump(exclude_defaults=True, exclude_none=True)
-        yaml_content = yaml.dump(
+        yaml_content = dump(
             content,
             None,
             sort_keys=False,
@@ -552,5 +536,5 @@ def load_request_from_yaml(file_path: str) -> RequestModel:
         RequestModel: The request model loaded from the YAML file.
     """
     with open(file_path, "r") as file:
-        data = yaml.safe_load(file)
+        data = load(file, Loader=Loader)
         return RequestModel(**data, path=Path(file_path))

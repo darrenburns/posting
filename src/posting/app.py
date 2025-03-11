@@ -31,7 +31,6 @@ from textual.widgets import (
     TextArea,
 )
 from textual.widgets._tabbed_content import ContentTab
-from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
     Cookie,
@@ -981,6 +980,9 @@ class Posting(App[None], inherit_bindings=False):
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
         """Watching files that were passed in as the environment."""
+
+        from watchfiles import awatch
+
         async for changes in awatch(*self.environment_files):
             # Reload the variables from the environment files.
             load_variables(
@@ -1006,6 +1008,9 @@ class Posting(App[None], inherit_bindings=False):
     @work(exclusive=True, group="collection-watcher")
     async def watch_collection_files(self) -> None:
         """Watching specific files within the collection directory."""
+
+        from watchfiles import awatch, Change
+
         async for changes in awatch(self.collection.path):
             for change_type, file_path in changes:
                 if file_path.endswith(".py"):
@@ -1034,6 +1039,9 @@ class Posting(App[None], inherit_bindings=False):
     @work(exclusive=True, group="theme-watcher")
     async def watch_themes(self) -> None:
         """Watching the theme directory for changes."""
+
+        from watchfiles import awatch
+
         async for changes in awatch(self.settings.theme_directory):
             for _change_type, file_path in changes:
                 if file_path.endswith((".yml", ".yaml")):

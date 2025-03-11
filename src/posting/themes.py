@@ -7,7 +7,7 @@ from textual.app import InvalidThemeError
 from textual.color import Color
 from textual.theme import Theme as TextualTheme
 from textual.widgets.text_area import TextAreaTheme
-import yaml
+from posting.yaml import load, Loader
 from posting.config import SETTINGS
 
 
@@ -347,7 +347,7 @@ def load_user_themes() -> UserThemeLoadResult:
 def load_user_theme(path: Path) -> TextualTheme | None:
     with path.open() as theme_file:
         try:
-            theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
+            theme_content = load(theme_file, Loader=Loader) or {}
         except Exception as e:
             raise InvalidThemeError(f"Could not parse theme file: {str(e)}.")
 
