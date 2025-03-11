@@ -43,7 +43,6 @@ from posting.collection import (
 
 from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
-from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
@@ -977,6 +976,7 @@ class Posting(App[None], inherit_bindings=False):
         print("-- STARTUP TIME ------------------------------")
         print(message)
         print("--------------------------------")
+        # self.exit()
 
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
@@ -1296,6 +1296,8 @@ class Posting(App[None], inherit_bindings=False):
                 self.screen.set_focus(focused)
 
         self.set_focus(None)
+        from posting.help_screen import HelpScreen
+
         await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
 
     def exit(

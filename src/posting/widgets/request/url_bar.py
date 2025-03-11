@@ -14,7 +14,7 @@ from textual.widgets.input import Selection
 from textual_autocomplete import DropdownItem
 from textual_autocomplete._autocomplete2 import TargetState
 from posting.config import SETTINGS
-from posting.help_screen import HelpData
+from posting.help_data import HelpData
 
 from posting.highlighters import VariablesAndUrlHighlighter
 from posting.themes import UrlStyles, VariableStyles

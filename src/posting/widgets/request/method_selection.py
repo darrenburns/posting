@@ -6,7 +6,7 @@ from textual.binding import Binding
 from textual.message import Message
 from textual.widgets import Select
 from posting.collection import HttpRequestMethod
-from posting.help_screen import HelpData
+from posting.help_data import HelpData
 
 from posting.widgets.select import PostingSelect
 

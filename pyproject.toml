@@ -59,6 +59,7 @@ dev-dependencies = [
     "pytest-cov>=5.0.0",
     "pytest-textual-snapshot>=1.0.0",
     "mkdocs-material>=9.5.30",
+    "pyinstrument>=5.0.1",
 ]
 
 [tool.hatch.metadata]

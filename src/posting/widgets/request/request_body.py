@@ -1,8 +1,4 @@
-from typing import Iterable
-
-from textual import events
-from textual.widgets.text_area import Location
-from posting.help_screen import HelpData
+from posting.help_data import HelpData
 
 from posting.widgets.text_area import PostingTextArea
 

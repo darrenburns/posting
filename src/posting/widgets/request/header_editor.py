@@ -5,7 +5,7 @@ from textual.containers import Vertical
 from textual.widgets import Input
 from textual_autocomplete import DropdownItem, AutoComplete
 from posting.collection import Header
-from posting.help_screen import HelpData
+from posting.help_data import HelpData
 
 from posting.widgets.datatable import PostingDataTable
 from posting.request_headers import REQUEST_HEADERS
