@@ -1062,7 +1062,6 @@ class Posting(App[None], inherit_bindings=False):
 
         available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 
-        print(settings)
         if settings.load_builtin_themes:
             available_themes |= BUILTIN_THEMES
         else:
