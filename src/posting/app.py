@@ -23,13 +23,7 @@ from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
-from textual.widgets import (
-    Button,
-    Footer,
-    Input,
-    Label,
-    TextArea,
-)
+from textual.widgets import Button, Footer, Input, Label
 from textual.widgets._tabbed_content import ContentTab
 from posting.collection import (
     Collection,
@@ -225,6 +219,7 @@ class MainScreen(Screen[None]):
             yield collection_browser
             yield RequestEditor()
             yield ResponseArea()
+
         yield Footer(show_command_palette=False)
 
     def get_and_run_script(
@@ -616,8 +611,8 @@ class MainScreen(Screen[None]):
         request_editor.set_class(section == "response", "hidden")
         response_area.set_class(section == "request", "hidden")
 
-    @on(TextArea.Changed, selector="RequestBodyTextArea")
-    def on_request_body_change(self, event: TextArea.Changed) -> None:
+    @on(RequestBodyTextArea.Changed, selector="RequestBodyTextArea")
+    def on_request_body_change(self, event: RequestBodyTextArea.Changed) -> None:
         """Update the body tab to indicate if there is a body."""
         body_tab = self.query_one("#--content-tab-body-pane", ContentTab)
         if event.text_area.text:
@@ -1067,6 +1062,7 @@ class Posting(App[None], inherit_bindings=False):
 
         available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 
+        print(settings)
         if settings.load_builtin_themes:
             available_themes |= BUILTIN_THEMES
         else:
@@ -1098,6 +1094,7 @@ class Posting(App[None], inherit_bindings=False):
         for theme_name in unwanted_themes:
             self.unregister_theme(theme_name)
 
+        print(settings.theme, "settings.theme")
         try:
             self.theme = settings.theme
         except InvalidThemeError:
