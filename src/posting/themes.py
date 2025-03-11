@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, Any
+from dataclasses import dataclass, field
 import uuid
-from pydantic import BaseModel, Field
 from rich.style import Style
 from textual.app import InvalidThemeError
 from textual.color import Color
@@ -11,53 +11,56 @@ import yaml
 from posting.config import SETTINGS
 
 
-class PostingTextAreaTheme(BaseModel):
-    gutter: str | None = Field(default=None)
+@dataclass
+class PostingTextAreaTheme:
+    gutter: str | None = None
     """The style to apply to the gutter."""
 
-    cursor: str | None = Field(default=None)
+    cursor: str | None = None
     """The style to apply to the cursor."""
 
-    cursor_line: str | None = Field(default=None)
+    cursor_line: str | None = None
     """The style to apply to the line the cursor is on."""
 
-    cursor_line_gutter: str | None = Field(default=None)
+    cursor_line_gutter: str | None = None
     """The style to apply to the gutter of the line the cursor is on."""
 
-    matched_bracket: str | None = Field(default=None)
+    matched_bracket: str | None = None
     """The style to apply to bracket matching."""
 
-    selection: str | None = Field(default=None)
+    selection: str | None = None
     """The style to apply to the selected text."""
 
 
-class SyntaxTheme(BaseModel):
+@dataclass
+class SyntaxTheme:
     """Colours used in highlighting syntax in text areas and
     URL input fields."""
 
-    json_key: str | None = Field(default=None)
+    json_key: str | None = None
     """The style to apply to JSON keys."""
 
-    json_string: str | None = Field(default=None)
+    json_string: str | None = None
     """The style to apply to JSON strings."""
 
-    json_number: str | None = Field(default=None)
+    json_number: str | None = None
     """The style to apply to JSON numbers."""
 
-    json_boolean: str | None = Field(default=None)
+    json_boolean: str | None = None
     """The style to apply to JSON booleans."""
 
-    json_null: str | None = Field(default=None)
+    json_null: str | None = None
     """The style to apply to JSON null values."""
 
 
-class VariableStyles(BaseModel):
+@dataclass
+class VariableStyles:
     """The style to apply to variables."""
 
-    resolved: str | None = Field(default=None)
+    resolved: str | None = None
     """The style to apply to resolved variables."""
 
-    unresolved: str | None = Field(default=None)
+    unresolved: str | None = None
     """The style to apply to unresolved variables."""
 
     def fill_with_defaults(self, theme: "Theme") -> "VariableStyles":
@@ -69,16 +72,17 @@ class VariableStyles(BaseModel):
         )
 
 
-class UrlStyles(BaseModel):
+@dataclass
+class UrlStyles:
     """The style to apply to URL input fields."""
 
-    base: str | None = Field(default=None)
+    base: str | None = None
     """The style to apply to the base of the URL."""
 
-    protocol: str | None = Field(default=None)
+    protocol: str | None = None
     """The style to apply to the URL protocol."""
 
-    separator: str | None = Field(default="dim")
+    separator: str | None = "dim"
     """The style to apply to URL separators e.g. `/`."""
 
     def fill_with_defaults(self, theme: "Theme") -> "UrlStyles":
@@ -91,20 +95,22 @@ class UrlStyles(BaseModel):
         )
 
 
-class MethodStyles(BaseModel):
+@dataclass
+class MethodStyles:
     """The style to apply to HTTP methods in the sidebar."""
 
-    get: str | None = Field(default="#0ea5e9")
-    post: str | None = Field(default="#22c55e")
-    put: str | None = Field(default="#f59e0b")
-    delete: str | None = Field(default="#ef4444")
-    patch: str | None = Field(default="#14b8a6")
-    options: str | None = Field(default="#8b5cf6")
-    head: str | None = Field(default="#d946ef")
+    get: str | None = "#0ea5e9"
+    post: str | None = "#22c55e"
+    put: str | None = "#f59e0b"
+    delete: str | None = "#ef4444"
+    patch: str | None = "#14b8a6"
+    options: str | None = "#8b5cf6"
+    head: str | None = "#d946ef"
 
 
-class Theme(BaseModel):
-    name: str = Field(exclude=True)
+@dataclass
+class Theme:
+    name: str
     primary: str
     secondary: str | None = None
     background: str | None = None
@@ -116,10 +122,10 @@ class Theme(BaseModel):
     accent: str | None = None
     dark: bool = True
 
-    text_area: PostingTextAreaTheme = Field(default_factory=PostingTextAreaTheme)
+    text_area: PostingTextAreaTheme = field(default_factory=PostingTextAreaTheme)
     """Styling to apply to TextAreas."""
 
-    syntax: str | SyntaxTheme = Field(default="posting", exclude=True)
+    syntax: Any = field(default="posting")
     """Posting can associate a syntax highlighting theme which will
     be switched to automatically when the app theme changes.
     
@@ -127,19 +133,19 @@ class Theme(BaseModel):
     such as monokai, dracula, github_light, or vscode_dark. It can also be 'posting'
     which will use the posting theme as defined in themes.py."""
 
-    url: UrlStyles | None = Field(default_factory=UrlStyles)
+    url: UrlStyles = field(default_factory=UrlStyles)
     """Styling to apply to URL input fields."""
 
-    variable: VariableStyles | None = Field(default_factory=VariableStyles)
+    variable: VariableStyles = field(default_factory=VariableStyles)
     """The style to apply to variables."""
 
-    method: MethodStyles | None = Field(default_factory=MethodStyles)
+    method: MethodStyles = field(default_factory=MethodStyles)
     """The style to apply to HTTP methods in the sidebar."""
 
     # Optional metadata
-    author: str | None = Field(default=None, exclude=True)
-    description: str | None = Field(default=None, exclude=True)
-    homepage: str | None = Field(default=None, exclude=True)
+    author: str | None = None
+    description: str | None = None
+    homepage: str | None = None
 
     def to_textual_theme(self) -> TextualTheme:
         """Convert this theme to a Textual Theme.
@@ -147,7 +153,7 @@ class Theme(BaseModel):
         Returns:
             A Textual Theme instance with all properties and variables set.
         """
-        theme_data = {
+        theme_data: dict[str, object] = {
             "name": self.name,
             "dark": self.dark,
         }
@@ -170,7 +176,7 @@ class Theme(BaseModel):
 
         theme_data = {**colors, **theme_data}
 
-        variables = {}
+        variables: dict[str, object] = {}
         if self.url:
             url_styles = self.url.fill_with_defaults(self)
             variables.update(
