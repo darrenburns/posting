@@ -1,3 +1,7 @@
+"""The main entry point for the Posting CLI."""
+
+from posting._start_time import START_TIME
+
 from pathlib import Path
 import click
 
@@ -7,7 +11,6 @@ from rich.console import Console
 from posting.app import Posting
 from posting.collection import Collection
 from posting.config import Settings
-from posting.importing.open_api import import_openapi_spec
 from posting.locations import (
     config_file,
     default_collection_directory,
@@ -105,6 +108,11 @@ def import_spec(spec_path: str, output: str | None) -> None:
     console.print(
         "Importing is currently an experimental feature.", style="bold yellow"
     )
+
+    # We defer this import as it takes 64ms on an M4 MacBook Pro,
+    # and is only needed for a single CLI command - not for the main TUI.
+    from posting.importing.open_api import import_openapi_spec
+
     try:
         collection = import_openapi_spec(spec_path)
 

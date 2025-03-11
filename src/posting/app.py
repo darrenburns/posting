@@ -965,6 +965,19 @@ class Posting(App[None], inherit_bindings=False):
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
 
+    def on_ready(self) -> None:
+        import time
+        from posting._start_time import START_TIME
+
+        message = f"Posting started in {(time.perf_counter() - START_TIME) * 1000:.2f} milliseconds"
+        self.notify(
+            message,
+            title="Startup time",
+        )
+        print("-- STARTUP TIME ------------------------------")
+        print(message)
+        print("--------------------------------")
+
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
         """Watching files that were passed in as the environment."""
