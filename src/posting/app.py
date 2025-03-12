@@ -962,15 +962,8 @@ class Posting(App[None], inherit_bindings=False):
         import time
         from posting._start_time import START_TIME
 
-        message = f"Posting started in {(time.perf_counter() - START_TIME) * 1000:.2f} milliseconds"
-        self.notify(
-            message,
-            title="Startup time",
-        )
-        print("-- STARTUP TIME ------------------------------")
-        print(message)
-        print("--------------------------------")
-        # self.exit()
+        message = f"Posting started in {(time.perf_counter_ns() - START_TIME) // 1_000_000} milliseconds."
+        log.debug(message)
 
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
@@ -1093,7 +1086,6 @@ class Posting(App[None], inherit_bindings=False):
         for theme_name in unwanted_themes:
             self.unregister_theme(theme_name)
 
-        print(settings.theme, "settings.theme")
         try:
             self.theme = settings.theme
         except InvalidThemeError:
