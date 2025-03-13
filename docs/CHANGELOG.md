@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- Prioritise user-defined `User-Agent` header over Posting's default.
+
 ## 2.5.3 [13th March 2025]
 
 ### Changed

@@ -388,9 +388,11 @@ class MainScreen(Screen[None]):
                     self.response_script_output.set_request_status("no-script")
                 request = self.build_httpx_request(request_model, client)
 
-                request.headers["User-Agent"] = (
-                    f"Posting/{VERSION} (Terminal-based API client)"
-                )
+                # Prioritise user-defined `User-Agent` header over Posting's default.
+                if "User-Agent" not in request.headers:
+                    request.headers["User-Agent"] = (
+                        f"Posting/{VERSION} (Terminal-based API client)"
+                    )
                 response = await client.send(
                     request=request,
                     follow_redirects=request_options.follow_redirects,
