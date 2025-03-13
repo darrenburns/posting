@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any, cast
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
+from textual.lazy import Lazy
 from textual.widgets import ContentSwitcher, Label, Select, TabPane
 from posting.collection import RequestBody
 from posting.widgets.center_middle import CenterMiddle
@@ -10,7 +11,7 @@ from posting.widgets.request.form_editor import FormEditor
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor
 from posting.widgets.request.request_auth import RequestAuth
-from posting.widgets.request.request_body import RequestBodyTextArea
+from posting.widgets.request.request_body import RequestBodyEditor, RequestBodyTextArea
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
@@ -40,46 +41,17 @@ class RequestEditor(Vertical):
                 with TabPane("Headers", id="headers-pane"):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
-                    with Horizontal(id="request-body-type-select-container"):
-                        yield PostingSelect(
-                            # These values are also referred to inside MainScreen.
-                            # When we load a request, we need to set the correct
-                            # value in the select.
-                            options=[
-                                ("None", "no-body-label"),
-                                ("Raw (json, text, etc.)", "text-body-editor"),
-                                ("Form data", "form-body-editor"),
-                            ],
-                            id="request-body-type-select",
-                            allow_blank=False,
-                        )
-                    with ContentSwitcher(
-                        initial="no-body-label",
-                        id="request-body-type-content-switcher",
-                    ):
-                        yield CenterMiddle(
-                            Label("The request doesn't have a body."),
-                            id="no-body-label",
-                        )
-                        text_area = RequestBodyTextArea(language="json")
-                        yield TextEditor(
-                            text_area=text_area,
-                            footer=TextAreaFooter(text_area),
-                            id="text-body-editor",
-                        )
-                        yield FormEditor(
-                            id="form-body-editor",
-                        )
+                    yield Lazy(RequestBodyEditor())
                 with TabPane("Query", id="query-pane"):
-                    yield QueryStringEditor()
+                    yield Lazy(QueryStringEditor())
                 with TabPane("Auth", id="auth-pane"):
-                    yield RequestAuth()
+                    yield Lazy(RequestAuth())
                 with TabPane("Info", id="info-pane"):
-                    yield RequestMetadata()
+                    yield Lazy(RequestMetadata())
                 with TabPane("Scripts", id="scripts-pane"):
-                    yield RequestScripts(collection_root=app.collection.path)
+                    yield Lazy(RequestScripts(collection_root=app.collection.path))
                 with TabPane("Options", id="options-pane"):
-                    yield RequestOptions()
+                    yield Lazy(RequestOptions())
 
     def on_mount(self):
         self.border_title = "Request"

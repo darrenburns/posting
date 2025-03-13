@@ -20,7 +20,7 @@ from textual.widgets.tree import TreeNode
 from posting.collection import Collection, RequestModel
 from posting.config import SETTINGS
 from posting.files import get_unique_request_filename
-from posting.help_screen import HelpData
+from posting.help_data import HelpData
 from posting.save_request import generate_request_filename
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,

@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 from rich.text import Text
 from textual.app import ComposeResult
@@ -8,17 +7,8 @@ from textual.screen import ModalScreen
 from textual.widget import Widget
 from textual.widgets import Label, Markdown
 
+from posting.help_data import HelpData
 from posting.widgets.datatable import PostingDataTable
-
-
-@dataclass
-class HelpData:
-    """Data relating to the widget to be displayed in the HelpScreen"""
-
-    title: str = field(default="")
-    """Title of the widget"""
-    description: str = field(default="")
-    """Markdown description to be displayed in the HelpScreen"""
 
 
 @runtime_checkable
@@ -175,7 +165,7 @@ class HelpScreen(ModalScreen[None]):
                 )
                 table.cursor_vertical_escape = False
                 table.add_columns("Key", "Description")
-                for key, bindings in keys:
+                for _key, bindings in keys:
                     table.add_row(
                         Text(
                             ", ".join(

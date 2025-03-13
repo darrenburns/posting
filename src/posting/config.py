@@ -12,7 +12,6 @@ from pydantic_settings import (
 from textual.types import AnimationLevel
 
 from posting.locations import config_file, theme_directory
-
 from posting.types import PostingLayout
 
 

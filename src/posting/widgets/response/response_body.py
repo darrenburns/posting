@@ -1,6 +1,6 @@
 from textual import on
 from textual.widgets import TextArea
-from posting.help_screen import HelpData
+from posting.help_data import HelpData
 
 from posting.widgets.text_area import ReadOnlyTextArea
 

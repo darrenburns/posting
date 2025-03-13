@@ -1,5 +1,5 @@
 from textual_autocomplete import DropdownItem, TargetState
-from posting.help_screen import HelpData
+from posting.help_data import HelpData
 from posting.highlighters import VariableHighlighter
 from posting.themes import Theme, VariableStyles
 from posting.variables import get_variables

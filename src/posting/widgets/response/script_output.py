@@ -10,7 +10,7 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.reactive import Reactive, reactive
 from textual.widgets import Label, RichLog
 
-from posting.help_screen import HelpData
+from posting.help_data import HelpData
 
 ScriptStatus = Literal["success", "error", "no-script"]
 

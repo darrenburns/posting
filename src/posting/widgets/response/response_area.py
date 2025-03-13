@@ -1,5 +1,6 @@
 import json
 import httpx
+from textual.lazy import Lazy
 from posting.config import SETTINGS
 
 from posting.widgets.response.response_trace import ResponseTrace
@@ -72,13 +73,13 @@ class ResponseArea(Vertical):
                     TextAreaFooter(text_area),
                 )
             with TabPane("Headers", id="response-headers-pane"):
-                yield ResponseHeadersTable()
+                yield Lazy(ResponseHeadersTable())
             with TabPane("Cookies", id="response-cookies-pane"):
-                yield CookiesTable()
+                yield Lazy(CookiesTable())
             with TabPane("Scripts", id="response-scripts-pane"):
-                yield ScriptOutput()
+                yield Lazy(ScriptOutput())
             with TabPane("Trace", id="response-trace-pane"):
-                yield ResponseTrace()
+                yield Lazy(ResponseTrace())
 
     def on_theme_change(self, _) -> None:
         if self._latest_response:

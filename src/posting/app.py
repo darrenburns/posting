@@ -23,15 +23,8 @@ from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
-from textual.widgets import (
-    Button,
-    Footer,
-    Input,
-    Label,
-    TextArea,
-)
+from textual.widgets import Button, Footer, Input, Label
 from textual.widgets._tabbed_content import ContentTab
-from watchfiles import Change, awatch
 from posting.collection import (
     Collection,
     Cookie,
@@ -43,7 +36,6 @@ from posting.collection import (
 
 from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
-from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
@@ -227,6 +219,7 @@ class MainScreen(Screen[None]):
             yield collection_browser
             yield RequestEditor()
             yield ResponseArea()
+
         yield Footer(show_command_palette=False)
 
     def get_and_run_script(
@@ -618,8 +611,8 @@ class MainScreen(Screen[None]):
         request_editor.set_class(section == "response", "hidden")
         response_area.set_class(section == "request", "hidden")
 
-    @on(TextArea.Changed, selector="RequestBodyTextArea")
-    def on_request_body_change(self, event: TextArea.Changed) -> None:
+    @on(RequestBodyTextArea.Changed, selector="RequestBodyTextArea")
+    def on_request_body_change(self, event: RequestBodyTextArea.Changed) -> None:
         """Update the body tab to indicate if there is a body."""
         body_tab = self.query_one("#--content-tab-body-pane", ContentTab)
         if event.text_area.text:
@@ -965,9 +958,19 @@ class Posting(App[None], inherit_bindings=False):
     _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
     """True if 'jump mode' is currently active, otherwise False."""
 
+    def on_ready(self) -> None:
+        import time
+        from posting._start_time import START_TIME
+
+        message = f"Posting started in {(time.perf_counter_ns() - START_TIME) // 1_000_000} milliseconds."
+        log.debug(message)
+
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
         """Watching files that were passed in as the environment."""
+
+        from watchfiles import awatch
+
         async for changes in awatch(*self.environment_files):
             # Reload the variables from the environment files.
             load_variables(
@@ -993,6 +996,9 @@ class Posting(App[None], inherit_bindings=False):
     @work(exclusive=True, group="collection-watcher")
     async def watch_collection_files(self) -> None:
         """Watching specific files within the collection directory."""
+
+        from watchfiles import awatch, Change
+
         async for changes in awatch(self.collection.path):
             for change_type, file_path in changes:
                 if file_path.endswith(".py"):
@@ -1021,6 +1027,9 @@ class Posting(App[None], inherit_bindings=False):
     @work(exclusive=True, group="theme-watcher")
     async def watch_themes(self) -> None:
         """Watching the theme directory for changes."""
+
+        from watchfiles import awatch
+
         async for changes in awatch(self.settings.theme_directory):
             for _change_type, file_path in changes:
                 if file_path.endswith((".yml", ".yaml")):
@@ -1283,6 +1292,8 @@ class Posting(App[None], inherit_bindings=False):
                 self.screen.set_focus(focused)
 
         self.set_focus(None)
+        from posting.help_screen import HelpScreen
+
         await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
 
     def exit(
