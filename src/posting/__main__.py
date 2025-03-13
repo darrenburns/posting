@@ -1,8 +1,4 @@
 """The main entry point for the Posting CLI."""
-# This import should be the first thing to run, to ensure that
-# the START_TIME is set as early as possible.
-from posting._start_time import START_TIME  # type: ignore # noqa: F401
-    
 from pathlib import Path
 import click
 
