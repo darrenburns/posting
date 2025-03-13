@@ -1,3 +1,13 @@
+## 2.5.3 [13th March 2025]
+
+### Changed
+
+- Lazily load content of tabs which are hidden on startup (100ms saved at startup).
+- Only import openapi-pydantic when importing OpenAPI specs via `posting import` (63ms saved at startup).
+- Pin httpx and patch out httpx._main to prevent slow import (20ms saved at startup).
+- Defer import of watchfiles until app is running (6ms saved at startup).
+- Defer `HelpScreen` import until it's used (10ms saved at startup).
+
 ## 2.5.2 [8th March 2025]
 
 ### Added
