@@ -1,4 +1,4 @@
-## Unreleased
+## 2.5.4 [13th March 2025]
 
 ### Fixed
 
