@@ -9,7 +9,8 @@ dependencies = [
     "click>=8.1.7,<9.0.0",
     "xdg-base-dirs>=6.0.1,<7.0.0",
     "click-default-group>=1.2.4,<2.0.0",
-    "httpx[brotli]>=0.27.2,<1.0.0",
+    "httpx[brotli]==0.28.1",
+    # pinned httpx automatically since we monkeypatch _main.py
     "openapi-pydantic>=0.5.0",
     "pyperclip>=1.9.0,<2.0.0",
     "pydantic>=2.9.2,<3.0.0",

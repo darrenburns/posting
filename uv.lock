@@ -940,7 +940,7 @@ dev = [
 requires-dist = [
     { name = "click", specifier = ">=8.1.7,<9.0.0" },
     { name = "click-default-group", specifier = ">=1.2.4,<2.0.0" },
-    { name = "httpx", extras = ["brotli"], specifier = ">=0.27.2,<1.0.0" },
+    { name = "httpx", extras = ["brotli"], specifier = "==0.28.1" },
     { name = "openapi-pydantic", specifier = ">=0.5.0" },
     { name = "pydantic", specifier = ">=2.9.2,<3.0.0" },
     { name = "pydantic-settings", specifier = ">=2.4.0,<3.0.0" },
