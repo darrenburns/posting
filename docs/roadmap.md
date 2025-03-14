@@ -67,6 +67,7 @@ Features planned for the near future.
 Features that are planned for future development but are not immediate priorities.
 
 - Manually resize sections (sidebar, request, response) <span class="tag ui">UI</span>
+- Searching in responses (this will likely be simpler with upcoming Textual changes) <span class="tag requests">Requests</span>
 - File watcher so that if the request changes on disk then the UI updates to reflect it <span class="tag requests">Requests</span>
 - Translating to other languages <span class="tag documentation">Documentation</span>
     - I'd like to support e.g. Chinese, but need to investigate how that would render with double width characters in the terminal.

@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
-from textual.events import Blur, Paste
+from textual.events import Paste
 from textual.message import Message
 from textual.widgets import Input, Button, Label
 from textual.theme import Theme
@@ -27,6 +27,8 @@ from posting.widgets.input import PostingInput
 from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
 from posting.widgets.variable_autocomplete import VariableAutoComplete
+from posting.urls import ensure_protocol
+
 
 
 class CurlMessage(Message):
@@ -106,6 +108,9 @@ It's recommended you create a new request before pasting a curl command, to avoi
         event.prevent_default()
         self.post_message(CurlMessage(event.text))
 
+    @property
+    def value_including_protocol(self) -> str:
+        return ensure_protocol(self.value.strip())
 
 class SendRequestButton(Button, can_focus=False):
     """
