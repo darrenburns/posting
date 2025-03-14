@@ -23,14 +23,12 @@ If you have any feedback or suggestions, please open a [new discussion on GitHub
 .scripting { color: #d580ff; }
 .documentation { color: #ffcc80; }
 .ux { color: #ff9980; }
-.file { color: #cccccc; }
+.requests { color: #cccccc; }
 .realtime { color: #80c8ff; }
-.templates { color: #c080ff; }
 .testing { color: #80ffb0; }
 .cookies { color: #ffaa80; }
 .security { color: #ff8080; }
 .logging { color: #8080ff; }
-.help { color: #80ff80; }
 .legend-item {
   display: flex;
   align-items: center;
@@ -59,15 +57,21 @@ Features planned for the near future.
 - Editing key/value editor rows without having to delete/re-add them <span class="tag ux">UX</span>
 - Adjustable padding in UI via config file <span class="tag ui">UI</span>
 - Don't require user to type `http://` or `https://` in URL field <span class="tag ux">UX</span>
+- Documentation on changing the UI at runtime (e.g. showing/hiding sections, etc.) <span class="tag documentation">Documentation</span>
+- Documentation on using 3rd party libraries in scripts <span class="tag documentation">Documentation</span>
+- Transparent background support (experimentation) <span class="tag ui">UI</span>
+- In-app information about headers <span class="tag documentation">Documentation</span>
 
 ## Longer Term 🔮
 
 Features that are planned for future development but are not immediate priorities.
 
-- File watcher so that if the request changes on disk then the UI updates to reflect it <span class="tag file">File</span>
+- Manually resize sections (sidebar, request, response) <span class="tag ui">UI</span>
+- File watcher so that if the request changes on disk then the UI updates to reflect it <span class="tag requests">Requests</span>
 - Translating to other languages <span class="tag documentation">Documentation</span>
     - I'd like to support e.g. Chinese, but need to investigate how that would render with double width characters in the terminal.
 - Warning when switching request when there are unsaved changes <span class="tag ux">UX</span>
+- Request tagging: the ability to add tags to requests, and filter by tag <span class="tag requests">Requests</span>
 - Making it clear which HTTP headers are set automatically <span class="tag ux">UX</span>
 - Collection switcher <span class="tag collection">Collection</span>
 - Environment switcher <span class="tag environment">Environment</span>
@@ -76,16 +80,15 @@ Features that are planned for future development but are not immediate prioritie
 - WebSocket and SSE support <span class="tag realtime">Realtime</span>
 - Quickly open MDN links for headers <span class="tag ui">UI</span>
 - Add rotating logging <span class="tag logging">Logging</span>
-- Variable completion autocompletion in TextAreas <span class="tag variables">Variables</span>
-- Variable resolution highlighting in TextAreas <span class="tag variables">Variables</span>
-- Highlighting variables in *tables* to show if they've resolved or not <span class="tag variables">Variables</span>
-- Create a `_template.posting.yaml` file for request templates <span class="tag templates">Templates</span>
+- Variable completion autocompletion in TextAreas <span class="tag environment">Environment</span>
+- Variable resolution highlighting in TextAreas <span class="tag environment">Environment</span>
+- Highlighting variables in *tables* to show if they've resolved or not <span class="tag environment">Environment</span>
+- Create a `_template.posting.yaml` file for request templates <span class="tag requests">Requests</span>
 - OAuth2 implementation (need to scope out what's involved) <span class="tag auth">Auth</span>
 - Adding test framework <span class="tag testing">Testing</span>
-- Uploading files <span class="tag file">Files</span>
-- Cookie editor <span class="tag cookies">Cookies</span>
-- Import from Insomnia and Postman (Postman import PR is open, needs further work) <span class="tag import">Import</span>
-- Improving OpenAPI import feature <span class="tag import">Import</span>
+- Uploading files <span class="tag requests">Requests</span>
+- Cookie editor <span class="tag requests">Requests</span>
+- Import from Postman (PR is open, needs further work) <span class="tag import">Import</span>
 
 ## Completed ✓
 
@@ -96,7 +99,7 @@ Features that have been implemented and are available in the current version.
 - Parse cURL commands <span class="tag import">Import</span>
 - Watching environment files for changes & updating the UI <span class="tag environment">Environment</span>
 - Bearer token auth <span class="tag auth">Auth</span>
-- Add "quit" to command palette and footer <span class="tag ui">UI</span>
+- Add "quit" to command palette and footer <span class="tag ux">UX</span>
 - More user friendly errors <span class="tag ux">UX</span>
 - Duplicate request from the tree <span class="tag collection">Collection</span>
 - Quickly duplicate request from the tree <span class="tag collection">Collection</span>
@@ -104,9 +107,9 @@ Features that have been implemented and are available in the current version.
 - Delete request from the tree <span class="tag collection">Collection</span>
 - Inserting into the collection tree in sorted order, not at the bottom <span class="tag collection">Collection</span>
 - External documentation <span class="tag documentation">Documentation</span>
-- Enabling and disabling rows in tables <span class="tag ui">UI</span>
+- Enabling and disabling rows in tables <span class="tag ux">UX</span>
 - Custom themes, loaded from theme directory <span class="tag ui">UI</span>
-- Dynamic in-app help system <span class="tag help">Help</span>
+- Dynamic in-app help system <span class="tag documentation">Documentation</span>
 - Specify certificate path via config or CLI <span class="tag security">Security</span>
 
 
@@ -118,18 +121,13 @@ The following tags are used to categorize features:
   <div class="legend-item"><div>User Interface improvements</div> <span class="tag ui">UI</span></div>
   <div class="legend-item"><div>Collection management</div> <span class="tag collection">Collection</span></div>
   <div class="legend-item"><div>Environment handling</div> <span class="tag environment">Environment</span></div>
-  <div class="legend-item"><div>Variable handling</div> <span class="tag variables">Variables</span></div>
   <div class="legend-item"><div>Authentication methods</div> <span class="tag auth">Auth</span></div>
   <div class="legend-item"><div>Import capabilities</div> <span class="tag import">Import</span></div>
   <div class="legend-item"><div>Scripting capabilities</div> <span class="tag scripting">Scripting</span></div>
   <div class="legend-item"><div>Documentation</div> <span class="tag documentation">Documentation</span></div>
   <div class="legend-item"><div>User Experience</div> <span class="tag ux">UX</span></div>
-  <div class="legend-item"><div>File handling</div> <span class="tag file">File</span></div>
-  <div class="legend-item"><div>Real-time communication</div> <span class="tag realtime">Realtime</span></div>
-  <div class="legend-item"><div>Template features</div> <span class="tag templates">Templates</span></div>
+  <div class="legend-item"><div>Requests</div> <span class="tag requests">Requests</span></div>
   <div class="legend-item"><div>Testing capabilities</div> <span class="tag testing">Testing</span></div>
-  <div class="legend-item"><div>Cookie management</div> <span class="tag cookies">Cookies</span></div>
   <div class="legend-item"><div>Security features</div> <span class="tag security">Security</span></div>
   <div class="legend-item"><div>Logging capabilities</div> <span class="tag logging">Logging</span></div>
-  <div class="legend-item"><div>Help and assistance</div> <span class="tag help">Help</span></div>
 </div>
