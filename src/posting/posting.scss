@@ -12,6 +12,43 @@
   }
 }
 
+Screen {
+  &.-compact {
+    & AppHeader {
+      padding: 0 1;
+    }
+    & AppBody {
+      padding: 0;
+    }
+    & UrlBar {
+      padding: 0;
+    }
+
+    & Footer {
+      padding-left: 0;
+    }
+    & .section {
+      border: none;
+    }
+    & Tabs {
+      height: 1;
+      & Underline {
+        display: none;
+        height: 0;
+      }
+    }
+  
+    & CollectionBrowser {
+      background: $surface 40%;
+    }
+
+    & ResponseArea {
+      background: $surface 25%;
+    }
+
+  }
+}
+
 AutoComplete {
   border-left: wide $accent;
   background: $surface;
@@ -69,6 +106,7 @@ HelpPanel {
     border-title-color: $foreground;
     border-title-style: b;
   }
+
 }
 
 .hidden {
@@ -89,9 +127,8 @@ HelpPanel {
 
 AppHeader {
   color: $text-primary;
-  padding: 0 3;
-  margin-top: 1;
-  height: 1;
+  padding: 1 3;
+  height: auto;
   & > #app-user-host {
       dock: right;
       color: $text-muted;
@@ -99,6 +136,8 @@ AppHeader {
 }
 
 AppBody {
+  padding: 0 2;
+
   &.layout-horizontal {
     layout: horizontal;
 
@@ -187,8 +226,8 @@ PostingRichLog {
 
 
 UrlBar {
-  height: 3;
-  padding: 1 3 0 3;
+  height: 2;
+  padding: 0 3 0 3;
 
   & #method-selector {
       width: 11;

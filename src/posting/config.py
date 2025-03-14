@@ -208,6 +208,9 @@ class Settings(BaseSettings):
     curl_export_extra_args: str = Field(default="")
     """Extra arguments to pass to curl when exporting a request as a curl command."""
 
+    compact: bool = Field(default=False)
+    """If enabled, the app will be more compact."""
+
     @classmethod
     def settings_customise_sources(
         cls,

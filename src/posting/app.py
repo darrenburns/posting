@@ -23,8 +23,8 @@ from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
-from textual.widgets import Button, Footer, Input, Label
-from textual.widgets._tabbed_content import ContentTab
+from textual.widgets import Button, Footer, Input, Label, Tabs
+from textual.widgets.tabbed_content import ContentTab
 from posting.collection import (
     Collection,
     Cookie,
@@ -95,12 +95,6 @@ class AppHeader(Horizontal):
 
 class AppBody(Vertical):
     """The body of the app."""
-
-    DEFAULT_CSS = """\
-    AppBody {
-        padding: 0 2;
-    }
-    """
 
 
 class MainScreen(Screen[None]):
@@ -193,6 +187,8 @@ class MainScreen(Screen[None]):
 
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
+
+        self.set_class(self.settings.compact, "-compact")
 
         # Set the initial focus based on the settings.
         focus_on_startup = self.settings.focus.on_startup
@@ -812,6 +808,10 @@ class MainScreen(Screen[None]):
         return self.query_one(UrlBar)
 
     @property
+    def footer(self) -> Footer:
+        return self.query_one(Footer)
+
+    @property
     def method_selector(self) -> MethodSelector:
         return self.query_one(MethodSelector)
 
@@ -842,6 +842,10 @@ class MainScreen(Screen[None]):
     @property
     def app_body(self) -> AppBody:
         return self.query_one(AppBody)
+
+    @property
+    def app_header(self) -> AppHeader:
+        return self.query_one(AppHeader)
 
     @property
     def request_options(self) -> RequestOptions:
