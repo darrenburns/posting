@@ -1,3 +1,13 @@
+## Unreleased
+
+### Fixed
+
+- Fixed scrolling in response headers and cookies tabs using keyboard.
+
+### Changed
+
+- Automatically prepend `http://` protocol if no protocol is specified in the URL bar.
+
 ## 2.5.4 [13th March 2025]
 
 ### Fixed

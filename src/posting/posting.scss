@@ -151,6 +151,20 @@ PostingDataTable {
     }
 }
 
+#response-headers-pane {
+  height: 1fr;
+  & ResponseHeadersTable {
+    max-height: 1fr;
+  }
+}
+
+#response-cookies-pane {
+  height: 1fr;
+  & CookiesTable {
+    max-height: 1fr;
+  }
+}
+
 Input {
   border: none;
   width: 1fr;
