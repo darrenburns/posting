@@ -177,7 +177,7 @@ Input {
   }
 }
 
-RichLog {
+PostingRichLog {
   padding-left: 1;
   &:focus {
     border-left: wide $accent;
