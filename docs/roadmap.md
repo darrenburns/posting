@@ -1,12 +1,6 @@
-# Posting Roadmap
-
 ## About this document
 
-This is a high level overview of what I'm planning on working on for Posting.
-
-It's organized into three main sections: Upcoming, Long Term, and Completed. Features are tagged by category to help understand the focus areas.
-
-If you have any feedback or suggestions, please open a new discussion on GitHub. Opening a discussion helps me understand what's important to the community, as others can upvote it if they're interested.
+If you have any feedback or suggestions, please open a [new discussion on GitHub](https://github.com/darrenburns/posting/discussions/). This roadmap is driven by community requests, so please open a discussion if you'd like to see something added.
 
 <style>
 .tag {
@@ -52,32 +46,39 @@ If you have any feedback or suggestions, please open a new discussion on GitHub.
 }
 </style>
 
+## Ongoing 🔄
+
+Features that are currently being worked on.
+
+- Add contributing guide <span class="tag documentation">Documentation</span>
+
 ## Upcoming 🚀
 
 Features planned for the near future.
 
-- Editing key/value editor rows without having to delete/re-add them <span class="tag ui">UI</span>
-- Viewing the currently loaded environment keys/values in a popup <span class="tag environment">Environment</span>
-- Changing the environment at runtime via command palette <span class="tag environment">Environment</span>
-- Saving recently used environments to a file <span class="tag environment">Environment</span>
-- Saving recently used collections to a file <span class="tag collection">Collection</span>
-- Variable completion autocompletion in TextAreas <span class="tag variables">Variables</span>
-- Variable resolution highlighting in TextAreas <span class="tag variables">Variables</span>
-- Highlighting variables in tables to show if they've resolved or not <span class="tag variables">Variables</span>
-- API key auth (can be done now by adding header) <span class="tag auth">Auth</span>
-- File watcher so that if the request changes on disk then the UI updates to reflect it <span class="tag file">File</span>
-- Making it clear which HTTP headers are set automatically <span class="tag documentation">Documentation</span>
-- Add contributing guide <span class="tag documentation">Documentation</span>
-- General UX polish and removing footguns: validation, unsurprising navigation, warning when switching request when there are unsaved changes <span class="tag ux">UX</span>
-- More user friendly errors <span class="tag ux">UX</span>
-- Add rotating logging <span class="tag logging">Logging</span>
+- Editing key/value editor rows without having to delete/re-add them <span class="tag ux">UX</span>
+- Adjustable padding in UI via config file <span class="tag ui">UI</span>
+- Don't require user to type `http://` or `https://` in URL field <span class="tag ux">UX</span>
 
-## Long Term 🔮
+## Longer Term 🔮
 
 Features that are planned for future development but are not immediate priorities.
 
+- File watcher so that if the request changes on disk then the UI updates to reflect it <span class="tag file">File</span>
+- Translating to other languages <span class="tag documentation">Documentation</span>
+    - I'd like to support e.g. Chinese, but need to investigate how that would render with double width characters in the terminal.
+- Warning when switching request when there are unsaved changes <span class="tag ux">UX</span>
+- Making it clear which HTTP headers are set automatically <span class="tag ux">UX</span>
+- Collection switcher <span class="tag collection">Collection</span>
+- Environment switcher <span class="tag environment">Environment</span>
+- Viewing the currently loaded environment keys/values in a popup <span class="tag environment">Environment</span>
+- Changing the environment at runtime via command palette <span class="tag environment">Environment</span>
 - WebSocket and SSE support <span class="tag realtime">Realtime</span>
 - Quickly open MDN links for headers <span class="tag ui">UI</span>
+- Add rotating logging <span class="tag logging">Logging</span>
+- Variable completion autocompletion in TextAreas <span class="tag variables">Variables</span>
+- Variable resolution highlighting in TextAreas <span class="tag variables">Variables</span>
+- Highlighting variables in *tables* to show if they've resolved or not <span class="tag variables">Variables</span>
 - Create a `_template.posting.yaml` file for request templates <span class="tag templates">Templates</span>
 - OAuth2 implementation (need to scope out what's involved) <span class="tag auth">Auth</span>
 - Adding test framework <span class="tag testing">Testing</span>
@@ -96,6 +97,7 @@ Features that have been implemented and are available in the current version.
 - Watching environment files for changes & updating the UI <span class="tag environment">Environment</span>
 - Bearer token auth <span class="tag auth">Auth</span>
 - Add "quit" to command palette and footer <span class="tag ui">UI</span>
+- More user friendly errors <span class="tag ux">UX</span>
 - Duplicate request from the tree <span class="tag collection">Collection</span>
 - Quickly duplicate request from the tree <span class="tag collection">Collection</span>
 - Colour-coding for request types (i.e. GET is green, POST is blue, etc.) <span class="tag ui">UI</span>
@@ -106,6 +108,7 @@ Features that have been implemented and are available in the current version.
 - Custom themes, loaded from theme directory <span class="tag ui">UI</span>
 - Dynamic in-app help system <span class="tag help">Help</span>
 - Specify certificate path via config or CLI <span class="tag security">Security</span>
+
 
 ## Legend
 
