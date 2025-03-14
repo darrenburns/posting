@@ -39,11 +39,15 @@ Screen {
     }
   
     & CollectionBrowser {
-      background: $surface 40%;
+      background: $surface 50%;
     }
 
-    & ResponseArea {
+    & RequestEditor {
       background: $surface 25%;
+    }
+    
+    & ResponseArea {
+      background: $surface 10%;
     }
 
   }
