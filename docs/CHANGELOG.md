@@ -4,6 +4,10 @@
 
 - Fixed scrolling in response headers and cookies tabs using keyboard.
 
+### Added
+
+- Basic Vim motions to script output log (`hjkl`).
+
 ### Changed
 
 - Automatically prepend `http://` protocol if no protocol is specified in the URL bar.
