@@ -203,9 +203,6 @@ class MainScreen(Screen[None]):
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
 
-        is_compact_spacing = self.settings.compact
-        self.app.set_class(is_compact_spacing, "-compact")
-
         # If the header is not visible, the URL Bar is one cell higher.
         is_header_visible = self.settings.heading.visible
         self.app.set_class(not is_header_visible, "-header-hidden")
@@ -258,9 +255,7 @@ class MainScreen(Screen[None]):
             yield RequestEditor()
             yield ResponseArea()
 
-        footer = Footer(show_command_palette=False)
-        footer.compact = self.settings.compact
-        yield footer
+        yield Footer(show_command_palette=False)
 
     def get_and_run_script(
         self,
@@ -1030,6 +1025,8 @@ class Posting(App[None], inherit_bindings=False):
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
 
+    spacing: Reactive[str] = reactive("standard", init=False)
+
     def __init__(
         self,
         settings: Settings,
@@ -1072,12 +1069,26 @@ class Posting(App[None], inherit_bindings=False):
         self.animation_level = settings.animation
         """The level of animation to use in the app. This is used by Textual."""
 
+        self.spacing = settings.spacing
+        """The initial spacing of the app is taken from settings, but is a reactive
+        which can be toggled via the command palette."""
+
     def on_ready(self) -> None:
         import time
         from posting._start_time import START_TIME
 
         message = f"Posting started in {(time.perf_counter_ns() - START_TIME) // 1_000_000} milliseconds."
         log.debug(message)
+
+    def watch_spacing(self, spacing: Literal["standard", "compact"]) -> None:
+        is_compact = spacing == "compact"
+        self.app.set_class(is_compact, "-compact")
+        try:
+            footer = self.query_one(Footer)
+        except NoMatches:
+            pass
+        else:
+            footer.compact = is_compact
 
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
@@ -1235,6 +1246,9 @@ class Posting(App[None], inherit_bindings=False):
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
+
+    def command_toggle_spacing(self) -> None:
+        self.spacing = "compact" if self.spacing == "standard" else "standard"
 
     def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
         main_screen = self.main_screen

@@ -111,6 +111,27 @@ class PostingProvider(Provider):
             )
             commands_to_show.append(toggle_collection_browser_command)
 
+            toggle_spacing_callback: IgnoreReturnCallbackType = partial[None](
+                app.command_toggle_spacing
+            )
+            title = (
+                "spacing: Enable compact mode"
+                if app.spacing == "standard"
+                else "spacing: Enable standard mode"
+            )
+            help_text = (
+                "Reduce user interface spacing"
+                if app.spacing == "standard"
+                else "Increase user interface spacing"
+            )
+            toggle_spacing_command: CommandType = (
+                title,
+                toggle_spacing_callback,
+                help_text,
+                True,
+            )
+            commands_to_show.append(toggle_spacing_command)
+
         # Global commands, not specific to the MainScreen.
         if not app.ansi_color:
             commands_to_show.append(
