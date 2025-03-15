@@ -75,7 +75,37 @@ Posting {
       margin-top: 1;
     }
 
+    & CommandPalette {
+      
+      & > Vertical {
+        margin-top: 1;
+        width: 80vw;
+      }
+    
+      & #--input {
+        border: none;
+        border-left: wide $accent;
+    
+        & CommandInput {
+          height: 1;
+          border: none;
+          padding: 0;
+        }
+      }
+    
+      & CommandList {
+        border: none;
+        max-height: 100vh;
+        border-left: wide $accent;
+        padding: 0;
+        & > .option-list--option {
+          padding: 0;
+        }
+
+      }
+    }
   }
+
 }
 
 ResponseArea {
@@ -566,7 +596,7 @@ Button {
 }
 
 CommandPalette {
-  background: black 20%;
+  background: black 33%;
 
   & > Vertical {
     margin-top: 5;
