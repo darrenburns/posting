@@ -76,10 +76,16 @@ Posting {
     }
 
     & CommandPalette {
-      
+      align-horizontal: left;
+
       & > Vertical {
+        /* The margin will be set in code, to align 
+        the command palette with the url bar 
+        */
+        margin-left: 11;
         margin-top: 1;
-        width: 80vw;
+        max-width: 1fr;
+        width: auto;
       }
     
       & #--input {
@@ -90,18 +96,48 @@ Posting {
           height: 1;
           border: none;
           padding: 0;
+          width: 1fr;
         }
       }
     
       & CommandList {
+        width: auto;
         border: none;
-        max-height: 100vh;
+        max-height: 67vh;
         border-left: wide $accent;
         padding: 0;
         & > .option-list--option {
           padding: 0;
         }
+      }
 
+    }
+
+    &.-header-hidden {
+      & CommandPalette > Vertical{
+        margin-top: 0;
+        margin-left: 11;
+      }
+    }
+
+    & #theme-search-command-palette {
+      height: 10;
+      & > Vertical {
+        width: 28;
+        height: 10;
+        & CommandList {
+          height: 10;
+        }
+      }
+    }
+
+    & #request-search-palette {
+      & > Vertical {
+        width: 1fr;
+        overflow: hidden;
+        & CommandList {
+          width: 1fr;
+        }
       }
     }
   }
@@ -597,29 +633,29 @@ Button {
 
 CommandPalette {
   background: black 33%;
-
+  
   & > Vertical {
-    margin-top: 5;
+    margin-top: 2;
     width: 65vw;
     max-height: 65vh;
   }
-
+  
   & #--input {
     border: none;
     border-left: wide $accent;
-
+    
     & CommandInput {
       height: 3;
       border: none;
       padding: 1 2;
     }
-
+    
     & SearchIcon {
       display: none;
     }
-
+    
   }
-
+  
   & CommandList {
     border: none;
     border-left: wide $accent;

@@ -3,7 +3,7 @@ from contextlib import redirect_stdout, redirect_stderr
 import os
 from pathlib import Path
 import sys
-from typing import Any, Literal, cast
+from typing import Any, Literal, Sequence, cast
 
 import httpx
 from rich.console import RenderableType
@@ -11,7 +11,12 @@ from textual.content import Content
 
 from posting.importing.curl import CurlImport
 from textual import messages, on, log, work
-from textual.command import CommandPalette, SimpleCommand
+from textual.command import (
+    CommandListItem,
+    CommandPalette,
+    SimpleCommand,
+    SimpleProvider,
+)
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
@@ -22,7 +27,7 @@ from textual.screen import Screen
 from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
-from textual.widget import Widget
+from textual.widget import AwaitMount, Widget
 from textual.widgets import Button, Footer, Input, Label, Tab, Tabs
 from textual.widgets.tabbed_content import ContentTab
 from posting.collection import (
@@ -198,7 +203,12 @@ class MainScreen(Screen[None]):
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
 
-        self.app.set_class(self.settings.compact, "-compact")
+        is_compact_spacing = self.settings.compact
+        self.app.set_class(is_compact_spacing, "-compact")
+
+        # If the header is not visible, the URL Bar is one cell higher.
+        is_header_visible = self.settings.heading.visible
+        self.app.set_class(not is_header_visible, "-header-hidden")
 
         # Set the initial focus based on the settings.
         focus_on_startup = self.settings.focus.on_startup
@@ -781,6 +791,7 @@ class MainScreen(Screen[None]):
                 if isinstance(node.data, RequestModel)
             ],
             placeholder="Search for a request…",
+            palette_id="request-search-palette",
         )
 
     def load_request_model(
@@ -1331,6 +1342,29 @@ class Posting(App[None], inherit_bindings=False):
             return
         if not event.option_selected:
             self.theme = self._original_theme
+
+    def search_commands(
+        self,
+        commands: Sequence[CommandListItem],
+        placeholder: str = "Search for commands…",
+        palette_id: str = "",
+    ) -> AwaitMount:
+        """Show a list of commands in the app.
+
+        Args:
+            commands: A list of SimpleCommand instances.
+            placeholder: Placeholder text for the search field.
+            palette_id: The id of the palette to use.
+
+        Returns:
+            AwaitMount: An awaitable that resolves when the commands are shown.
+        """
+        palette = CommandPalette(
+            providers=[SimpleProvider(self.screen, commands)],
+            placeholder=placeholder,
+            id=palette_id or None,
+        )
+        return self.push_screen(palette)
 
     async def action_help(self) -> None:
         focused = self.focused
