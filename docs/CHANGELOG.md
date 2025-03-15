@@ -1,3 +1,21 @@
+## Unreleased
+
+### Added
+
+- Added `compact: <boolean>` config to allow for a more compact UI (default: `false`).
+- Basic Vim motions to script output log (`hjkl`).
+
+### Changed
+
+- Automatically prepend `http://` protocol if no protocol is specified in the URL bar.
+- Debounce jump overlay recomposition - if you resize while the jump overlay is open, it'll wait a short period before recomputing.
+- Jump mode now lives on the main screen, rather than globally. This makes more sense as it's only available on the main screen. The only user-facing impact should be that the position of the keybinding in the footer and keybindings panel may change.
+- Jump mode interaction with Tabs now uses the Tabs API, rather than simulating a Click.
+
+### Fixed
+
+- Fixed scrolling in response headers and cookies tabs using keyboard.
+
 ## 2.5.4 [13th March 2025]
 
 ### Fixed

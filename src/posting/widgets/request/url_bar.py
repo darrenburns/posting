@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
-from textual.events import Blur, Paste
+from textual.events import Paste
 from textual.message import Message
 from textual.widgets import Input, Button, Label
 from textual.theme import Theme
@@ -27,6 +27,7 @@ from posting.widgets.input import PostingInput
 from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
 from posting.widgets.variable_autocomplete import VariableAutoComplete
+from posting.urls import ensure_protocol
 
 
 class CurlMessage(Message):
@@ -106,6 +107,10 @@ It's recommended you create a new request before pasting a curl command, to avoi
         event.prevent_default()
         self.post_message(CurlMessage(event.text))
 
+    @property
+    def value_including_protocol(self) -> str:
+        return ensure_protocol(self.value.strip())
+
 
 class SendRequestButton(Button, can_focus=False):
     """
@@ -141,7 +146,7 @@ class UrlBar(Vertical):
         self.url_input.refresh()
 
     def compose(self) -> ComposeResult:
-        with Horizontal():
+        with Horizontal(id="main-row"):
             yield MethodSelector(id="method-selector")
             yield UrlInput(
                 placeholder="Enter a URL or paste a curl command…",
@@ -151,8 +156,9 @@ class UrlBar(Vertical):
             yield SendRequestButton("Send")
 
         variable_value_bar = Label(id="variable-value-bar")
-        if SETTINGS.get().url_bar.show_value_preview:
-            yield variable_value_bar
+        if not SETTINGS.get().url_bar.show_value_preview:
+            variable_value_bar.styles.display = "none"
+        yield variable_value_bar
 
     def on_mount(self) -> None:
         self.auto_complete = VariableAutoComplete(

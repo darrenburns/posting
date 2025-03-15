@@ -1,5 +1,5 @@
 * {
-  scrollbar-color: $surface-lighten-1 60%;
+  scrollbar-color: $surface-lighten-1 80%;
   scrollbar-color-hover: $primary 80%;
   scrollbar-color-active: $primary;
   scrollbar-background: $surface-darken-1;
@@ -9,6 +9,163 @@
 
   &:focus {
     scrollbar-color: $primary 55%;
+  }
+}
+
+Posting {
+  &.-compact {
+    & AppHeader {
+      padding: 0 1;
+    }
+    & AppBody {
+      padding: 0;
+    }
+    & UrlBar {
+      padding: 0;
+    }
+
+    & Footer {
+      padding-left: 0;
+    }
+    & .section {
+      border: none;
+    }
+    & Tabs {
+      height: 1;
+      & Underline {
+        display: none;
+        height: 0;
+      }
+
+    }
+
+    & TabbedContent:focus-within Tabs {
+      &:focus {
+        & .-active {
+          text-style: $block-cursor-text-style;
+          color: $block-cursor-foreground;
+          background: $block-cursor-background;
+        }
+      }
+      &:blur Tab:enabled {
+        &.-active {
+          background: $panel  ;
+        }
+      }
+    }
+
+
+    & CollectionBrowser {
+      background: $surface 50%;
+      &:focus {
+        outline: vkey $accent;
+      }
+    }
+
+    & RequestEditor {
+      background: $surface 25%;
+    }
+    
+    & ResponseArea {
+      background: $surface 10%;
+    }
+
+    & .textual-jump-label {
+      padding: 0;
+      margin-top: 1;
+    }
+
+    & CommandPalette {
+      align-horizontal: left;
+
+      & > Vertical {
+        /* The margin will be set in code, to align 
+        the command palette with the url bar 
+        */
+        margin-left: 11;
+        margin-top: 1;
+        max-width: 1fr;
+        width: auto;
+      }
+    
+      & #--input {
+        border: none;
+        border-left: wide $accent;
+    
+        & CommandInput {
+          height: 1;
+          border: none;
+          padding: 0;
+          width: 1fr;
+        }
+      }
+    
+      & CommandList {
+        width: auto;
+        border: none;
+        max-height: 67vh;
+        border-left: wide $accent;
+        padding: 0;
+        & > .option-list--option {
+          padding: 0;
+        }
+      }
+
+    }
+
+    &.-header-hidden {
+      & CommandPalette > Vertical{
+        margin-top: 0;
+        margin-left: 11;
+      }
+    }
+
+    & #theme-search-command-palette {
+      background: black 15%;
+      & > Vertical {
+        height: auto;
+        & CommandList {
+          width: 28;
+          height: auto;
+          max-height: 10;
+        }
+      }
+    }
+
+    & #request-search-palette {
+      & > Vertical {
+        width: 1fr;
+        overflow: hidden;
+        & CommandList {
+          width: 1fr;
+        }
+      }
+    }
+  }
+
+}
+
+ResponseArea {
+  border-subtitle-color: $text-muted;
+  & ResponseTextArea.empty {
+      display: none;
+  }
+  &.response-ready{
+      & Crosshatch {
+          display: none;
+      }
+  }
+  &.success .border-title-status {
+      color: $text-success;
+      background: $success-muted;
+  }
+  &.warning .border-title-status {
+      color: $text-warning;
+      background: $warning-muted;
+  }
+  &.error .border-title-status {
+      color: $text-error;
+      background: $error-muted;
   }
 }
 
@@ -69,6 +226,7 @@ HelpPanel {
     border-title-color: $foreground;
     border-title-style: b;
   }
+
 }
 
 .hidden {
@@ -89,9 +247,8 @@ HelpPanel {
 
 AppHeader {
   color: $text-primary;
-  padding: 0 3;
-  margin-top: 1;
-  height: 1;
+  padding: 1 3;
+  height: auto;
   & > #app-user-host {
       dock: right;
       color: $text-muted;
@@ -99,6 +256,8 @@ AppHeader {
 }
 
 AppBody {
+  padding: 0 2;
+
   &.layout-horizontal {
     layout: horizontal;
 
@@ -151,6 +310,20 @@ PostingDataTable {
     }
 }
 
+#response-headers-pane {
+  height: 1fr;
+  & ResponseHeadersTable {
+    max-height: 1fr;
+  }
+}
+
+#response-cookies-pane {
+  height: 1fr;
+  & CookiesTable {
+    max-height: 1fr;
+  }
+}
+
 Input {
   border: none;
   width: 1fr;
@@ -163,7 +336,7 @@ Input {
   }
 }
 
-RichLog {
+PostingRichLog {
   padding-left: 1;
   &:focus {
     border-left: wide $accent;
@@ -173,12 +346,16 @@ RichLog {
 
 
 UrlBar {
-  height: 3;
-  padding: 1 3 0 3;
+  height: auto;
+  padding: 0 3 0 3;
+
+  & #main-row {
+    height: 1;
+  }
 
   & #method-selector {
       width: 11;
-
+      height: 1;
       &:blur SelectCurrent {
         background: $primary-muted;
         #label {
@@ -456,30 +633,30 @@ Button {
 }
 
 CommandPalette {
-  background: black 20%;
-
+  background: black 33%;
+  
   & > Vertical {
-    margin-top: 5;
+    margin-top: 2;
     width: 65vw;
     max-height: 65vh;
   }
-
+  
   & #--input {
     border: none;
     border-left: wide $accent;
-
+    
     & CommandInput {
       height: 3;
       border: none;
       padding: 1 2;
     }
-
+    
     & SearchIcon {
       display: none;
     }
-
+    
   }
-
+  
   & CommandList {
     border: none;
     border-left: wide $accent;
