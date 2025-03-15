@@ -1,5 +1,6 @@
 from __future__ import annotations
 from functools import total_ordering
+from collections import defaultdict
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from pathlib import Path
 from string import Template
@@ -10,7 +11,6 @@ import rich
 import os
 from textual import log
 from posting.auth import HttpxBearerTokenAuth
-from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
 from posting.yaml import dump, load, Loader
@@ -117,10 +117,28 @@ class RequestBody(BaseModel):
         if self.content:
             httpx_args["content"] = self.content
         if self.form_data:
-            # Ensure we don't delete duplicate keys
-            httpx_args["data"] = tuples_to_dict(
-                [(item.name, item.value) for item in self.form_data if item.enabled]
-            )
+            files = []
+            data = defaultdict(list)
+
+            for item in self.form_data:
+                if not item.enabled:
+                    continue
+
+                if item.value.startswith("@"):
+                    file_path = item.value[1:]
+                    if not Path(file_path).exists():
+                        log.warning(f"File {file_path} does not exist")
+                        data[item.name].append(item.value)
+
+                    file_obj = open(file_path, "rb")
+                    file_name = Path(file_path).name
+                    files.append((item.name, (file_name, file_obj, "application/octet-stream")))
+                else:
+                    data[item.name].append(item.value)
+
+            if files:
+                httpx_args["files"] = files
+            httpx_args["data"] = data
         return httpx_args
 
 
@@ -246,12 +264,18 @@ class RequestModel(BaseModel):
     def to_httpx(self, client: httpx.AsyncClient) -> httpx.Request:
         """Convert the request model to an httpx request."""
         headers = httpx.Headers(
-            [(header.name, header.value) for header in self.headers if header.enabled]
+            {
+                header.name: header.value
+                for header in self.headers
+                if header.enabled and header.name.lower() != "content-type"
+            }
         )
+
+        httpx_args = self.body.to_httpx_args() if self.body else {}
+
         return client.build_request(
             method=self.method,
             url=self.url,
-            **(self.body.to_httpx_args() if self.body else {}),
             headers=headers,
             params=httpx.QueryParams(
                 [(param.name, param.value) for param in self.params if param.enabled]
@@ -263,6 +287,7 @@ class RequestModel(BaseModel):
                     if cookie.enabled
                 ]
             ),
+            **httpx_args
         )
 
     def save_to_disk(self, path: Path) -> None:
