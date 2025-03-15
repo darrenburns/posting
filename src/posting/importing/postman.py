@@ -172,12 +172,15 @@ def process_item(
 
     if item.request is not None:
         # This is a request - add it to the current collection
-        file_name = "".join(word.capitalize() for word in re.sub(r"[^A-Za-z0-9\.]+", " ", item.name).split())
+        file_name = "".join(
+            word.capitalize()
+            for word in re.sub(r"[^A-Za-z0-9\.]+", " ", item.name).split()
+        )
         request = format_request(item.name, item.request)
         request_path = parent_collection.path / f"{file_name}.posting.yaml"
         request.path = request_path
         parent_collection.requests.append(request)
-        
+
         # Ensure the request is saved to disk
         request.save_to_disk(request_path)
 
@@ -215,7 +218,7 @@ def import_postman_spec(
 
     main_collection = Collection(path=base_dir, name=info.title)
     main_collection.readme = main_collection.generate_readme(info)
-    
+
     # Save the readme to disk
     readme_path = base_dir / "README.md"
     readme_path.write_text(main_collection.readme)
