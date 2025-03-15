@@ -397,6 +397,7 @@ class APIInfo(BaseModel):
     termsOfService: HttpUrl | None = None
     contact: Contact | None = None
     license: License | None = None
+    specSchema: str | None = None
     version: str
 
 
