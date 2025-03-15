@@ -22,6 +22,7 @@ Some notable features include:
 - export requests as cURL commands
 - import OpenAPI specs
 - a command palette for quickly accessing functionality
+- import from Postman collections
 
 Visit the [website](https://posting.sh) for more information, the roadmap, and the user guide.
 
@@ -43,7 +44,7 @@ uv tool install --python 3.12 posting
 
 `uv` can also be installed via Homebrew, Cargo, Winget, pipx, and more. See the [installation guide](https://docs.astral.sh/uv/getting-started/installation/) for more information.
 
- Now you can run Posting via the command line:
+Now you can run Posting via the command line:
 
 ```bash
 posting
@@ -56,6 +57,16 @@ posting
 If you'd prefer to use `pipx`, that works too: `pipx install posting`.
 
 Note that Python 3.13 is not currently supported.
+
+## Importing from Postman
+
+You can import Postman collections into Posting:
+
+```bash
+posting import --type postman /path/to/postman_collection.json --output /path/to/output_directory
+```
+
+This will create a directory structure matching your Postman collection, with all requests converted to Posting's format.
 
 ## Learn More
 
