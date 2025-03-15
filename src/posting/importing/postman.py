@@ -98,20 +98,6 @@ def create_env_file(path: Path, env_filename: str, variables: List[Variable]) ->
     return env_file
 
 
-def import_requests(
-    items: List[RequestItem], base_path: Path = Path("")
-) -> List[RequestModel]:
-    requests: List[RequestModel] = []
-    for item in items:
-        if item.item is not None:
-            requests = requests + import_requests(item.item, base_path)
-        if item.request is not None:
-            file_name = re.sub(r"[^A-Za-z0-9\.]+", "", item.name)
-            requests.append(format_request(file_name, item.request))
-
-    return requests
-
-
 def format_request(name: str, request: PostmanRequest) -> RequestModel:
     postingRequest = RequestModel(
         name=name,
@@ -169,6 +155,36 @@ def format_request(name: str, request: PostmanRequest) -> RequestModel:
     return postingRequest
 
 
+def process_item(
+    item: RequestItem, parent_collection: Collection, base_path: Path
+) -> None:
+    if item.item is not None:
+        # This is a folder - create a subcollection
+        child_path = base_path / item.name
+        child_path.mkdir(parents=True, exist_ok=True)
+
+        child_collection = Collection(path=child_path, name=item.name)
+        parent_collection.children.append(child_collection)
+
+        # Process items in this folder
+        for sub_item in item.item:
+            process_item(sub_item, child_collection, child_path)
+
+    if item.request is not None:
+        # This is a request - add it to the current collection
+        file_name = "".join(
+            word.capitalize()
+            for word in re.sub(r"[^A-Za-z0-9\.]+", " ", item.name).split()
+        )
+        request = format_request(item.name, item.request)
+        request_path = parent_collection.path / f"{file_name}.posting.yaml"
+        request.path = request_path
+        parent_collection.requests.append(request)
+
+        # Ensure the request is saved to disk
+        request.save_to_disk(request_path)
+
+
 def import_postman_spec(
     spec_path: str | Path, output_path: str | Path | None
 ) -> Collection:
@@ -194,12 +210,20 @@ def import_postman_spec(
 
     console.print(f"Output path: {str(base_dir)!r}")
 
+    # Create the base directory if it doesn't exist
+    base_dir.mkdir(parents=True, exist_ok=True)
+
     env_file = create_env_file(base_dir, f"{info.title}.env", spec.variable)
     console.print(f"Created environment file {str(env_file)!r}.")
 
-    main_collection = Collection(path=spec_path.parent, name=info.title)
+    main_collection = Collection(path=base_dir, name=info.title)
     main_collection.readme = main_collection.generate_readme(info)
 
-    main_collection.requests = import_requests(spec.item, base_dir)
+    # Save the readme to disk
+    readme_path = base_dir / "README.md"
+    readme_path.write_text(main_collection.readme)
+
+    for item in spec.item:
+        process_item(item, main_collection, base_dir)
 
     return main_collection
