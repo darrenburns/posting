@@ -23,7 +23,7 @@ from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import Widget
-from textual.widgets import Button, Footer, Input, Label, Tabs
+from textual.widgets import Button, Footer, Input, Label, Tab, Tabs
 from textual.widgets.tabbed_content import ContentTab
 from posting.collection import (
     Collection,
@@ -116,6 +116,13 @@ class MainScreen(Screen[None]):
             id="focus-method",
         ),
         Binding(
+            "ctrl+o",
+            "toggle_jump_mode",
+            description="Jump",
+            tooltip="Activate jump mode to quickly move focus between widgets.",
+            id="jump",
+        ),
+        Binding(
             "ctrl+l",
             "app.focus('url-input')",
             "Focus URL input",
@@ -171,6 +178,8 @@ class MainScreen(Screen[None]):
         None, init=False
     )
     """The currently expanded section of the main screen."""
+    _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
+    """True if 'jump mode' is currently active, otherwise False."""
 
     def __init__(
         self,
@@ -184,11 +193,12 @@ class MainScreen(Screen[None]):
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
+        self.jumper: Jumper | None = None
 
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
 
-        self.set_class(self.settings.compact, "-compact")
+        self.app.set_class(self.settings.compact, "-compact")
 
         # Set the initial focus based on the settings.
         focus_on_startup = self.settings.focus.on_startup
@@ -203,6 +213,28 @@ class MainScreen(Screen[None]):
 
         if target is not None:
             self.set_focus(target)
+
+    def on_screen_resume(self) -> None:
+        self.jumper = Jumper(
+            {
+                "method-selector": "1",
+                "url-input": "2",
+                "collection-tree": "tab",
+                "--content-tab-headers-pane": "q",
+                "--content-tab-body-pane": "w",
+                "--content-tab-query-pane": "e",
+                "--content-tab-auth-pane": "r",
+                "--content-tab-info-pane": "t",
+                "--content-tab-scripts-pane": "y",
+                "--content-tab-options-pane": "u",
+                "--content-tab-response-body-pane": "a",
+                "--content-tab-response-headers-pane": "s",
+                "--content-tab-response-cookies-pane": "d",
+                "--content-tab-response-scripts-pane": "f",
+                "--content-tab-response-trace-pane": "g",
+            },
+            screen=self,
+        )
 
     def compose(self) -> ComposeResult:
         yield AppHeader()
@@ -805,6 +837,79 @@ class MainScreen(Screen[None]):
         self.request_auth.load_auth(request_model.auth)
         self.request_scripts.load_scripts(request_model.scripts)
 
+    def action_toggle_jump_mode(self) -> None:
+        self._jumping = not self._jumping
+
+    def watch__jumping(self, jumping: bool) -> None:
+        if self.jumper is None:
+            return
+
+        focused_before = self.focused
+        if focused_before is not None:
+            print(f"Setting focus to None, scroll_visible=False")
+            self.set_focus(None, scroll_visible=False)
+
+        def handle_jump_target(target: str | Widget | None) -> None:
+            print(f"handle_jump_target: {target}")
+            if isinstance(target, str):
+                try:
+                    print(f"Querying for {target}")
+                    target_widget = self.screen.query_one(f"#{target}")
+                    print(f"Found {target_widget}")
+                except NoMatches:
+                    log.warning(
+                        f"Attempted to jump to target #{target}, but it couldn't be found on {self.screen!r}"
+                    )
+                else:
+                    if target_widget.focusable:
+                        print(f"Setting focus to {target_widget}")
+                        self.set_focus(target_widget)
+                    else:
+                        if isinstance(target_widget, Tab):
+                            try:
+                                parent_tabs = target_widget.query_ancestor(Tabs)
+                                if parent_tabs and target_widget.id:
+                                    parent_tabs.active = target_widget.id
+                                    print(f"Setting focus to {parent_tabs}")
+                                    self.set_focus(parent_tabs)
+                            except NoMatches:
+                                log.warning(
+                                    "Programming error - no parent Tabs widget found"
+                                    "when trying to focus from Jump Mode."
+                                )
+                        else:
+                            # We're trying to move to something that isn't focusable,
+                            # and isn't a Tab within a Tabs, so just send a click event.
+                            # It's probably the best we can do.
+                            print(
+                                f"Target {target_widget} is not focusable, sending click"
+                            )
+                            target_widget.post_message(
+                                Click(
+                                    widget=target_widget,
+                                    x=0,
+                                    y=0,
+                                    delta_x=0,
+                                    delta_y=0,
+                                    button=0,
+                                    shift=False,
+                                    meta=False,
+                                    ctrl=False,
+                                ),
+                            )
+            elif isinstance(target, Widget):
+                self.set_focus(target)
+            else:
+                # If there's no target (i.e. the user pressed ESC to dismiss)
+                # then re-focus the widget that was focused before we opened
+                # the jumper.
+                if focused_before is not None:
+                    print(f"Setting focus to {focused_before}, scroll_visible=False")
+                    self.set_focus(focused_before, scroll_visible=False)
+
+        self.app.clear_notifications()
+        self.app.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+
     @property
     def url_bar(self) -> UrlBar:
         return self.query_one(UrlBar)
@@ -897,13 +1002,6 @@ class Posting(App[None], inherit_bindings=False):
             id="commands",
         ),
         Binding(
-            "ctrl+o",
-            "toggle_jump_mode",
-            description="Jump",
-            tooltip="Activate jump mode to quickly move focus between widgets.",
-            id="jump",
-        ),
-        Binding(
             "ctrl+c",
             "app.quit",
             description="Quit",
@@ -962,9 +1060,6 @@ class Posting(App[None], inherit_bindings=False):
         # App.__init__().
         self.animation_level = settings.animation
         """The level of animation to use in the app. This is used by Textual."""
-
-    _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
-    """True if 'jump mode' is currently active, otherwise False."""
 
     def on_ready(self) -> None:
         import time
@@ -1109,26 +1204,7 @@ class Posting(App[None], inherit_bindings=False):
             )
 
         self.set_keymap(self.settings.keymap)
-        self.jumper = Jumper(
-            {
-                "method-selector": "1",
-                "url-input": "2",
-                "collection-tree": "tab",
-                "--content-tab-headers-pane": "q",
-                "--content-tab-body-pane": "w",
-                "--content-tab-query-pane": "e",
-                "--content-tab-auth-pane": "r",
-                "--content-tab-info-pane": "t",
-                "--content-tab-scripts-pane": "y",
-                "--content-tab-options-pane": "u",
-                "--content-tab-response-body-pane": "a",
-                "--content-tab-response-headers-pane": "s",
-                "--content-tab-response-cookies-pane": "d",
-                "--content-tab-response-scripts-pane": "f",
-                "--content-tab-response-trace-pane": "g",
-            },
-            screen=self.screen,
-        )
+
         if self.settings.watch_env_files:
             self.watch_environment_files()
 
@@ -1255,42 +1331,6 @@ class Posting(App[None], inherit_bindings=False):
             return
         if not event.option_selected:
             self.theme = self._original_theme
-
-    def action_toggle_jump_mode(self) -> None:
-        self._jumping = not self._jumping
-
-    def watch__jumping(self, jumping: bool) -> None:
-        focused_before = self.focused
-        if focused_before is not None:
-            self.set_focus(None, scroll_visible=False)
-
-        def handle_jump_target(target: str | Widget | None) -> None:
-            if isinstance(target, str):
-                try:
-                    target_widget = self.screen.query_one(f"#{target}")
-                except NoMatches:
-                    log.warning(
-                        f"Attempted to jump to target #{target}, but it couldn't be found on {self.screen!r}"
-                    )
-                else:
-                    if target_widget.focusable:
-                        self.set_focus(target_widget)
-                    else:
-                        target_widget.post_message(
-                            Click(target_widget, 0, 0, 0, 0, 0, False, False, False)
-                        )
-
-            elif isinstance(target, Widget):
-                self.set_focus(target)
-            else:
-                # If there's no target (i.e. the user pressed ESC to dismiss)
-                # then re-focus the widget that was focused before we opened
-                # the jumper.
-                if focused_before is not None:
-                    self.set_focus(focused_before, scroll_visible=False)
-
-        self.clear_notifications()
-        self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
 
     async def action_help(self) -> None:
         focused = self.focused
