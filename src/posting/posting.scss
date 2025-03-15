@@ -1,5 +1,5 @@
 * {
-  scrollbar-color: $surface-lighten-1 60%;
+  scrollbar-color: $surface-lighten-1 80%;
   scrollbar-color-hover: $primary 80%;
   scrollbar-color-active: $primary;
   scrollbar-background: $surface-darken-1;
@@ -121,12 +121,13 @@ Posting {
     }
 
     & #theme-search-command-palette {
-      height: 10;
+      background: black 15%;
       & > Vertical {
-        width: 28;
-        height: 10;
+        height: auto;
         & CommandList {
-          height: 10;
+          width: 28;
+          height: auto;
+          max-height: 10;
         }
       }
     }
