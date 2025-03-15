@@ -216,7 +216,9 @@ class MainScreen(Screen[None]):
             yield RequestEditor()
             yield ResponseArea()
 
-        yield Footer(show_command_palette=False)
+        footer = Footer(show_command_palette=False)
+        footer.compact = self.settings.compact
+        yield footer
 
     def get_and_run_script(
         self,

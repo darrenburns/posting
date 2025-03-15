@@ -36,10 +36,30 @@ Screen {
         display: none;
         height: 0;
       }
+
     }
-  
+
+    & TabbedContent:focus-within Tabs {
+      &:focus {
+        & .-active {
+          text-style: $block-cursor-text-style;
+          color: $block-cursor-foreground;
+          background: $block-cursor-background;
+        }
+      }
+      &:blur Tab:enabled {
+        &.-active {
+          background: $panel  ;
+        }
+      }
+    }
+
+
     & CollectionBrowser {
       background: $surface 50%;
+      &:focus {
+        outline: vkey $accent;
+      }
     }
 
     & RequestEditor {
@@ -50,6 +70,30 @@ Screen {
       background: $surface 10%;
     }
 
+  }
+}
+
+ResponseArea {
+  border-subtitle-color: $text-muted;
+  & ResponseTextArea.empty {
+      display: none;
+  }
+  &.response-ready{
+      & Crosshatch {
+          display: none;
+      }
+  }
+  &.success .border-title-status {
+      color: $text-success;
+      background: $success-muted;
+  }
+  &.warning .border-title-status {
+      color: $text-warning;
+      background: $warning-muted;
+  }
+  &.error .border-title-status {
+      color: $text-error;
+      background: $error-muted;
   }
 }
 
@@ -230,12 +274,16 @@ PostingRichLog {
 
 
 UrlBar {
-  height: 2;
+  height: auto;
   padding: 0 3 0 3;
+
+  & #main-row {
+    height: 1;
+  }
 
   & #method-selector {
       width: 11;
-
+      height: 1;
       &:blur SelectCurrent {
         background: $primary-muted;
         #label {
