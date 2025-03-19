@@ -11,8 +11,7 @@ from textual.message import Message
 from textual.widgets import Input, Button, Label
 from textual.theme import Theme
 from textual.widgets.input import Selection
-from textual_autocomplete import DropdownItem
-from textual_autocomplete._autocomplete2 import TargetState
+from textual_autocomplete import DropdownItem, TargetState
 from posting.config import SETTINGS
 from posting.help_data import HelpData
 
@@ -31,7 +30,7 @@ from posting.urls import ensure_protocol
 
 
 class CurlMessage(Message):
-    def __init__(self, curl_command):
+    def __init__(self, curl_command: str) -> None:
         super().__init__()
         self.curl_command = curl_command
 
