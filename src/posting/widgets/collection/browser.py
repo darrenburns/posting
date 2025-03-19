@@ -57,6 +57,7 @@ Sub-collections cannot be deleted from the UI yet.
     BINDING_GROUP_TITLE = "Collection Browser"
 
     BINDINGS = [
+        Binding("slash", "screen.open_request_search_palette", "Search"),
         Binding(
             "d",
             "duplicate_request",

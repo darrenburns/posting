@@ -517,6 +517,8 @@ class MainScreen(Screen[None]):
             self.response_area.content_tabs.focus()
 
         self.response_area.response = event.response
+        self.url_bar.response_status_code = event.response.status_code
+        self.url_bar.response_reason_phrase = event.response.reason_phrase
         self.cookies.update(event.response.cookies)
         self.response_trace.trace_complete()
 

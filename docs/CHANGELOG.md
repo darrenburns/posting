@@ -2,8 +2,9 @@
 
 ### Added
 
-- Added `compact: <boolean>` config to allow for a more compact UI (default: `false`).
+- Added `spacing: <compact|standard>` config to allow for a more compact UI (default: `standard`).
 - Basic Vim motions to script output log (`hjkl`).
+- Press `/` to open the request search palette while the collection browser is focused.
 
 ### Changed
 
@@ -11,6 +12,8 @@
 - Debounce jump overlay recomposition - if you resize while the jump overlay is open, it'll wait a short period before recomputing.
 - Jump mode now lives on the main screen, rather than globally. This makes more sense as it's only available on the main screen. The only user-facing impact should be that the position of the keybinding in the footer and keybindings panel may change.
 - Jump mode interaction with Tabs now uses the Tabs API, rather than simulating a Click.
+- Status code label now displayed in the URL bar beside the trace markers.
+- Request description area at the bottom of the collection browser has new design.
 
 ### Fixed
 

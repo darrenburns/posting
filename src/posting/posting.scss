@@ -340,6 +340,7 @@ Input {
 }
 
 PostingRichLog {
+  background: $surface 75%;
   padding-left: 1;
   &:focus {
     border-left: wide $accent;
@@ -365,6 +366,25 @@ UrlBar {
           color: $text-primary;
         }
       }
+  }
+
+  & #response-status-code {
+    width: 5;
+    height: 1;
+    padding: 0 1;
+    display: none;
+    &.-success {
+      color: $text-success;
+      background: $success-muted;
+    }
+    &.-warning {
+      color: $text-warning;
+      background: $warning-muted;
+    }
+    &.-error {
+      color: $text-error;
+      background: $error-muted;
+    }
   }
 
   & #trace-markers {

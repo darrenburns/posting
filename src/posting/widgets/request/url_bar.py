@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
+import httpx
 from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
@@ -8,6 +9,7 @@ from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
 from textual.events import Paste
 from textual.message import Message
+from textual.reactive import Reactive, reactive
 from textual.widgets import Input, Button, Label
 from textual.theme import Theme
 from textual.widgets.input import Selection
@@ -129,6 +131,13 @@ class UrlBar(Vertical):
         "not-started-marker",
     }
 
+    response_status_code: Reactive[int | None] = reactive(
+        None, init=False, always_update=True
+    )
+    response_reason_phrase: Reactive[str | None] = reactive(
+        None, init=False, always_update=True
+    )
+
     def __init__(
         self,
         name: str | None = None,
@@ -144,6 +153,28 @@ class UrlBar(Vertical):
         self._display_variable_at_cursor()
         self.url_input.refresh()
 
+    def watch_response_status_code(self, status_code: int | None) -> None:
+        if status_code is None:
+            return
+
+        status_code_label = self.status_code_label
+        status_code_label.remove_class("-success", "-warning", "-error")
+        if status_code < 300:
+            status_code_label.add_class("-success")
+        elif status_code < 400:
+            status_code_label.add_class("-warning")
+        else:
+            status_code_label.add_class("-error")
+
+        status_code_label.update(str(status_code))
+        status_code_label.display = True
+
+    def watch_response_reason_phrase(self, reason_phrase: str | None) -> None:
+        if reason_phrase is None:
+            return
+
+        self.status_code_label.tooltip = reason_phrase
+
     def compose(self) -> ComposeResult:
         with Horizontal(id="main-row"):
             yield MethodSelector(id="method-selector")
@@ -151,6 +182,7 @@ class UrlBar(Vertical):
                 placeholder="Enter a URL or paste a curl command…",
                 id="url-input",
             )
+            yield Label(id="response-status-code")
             yield Label(id="trace-markers")
             yield SendRequestButton("Send")
 
@@ -285,3 +317,8 @@ class UrlBar(Vertical):
     def url_input(self) -> UrlInput:
         """Get the URL input."""
         return self.query_one("#url-input", UrlInput)
+
+    @property
+    def status_code_label(self) -> Label:
+        """Get the status code label."""
+        return self.query_one("#response-status-code", Label)
