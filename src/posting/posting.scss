@@ -60,6 +60,7 @@ Posting {
         outline: vkey $accent;
       }
       & RequestPreview {
+        border-top: none;
         background: $surface 100%;
         padding: 0 1;
       }
@@ -762,12 +763,12 @@ CollectionBrowser {
 
   & RequestPreview {
     color: $text-muted;
-    background: $surface 50%;
     dock: bottom;
     height: auto;
     max-height: 50%;
     width: 100%;
-    padding: 1 2;
+    padding: 0 1;
+    border-top: solid $accent 40%;
     &.hidden {
         display: none;
     }
