@@ -1,5 +1,5 @@
 * {
-  scrollbar-color: $surface-lighten-1 80%;
+  scrollbar-color: $surface-lighten-1 50%;
   scrollbar-color-hover: $primary 80%;
   scrollbar-color-active: $primary;
   scrollbar-background: $surface-darken-1;
@@ -8,7 +8,7 @@
   scrollbar-size-vertical: 1;
 
   &:focus {
-    scrollbar-color: $primary 55%;
+    scrollbar-color: $surface-lighten-1 80%;
   }
 }
 
@@ -450,7 +450,7 @@ CollectionBrowser {
   & Tree {
       color: $foreground 80%;
       background: transparent;
-      width: auto;
+      width: 1fr;
       &:focus {
         color: $foreground;
       }
