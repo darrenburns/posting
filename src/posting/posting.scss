@@ -60,6 +60,9 @@ Posting {
       &:focus {
         outline: vkey $accent;
       }
+      & RequestPreview {
+        padding: 0 1;
+      }
     }
 
     & RequestEditor {
@@ -735,6 +738,19 @@ Select {
 CollectionBrowser {
   &.section {
     border-subtitle-align: left;
+  }
+
+  & RequestPreview {
+    color: $text-muted;
+    background: $surface;
+    dock: bottom;
+    height: auto;
+    max-height: 50%;
+    width: 100%;
+    padding: 1 2;
+    &.hidden {
+        display: none;
+    }
   }
 }
 
