@@ -199,6 +199,7 @@ class MainScreen(Screen[None]):
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
         self.jumper: Jumper | None = None
+        self.posting = cast("Posting", self.app)
 
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
@@ -255,7 +256,9 @@ class MainScreen(Screen[None]):
             yield RequestEditor()
             yield ResponseArea()
 
-        yield Footer(show_command_palette=False)
+        footer = Footer(show_command_palette=False)
+        footer.compact = self.posting.spacing == "compact"
+        yield footer
 
     def get_and_run_script(
         self,
@@ -852,23 +855,18 @@ class MainScreen(Screen[None]):
 
         focused_before = self.focused
         if focused_before is not None:
-            print(f"Setting focus to None, scroll_visible=False")
             self.set_focus(None, scroll_visible=False)
 
         def handle_jump_target(target: str | Widget | None) -> None:
-            print(f"handle_jump_target: {target}")
             if isinstance(target, str):
                 try:
-                    print(f"Querying for {target}")
                     target_widget = self.screen.query_one(f"#{target}")
-                    print(f"Found {target_widget}")
                 except NoMatches:
                     log.warning(
                         f"Attempted to jump to target #{target}, but it couldn't be found on {self.screen!r}"
                     )
                 else:
                     if target_widget.focusable:
-                        print(f"Setting focus to {target_widget}")
                         self.set_focus(target_widget)
                     else:
                         if isinstance(target_widget, Tab):
@@ -876,7 +874,6 @@ class MainScreen(Screen[None]):
                                 parent_tabs = target_widget.query_ancestor(Tabs)
                                 if parent_tabs and target_widget.id:
                                     parent_tabs.active = target_widget.id
-                                    print(f"Setting focus to {parent_tabs}")
                                     self.set_focus(parent_tabs)
                             except NoMatches:
                                 log.warning(
@@ -887,9 +884,6 @@ class MainScreen(Screen[None]):
                             # We're trying to move to something that isn't focusable,
                             # and isn't a Tab within a Tabs, so just send a click event.
                             # It's probably the best we can do.
-                            print(
-                                f"Target {target_widget} is not focusable, sending click"
-                            )
                             target_widget.post_message(
                                 Click(
                                     widget=target_widget,
@@ -910,7 +904,6 @@ class MainScreen(Screen[None]):
                 # then re-focus the widget that was focused before we opened
                 # the jumper.
                 if focused_before is not None:
-                    print(f"Setting focus to {focused_before}, scroll_visible=False")
                     self.set_focus(focused_before, scroll_visible=False)
 
         self.app.clear_notifications()
@@ -1161,7 +1154,7 @@ class Posting(App[None], inherit_bindings=False):
                     try:
                         theme = load_user_theme(Path(file_path))
                     except Exception as e:
-                        print(f"Couldn't load theme from {str(file_path)}: {e}.")
+                        log.warning(f"Couldn't load theme from {str(file_path)}: {e}.")
                         continue
                     if theme and theme.name == self.theme:
                         self.register_theme(theme)
@@ -1173,10 +1166,10 @@ class Posting(App[None], inherit_bindings=False):
                             # use heuristics to determine whether to save a file. This could
                             # prove jarring if we pop up a notification without the user
                             # explicitly saving the file in their editor.
-                            print(f"Error refreshing CSS: {e}")
+                            log.warning(f"Error refreshing CSS: {e}")
 
     def on_mount(self) -> None:
-        settings = SETTINGS.get()
+        settings = self.settings
 
         available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 

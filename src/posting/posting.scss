@@ -36,7 +36,6 @@ Posting {
         display: none;
         height: 0;
       }
-
     }
 
     & TabbedContent:focus-within Tabs {
@@ -61,6 +60,7 @@ Posting {
         outline: vkey $accent;
       }
       & RequestPreview {
+        background: $surface 100%;
         padding: 0 1;
       }
     }
@@ -742,7 +742,7 @@ CollectionBrowser {
 
   & RequestPreview {
     color: $text-muted;
-    background: $surface;
+    background: $surface 50%;
     dock: bottom;
     height: auto;
     max-height: 50%;
