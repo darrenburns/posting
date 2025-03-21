@@ -112,6 +112,7 @@ class KeyValueEditor(Vertical):
                 display: none;
             }
             & #empty-message {
+                color: $text-muted;
                 hatch: right $surface-lighten-1 70%;
                 display: block;
             }

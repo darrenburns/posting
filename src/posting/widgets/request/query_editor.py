@@ -56,7 +56,7 @@ class QueryStringEditor(Vertical):
                 VariableInput(placeholder="Value"),
                 button_label="Add parameter",
             ),
-            empty_message="There are no parameters.",
+            empty_message="No query parameters",
         )
 
     @property

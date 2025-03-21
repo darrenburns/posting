@@ -39,7 +39,7 @@ class HeaderEditor(Vertical):
                 VariableInput(placeholder="Value", id="header-value-input"),
                 button_label="Add",
             ),
-            empty_message="There are no headers.",
+            empty_message="No headers",
         )
 
     def on_mount(self):

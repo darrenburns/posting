@@ -1,3 +1,5 @@
+$empty-hatch: right $surface-lighten-1 70%;
+
 * {
   scrollbar-color: $surface-lighten-1 50%;
   scrollbar-color-hover: $primary 80%;
@@ -153,11 +155,6 @@ ResponseArea {
   border-subtitle-color: $text-muted;
   & ResponseTextArea.empty {
       display: none;
-  }
-  &.response-ready{
-      & Crosshatch {
-          display: none;
-      }
   }
   &.success .border-title-status {
       color: $text-success;
@@ -323,8 +320,25 @@ PostingDataTable {
 
 #response-cookies-pane {
   height: 1fr;
-  & CookiesTable {
+  & CookiesSection {
     max-height: 1fr;
+    PostingDataTable {
+      display: block;
+    }
+    #empty-message {
+      hatch: $empty-hatch;
+      color: $text-muted;
+      display: none;
+    }
+    &.empty {
+      PostingDataTable {
+        display: none;
+      }
+      #empty-message {
+        display: block;
+      }
+    }
+
   }
 }
 
@@ -508,8 +522,9 @@ TextArea {
       padding: 0;
     }
   }
-
 }
+
+
 
 RequestMetadata {
   padding: 0 2;
@@ -539,7 +554,8 @@ RequestEditor {
   }
   & #no-body-label {
       height: 1fr;
-      hatch: right $surface-lighten-1 70%;
+      hatch: $empty-hatch;
+      color: $text-muted;
   }
 }
 
