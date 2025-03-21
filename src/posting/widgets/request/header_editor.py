@@ -1,7 +1,7 @@
-from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
+from textual.content import Content
 from textual.widgets import Input
 from textual_autocomplete import DropdownItem, AutoComplete
 from posting.collection import Header
@@ -39,15 +39,16 @@ class HeaderEditor(Vertical):
                 VariableInput(placeholder="Value", id="header-value-input"),
                 button_label="Add",
             ),
-            empty_message="There are no headers.",
+            empty_message="No headers",
         )
 
     def on_mount(self):
         header_input = self.query_one("#header-key-input", Input)
         items: list[DropdownItem] = []
         for header in REQUEST_HEADERS:
-            style = "yellow" if header["experimental"] else ""
-            items.append(DropdownItem(main=Text(header["name"], style=style)))
+            style = "$text-warning" if header["experimental"] else ""
+            content = Content.styled(header["name"], style=style)
+            items.append(DropdownItem(main=content))
 
         self.screen.mount(
             AutoComplete(

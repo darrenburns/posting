@@ -33,7 +33,7 @@ class RequestBodyEditor(Vertical):
             id="request-body-type-content-switcher",
         ):
             yield CenterMiddle(
-                Label("The request doesn't have a body."),
+                Label("No request body"),
                 id="no-body-label",
             )
             text_area = RequestBodyTextArea(language="json")

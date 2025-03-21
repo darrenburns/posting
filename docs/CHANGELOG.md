@@ -1,3 +1,26 @@
+## Unreleased
+
+### Added
+
+- Added `spacing: <compact|standard>` config to allow for a more compact UI (default: `standard`).
+- Basic Vim motions to script output log (`hjkl`).
+- Press `/` to open the request search palette while the collection browser is focused.
+
+### Changed
+
+- Rewrite of the autocompletion system used to autocomplete headers and variables.
+- Automatically prepend `http://` protocol if no protocol is specified in the URL bar.
+- Debounce jump overlay recomposition - if you resize while the jump overlay is open, it'll wait a short period before recomputing.
+- Jump mode now lives on the main screen, rather than globally. This makes more sense as it's only available on the main screen. The only user-facing impact should be that the position of the keybinding in the footer and keybindings panel may change.
+- Jump mode interaction with Tabs now uses the Tabs API, rather than simulating a Click.
+- Status code label now displayed in the URL bar beside the trace markers.
+- Request description area at the bottom of the collection browser has new design.
+- When there are no response cookies, the cookies section will now display a message to the user.
+
+### Fixed
+
+- Fixed scrolling in response headers and cookies tabs using keyboard.
+
 ## 2.5.4 [13th March 2025]
 
 ### Fixed

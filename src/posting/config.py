@@ -208,6 +208,9 @@ class Settings(BaseSettings):
     curl_export_extra_args: str = Field(default="")
     """Extra arguments to pass to curl when exporting a request as a curl command."""
 
+    spacing: Literal["standard", "compact"] = Field(default="standard")
+    """The spacing of the app."""
+
     @classmethod
     def settings_customise_sources(
         cls,
