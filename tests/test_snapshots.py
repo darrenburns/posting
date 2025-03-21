@@ -225,6 +225,7 @@ description: bar
             await pilot.press("ctrl+n")
             await pilot.press(*"echo")  # this name already exists
             await pilot.press("enter")
+            await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -475,6 +476,7 @@ class TestCustomThemeSimple:
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
             await pilot.press(*"anothertest")
+            await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 

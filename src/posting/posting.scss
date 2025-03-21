@@ -446,32 +446,65 @@ SendRequestButton {
   }
 }
 
-KeyValueInput {
-  height: auto;
-  width: 1fr;
-  & > Input {
-      border: none;
-      width: 1fr;
-      margin-left: 1;
-      margin-right: 1;
-      &:focus {
-          border: none;
-          padding: 0 1;
-      }
+KeyValueEditor {
+  KeyValueInput {
+    &.edit-mode {
+        background: $accent-muted;
+        #add-button {
+            color: $text;
+            background: $accent;
+            text-style: b;
+        }
+        Input {
+          background: $accent 20%;
+        }
+    }
+    dock: bottom;
+    height: auto;
+    width: 1fr;
+    & > Input {
+        border: none;
+        width: 1fr;
+        margin-left: 1;
+        margin-right: 1;
+        &:focus {
+            border: none;
+            padding: 0 1;
+        }
+    }
+  
+    & > Button {
+        background: $primary;
+        color: $text;
+        text-style: none;
+        min-width: 0;
+        width: auto;
+        margin: 0 1;
+        &:hover {
+            text-style: b;
+            padding: 0 1;
+            border: none;
+            background: $primary-darken-1;
+        }
+    }
   }
 
-  & > Button {
-      background: $primary;
-      color: $text;
-      text-style: none;
-      min-width: 0;
-      width: 7;
-      margin: 0 1;
-      &:hover {
-          text-style: b;
-          padding: 0 1;
-          border: none;
-          background: $primary-darken-1;
+  & PostingDataTable {
+      display: block;
+  }
+
+  & #empty-message {
+      display: none;
+  }
+
+  &.empty {
+      & PostingDataTable {
+          display: none;
+      }
+      & #empty-message {
+          color: $text-muted;
+          hatch: right $surface-lighten-1 70%;
+          display: block;
       }
   }
 }
