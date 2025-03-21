@@ -20,7 +20,7 @@ dependencies = [
     # pinned intentionally
     "watchfiles>=0.24.0",
     "textual[syntax]>=2.1.2,<2.2.0",
-    "textual-autocomplete==4.0.1",
+    "textual-autocomplete==4.0.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.11"
@@ -61,6 +61,9 @@ dev-dependencies = [
     "mkdocs-material>=9.5.30",
     "pyinstrument>=5.0.1",
 ]
+
+[tool.uv.sources]
+textual-autocomplete = { path = "../textual-autocomplete", editable = true }
 
 [tool.hatch.metadata]
 allow-direct-references = true
