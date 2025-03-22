@@ -195,6 +195,12 @@ class KeyValueEditor(Vertical):
     @on(PostingDataTable.RowsRemoved)
     def rows_removed(self, event: PostingDataTable.RowsRemoved) -> None:
         rows = event.data_table.row_count
+
+        print(f"rows_removed: {rows}")
+        if self.row_being_edited is not None:
+            print(f"row_being_edited: {self.row_being_edited}")
+            self.action_cancel_edit_row()
+
         self.set_class(rows == 0, "empty")
         if rows == 0 and event.explicit_by_user:
             self.key_value_input.key_input.focus()
@@ -262,14 +268,15 @@ class KeyValueEditor(Vertical):
         # Revert the row to its original state.
         old_key, old_val = self._row_being_edited_prior_state
         row_index = self.table._row_locations.get(self.row_being_edited)
-        if row_index is None:
-            log.warning(f"Row {self.row_being_edited} not found")
-            return
 
-        self.table.update_cell_at(Coordinate(row_index, 0), old_key)
-        self.table.update_cell_at(Coordinate(row_index, 1), old_val)
-        self.key_value_input.edit_mode = False
         self.row_being_edited = None
+        self.key_value_input.edit_mode = False
         self.key_value_input.key_input.value = ""
         self.key_value_input.value_input.value = ""
-        self.table.focus()
+
+        # The row index could be None if the row was deleted, as in that
+        # case the lookup above will return None.
+        if row_index is not None:
+            self.table.update_cell_at(Coordinate(row_index, 0), old_key)
+            self.table.update_cell_at(Coordinate(row_index, 1), old_val)
+            self.table.focus()
