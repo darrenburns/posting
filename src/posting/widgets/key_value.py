@@ -164,6 +164,11 @@ class KeyValueEditor(Vertical):
 
         self.highlight_and_retrieve_row_values(self.row_being_edited)
 
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "cancel_edit_row":
+            return self.row_being_edited is not None
+        return super().check_action(action, parameters)
+
     @on(KeyValueInput.Change)
     def add_key_value_pair(self, event: KeyValueInput.Change) -> None:
         if self.row_being_edited is None:
