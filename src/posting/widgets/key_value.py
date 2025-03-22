@@ -184,6 +184,8 @@ class KeyValueEditor(Vertical):
             table.update_cell_at(Coordinate(row, 1), event.value)
             self.row_being_edited = None
             self.table.column_width_refresh()
+            # Move the focus back from the input to the table.
+            self.table.focus()
 
     @on(PostingDataTable.RowsRemoved)
     def rows_removed(self, event: PostingDataTable.RowsRemoved) -> None:
@@ -200,6 +202,10 @@ class KeyValueEditor(Vertical):
     @on(PostingDataTable.RowSelected)
     def row_selected(self, event: PostingDataTable.RowSelected) -> None:
         """Switch to edit mode when a row is selected."""
+
+        if self.row_being_edited is not None:
+            self.action_cancel_edit_row()
+
         # Update the row that is currently being edited.
         table = self.table
         cursor_row_index = table.cursor_row
@@ -211,9 +217,11 @@ class KeyValueEditor(Vertical):
     def watch_row_being_edited(self, row_key: RowKey | None) -> None:
         """Handle edit mode enable/disable."""
         if row_key is None:
-            self.key_value_input.edit_mode = False
+            # No longer editing a row.
+            # This stuff is handled in the action_cancel_edit_row method.
             return
 
+        # A row is now being edited.
         self.key_value_input.edit_mode = True
 
         # Grab the values from the row
