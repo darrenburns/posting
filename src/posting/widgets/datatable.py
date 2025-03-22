@@ -42,6 +42,7 @@ PostingDataTable {
         """The cursor can escape the table by pressing up when it's at the top (will focus previous widget in focus chain)."""
         self.row_disable = False
         """If True, rows will have a checkbox added to them and can be disabled with space bar."""
+        self.cursor_foreground_priority = "renderable"
 
     @dataclass
     class Checkbox:
@@ -105,13 +106,13 @@ PostingDataTable {
     def remove_row(self, row_key: RowKey | str) -> None:
         self.post_message(self.RowsRemoved(self))
         rv = super().remove_row(row_key)
-        self._column_width_refresh()
+        self.column_width_refresh()
         return rv
 
     def clear(self, columns: bool = False) -> Self:
         self.post_message(self.RowsRemoved(self, explicit_by_user=False))
         super().clear(columns=columns)
-        self._column_width_refresh()
+        self.column_width_refresh()
         return self
 
     def replace_all_rows(
@@ -128,9 +129,9 @@ PostingDataTable {
         else:
             for row in rows:
                 self.add_row(*row, explicit_by_user=False)
-        self._column_width_refresh()
+        self.column_width_refresh()
 
-    def _column_width_refresh(self) -> None:
+    def column_width_refresh(self) -> None:
         # TODO - fix this inside Textual.
         if self.row_count > 0:
             row_zero = list(self._data.keys())[0]

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from rich.style import Style
 from rich.text import Text
 from textual import on, log
 from textual.app import ComposeResult
@@ -60,8 +61,10 @@ class KeyValueInput(Horizontal):
     def watch_edit_mode(self, edit_mode: bool) -> None:
         if edit_mode:
             self.button.label = "Update"
+            self.add_class("edit-mode")
         else:
             self.button.label = "Add"
+            self.remove_class("edit-mode")
 
     @property
     def submit_allowed(self) -> bool:
@@ -120,7 +123,7 @@ class KeyValueEditor(Vertical):
     BINDINGS = [
         Binding("enter", "edit_row", "Edit row"),
         # TODO - implement check_action
-        Binding("escape", "cancel_edit_row", "Cancel edit row"),
+        Binding("escape", "cancel_edit_row", "Cancel edit"),
     ]
 
     row_being_edited: Reactive[RowKey | None] = reactive(None)
@@ -141,6 +144,9 @@ class KeyValueEditor(Vertical):
         self.key_value_input = key_value_input
         self.empty_message = empty_message
 
+        self._row_being_edited_prior_state: tuple[str, str] | None = None
+        """If the edit was cancelled, this will be the original values of the row that we revert to."""
+
     def compose(self) -> ComposeResult:
         self.set_class(self.table.row_count == 0, "empty")
         yield CenterMiddle(Label(self.empty_message), id="empty-message")
@@ -150,19 +156,23 @@ class KeyValueEditor(Vertical):
     @on(KeyValueInput.Change)
     def add_key_value_pair(self, event: KeyValueInput.Change) -> None:
         if self.row_being_edited is None:
+            # Adding a new row.
             table = self.table
             table.add_row(event.key, event.value, sender=table)
             table.move_cursor(row=table.row_count - 1)
         else:
+            # Editing an existing row.
             table = self.table
             row_key = self.row_being_edited
             row = table._row_locations.get(row_key)
             if row is None:
                 log.warning(f"Row {row_key} not found")
                 return
+
             table.update_cell_at(Coordinate(row, 0), event.key)
             table.update_cell_at(Coordinate(row, 1), event.value)
             self.row_being_edited = None
+            self.table.column_width_refresh()
 
     @on(PostingDataTable.RowsRemoved)
     def rows_removed(self, event: PostingDataTable.RowsRemoved) -> None:
@@ -191,28 +201,47 @@ class KeyValueEditor(Vertical):
         """Handle edit mode enable/disable."""
         if row_key is None:
             self.key_value_input.edit_mode = False
-            self.key_value_input.remove_class("edit-mode")
             return
 
-        self.key_value_input.add_class("edit-mode")
-
-        # Get the values from the row, and store them so that if we cancel the edit,
-        # we can revert the row to its original state.
-        row_values = self.table.get_row(row_key)
         self.key_value_input.edit_mode = True
-        self.key_value_input.key_input.value = (
-            row_values[0].plain if isinstance(row_values[0], Text) else row_values[0]
+
+        # Grab the values from the row, and store them so that if we cancel the edit we can revert to them.
+        row_values = self.table.get_row(row_key)
+        key = row_values[0].plain if isinstance(row_values[0], Text) else row_values[0]
+        val = row_values[1].plain if isinstance(row_values[1], Text) else row_values[1]
+
+        # Highlight the text of the row, to indicate that it is being edited.
+        row_index = self.table._row_locations.get(row_key)
+        accent_color = self.app.theme_variables.get("text-accent")
+        self.table.update_cell_at(
+            Coordinate(row_index, 0),
+            Text(key, style=Style(color=accent_color, italic=True)),
         )
-        self.key_value_input.value_input.value = (
-            row_values[1].plain if isinstance(row_values[1], Text) else row_values[1]
+        self.table.update_cell_at(
+            Coordinate(row_index, 1),
+            Text(val, style=Style(color=accent_color, italic=True)),
         )
+
+        self._row_being_edited_prior_state = (key, val)
+        self.key_value_input.key_input.value = key
+        self.key_value_input.value_input.value = val
         self.key_value_input.key_input.focus()
 
     def action_cancel_edit_row(self) -> None:
-        if self.row_being_edited is None:
+        if self.row_being_edited is None or self._row_being_edited_prior_state is None:
             return
 
+        # Revert the row to its original state.
+        old_key, old_val = self._row_being_edited_prior_state
+        row_index = self.table._row_locations.get(self.row_being_edited)
+        if row_index is None:
+            log.warning(f"Row {self.row_being_edited} not found")
+            return
+
+        self.table.update_cell_at(Coordinate(row_index, 0), old_key)
+        self.table.update_cell_at(Coordinate(row_index, 1), old_val)
         self.key_value_input.edit_mode = False
         self.row_being_edited = None
         self.key_value_input.key_input.value = ""
         self.key_value_input.value_input.value = ""
+        self.table.focus()
