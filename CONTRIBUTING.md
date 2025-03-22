@@ -87,6 +87,6 @@ make test-snapshot-update
 This will update the snapshots saved on disk for all the tests which failed.
 You should commit these changes into the repo - they're essentially the "source of truth" for what the UI of Posting should look like under different circumstances.
 
----
+## Feeling unsure?
 
-This file is still a work in progress...
+If you're feeling a bit stuck, just open a discussion and I'll do my best to help you out!

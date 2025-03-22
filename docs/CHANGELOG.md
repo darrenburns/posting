@@ -5,6 +5,7 @@
 - Added `spacing: <compact|standard>` config to allow for a more compact UI (default: `standard`).
 - Basic Vim motions to script output log (`hjkl`).
 - Press `/` to open the request search palette while the collection browser is focused.
+- Contributing guide added to the repo.
 
 ### Changed
 
