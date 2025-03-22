@@ -1,0 +1,35 @@
+name: echo post
+description: Echo server for post requests.
+method: POST
+url: https://postman-echo.com/post
+body:
+  content: |-
+    {
+      "string": "Hello, world!",
+      "booleans": [true, false],
+      "numbers": [1, 2, 42],
+      "null": null
+    }
+  content_type: application/json
+auth:
+  type: basic
+  basic:
+    username: darren
+headers:
+- name: Content-Type
+  value: application/json
+- name: Accept
+  value: '*'
+- name: Cache-Control
+  value: no-cache
+- name: Accept-Encoding
+  value: gzip
+params:
+- name: key1
+  value: value1
+- name: another-key
+  value: another-value
+- name: number
+  value: '123'
+options:
+  timeout: 0.2

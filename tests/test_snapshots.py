@@ -184,6 +184,7 @@ class TestNewRequest:
             await pilot.press("ctrl+n")
 
             await pilot.pause()
+            await pilot.pause()
             # Check the file exists
             new_request_file = (
                 SAMPLE_COLLECTIONS / "jsonplaceholder" / "posts" / "foo.posting.yaml"
@@ -225,6 +226,7 @@ description: bar
             await pilot.press("ctrl+n")
             await pilot.press(*"echo")  # this name already exists
             await pilot.press("enter")
+            await pilot.pause()
             await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
