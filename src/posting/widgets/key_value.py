@@ -147,11 +147,22 @@ class KeyValueEditor(Vertical):
         self._row_being_edited_prior_state: tuple[str, str] | None = None
         """If the edit was cancelled, this will be the original values of the row that we revert to."""
 
+    def on_mount(self) -> None:
+        self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
+
     def compose(self) -> ComposeResult:
         self.set_class(self.table.row_count == 0, "empty")
         yield CenterMiddle(Label(self.empty_message), id="empty-message")
         yield self.table
         yield self.key_value_input
+
+    def on_theme_change(self, _) -> None:
+        # If a row is being edited we need to refresh the cells that are being edited since they
+        # will have a style that was defined by the theme at the time we entered edit mode.
+        if self.row_being_edited is None:
+            return
+
+        self.highlight_and_retrieve_row_values(self.row_being_edited)
 
     @on(KeyValueInput.Change)
     def add_key_value_pair(self, event: KeyValueInput.Change) -> None:
@@ -205,14 +216,22 @@ class KeyValueEditor(Vertical):
 
         self.key_value_input.edit_mode = True
 
-        # Grab the values from the row, and store them so that if we cancel the edit we can revert to them.
+        # Grab the values from the row
+        key, val = self.highlight_and_retrieve_row_values(row_key)
+
+        self._row_being_edited_prior_state = (key, val)
+        self.key_value_input.key_input.value = key
+        self.key_value_input.value_input.value = val
+        self.key_value_input.key_input.focus()
+
+    def highlight_and_retrieve_row_values(self, row_key: RowKey) -> tuple[str, str]:
         row_values = self.table.get_row(row_key)
         key = row_values[0].plain if isinstance(row_values[0], Text) else row_values[0]
         val = row_values[1].plain if isinstance(row_values[1], Text) else row_values[1]
 
         # Highlight the text of the row, to indicate that it is being edited.
         row_index = self.table._row_locations.get(row_key)
-        accent_color = self.app.theme_variables.get("text-accent")
+        accent_color = self.app.theme_variables.get("text-warning")
         self.table.update_cell_at(
             Coordinate(row_index, 0),
             Text(key, style=Style(color=accent_color, italic=True)),
@@ -221,11 +240,7 @@ class KeyValueEditor(Vertical):
             Coordinate(row_index, 1),
             Text(val, style=Style(color=accent_color, italic=True)),
         )
-
-        self._row_being_edited_prior_state = (key, val)
-        self.key_value_input.key_input.value = key
-        self.key_value_input.value_input.value = val
-        self.key_value_input.key_input.focus()
+        return key, val
 
     def action_cancel_edit_row(self) -> None:
         if self.row_being_edited is None or self._row_being_edited_prior_state is None:
