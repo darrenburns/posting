@@ -196,9 +196,7 @@ class KeyValueEditor(Vertical):
     def rows_removed(self, event: PostingDataTable.RowsRemoved) -> None:
         rows = event.data_table.row_count
 
-        print(f"rows_removed: {rows}")
         if self.row_being_edited is not None:
-            print(f"row_being_edited: {self.row_being_edited}")
             self.action_cancel_edit_row()
 
         self.set_class(rows == 0, "empty")
