@@ -52,11 +52,16 @@ class KeyValueInput(Horizontal):
     def compose(self) -> ComposeResult:
         self.key_input.add_class("key-input")
         self.value_input.add_class("value-input")
-        yield self.key_input
-        yield self.value_input
-        add_button = Button(self.button_label, disabled=True, id="add-button")
-        add_button.can_focus = False
-        yield add_button
+        with Vertical(id="row-writer-footer"):
+            yield Label(
+                "Editing row. Press [i]escape[/i] to cancel.", id="editing-row-label"
+            )
+            with Horizontal(id="key-value-inputs"):
+                yield self.key_input
+                yield self.value_input
+                add_button = Button(self.button_label, disabled=True, id="add-button")
+                add_button.can_focus = False
+                yield add_button
 
     def watch_edit_mode(self, edit_mode: bool) -> None:
         if edit_mode:
