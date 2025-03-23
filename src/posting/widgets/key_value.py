@@ -187,7 +187,7 @@ class KeyValueEditor(Vertical):
 
             table.update_cell_at(Coordinate(row, 0), event.key)
             table.update_cell_at(Coordinate(row, 1), event.value)
-            self.row_being_edited = None
+            self.action_cancel_edit_row()
             self.table.column_width_refresh()
             # Move the focus back from the input to the table.
             self.table.focus()
@@ -227,7 +227,6 @@ class KeyValueEditor(Vertical):
         """Handle edit mode enable/disable."""
         if row_key is None:
             # No longer editing a row.
-            # This stuff is handled in the action_cancel_edit_row method.
             return
 
         # A row is now being edited.
