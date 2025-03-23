@@ -3,7 +3,7 @@
 ### Added
 
 - Added `spacing: <compact|standard>` config to allow for a more compact UI (default: `standard`).
-- Added ability to edit headers and query params without deleting and recreating them.
+- Added ability to edit headers, form data, and query params without deleting and recreating them.
 - Basic Vim motions to script output log (`hjkl`).
 - Press `/` to open the request search palette while the collection browser is focused.
 - Contributing guide added to the repo.
