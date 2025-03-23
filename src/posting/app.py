@@ -344,8 +344,17 @@ class MainScreen(Screen[None]):
             raise
 
     async def send_request(self) -> None:
-        self.url_bar.clear_events()
-        script_output = self.response_script_output
+        try:
+            self.url_bar.clear_events()
+            script_output = self.response_script_output
+        except NoMatches:
+            # The UI is lazily loaded, so the widgets are not guaranteed to be available.
+            # If you load the UI then immediately press enter, this method would be called
+            # but if the widgets are not available, there's nothing we can do.
+            # We no-op, as the widgets are only unavailable for some milliseconds, and
+            # so it's almost certainly just a mistaken double-tap of the enter key.
+            return
+
         script_output.reset()
 
         request_options = self.request_options.to_model()

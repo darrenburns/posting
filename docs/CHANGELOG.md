@@ -4,6 +4,10 @@
 
 - Added `spacing: <compact|standard>` config to allow for a more compact UI (default: `standard`).
 - Added ability to edit headers, form data, and query params without deleting and recreating them.
+    - Press `enter` or click a row to edit it. The row will be highlighted, and focus will move to the input.
+        Submitted changes will overwrite the existing row rather than adding a new one.
+    - Press `escape` to cancel the edit.
+    - The background colour behind the input will update to indicate edit mode is active.
 - Basic Vim motions to script output log (`hjkl`).
 - Press `/` to open the request search palette while the collection browser is focused.
 - Contributing guide added to the repo.
@@ -22,6 +26,7 @@
 ### Fixed
 
 - Fixed scrolling in response headers and cookies tabs using keyboard.
+- Fixed crash when immediately pressing enter after loading the UI when the `on_startup` config is set to `url` (this was due to lazy loading of the UI, and attempting to send a request before the UI was fully loaded).
 
 ## 2.5.4 [13th March 2025]
 
