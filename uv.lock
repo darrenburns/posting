@@ -1414,7 +1414,7 @@ syntax = [
 
 [[package]]
 name = "textual-autocomplete"
-version = "4.0.2"
+version = "4.0.3"
 source = { editable = "../textual-autocomplete" }
 dependencies = [
     { name = "textual" },

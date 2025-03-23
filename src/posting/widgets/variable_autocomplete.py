@@ -79,6 +79,8 @@ class VariableAutoComplete(AutoComplete):
             target.value = value
             target.cursor_position = len(value)
 
+        self.post_completion()
+
     def get_search_string(self, target_state: TargetState) -> str:
         cursor = target_state.cursor_position
         text = target_state.text

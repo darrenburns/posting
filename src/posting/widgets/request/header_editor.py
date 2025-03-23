@@ -25,6 +25,7 @@ HEADER_SUGGESTIONS = {
         "video/",
         "multipart/",
         # Common wildcards
+        "*",
         "*/*",
         "image/*",
         "audio/*",
