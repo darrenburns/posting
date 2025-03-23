@@ -3,7 +3,6 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.content import Content
-from textual.widgets import Input
 from textual_autocomplete import DropdownItem, AutoComplete, TargetState
 from posting.collection import Header
 from posting.help_data import HelpData
@@ -16,38 +15,167 @@ from posting.widgets.variable_input import VariableInput
 
 
 HEADER_SUGGESTIONS = {
-    "content-type": [
+    "accept": [
+        # Common prefixes for autocompletion
         "application/",
+        "audio/",
+        "font/",
+        "image/",
+        "text/",
+        "video/",
+        "multipart/",
+        # Common wildcards
+        "*/*",
+        "image/*",
+        "audio/*",
+        "video/*",
+        # Application types
         "application/json",
         "application/xml",
         "application/x-www-form-urlencoded",
-        "multipart/",
-        "multipart/form-data",
-        "text/",
+        "application/javascript",
+        "application/pdf",
+        "application/zip",
+        "application/octet-stream",
+        "application/graphql",
+        "application/msgpack",
+        # Text types
         "text/plain",
         "text/html",
         "text/css",
-    ],
-    "accept": [
-        "application/",
-        "application/json",
-        "application/xml",
-        "text/",
-        "text/plain",
-        "text/html",
-        "text/css",
+        "text/csv",
+        "text/markdown",
+        "text/yaml",
     ],
     "accept-encoding": [
+        # Single encodings
         "gzip",
         "deflate",
         "br",
+        "compress",
+        "identity",
+        "*",
+        # Common combinations
+        "gzip, deflate",
+        "gzip, deflate, br",
+    ],
+    "accept-language": [
+        # Common single languages
+        "en",
+        "en-US",
+        "en-GB",
+        "es",
+        "es-ES",
+        "fr",
+        "fr-FR",
+        "de",
+        "de-DE",
+        "it",
+        "ja",
+        "ko",
+        "zh",
+        "zh-CN",
+        "zh-TW",
+        "*",
+    ],
+    "authorization": [
+        # Auth scheme prefixes
+        "Bearer ",
+        "Basic ",
+        "Digest ",
+        "OAuth ",
+        "JWT ",
+        "ApiKey ",
     ],
     "cache-control": [
+        # Single directives
         "no-cache",
         "no-store",
-        "max-age=0",
+        "no-transform",
+        "private",
+        "public",
         "must-revalidate",
         "proxy-revalidate",
+        "max-age=0",
+        # Common combinations
+        "no-cache, no-store",
+        "private, no-cache",
+        "no-cache, must-revalidate",
+        # Time-based examples
+        "max-age=3600",
+        "max-age=86400",
+        "max-age=604800",
+    ],
+    "connection": [
+        "keep-alive",
+        "close",
+        "upgrade",
+    ],
+    "content-type": [
+        # Common prefixes for autocompletion
+        "application/",
+        "audio/",
+        "font/",
+        "image/",
+        "text/",
+        "video/",
+        "multipart/",
+        # Application types
+        "application/json",
+        "application/xml",
+        "application/x-www-form-urlencoded",
+        "application/javascript",
+        "application/pdf",
+        "application/zip",
+        "application/octet-stream",
+        "application/graphql",
+        "application/msgpack",
+        # Text types
+        "text/plain",
+        "text/html",
+        "text/css",
+        "text/csv",
+        "text/markdown",
+        "text/yaml",
+        # Multipart types
+        "multipart/form-data",
+        "multipart/mixed",
+        "multipart/alternative",
+        # Image types
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/svg+xml",
+        "image/avif",
+        # Audio types
+        "audio/mpeg",
+        "audio/ogg",
+        "audio/wav",
+        # Video types
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+    ],
+    "if-match": [
+        "*",
+        "W/",  # Weak validator prefix
+    ],
+    "if-none-match": [
+        "*",
+        "W/",  # Weak validator prefix
+    ],
+    "pragma": [
+        "no-cache",
+    ],
+    "range": [
+        # Common range patterns
+        "bytes=",
+        "bytes=0-",
+        "bytes=0-499",
+        "bytes=-500",
+        "bytes=500-999",
+        "bytes=0-499,500-999",
     ],
 }
 
