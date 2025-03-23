@@ -474,8 +474,8 @@ class TestCustomThemeSimple:
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
-            await pilot.press(*"anothertest")
-            await pilot.pause()
+            await pilot.press(*"them", "enter")
+            await pilot.press(*"atest")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
