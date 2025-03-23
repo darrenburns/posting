@@ -224,7 +224,6 @@ description: bar
             await pilot.press("ctrl+n")
             await pilot.press(*"echo")  # this name already exists
             await pilot.press("enter")
-            await pilot.pause(2)
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
