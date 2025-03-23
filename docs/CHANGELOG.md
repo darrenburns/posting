@@ -27,6 +27,8 @@
 
 - Fixed scrolling in response headers and cookies tabs using keyboard.
 - Fixed crash when immediately pressing enter after loading the UI when the `on_startup` config is set to `url` (this was due to lazy loading of the UI, and attempting to send a request before the UI was fully loaded).
+- Fixed accepting a completion via enter in the header editor also adding the header.
+    - Now, the first enter press will accept the completion, and the second enter press will add the header.
 
 ## 2.5.4 [13th March 2025]
 

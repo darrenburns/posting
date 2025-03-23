@@ -1,7 +1,7 @@
 $empty-hatch: right $surface-lighten-1 70%;
 
 * {
-  scrollbar-color: $surface-lighten-1 50%;
+  scrollbar-color: $primary 20%;
   scrollbar-color-hover: $primary 80%;
   scrollbar-color-active: $primary;
   scrollbar-background: $surface-darken-1;
@@ -70,6 +70,27 @@ Posting {
 
     & RequestEditor {
       background: $surface 25%;
+    }
+
+    & KeyValueInput {
+      & Input {
+        margin: 0;
+        border-left: vkey $surface-darken-1;
+        padding: 0;
+        &:focus {
+          padding: 0;
+          border-left: vkey $surface-darken-1;
+        }
+      }
+      & Button {
+        margin: 0;
+        border-left: vkey $surface-darken-1;
+        border-right: vkey $accent;
+        &:hover {
+          border-left: vkey $surface-darken-1;
+          border-right: vkey $accent;
+        }
+      }
     }
     
     & ResponseArea {
@@ -457,7 +478,6 @@ KeyValueEditor {
       padding: 0 1;
       height: 1;
       color: $text-accent;
-      background: $accent-muted;
     }
     #key-value-inputs {
       height: 1;
@@ -473,7 +493,6 @@ KeyValueEditor {
         #add-button {
             color: $text;
             background: $accent;
-            text-style: b;
         }
         Input {
           background: $accent 10%;
@@ -482,11 +501,11 @@ KeyValueEditor {
     & Input {
         border: none;
         width: 1fr;
-        border-left: wide $surface-lighten-1;
-        padding: 0;
+        margin: 0 1;
+        padding: 0 1;
         &:focus {
           border: none;
-          border-left: wide $surface-lighten-1;
+          padding: 0 1;
         }
     }
   
@@ -496,9 +515,9 @@ KeyValueEditor {
         text-style: none;
         min-width: 0;
         width: auto;
+        margin: 0 1;
         &:hover {
             text-style: b;
-            padding: 0 1;
             border: none;
             background: $primary-darken-1;
         }

@@ -55,7 +55,6 @@ class HeaderEditor(Vertical):
                 header_input,
                 candidates=items,
                 prevent_default_tab=False,
-                prevent_default_enter=False,
             )
         )
 
