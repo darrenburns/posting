@@ -1,5 +1,5 @@
-from typing import Callable
-from textual.widgets import Input, TextArea
+from typing import Callable, Sequence
+from textual.widgets import Input
 from textual_autocomplete import (
     AutoComplete,
     DropdownItem,
@@ -19,8 +19,10 @@ class VariableAutoComplete(AutoComplete):
     def __init__(
         self,
         target: Input | str,
-        candidates: list[DropdownItem] | Callable[[TargetState], list[DropdownItem]],
-        variable_candidates: list[DropdownItem]
+        candidates: Sequence[DropdownItem | str]
+        | Callable[[TargetState], list[DropdownItem]]
+        | None = None,
+        variable_candidates: Sequence[DropdownItem]
         | Callable[[TargetState], list[DropdownItem]]
         | None = None,
         prevent_default_enter: bool = True,

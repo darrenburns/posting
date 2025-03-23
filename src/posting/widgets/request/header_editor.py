@@ -4,7 +4,7 @@ from textual.binding import Binding
 from textual.containers import Vertical
 from textual.content import Content
 from textual.widgets import Input
-from textual_autocomplete import DropdownItem, AutoComplete
+from textual_autocomplete import DropdownItem, AutoComplete, TargetState
 from posting.collection import Header
 from posting.help_data import HelpData
 
@@ -13,6 +13,43 @@ from posting.request_headers import REQUEST_HEADERS
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 from posting.widgets.input import PostingInput
 from posting.widgets.variable_input import VariableInput
+
+
+HEADER_SUGGESTIONS = {
+    "content-type": [
+        "application/",
+        "application/json",
+        "application/xml",
+        "application/x-www-form-urlencoded",
+        "multipart/",
+        "multipart/form-data",
+        "text/",
+        "text/plain",
+        "text/html",
+        "text/css",
+    ],
+    "accept": [
+        "application/",
+        "application/json",
+        "application/xml",
+        "text/",
+        "text/plain",
+        "text/html",
+        "text/css",
+    ],
+    "accept-encoding": [
+        "gzip",
+        "deflate",
+        "br",
+    ],
+    "cache-control": [
+        "no-cache",
+        "no-store",
+        "max-age=0",
+        "must-revalidate",
+        "proxy-revalidate",
+    ],
+}
 
 
 class HeaderInput(PostingInput):
@@ -33,18 +70,23 @@ class HeaderEditor(Vertical):
     BINDING_GROUP_TITLE = "HTTP Header Editor"
 
     def compose(self) -> ComposeResult:
+        header_key_input = HeaderInput(placeholder="Name", id="header-key-input")
         yield KeyValueEditor(
             HeadersTable(),
             KeyValueInput(
-                HeaderInput(placeholder="Name", id="header-key-input"),
-                VariableInput(placeholder="Value", id="header-value-input"),
+                header_key_input,
+                VariableInput(
+                    placeholder="Value",
+                    id="header-value-input",
+                    candidates=self.get_header_value_candidates,
+                ),
                 button_label="Add",
             ),
             empty_message="No headers",
         )
 
     def on_mount(self):
-        header_input = self.query_one("#header-key-input", Input)
+        header_input = self.header_key_input
         items: list[DropdownItem] = []
         for header in REQUEST_HEADERS:
             style = "$text-warning" if header["experimental"] else ""
@@ -58,6 +100,20 @@ class HeaderEditor(Vertical):
                 prevent_default_tab=False,
             )
         )
+
+    def get_header_value_candidates(
+        self, target_state: TargetState
+    ) -> list[DropdownItem]:
+        header_key = self.header_key_input.value.strip().lower()
+        candidates = [
+            DropdownItem(main=suggestion)
+            for suggestion in HEADER_SUGGESTIONS.get(header_key, [])
+        ]
+        return candidates
+
+    @property
+    def header_key_input(self) -> HeaderInput:
+        return self.query_one("#header-key-input", HeaderInput)
 
 
 class HeadersTable(PostingDataTable):
