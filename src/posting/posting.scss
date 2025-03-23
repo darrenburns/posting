@@ -85,10 +85,10 @@ Posting {
       & Button {
         margin: 0;
         border-left: vkey $surface-darken-1;
-        border-right: vkey $accent;
+        border-right: none;
         &:hover {
           border-left: vkey $surface-darken-1;
-          border-right: vkey $accent;
+          border-right: none;
         }
       }
     }
