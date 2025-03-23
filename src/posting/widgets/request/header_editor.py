@@ -1,3 +1,4 @@
+from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
@@ -106,9 +107,10 @@ in the body tab. Setting a header in this table will override the default value 
         headers: list[Header] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
+            plain_row0 = row[0].plain if isinstance(row[0], Text) else row[0]
+            plain_row1 = row[1].plain if isinstance(row[1], Text) else row[1]
+            is_row_enabled = self.is_row_enabled_at(row_index)
             headers.append(
-                Header(
-                    name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)
-                )
+                Header(name=plain_row0, value=plain_row1, enabled=is_row_enabled)
             )
         return headers

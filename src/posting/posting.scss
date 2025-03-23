@@ -284,17 +284,23 @@ AppBody {
     layout: horizontal;
 
     & KeyValueInput {
-      layout: vertical;
-      & Button {
-        width: 100%;
+      dock: top;
+      & #key-value-inputs {
+        layout: vertical;
+        height: 3;
+        & Button {
+          width: 100%;
+        }
       }
+
     }
+
   }
   
   &.layout-vertical {
     layout: vertical;
     
-    & KeyValueInput {
+    & KeyValueInput #key-value-inputs {
       layout: horizontal;
     }
   }
