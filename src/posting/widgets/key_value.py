@@ -245,10 +245,8 @@ class KeyValueEditor(Vertical):
         return key, val
 
     def action_cancel_edit_row(self) -> None:
-        if self._row_being_edited is None or self._row_being_edited_prior_state is None:
-            return
-
-        self._row_being_edited = None
+        if self._row_being_edited is not None:
+            self.exit_edit_mode(revert=True)
 
     def enter_edit_mode(self, row_key: RowKey) -> None:
         # Grab the values from the row that is being edited.
