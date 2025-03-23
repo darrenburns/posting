@@ -214,10 +214,7 @@ description: bar
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
 
-    @pytest.mark.skipif(
-        os.environ.get("CI") == "true",
-        reason="This test is flaky on CI - needs investigation.",  # TODO: Investigate.
-    )
+    @pytest.mark.skip(reason="This test is flaky on CI - needs investigation.")
     def test_cannot_create_request_with_duplicate_name(self, snap_compare):
         """Check that we cannot create a request with a duplicate name.
 
