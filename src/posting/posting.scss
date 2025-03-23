@@ -495,6 +495,7 @@ KeyValueEditor {
             background: $accent;
         }
         Input {
+          color: $text;
           background: $accent 10%;
         }
     }
