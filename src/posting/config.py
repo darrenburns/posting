@@ -38,6 +38,10 @@ class UrlBarSettings(BaseModel):
     When your cursor is above a variable, the value will be displayed on
     the line below the URL bar."""
 
+    hide_secrets_in_value_preview: bool = Field(default=True)
+    """If enabled, values will be redacted in the value preview when the variable name
+    contains the word `secret` or `key` or `password` or `token`."""
+
 
 class ResponseSettings(BaseModel):
     """Configuration for the response viewer."""

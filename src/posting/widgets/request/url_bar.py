@@ -242,6 +242,12 @@ class UrlBar(Vertical):
         variable_name = extract_variable_name(variable_at_cursor)
         variable_value = variables.get(variable_name)
         if variable_value:
+            if SETTINGS.get().url_bar.hide_secrets_in_value_preview:
+                if any(
+                    word in variable_name.lower()
+                    for word in ["secret", "key", "password", "token"]
+                ):
+                    variable_value = "(hidden)"
             content = f"{variable_name} = {variable_value}"
             variable_bar.update(content)
         else:
