@@ -126,9 +126,6 @@ class KeyValueEditor(Vertical):
         Binding("escape", "cancel_edit_row", "Cancel edit"),
     ]
 
-    row_being_edited: Reactive[RowKey | None] = reactive(None)
-    """The row that is currently being edited, or None if no row is being edited."""
-
     def __init__(
         self,
         table: PostingDataTable,
@@ -147,6 +144,9 @@ class KeyValueEditor(Vertical):
         self._row_being_edited_prior_state: tuple[str, str] | None = None
         """If the edit was cancelled, this will be the original values of the row that we revert to."""
 
+        self._row_being_edited: RowKey | None = None
+        """The row that is currently being edited, or None if no row is being edited."""
+
     def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
@@ -159,44 +159,43 @@ class KeyValueEditor(Vertical):
     def on_theme_change(self, _) -> None:
         # If a row is being edited we need to refresh the cells that are being edited since they
         # will have a style that was defined by the theme at the time we entered edit mode.
-        if self.row_being_edited is None:
+        if self._row_being_edited is None:
             return
 
-        self.highlight_and_retrieve_row_values(self.row_being_edited)
+        self.highlight_and_retrieve_row_values(self._row_being_edited)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "cancel_edit_row":
-            return self.row_being_edited is not None
+            return self._row_being_edited is not None
         return super().check_action(action, parameters)
 
     @on(KeyValueInput.Change)
     def add_key_value_pair(self, event: KeyValueInput.Change) -> None:
-        if self.row_being_edited is None:
+        if self._row_being_edited is None:
             # Adding a new row.
             table = self.table
             table.add_row(event.key, event.value, sender=table)
             table.move_cursor(row=table.row_count - 1)
         else:
-            # Editing an existing row.
+            # Request to update an existing row.
+            # We should perform the update, and then exit edit mode.
             table = self.table
-            row_key = self.row_being_edited
+            row_key = self._row_being_edited
             row = table._row_locations.get(row_key)
             if row is None:
                 log.warning(f"Row {row_key} not found")
                 return
 
-            table.update_cell_at(Coordinate(row, 0), event.key)
-            table.update_cell_at(Coordinate(row, 1), event.value)
-            self.action_cancel_edit_row()
-            self.table.column_width_refresh()
-            # Move the focus back from the input to the table.
+            table.update_cell_at(Coordinate(row, 0), event.key, update_width=True)
+            table.update_cell_at(Coordinate(row, 1), event.value, update_width=True)
             self.table.focus()
+            self.exit_edit_mode(revert=False)
 
     @on(PostingDataTable.RowsRemoved)
     def rows_removed(self, event: PostingDataTable.RowsRemoved) -> None:
         rows = event.data_table.row_count
 
-        if self.row_being_edited is not None:
+        if self._row_being_edited is not None:
             self.action_cancel_edit_row()
 
         self.set_class(rows == 0, "empty")
@@ -212,33 +211,17 @@ class KeyValueEditor(Vertical):
     def row_selected(self, event: PostingDataTable.RowSelected) -> None:
         """Switch to edit mode when a row is selected."""
 
-        if self.row_being_edited is not None:
-            self.action_cancel_edit_row()
+        if self._row_being_edited is not None:
+            # If we're already editing a row, we need to exit edit mode
+            # and revert the row that was being edited to its original state.
+            self.exit_edit_mode(revert=True)
 
-        # Update the row that is currently being edited.
         table = self.table
         cursor_row_index = table.cursor_row
         row_key, _col_key = table.coordinate_to_cell_key(
             Coordinate(cursor_row_index, 0)
         )
-        self.row_being_edited = row_key
-
-    def watch_row_being_edited(self, row_key: RowKey | None) -> None:
-        """Handle edit mode enable/disable."""
-        if row_key is None:
-            # No longer editing a row.
-            return
-
-        # A row is now being edited.
-        self.key_value_input.edit_mode = True
-
-        # Grab the values from the row
-        key, val = self.highlight_and_retrieve_row_values(row_key)
-
-        self._row_being_edited_prior_state = (key, val)
-        self.key_value_input.key_input.value = key
-        self.key_value_input.value_input.value = val
-        self.key_value_input.key_input.focus()
+        self.enter_edit_mode(row_key)
 
     def highlight_and_retrieve_row_values(self, row_key: RowKey) -> tuple[str, str]:
         row_values = self.table.get_row(row_key)
@@ -247,6 +230,9 @@ class KeyValueEditor(Vertical):
 
         # Highlight the text of the row, to indicate that it is being edited.
         row_index = self.table._row_locations.get(row_key)
+        if row_index is None:
+            raise ValueError(f"Row {row_key} not found")
+
         accent_color = self.app.theme_variables.get("text-warning")
         self.table.update_cell_at(
             Coordinate(row_index, 0),
@@ -259,21 +245,51 @@ class KeyValueEditor(Vertical):
         return key, val
 
     def action_cancel_edit_row(self) -> None:
-        if self.row_being_edited is None or self._row_being_edited_prior_state is None:
+        if self._row_being_edited is None or self._row_being_edited_prior_state is None:
             return
 
-        # Revert the row to its original state.
-        old_key, old_val = self._row_being_edited_prior_state
-        row_index = self.table._row_locations.get(self.row_being_edited)
+        self._row_being_edited = None
 
-        self.row_being_edited = None
+    def enter_edit_mode(self, row_key: RowKey) -> None:
+        # Grab the values from the row that is being edited.
+
+        # Take note of the original values of the row, so that we can revert to them if the edit is cancelled.
+        try:
+            key, val = self.highlight_and_retrieve_row_values(row_key)
+        except ValueError:
+            # The row was deleted, so we can't edit it.
+            return
+
+        self._row_being_edited = row_key
+        self._row_being_edited_prior_state = (key, val)
+
+        # Throw the values into the input widgets for editing, and enable edit mode in the keyvalue
+        # input widget (this will update the background color and button label to indicate that we are
+        # in edit mode).
+        self.key_value_input.edit_mode = True
+        self.key_value_input.key_input.value = key
+        self.key_value_input.value_input.value = val
+        self.key_value_input.key_input.focus()
+
+    def exit_edit_mode(self, revert: bool = False) -> None:
+        assert self._row_being_edited is not None, "No row being edited"
+        assert self._row_being_edited_prior_state is not None, (
+            "No prior state to revert to"
+        )
+
+        old_key, old_val = self._row_being_edited_prior_state
+        self._row_being_edited_prior_state = None
+        old_row_key = self._row_being_edited
+        self._row_being_edited = None
         self.key_value_input.edit_mode = False
         self.key_value_input.key_input.value = ""
         self.key_value_input.value_input.value = ""
 
-        # The row index could be None if the row was deleted, as in that
-        # case the lookup above will return None.
-        if row_index is not None:
-            self.table.update_cell_at(Coordinate(row_index, 0), old_key)
-            self.table.update_cell_at(Coordinate(row_index, 1), old_val)
-            self.table.focus()
+        if revert:  # Revert the row to its original state.
+            row_index = self.table._row_locations.get(old_row_key)
+            if row_index is not None:
+                # The row index could be None if the row was deleted, as in that
+                # case the lookup above will return None.
+                self.table.update_cell_at(Coordinate(row_index, 0), old_key)
+                self.table.update_cell_at(Coordinate(row_index, 1), old_val)
+                self.table.focus()
