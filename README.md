@@ -37,7 +37,7 @@ You don't even need to worry about installing Python yourself - `uv` will manage
 # quick install on MacOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# install Posting (will also quickly install Python 3.12 if needed)
+# install Posting (will also quickly install Python 3.13 if needed)
 uv tool install --prerelease allow --python 3.13 posting
 ```
 
