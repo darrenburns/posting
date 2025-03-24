@@ -8,6 +8,7 @@ from textual.binding import Binding
 from textual.color import Color
 from textual.coordinate import Coordinate
 from textual.filter import DimFilter
+from textual.markup import escape
 from textual.message import Message
 from textual.message_pump import MessagePump
 from textual.strip import Strip
@@ -96,9 +97,20 @@ PostingDataTable {
         if sender:
             msg.set_sender(sender)
         self.post_message(msg)
+
+        # Bypass the markup processing inside Textual's add_row.
+        # By default, if it sees a string, it will attempt to parse it as markup.
+        # We can avoid that by passing Text objects instead.
+        text_cells: list[Text] = []
+        for cell in cells:
+            if isinstance(cell, str):
+                cell = Text(cell)
+            text_cells.append(cell)
+
         if self.row_disable and label is None:
             label = self.Checkbox(self, True)
-        return super().add_row(*cells, height=height, key=key, label=label)
+
+        return super().add_row(*text_cells, height=height, key=key, label=label)
 
     def action_toggle_fixed_columns(self) -> None:
         self.fixed_columns = 1 if self.fixed_columns == 0 else 0
@@ -234,6 +246,7 @@ PostingDataTable {
         if self.row_disable and is_disabled:
             strip = strip.apply_style(Style(dim=True))
             strip = strip.apply_filter(DimFilter(), Color(0, 0, 0))
+
         return strip
 
     @on(DataTable.RowLabelSelected)

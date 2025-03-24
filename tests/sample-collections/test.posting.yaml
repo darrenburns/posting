@@ -1,0 +1,9 @@
+name: test
+url: https://api.randomuser.me
+params:
+- name: filters[][id][b]hello[/]
+  value: '1'
+- name: filters[][value]
+  value: abc
+- name: filters[][id]
+  value: '2'

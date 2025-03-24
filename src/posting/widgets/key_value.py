@@ -194,8 +194,11 @@ class KeyValueEditor(Vertical):
                 log.warning(f"Row {row_key} not found")
                 return
 
-            table.update_cell_at(Coordinate(row, 0), event.key, update_width=True)
-            table.update_cell_at(Coordinate(row, 1), event.value, update_width=True)
+            # We must use Text objects here, otherwise Textual will attempt to parse the strings as markup.
+            table.update_cell_at(Coordinate(row, 0), Text(event.key), update_width=True)
+            table.update_cell_at(
+                Coordinate(row, 1), Text(event.value), update_width=True
+            )
             self.table.focus()
             self.exit_edit_mode(revert=False)
 
@@ -314,6 +317,11 @@ class KeyValueEditor(Vertical):
             if row_index is not None:
                 # The row index could be None if the row was deleted, as in that
                 # case the lookup above will return None.
-                self.table.update_cell_at(Coordinate(row_index, 0), old_key)
-                self.table.update_cell_at(Coordinate(row_index, 1), old_val)
+                # We must use Text objects here, otherwise Textual will attempt to parse the strings as markup.
+                self.table.update_cell_at(
+                    Coordinate(row_index, 0), Text(old_key), update_width=True
+                )
+                self.table.update_cell_at(
+                    Coordinate(row_index, 1), Text(old_val), update_width=True
+                )
                 self.table.focus()
