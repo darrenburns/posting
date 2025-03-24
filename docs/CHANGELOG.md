@@ -4,15 +4,17 @@
 
 - Added `spacing: <compact|standard>` config to allow for a more compact UI (default: `standard`).
 - Added ability to edit headers, form data, and query params without deleting and recreating them.
-    - Press `enter` or click a row to edit it. The row will be highlighted, and focus will move to the input.
+    - Press `enter` or click a row to enter edit mode. The row will be highlighted, and focus will move to the key/name input.
         Submitted changes will overwrite the existing row rather than adding a new one.
+    - Press `v` to enter edit mode and immediately focus on the value input.
     - Press `escape` to cancel the edit.
+    - Press `enter` to save the changes and exit edit mode.
     - The background colour behind the input will update to indicate edit mode is active.
 - Basic Vim motions to script output log (`hjkl`).
 - Added response status code label to the URL bar.
 - Press `/` to open the request search palette while the collection browser is focused.
     - `ctrl+shift+p` remains available as a global shortcut for this.
-- Contributing guide added to the repo.
+- Contributing guide added to the GitHub repo.
 
 ### Changed
 

@@ -487,6 +487,7 @@ class TestCustomThemeSimple:
             await pilot.press(*"them", "enter")
             await disable_blink_for_active_cursors(pilot)
             await pilot.press(*"atest")
+            await pilot.pause()
 
         with patch_env("POSTING_SPACING", spacing):
             assert snap_compare(POSTING_MAIN, run_before=run_before)
