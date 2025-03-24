@@ -1,7 +1,7 @@
 $empty-hatch: right $surface-lighten-1 70%;
 
 * {
-  scrollbar-color: $primary 20%;
+  scrollbar-color: $primary 10%;
   scrollbar-color-hover: $primary 80%;
   scrollbar-color-active: $primary;
   scrollbar-background: $surface-darken-1;
@@ -10,7 +10,7 @@ $empty-hatch: right $surface-lighten-1 70%;
   scrollbar-size-vertical: 1;
 
   &:focus {
-    scrollbar-color: $surface-lighten-1 80%;
+    scrollbar-color: $primary 50%;
   }
 }
 

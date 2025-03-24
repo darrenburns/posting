@@ -9,12 +9,14 @@
     - Press `escape` to cancel the edit.
     - The background colour behind the input will update to indicate edit mode is active.
 - Basic Vim motions to script output log (`hjkl`).
+- Added response status code label to the URL bar.
 - Press `/` to open the request search palette while the collection browser is focused.
+    - `ctrl+shift+p` remains available as a global shortcut for this.
 - Contributing guide added to the repo.
 
 ### Changed
 
-- Rewrite of the autocompletion system used to autocomplete headers and variables.
+- Rewrite of the autocompletion system used to autocomplete header names, values, URLs, and variables.
 - Automatically prepend `http://` protocol if no protocol is specified in the URL bar.
 - Debounce jump overlay recomposition - if you resize while the jump overlay is open, it'll wait a short period before recomputing.
 - Jump mode now lives on the main screen, rather than globally. This makes more sense as it's only available on the main screen. The only user-facing impact should be that the position of the keybinding in the footer and keybindings panel may change.

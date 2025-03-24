@@ -38,13 +38,15 @@ async def disable_blink_for_active_cursors(pilot: Pilot) -> None:
 
 @use_config("general.yaml")
 class TestJumpMode:
-    def test_loads(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_loads(self, spacing, snap_compare):
         """Simple check that ctrl+o enters jump mode."""
 
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+o")
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before)
+        with patch_env("POSTING_SPACING", spacing):
+            assert snap_compare(POSTING_MAIN, run_before=run_before)
 
     def test_focus_switch(self, snap_compare):
         """Jump mode can target focusable widgets such as the collection tree."""
@@ -121,16 +123,18 @@ class TestUrlBar:
 
 @use_config("general.yaml")
 class TestCommandPalette:
-    def test_loads_and_shows_discovery_options(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_loads_and_shows_discovery_options(self, spacing, snap_compare):
         """Check that the command palette loads."""
 
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
 
-        assert snap_compare(
-            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
-        )
+        with patch_env("POSTING_SPACING", spacing):
+            assert snap_compare(
+                POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+            )
 
     def test_can_type_to_filter_options(self, snap_compare):
         """Check that we can run a command from the command palette."""
@@ -394,7 +398,8 @@ class TestSave:
 @use_config("general.yaml")
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 class TestSendRequest:
-    def test_send_request(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_send_request(self, spacing, snap_compare):
         """Check that we can send a request."""
 
         async def run_before(pilot: Pilot):
@@ -403,7 +408,10 @@ class TestSendRequest:
             await pilot.press("ctrl+j")  # send request
             await pilot.app.workers.wait_for_complete()
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(88, 34))
+        with patch_env("POSTING_SPACING", spacing):
+            assert snap_compare(
+                POSTING_MAIN, run_before=run_before, terminal_size=(88, 34)
+            )
 
 
 @use_config("modified_config.yaml")
@@ -447,15 +455,17 @@ class TestVariables:
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
-    def test_resolved_variables_highlight_and_preview(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_resolved_variables_highlight_and_preview(self, spacing, snap_compare):
         """Check that the resolved variables are highlighted in the URL
         and the value is shown below."""
 
         env_path = str((ENV_DIR / "sample_base.env").resolve())
-        app = make_posting(
-            collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
-            env=(env_path,),
-        )
+        with patch_env("POSTING_SPACING", spacing):
+            app = make_posting(
+                collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
+                env=(env_path,),
+            )
 
         async def run_before(pilot: Pilot):
             await pilot.press("j", "j", "enter")
@@ -468,7 +478,8 @@ class TestVariables:
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 @patch_env("POSTING_THEME_DIRECTORY", str(THEME_DIR.resolve()))
 class TestCustomThemeSimple:
-    def test_theme_set_on_startup_and_in_command_palette(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_theme_set_on_startup_and_in_command_palette(self, spacing, snap_compare):
         """Check that the theme is set on startup and available in the command palette."""
 
         async def run_before(pilot: Pilot):
@@ -477,7 +488,8 @@ class TestCustomThemeSimple:
             await disable_blink_for_active_cursors(pilot)
             await pilot.press(*"atest")
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before)
+        with patch_env("POSTING_SPACING", spacing):
+            assert snap_compare(POSTING_MAIN, run_before=run_before)
 
     def test_theme_sensible_defaults__url(self, snap_compare):
         """This theme doesn't specify explicit values for the URL
@@ -652,3 +664,52 @@ class TestScripts:
             await pilot.press("ctrl+m")  # expand response section
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+
+
+@use_config("general.yaml")
+class TestHeaderAutoCompletion:
+    def test_header_name_auto_completion_list_appears(self, snap_compare):
+        """Check that the header name auto completion list appears."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "q", "j", *"acc")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    @pytest.mark.parametrize("key", ["tab", "enter", "escape"])
+    def test_header_name_auto_completion_list_appears_followed_by_keypress(
+        self, key: str, snap_compare
+    ):
+        """Check that the header name auto completion list appears and users can complete it.
+
+        If the key is enter, the completion should be selected and focus should remain in the name field.
+        If the key is tab, the completion should be selected and focus should move to the value field.
+        If the key is escape, the completion list should be closed and focus should remain in the name field.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "q", "j", *"acc", key)
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_header_value_auto_completion_list_appears(self, snap_compare):
+        """Check that the header value auto completion list appears."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "q", "j", *"CType", "tab")
+            await pilot.press(*"ajs")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_header_value_auto_completion_list_accepts_selection(self, snap_compare):
+        """Check that the header value auto completion list accepts selection.
+
+        Expect to see `application/json` in the value field for the header.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "q", "j", *"CType", "tab")
+            await pilot.press(*"ajs")
+            await pilot.press("enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
