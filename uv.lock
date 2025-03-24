@@ -905,7 +905,7 @@ wheels = [
 
 [[package]]
 name = "posting"
-version = "2.5.2"
+version = "2.5.4"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -948,7 +948,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.1,<2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2,<7.0.0" },
     { name = "textual", extras = ["syntax"], specifier = ">=2.1.2,<2.2.0" },
-    { name = "textual-autocomplete", specifier = "==4.0.0a0" },
+    { name = "textual-autocomplete", editable = "../textual-autocomplete" },
     { name = "watchfiles", specifier = ">=0.24.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.1,<7.0.0" },
 ]
@@ -1414,15 +1414,27 @@ syntax = [
 
 [[package]]
 name = "textual-autocomplete"
-version = "4.0.0a0"
-source = { registry = "https://pypi.org/simple" }
+version = "4.0.3"
+source = { editable = "../textual-autocomplete" }
 dependencies = [
     { name = "textual" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/06/70/8540596d2f6c00657fe346c49d8ceb09785e5333d6be969d781cf51260c6/textual_autocomplete-4.0.0a0.tar.gz", hash = "sha256:c2c8e680e0ef1607dbcaac56de3b07f3c242f33d1365038284b82272cef00076", size = 95343 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/31/2e/b44ae4408965e01cf128f3a8e41712a83d5579ad88ff4032ceef87279c85/textual_autocomplete-4.0.0a0-py3-none-any.whl", hash = "sha256:9eeab043a34cce7ac7140dce567d658bad1ad9fc2643eb56f5a5623cce60f1de", size = 17379 },
+
+[package.metadata]
+requires-dist = [
+    { name = "textual", specifier = ">=2.0.0" },
+    { name = "typing-extensions", specifier = ">=4.5.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-textual-snapshot", specifier = ">=1.1.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "textual-dev" },
 ]
 
 [[package]]

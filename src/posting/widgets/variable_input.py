@@ -1,3 +1,4 @@
+from typing import Any, Callable
 from textual_autocomplete import DropdownItem, TargetState
 from posting.help_data import HelpData
 from posting.highlighters import VariableHighlighter
@@ -22,10 +23,22 @@ Press `tab` to both insert *and* shift focus.
 
     BINDING_GROUP_TITLE = "Variable Input"
 
+    def __init__(
+        self,
+        *args: Any,
+        candidates: list[DropdownItem | str]
+        | Callable[[TargetState], list[DropdownItem]]
+        | None = None,
+        **kwargs: Any,
+    ):
+        super().__init__(*args, **kwargs)
+        self.candidates = candidates
+        """Non-variable candidates to show in the dropdown list."""
+
     def on_mount(self) -> None:
         self.highlighter = VariableHighlighter()
         self.auto_complete = VariableAutoComplete(
-            candidates=[],
+            candidates=self.candidates or [],
             variable_candidates=self._get_variable_candidates,
             target=self,
         )

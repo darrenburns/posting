@@ -51,7 +51,24 @@ brew install darrenburns/homebrew/posting
 
 Note that the Homebrew installation method requires compiling some Rust dependencies, and may take a few minutes to complete. -->
 
+## Choose your preferred UI style
 
+Posting comes with two different "spacing" modes: `compact` and `standard`.
+
+The default is `standard` which includes extra padding and borders around content.
+`compact` mode removes the padding and borders, and uses a more compact layout.
+
+You can toggle the spacing mode using the `spacing` command from the command palette (++ctrl+p++ then type `spacing`, then press ++enter++).
+From this command palette, you can also try out different themes.
+
+<video controls src="../assets/themes-and-compact-mode-23mar25-c.mp4" title="Themes and compact mode" autoplay loop muted playsinline></video>
+
+To permanently change the spacing mode and/or theme, open the config file (`posting locate config` will tell you where it is) and add the following line(s):
+
+```yaml
+spacing: compact
+theme: <theme-name>
+```
 
 ## A quick introduction
 

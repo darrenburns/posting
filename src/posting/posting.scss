@@ -1,5 +1,7 @@
+$empty-hatch: right $surface-lighten-1 70%;
+
 * {
-  scrollbar-color: $surface-lighten-1 60%;
+  scrollbar-color: $primary 10%;
   scrollbar-color-hover: $primary 80%;
   scrollbar-color-active: $primary;
   scrollbar-background: $surface-darken-1;
@@ -8,7 +10,184 @@
   scrollbar-size-vertical: 1;
 
   &:focus {
-    scrollbar-color: $primary 55%;
+    scrollbar-color: $primary 50%;
+  }
+}
+
+Posting {
+  &.-compact {
+    & AppHeader {
+      padding: 0 1;
+    }
+    & AppBody {
+      padding: 0;
+    }
+    & UrlBar {
+      padding: 0;
+    }
+
+    & Footer {
+      padding-left: 0;
+    }
+    & .section {
+      border: none;
+    }
+    & Tabs {
+      height: 1;
+      & Underline {
+        display: none;
+        height: 0;
+      }
+    }
+
+    & TabbedContent:focus-within Tabs {
+      &:focus {
+        & .-active {
+          text-style: $block-cursor-text-style;
+          color: $block-cursor-foreground;
+          background: $block-cursor-background;
+        }
+      }
+      &:blur Tab:enabled {
+        &.-active {
+          background: $panel  ;
+        }
+      }
+    }
+
+
+    & CollectionBrowser {
+      background: $surface 50%;
+      &:focus {
+        outline: vkey $accent;
+      }
+      & RequestPreview {
+        border-top: none;
+        background: $surface 100%;
+        padding: 0 1;
+      }
+    }
+
+    & RequestEditor {
+      background: $surface 25%;
+    }
+
+    & KeyValueInput {
+      & Input {
+        margin: 0;
+        border-left: vkey $surface-darken-1;
+        padding: 0;
+        &:focus {
+          padding: 0;
+          border-left: vkey $surface-darken-1;
+        }
+      }
+      & Button {
+        margin: 0;
+        border-left: vkey $surface-darken-1;
+        border-right: none;
+        &:hover {
+          border-left: vkey $surface-darken-1;
+          border-right: none;
+        }
+      }
+    }
+    
+    & ResponseArea {
+      background: $surface 10%;
+    }
+
+    & .textual-jump-label {
+      padding: 0;
+      offset-y: 0;
+    }
+
+    & CommandPalette {
+      align-horizontal: left;
+
+      & > Vertical {
+        /* The margin will be set in code, to align 
+        the command palette with the url bar 
+        */
+        margin-left: 11;
+        margin-top: 1;
+        max-width: 1fr;
+        width: auto;
+      }
+    
+      & #--input {
+        border: none;
+        border-left: wide $accent;
+    
+        & CommandInput {
+          height: 1;
+          border: none;
+          padding: 0;
+          width: 1fr;
+        }
+      }
+    
+      & CommandList {
+        width: auto;
+        border: none;
+        max-height: 67vh;
+        border-left: wide $accent;
+        padding: 0;
+        & > .option-list--option {
+          padding: 0;
+        }
+      }
+
+    }
+
+    &.-header-hidden {
+      & CommandPalette > Vertical{
+        margin-top: 0;
+        margin-left: 11;
+      }
+    }
+
+    & #theme-search-command-palette {
+      background: black 15%;
+      & > Vertical {
+        height: auto;
+        & CommandList {
+          width: 28;
+          height: auto;
+          max-height: 10;
+        }
+      }
+    }
+
+    & #request-search-palette {
+      & > Vertical {
+        width: 1fr;
+        overflow: hidden;
+        & CommandList {
+          width: 1fr;
+        }
+      }
+    }
+  }
+
+}
+
+ResponseArea {
+  border-subtitle-color: $text-muted;
+  & ResponseTextArea.empty {
+      display: none;
+  }
+  &.success .border-title-status {
+      color: $text-success;
+      background: $success-muted;
+  }
+  &.warning .border-title-status {
+      color: $text-warning;
+      background: $warning-muted;
+  }
+  &.error .border-title-status {
+      color: $text-error;
+      background: $error-muted;
   }
 }
 
@@ -69,6 +248,7 @@ HelpPanel {
     border-title-color: $foreground;
     border-title-style: b;
   }
+
 }
 
 .hidden {
@@ -89,9 +269,8 @@ HelpPanel {
 
 AppHeader {
   color: $text-primary;
-  padding: 0 3;
-  margin-top: 1;
-  height: 1;
+  padding: 1 3;
+  height: auto;
   & > #app-user-host {
       dock: right;
       color: $text-muted;
@@ -99,21 +278,29 @@ AppHeader {
 }
 
 AppBody {
+  padding: 0 2;
+
   &.layout-horizontal {
     layout: horizontal;
 
     & KeyValueInput {
-      layout: vertical;
-      & Button {
-        width: 100%;
+      dock: top;
+      & #key-value-inputs {
+        layout: vertical;
+        height: 3;
+        & Button {
+          width: 100%;
+        }
       }
+
     }
+
   }
   
   &.layout-vertical {
     layout: vertical;
     
-    & KeyValueInput {
+    & KeyValueInput #key-value-inputs {
       layout: horizontal;
     }
   }
@@ -151,6 +338,37 @@ PostingDataTable {
     }
 }
 
+#response-headers-pane {
+  height: 1fr;
+  & ResponseHeadersTable {
+    max-height: 1fr;
+  }
+}
+
+#response-cookies-pane {
+  height: 1fr;
+  & CookiesSection {
+    max-height: 1fr;
+    PostingDataTable {
+      display: block;
+    }
+    #empty-message {
+      hatch: $empty-hatch;
+      color: $text-muted;
+      display: none;
+    }
+    &.empty {
+      PostingDataTable {
+        display: none;
+      }
+      #empty-message {
+        display: block;
+      }
+    }
+
+  }
+}
+
 Input {
   border: none;
   width: 1fr;
@@ -163,7 +381,8 @@ Input {
   }
 }
 
-RichLog {
+PostingRichLog {
+  background: $surface 75%;
   padding-left: 1;
   &:focus {
     border-left: wide $accent;
@@ -173,18 +392,41 @@ RichLog {
 
 
 UrlBar {
-  height: 3;
-  padding: 1 3 0 3;
+  height: auto;
+  padding: 0 3 0 3;
+
+  & #main-row {
+    height: 1;
+  }
 
   & #method-selector {
       width: 11;
-
+      height: 1;
       &:blur SelectCurrent {
         background: $primary-muted;
         #label {
           color: $text-primary;
         }
       }
+  }
+
+  & #response-status-code {
+    width: 5;
+    height: 1;
+    padding: 0 1;
+    display: none;
+    &.-success {
+      color: $text-success;
+      background: $success-muted;
+    }
+    &.-warning {
+      color: $text-warning;
+      background: $warning-muted;
+    }
+    &.-error {
+      color: $text-error;
+      background: $error-muted;
+    }
   }
 
   & #trace-markers {
@@ -227,36 +469,84 @@ SendRequestButton {
   color: $text-accent;
   text-style: b;
   &:hover {
-      background-tint: $text-accent 10%;
+    background-tint: $text-accent 10%;
   }
 }
 
-KeyValueInput {
-  height: auto;
-  width: 1fr;
-  & > Input {
-      border: none;
-      width: 1fr;
-      margin-left: 1;
-      margin-right: 1;
-      &:focus {
+KeyValueEditor {
+  KeyValueInput {
+    dock: bottom;
+    height: auto;
+    width: 1fr;
+
+    #editing-row-label {
+      display: none;
+      padding: 0 1;
+      height: 1;
+      color: $text-accent;
+    }
+    #key-value-inputs {
+      height: 1;
+    }
+    #row-writer-footer {
+      height: auto;
+    }
+    &.edit-mode {
+        background: $accent-muted;
+        #editing-row-label {
+          display: block;
+        }
+        #add-button {
+            color: $text;
+            background: $accent;
+        }
+        Input {
+          color: $text;
+          background: $accent 10%;
+        }
+    }
+    & Input {
+        border: none;
+        width: 1fr;
+        margin: 0 1;
+        padding: 0 1;
+        &:focus {
           border: none;
           padding: 0 1;
-      }
+        }
+    }
+  
+    & Button {
+        background: $primary;
+        color: $text;
+        text-style: none;
+        min-width: 0;
+        width: auto;
+        margin: 0 1;
+        &:hover {
+            text-style: b;
+            border: none;
+            background: $primary-darken-1;
+        }
+    }
   }
 
-  & > Button {
-      background: $primary;
-      color: $text;
-      text-style: none;
-      min-width: 0;
-      width: 7;
-      margin: 0 1;
-      &:hover {
-          text-style: b;
-          padding: 0 1;
-          border: none;
-          background: $primary-darken-1;
+  & PostingDataTable {
+      display: block;
+  }
+
+  & #empty-message {
+      display: none;
+  }
+
+  &.empty {
+      & PostingDataTable {
+          display: none;
+      }
+      & #empty-message {
+          color: $text-muted;
+          hatch: right $surface-lighten-1 70%;
+          display: block;
       }
   }
 }
@@ -270,7 +560,7 @@ CollectionBrowser {
   & Tree {
       color: $foreground 80%;
       background: transparent;
-      width: auto;
+      width: 1fr;
       &:focus {
         color: $foreground;
       }
@@ -307,8 +597,9 @@ TextArea {
       padding: 0;
     }
   }
-
 }
+
+
 
 RequestMetadata {
   padding: 0 2;
@@ -338,7 +629,8 @@ RequestEditor {
   }
   & #no-body-label {
       height: 1fr;
-      hatch: right $surface-lighten-1 70%;
+      hatch: $empty-hatch;
+      color: $text-muted;
   }
 }
 
@@ -456,30 +748,30 @@ Button {
 }
 
 CommandPalette {
-  background: black 20%;
-
+  background: black 33%;
+  
   & > Vertical {
-    margin-top: 5;
+    margin-top: 2;
     width: 65vw;
     max-height: 65vh;
   }
-
+  
   & #--input {
     border: none;
     border-left: wide $accent;
-
+    
     & CommandInput {
       height: 3;
       border: none;
       padding: 1 2;
     }
-
+    
     & SearchIcon {
       display: none;
     }
-
+    
   }
-
+  
   & CommandList {
     border: none;
     border-left: wide $accent;
@@ -529,6 +821,7 @@ Select {
   text-style: bold;
   padding: 0 1;
   margin-right: 1;
+  offset-y: -1;
   height: 1;
   width: auto;
 }
@@ -558,6 +851,19 @@ Select {
 CollectionBrowser {
   &.section {
     border-subtitle-align: left;
+  }
+
+  & RequestPreview {
+    color: $text-muted;
+    dock: bottom;
+    height: auto;
+    max-height: 50%;
+    width: 100%;
+    padding: 0 1;
+    border-top: solid $accent 40%;
+    &.hidden {
+        display: none;
+    }
   }
 }
 

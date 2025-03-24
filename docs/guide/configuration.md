@@ -109,7 +109,7 @@ The table below lists all available configuration options and their environment 
 | `load_builtin_themes` (`POSTING_LOAD_BUILTIN_THEMES`) | `true`, `false` (Default: `true`) | If enabled, load builtin themes, allowing them to be specified in config and selected via the command palette. |
 | `theme_directory` (`POSTING_THEME_DIRECTORY`) | (Default: `${XDG_DATA_HOME}/posting/themes`) | The directory containing user themes. |
 | `layout` (`POSTING_LAYOUT`) | `"vertical"`, `"horizontal"` (Default: `"horizontal"`) | Sets the layout of the application. |
-| `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine in requests via `$env:` syntax. When disabled, only variables defined explicitly in `.env` files will be available for use. |
+| `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Allow/deny using environment variables from the host machine as variables in requests (using the standard `$` syntax). When disabled, only variables defined explicitly in `.env` files will be available for use. |
 | `watch_env_files` (`POSTING_WATCH_ENV_FILES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload environment files when they change. |
 | `watch_themes` (`POSTING_WATCH_THEMES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload themes in the theme directory when they change on disk. |
 | `watch_collection_files` (`POSTING_WATCH_COLLECTION_FILES`) | `true`, `false` (Default: `true`) | If enabled, automatically reload collection files when they change on disk. Right now, this is limited to reloading Python scripts in the collection. |
@@ -121,6 +121,7 @@ The table below lists all available configuration options and their environment 
 | `heading.show_version` (`POSTING_HEADING__SHOW_VERSION`) | `true`, `false` (Default: `true`) | Show/hide the version in the app header. |
 | `heading.hostname` (`POSTING_HEADING__HOSTNAME`) | (Default: `unset`) | The hostname to display in the app header. You may use Rich markup here. If unset, the hostname provided via `socket.gethostname()` will be used. |
 | `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show/hide the variable value preview below the URL bar. |
+| `url_bar.hide_secrets_in_value_preview` (`POSTING_URL_BAR__HIDE_SECRETS_IN_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | If enabled, values will be redacted in the value preview when the variable name contains the word `secret` or `key` or `password` or `token`. |
 | `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `"left"`, `"right"` (Default: `"left"`) | The position of the collection browser on screen. |
 | `collection_browser.show_on_startup` (`POSTING_COLLECTION_BROWSER__SHOW_ON_STARTUP`) | `true`, `false` (Default: `true`) | Show/hide the collection browser on startup. Can always be toggled using the command palette. |
 | `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |

@@ -57,6 +57,7 @@ Sub-collections cannot be deleted from the UI yet.
     BINDING_GROUP_TITLE = "Collection Browser"
 
     BINDINGS = [
+        Binding("slash", "screen.open_request_search_palette", "Search"),
         Binding(
             "d",
             "duplicate_request",
@@ -554,22 +555,6 @@ Sub-collections cannot be deleted from the UI yet.
 
 
 class RequestPreview(VerticalScroll):
-    DEFAULT_CSS = """\
-        RequestPreview {
-            color: $text-muted;
-            background: transparent;
-            dock: bottom;
-            height: auto;
-            max-height: 50%;
-            width: 100%;
-            padding: 0 1;
-            border-top: solid $accent 35%;
-            &.hidden {
-                display: none;
-            }
-        }
-    """
-
     request: Reactive[RequestModel | None] = reactive(None)
 
     def compose(self) -> ComposeResult:

@@ -1,3 +1,40 @@
+## Unreleased
+
+### Added
+
+- Added `spacing: <compact|standard>` config to allow for a more compact UI (default: `standard`).
+- Added ability to edit headers, form data, and query params without deleting and recreating them.
+    - Press `enter` or click a row to enter edit mode. The row will be highlighted, and focus will move to the key/name input.
+        Submitted changes will overwrite the existing row rather than adding a new one.
+    - Press `v` to enter edit mode and immediately focus on the value input.
+    - Press `escape` to cancel the edit.
+    - Press `enter` to save the changes and exit edit mode.
+    - The background colour behind the input will update to indicate edit mode is active.
+- Basic Vim motions to script output log (`hjkl`).
+- Added response status code label to the URL bar.
+- Press `/` to open the request search palette while the collection browser is focused.
+    - `ctrl+shift+p` remains available as a global shortcut for this.
+- Contributing guide added to the GitHub repo.
+
+### Changed
+
+- Rewrite of the autocompletion system used to autocomplete header names, values, URLs, and variables.
+- Automatically prepend `http://` protocol if no protocol is specified in the URL bar.
+- Debounce jump overlay recomposition - if you resize while the jump overlay is open, it'll wait a short period before recomputing.
+- Jump mode now lives on the main screen, rather than globally. This makes more sense as it's only available on the main screen. The only user-facing impact should be that the position of the keybinding in the footer and keybindings panel may change.
+- Jump mode interaction with Tabs now uses the Tabs API, rather than simulating a Click.
+- Status code label now displayed in the URL bar beside the trace markers.
+- Request description area at the bottom of the collection browser has new design.
+- When there are no response cookies, the cookies section will now display a message to the user.
+
+### Fixed
+
+- Fixed scrolling in response headers and cookies tabs using keyboard.
+- Fixed crash when immediately pressing enter after loading the UI when the `on_startup` config is set to `url` (this was due to lazy loading of the UI, and attempting to send a request before the UI was fully loaded).
+- Fixed accepting a completion via enter in the header editor also adding the header.
+    - Now, the first enter press will accept the completion, and the second enter press will add the header.
+- Fixed Textual markup not being escaped key value tables.
+
 ## 2.5.4 [13th March 2025]
 
 ### Fixed
