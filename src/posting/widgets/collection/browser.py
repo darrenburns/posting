@@ -574,7 +574,7 @@ class RequestPreview(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
-        yield Static("", id="description")
+        yield Static("", markup=False, id="description")
 
     def watch_request(self, request: RequestModel | None) -> None:
         self.set_class(request is None or not request.description, "hidden")
