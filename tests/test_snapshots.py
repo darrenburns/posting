@@ -712,3 +712,38 @@ class TestHeaderAutoCompletion:
             await pilot.press("enter")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestEditKeyValues:
+    def test_edit_mode_displays_correctly(self, snap_compare):
+        """Check that the UI looks correct when entering edit mode.
+
+        In this test, we're editing the first header row.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.press("ctrl+o", "q")  # Select "Headers" tab
+            await pilot.press("down")
+            await pilot.press("enter")  # Begin editing the first header
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_edit_mode_can_edit_header_keys_and_values_as_expected(self, snap_compare):
+        """The name of the first header should be X-Forwarded-For, and the value should be foo."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.press("ctrl+o", "q")  # Select "Headers" tab
+            await pilot.press("down")
+            await pilot.press("enter")  # Begin editing the first header
+            await pilot.press(
+                "x", "enter"
+            )  # Accept the completion of "X-Forwarded-For"
+            await pilot.press("tab")  # Move focus to the value field
+            await pilot.press(*"foo")  # Change the value to "foo"
+            await pilot.press("enter")  # Accept the change
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
