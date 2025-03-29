@@ -33,8 +33,8 @@ Posting can be installed via [uv](https://docs.astral.sh/uv/getting-started/inst
 # quickly install uv on MacOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# install Posting (will also quickly install Python 3.12 if needed)
-uv tool install --python 3.12 posting
+# install Posting (will also quickly install Python 3.13 if needed)
+uv tool install --prerelease allow --python 3.13 posting
 ```
 
  Now you can run Posting via the command line:
