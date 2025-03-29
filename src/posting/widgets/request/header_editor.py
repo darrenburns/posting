@@ -2,8 +2,8 @@ from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
-from textual.widgets import Input
-from textual_autocomplete import DropdownItem, AutoComplete
+from textual.content import Content
+from textual_autocomplete import DropdownItem, AutoComplete, TargetState
 from posting.collection import Header
 from posting.help_data import HelpData
 
@@ -12,6 +12,173 @@ from posting.request_headers import REQUEST_HEADERS
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 from posting.widgets.input import PostingInput
 from posting.widgets.variable_input import VariableInput
+
+
+HEADER_SUGGESTIONS = {
+    "accept": [
+        # Common prefixes for autocompletion
+        "application/",
+        "audio/",
+        "font/",
+        "image/",
+        "text/",
+        "video/",
+        "multipart/",
+        # Common wildcards
+        "*",
+        "*/*",
+        "image/*",
+        "audio/*",
+        "video/*",
+        # Application types
+        "application/json",
+        "application/xml",
+        "application/x-www-form-urlencoded",
+        "application/javascript",
+        "application/pdf",
+        "application/zip",
+        "application/octet-stream",
+        "application/graphql",
+        "application/msgpack",
+        # Text types
+        "text/plain",
+        "text/html",
+        "text/css",
+        "text/csv",
+        "text/markdown",
+        "text/yaml",
+    ],
+    "accept-encoding": [
+        # Single encodings
+        "gzip",
+        "deflate",
+        "br",
+        "compress",
+        "identity",
+        "*",
+        # Common combinations
+        "gzip, deflate",
+        "gzip, deflate, br",
+    ],
+    "accept-language": [
+        # Common single languages
+        "en",
+        "en-US",
+        "en-GB",
+        "es",
+        "es-ES",
+        "fr",
+        "fr-FR",
+        "de",
+        "de-DE",
+        "it",
+        "ja",
+        "ko",
+        "zh",
+        "zh-CN",
+        "zh-TW",
+        "*",
+    ],
+    "authorization": [
+        # Auth scheme prefixes
+        "Bearer ",
+        "Basic ",
+        "Digest ",
+        "OAuth ",
+        "JWT ",
+        "ApiKey ",
+    ],
+    "cache-control": [
+        # Single directives
+        "no-cache",
+        "no-store",
+        "no-transform",
+        "private",
+        "public",
+        "must-revalidate",
+        "proxy-revalidate",
+        "max-age=0",
+        # Common combinations
+        "no-cache, no-store",
+        "private, no-cache",
+        "no-cache, must-revalidate",
+        # Time-based examples
+        "max-age=3600",
+        "max-age=86400",
+        "max-age=604800",
+    ],
+    "connection": [
+        "keep-alive",
+        "close",
+        "upgrade",
+    ],
+    "content-type": [
+        # Common prefixes for autocompletion
+        "application/",
+        "audio/",
+        "font/",
+        "image/",
+        "text/",
+        "video/",
+        "multipart/",
+        # Application types
+        "application/json",
+        "application/xml",
+        "application/x-www-form-urlencoded",
+        "application/javascript",
+        "application/pdf",
+        "application/zip",
+        "application/octet-stream",
+        "application/graphql",
+        "application/msgpack",
+        # Text types
+        "text/plain",
+        "text/html",
+        "text/css",
+        "text/csv",
+        "text/markdown",
+        "text/yaml",
+        # Multipart types
+        "multipart/form-data",
+        "multipart/mixed",
+        "multipart/alternative",
+        # Image types
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/svg+xml",
+        "image/avif",
+        # Audio types
+        "audio/mpeg",
+        "audio/ogg",
+        "audio/wav",
+        # Video types
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+    ],
+    "if-match": [
+        "*",
+        "W/",  # Weak validator prefix
+    ],
+    "if-none-match": [
+        "*",
+        "W/",  # Weak validator prefix
+    ],
+    "pragma": [
+        "no-cache",
+    ],
+    "range": [
+        # Common range patterns
+        "bytes=",
+        "bytes=0-",
+        "bytes=0-499",
+        "bytes=-500",
+        "bytes=500-999",
+        "bytes=0-499,500-999",
+    ],
+}
 
 
 class HeaderInput(PostingInput):
@@ -32,31 +199,50 @@ class HeaderEditor(Vertical):
     BINDING_GROUP_TITLE = "HTTP Header Editor"
 
     def compose(self) -> ComposeResult:
+        header_key_input = HeaderInput(placeholder="Name", id="header-key-input")
         yield KeyValueEditor(
             HeadersTable(),
             KeyValueInput(
-                HeaderInput(placeholder="Name", id="header-key-input"),
-                VariableInput(placeholder="Value", id="header-value-input"),
+                header_key_input,
+                VariableInput(
+                    placeholder="Value",
+                    id="header-value-input",
+                    candidates=self.get_header_value_candidates,
+                ),
                 button_label="Add",
             ),
-            empty_message="There are no headers.",
+            empty_message="No headers",
         )
 
     def on_mount(self):
-        header_input = self.query_one("#header-key-input", Input)
+        header_input = self.header_key_input
         items: list[DropdownItem] = []
         for header in REQUEST_HEADERS:
-            style = "yellow" if header["experimental"] else ""
-            items.append(DropdownItem(main=Text(header["name"], style=style)))
+            style = "$text-warning" if header["experimental"] else ""
+            content = Content.styled(header["name"], style=style)
+            items.append(DropdownItem(main=content))
 
         self.screen.mount(
             AutoComplete(
                 header_input,
                 candidates=items,
                 prevent_default_tab=False,
-                prevent_default_enter=False,
             )
         )
+
+    def get_header_value_candidates(
+        self, target_state: TargetState
+    ) -> list[DropdownItem]:
+        header_key = self.header_key_input.value.strip().lower()
+        candidates = [
+            DropdownItem(main=suggestion)
+            for suggestion in HEADER_SUGGESTIONS.get(header_key, [])
+        ]
+        return candidates
+
+    @property
+    def header_key_input(self) -> HeaderInput:
+        return self.query_one("#header-key-input", HeaderInput)
 
 
 class HeadersTable(PostingDataTable):
@@ -106,9 +292,10 @@ in the body tab. Setting a header in this table will override the default value 
         headers: list[Header] = []
         for row_index in range(self.row_count):
             row = self.get_row_at(row_index)
+            plain_row0 = row[0].plain if isinstance(row[0], Text) else row[0]
+            plain_row1 = row[1].plain if isinstance(row[1], Text) else row[1]
+            is_row_enabled = self.is_row_enabled_at(row_index)
             headers.append(
-                Header(
-                    name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)
-                )
+                Header(name=plain_row0, value=plain_row1, enabled=is_row_enabled)
             )
         return headers

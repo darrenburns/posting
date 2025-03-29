@@ -7,7 +7,7 @@ from posting.widgets.response.response_trace import ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
 from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextAreaFooter, TextEditor
-from posting.widgets.response.cookies_table import CookiesTable
+from posting.widgets.response.cookies_table import CookiesSection
 from posting.widgets.response.response_body import ResponseTextArea
 from posting.widgets.response.response_headers import ResponseHeadersTable
 
@@ -31,31 +31,6 @@ class ResponseArea(Vertical):
         "border-title-status",
     }
 
-    DEFAULT_CSS = """\
-    ResponseArea {
-        border-subtitle-color: $text-muted;
-        & ResponseTextArea.empty {
-            display: none;
-        }
-        &.response-ready{
-            & Crosshatch {
-                display: none;
-            }
-        }
-        &.success .border-title-status {
-            color: $text-success;
-            background: $success-muted;
-        }
-        &.warning .border-title-status {
-            color: $text-warning;
-            background: $warning-muted;
-        }
-        &.error .border-title-status {
-            color: $text-error;
-            background: $error-muted;
-        }
-    }
-    """
     response: Reactive[httpx.Response | None] = reactive(None)
 
     def on_mount(self) -> None:
@@ -75,7 +50,7 @@ class ResponseArea(Vertical):
             with TabPane("Headers", id="response-headers-pane"):
                 yield Lazy(ResponseHeadersTable())
             with TabPane("Cookies", id="response-cookies-pane"):
-                yield Lazy(CookiesTable())
+                yield Lazy(CookiesSection())
             with TabPane("Scripts", id="response-scripts-pane"):
                 yield Lazy(ScriptOutput())
             with TabPane("Trace", id="response-trace-pane"):
@@ -121,9 +96,9 @@ class ResponseArea(Vertical):
         )
 
         # Update the response cookies table with the cookies from the response.
-        cookies_table = self.cookies_table
-        cookies_table.clear()
-        cookies_table.add_rows(
+        cookies_section = self.cookies_section
+        cookies_section.table.clear()
+        cookies_section.table.add_rows(
             [(name, value) for name, value in response.cookies.items()]
         )
 
@@ -154,8 +129,8 @@ class ResponseArea(Vertical):
         return self.query_one(ResponseHeadersTable)
 
     @property
-    def cookies_table(self) -> CookiesTable:
-        return self.query_one(CookiesTable)
+    def cookies_section(self) -> CookiesSection:
+        return self.query_one(CookiesSection)
 
     @property
     def tabbed_content(self) -> ResponseTabbedContent:

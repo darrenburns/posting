@@ -1,5 +1,6 @@
 from io import StringIO
 from typing import Literal
+from textual.binding import Binding
 from textual.widgets import RichLog
 
 
@@ -31,3 +32,12 @@ class RichLogIO(StringIO):
             self._flush_line(self._buffer)
             self._buffer = ""
         super().flush()
+
+
+class PostingRichLog(RichLog):
+    BINDINGS = [
+        Binding("j", "scroll_down", "Scroll down"),
+        Binding("k", "scroll_up", "Scroll up"),
+        Binding("h", "scroll_left", "Scroll left"),
+        Binding("l", "scroll_right", "Scroll right"),
+    ]

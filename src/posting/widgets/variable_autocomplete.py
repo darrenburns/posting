@@ -1,10 +1,9 @@
-from typing import Callable
-from textual.widgets import Input, TextArea
+from typing import Callable, Sequence
+from textual.widgets import Input
 from textual_autocomplete import (
     AutoComplete,
     DropdownItem,
     TargetState,
-    MatcherFactoryType,
 )
 
 from posting.variables import (
@@ -19,12 +18,13 @@ from posting.variables import (
 class VariableAutoComplete(AutoComplete):
     def __init__(
         self,
-        target: Input | TextArea | str,
-        candidates: list[DropdownItem] | Callable[[TargetState], list[DropdownItem]],
-        variable_candidates: list[DropdownItem]
+        target: Input | str,
+        candidates: Sequence[DropdownItem | str]
         | Callable[[TargetState], list[DropdownItem]]
         | None = None,
-        matcher_factory: MatcherFactoryType | None = None,
+        variable_candidates: Sequence[DropdownItem]
+        | Callable[[TargetState], list[DropdownItem]]
+        | None = None,
         prevent_default_enter: bool = True,
         prevent_default_tab: bool = True,
         name: str | None = None,
@@ -33,17 +33,14 @@ class VariableAutoComplete(AutoComplete):
         disabled: bool = False,
     ) -> None:
         super().__init__(
-            target,
-            candidates,
-            matcher_factory,
-            self._completion_strategy,
-            self._search_string,
-            prevent_default_enter,
-            prevent_default_tab,
-            name,
-            id,
-            classes,
-            disabled,
+            target=target,
+            candidates=candidates,
+            prevent_default_enter=prevent_default_enter,
+            prevent_default_tab=prevent_default_tab,
+            name=name,
+            id=id,
+            classes=classes,
+            disabled=disabled,
         )
         if variable_candidates is None:
             variable_candidates = [
@@ -52,7 +49,7 @@ class VariableAutoComplete(AutoComplete):
         self.variable_candidates = variable_candidates
 
     def get_candidates(self, target_state: TargetState) -> list[DropdownItem]:
-        cursor = target_state.selection.end[1]
+        cursor = target_state.cursor_position
         text = target_state.text
         if is_cursor_within_variable(cursor, text):
             candidates = self.get_variable_candidates(target_state)
@@ -60,13 +57,13 @@ class VariableAutoComplete(AutoComplete):
             candidates = super().get_candidates(target_state)
         return candidates
 
-    def _completion_strategy(self, value: str, target_state: TargetState) -> None:
+    def apply_completion(self, value: str, state: TargetState) -> None:
         """Modify the target state to reflect the completion.
 
         Only works in Inputs for now.
         """
-        cursor = target_state.selection.end[1]
-        text = target_state.text
+        cursor = state.cursor_position
+        text = state.text
         target: Input = self.target
         if is_cursor_within_variable(cursor, text):
             # Replace the text from the variable start
@@ -82,8 +79,10 @@ class VariableAutoComplete(AutoComplete):
             target.value = value
             target.cursor_position = len(value)
 
-    def _search_string(self, target_state: TargetState) -> str:
-        cursor = target_state.selection.end[1]
+        self.post_completion()
+
+    def get_search_string(self, target_state: TargetState) -> str:
+        cursor = target_state.cursor_position
         text = target_state.text
         if is_cursor_within_variable(cursor, text):
             variable_at_cursor = get_variable_at_cursor(cursor, text)
