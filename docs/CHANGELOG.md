@@ -14,7 +14,8 @@
 - Added response status code label to the URL bar.
 - Press `/` to open the request search palette while the collection browser is focused.
     - `ctrl+shift+p` remains available as a global shortcut for this.
-- Contributing guide added to the GitHub repo.
+- Contributing guide added to the GitHub repo (`CONTRIBUTING.md`).
+- Added `help: Open web docs` command to the command palette.
 
 ### Changed
 

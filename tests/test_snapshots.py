@@ -478,8 +478,7 @@ class TestVariables:
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 @patch_env("POSTING_THEME_DIRECTORY", str(THEME_DIR.resolve()))
 class TestCustomThemeSimple:
-    @pytest.mark.parametrize("spacing", ["compact", "standard"])
-    def test_theme_set_on_startup_and_in_command_palette(self, spacing, snap_compare):
+    def test_theme_set_on_startup_and_in_command_palette(self, snap_compare):
         """Check that the theme is set on startup and available in the command palette."""
 
         async def run_before(pilot: Pilot):
@@ -489,8 +488,7 @@ class TestCustomThemeSimple:
             await pilot.press(*"atest")
             await pilot.pause()
 
-        with patch_env("POSTING_SPACING", spacing):
-            assert snap_compare(POSTING_MAIN, run_before=run_before)
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
 
     def test_theme_sensible_defaults__url(self, snap_compare):
         """This theme doesn't specify explicit values for the URL

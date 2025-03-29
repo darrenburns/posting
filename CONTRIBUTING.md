@@ -87,6 +87,14 @@ make test-snapshot-update
 This will update the snapshots saved on disk for all the tests which failed.
 You should commit these changes into the repo - they're essentially the "source of truth" for what the UI of Posting should look like under different circumstances.
 
+### Update the changelog
+
+A changelog is maintained in the `docs/CHANGELOG.md` file, which follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
+When you're making a change which should be recorded in the changelog.
+You should add your change to the `## Unreleased` section of the changelog.
+If the `## Unreleased` section doesn't exist, you should add it at the top.
+
 ## Feeling unsure?
 
 If you're feeling a bit stuck, just open a discussion and I'll do my best to help you out!
