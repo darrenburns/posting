@@ -164,6 +164,14 @@ class PostingProvider(Provider):
 
         commands_to_show.append(
             (
+                "help: Open web docs",
+                app.action_open_web_docs,
+                "Open the web docs in the default browser",
+                True,
+            ),
+        )
+        commands_to_show.append(
+            (
                 "app: Quit Posting",
                 app.action_quit,
                 "Quit Posting and return to the command line",

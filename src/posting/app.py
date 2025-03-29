@@ -1256,6 +1256,11 @@ class Posting(App[None], inherit_bindings=False):
     def command_toggle_spacing(self) -> None:
         self.spacing = "compact" if self.spacing == "standard" else "standard"
 
+    def action_open_web_docs(self) -> None:
+        import webbrowser
+
+        webbrowser.open("https://posting.sh/guide")
+
     def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
         main_screen = self.main_screen
         request_model = main_screen.build_request_model(
