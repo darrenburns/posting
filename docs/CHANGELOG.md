@@ -10,12 +10,14 @@
     - Press `escape` to cancel the edit.
     - Press `enter` to save the changes and exit edit mode.
     - The background colour behind the input will update to indicate edit mode is active.
-- Basic Vim motions to script output log (`hjkl`).
-- Added response status code label to the URL bar.
+- Added autocompletion for header values based on the header name.
+    - For example, if the header is `Content-Type`, when typing the value, you'll be able to quickly autocomplete from a list of common content types.
 - Press `/` to open the request search palette while the collection browser is focused.
     - `ctrl+shift+p` remains available as a global shortcut for this.
-- Contributing guide added to the GitHub repo (`CONTRIBUTING.md`).
 - Added `help: Open web docs` command to the command palette.
+- Basic Vim motions to script output log (`hjkl`).
+- Added response status code label to the URL bar.
+- Contributing guide added to the GitHub repo (`CONTRIBUTING.md`).
 
 ### Changed
 
