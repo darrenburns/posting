@@ -27,6 +27,8 @@
 - Status code label now displayed in the URL bar beside the trace markers.
 - Request description area at the bottom of the collection browser has new design.
 - When there are no response cookies, the cookies section will now display a message to the user.
+- Updated to Textual 3.0.0.
+- Various updates to the https://posting.sh homepage.
 
 ### Fixed
 
