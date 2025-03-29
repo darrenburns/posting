@@ -1029,7 +1029,7 @@ class Posting(App[None], inherit_bindings=False):
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
 
-    spacing: Reactive[str] = reactive("standard", init=False)
+    spacing: Reactive[str] = reactive("standard", init=False, always_update=True)
 
     def __init__(
         self,
@@ -1073,7 +1073,7 @@ class Posting(App[None], inherit_bindings=False):
         self.animation_level = settings.animation
         """The level of animation to use in the app. This is used by Textual."""
 
-        self.spacing = settings.spacing
+        self.set_reactive(Posting.spacing, settings.spacing)
         """The initial spacing of the app is taken from settings, but is a reactive
         which can be toggled via the command palette."""
 
@@ -1088,7 +1088,7 @@ class Posting(App[None], inherit_bindings=False):
         is_compact = spacing == "compact"
         self.app.set_class(is_compact, "-compact")
         try:
-            footer = self.query_one(Footer)
+            footer = self.screen.query_one(Footer)
         except NoMatches:
             pass
         else:
@@ -1230,6 +1230,8 @@ class Posting(App[None], inherit_bindings=False):
             )
 
         self.set_keymap(self.settings.keymap)
+
+        self.spacing = self.settings.spacing
 
         if self.settings.watch_env_files:
             self.watch_environment_files()

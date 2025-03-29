@@ -19,7 +19,7 @@ dependencies = [
     "python-dotenv>=1.0.1,<2.0.0",
     # pinned intentionally
     "watchfiles>=0.24.0",
-    "textual[syntax]>=2.1.2,<2.2.0",
+    "textual[syntax]==3.0.0",
     "textual-autocomplete>=4.0.4,<5.0.0",
 ]
 readme = "README.md"
