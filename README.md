@@ -17,7 +17,7 @@ Some notable features include:
 - user-defined themes
 - run Python code before and after requests
 - extensive configuration
-- "open in $EDITOR"
+- open in $EDITOR/$PAGER
 - import curl commands by pasting them into the URL bar
 - export requests as cURL commands
 - import OpenAPI specs
@@ -48,8 +48,6 @@ Homebrew and NixOS are not officially supported at the moment.
 ### Prefer `pipx`?
 
 If you'd prefer to use `pipx`, that works too: `pipx install posting`.
-
-Note that Python 3.13 is not currently supported.
 
 ## Learn More
 

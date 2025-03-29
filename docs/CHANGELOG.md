@@ -37,6 +37,7 @@
 - Fixed accepting a completion via enter in the header editor also adding the header.
     - Now, the first enter press will accept the completion, and the second enter press will add the header.
 - Fixed Textual markup not being escaped key value tables.
+- Fixed request description attempting to parse Textual markup [(#243)](https://github.com/darrenburns/posting/pull/243)
 
 ## 2.5.4 [13th March 2025]
 
