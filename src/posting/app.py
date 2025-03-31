@@ -3,7 +3,7 @@ from contextlib import redirect_stdout, redirect_stderr
 import os
 from pathlib import Path
 import sys
-from typing import Any, Literal, cast
+from typing import Any, Literal, Sequence, cast
 
 import httpx
 from rich.console import RenderableType
@@ -11,7 +11,12 @@ from textual.content import Content
 
 from posting.importing.curl import CurlImport
 from textual import messages, on, log, work
-from textual.command import CommandPalette, SimpleCommand
+from textual.command import (
+    CommandListItem,
+    CommandPalette,
+    SimpleCommand,
+    SimpleProvider,
+)
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
@@ -22,9 +27,9 @@ from textual.screen import Screen
 from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
-from textual.widget import Widget
-from textual.widgets import Button, Footer, Input, Label
-from textual.widgets._tabbed_content import ContentTab
+from textual.widget import AwaitMount, Widget
+from textual.widgets import Button, Footer, Input, Label, Tab, Tabs
+from textual.widgets.tabbed_content import ContentTab
 from posting.collection import (
     Collection,
     Cookie,
@@ -96,12 +101,6 @@ class AppHeader(Horizontal):
 class AppBody(Vertical):
     """The body of the app."""
 
-    DEFAULT_CSS = """\
-    AppBody {
-        padding: 0 2;
-    }
-    """
-
 
 class MainScreen(Screen[None]):
     AUTO_FOCUS = None
@@ -120,6 +119,13 @@ class MainScreen(Screen[None]):
             "Method",
             tooltip="Focus the method selector.",
             id="focus-method",
+        ),
+        Binding(
+            "ctrl+o",
+            "toggle_jump_mode",
+            description="Jump",
+            tooltip="Activate jump mode to quickly move focus between widgets.",
+            id="jump",
         ),
         Binding(
             "ctrl+l",
@@ -177,6 +183,8 @@ class MainScreen(Screen[None]):
         None, init=False
     )
     """The currently expanded section of the main screen."""
+    _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
+    """True if 'jump mode' is currently active, otherwise False."""
 
     def __init__(
         self,
@@ -190,9 +198,15 @@ class MainScreen(Screen[None]):
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
+        self.jumper: Jumper | None = None
+        self.posting = cast("Posting", self.app)
 
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
+
+        # If the header is not visible, the URL Bar is one cell higher.
+        is_header_visible = self.settings.heading.visible
+        self.app.set_class(not is_header_visible, "-header-hidden")
 
         # Set the initial focus based on the settings.
         focus_on_startup = self.settings.focus.on_startup
@@ -208,6 +222,28 @@ class MainScreen(Screen[None]):
         if target is not None:
             self.set_focus(target)
 
+    def on_screen_resume(self) -> None:
+        self.jumper = Jumper(
+            {
+                "method-selector": "1",
+                "url-input": "2",
+                "collection-tree": "tab",
+                "--content-tab-headers-pane": "q",
+                "--content-tab-body-pane": "w",
+                "--content-tab-query-pane": "e",
+                "--content-tab-auth-pane": "r",
+                "--content-tab-info-pane": "t",
+                "--content-tab-scripts-pane": "y",
+                "--content-tab-options-pane": "u",
+                "--content-tab-response-body-pane": "a",
+                "--content-tab-response-headers-pane": "s",
+                "--content-tab-response-cookies-pane": "d",
+                "--content-tab-response-scripts-pane": "f",
+                "--content-tab-response-trace-pane": "g",
+            },
+            screen=self,
+        )
+
     def compose(self) -> ComposeResult:
         yield AppHeader()
         yield UrlBar()
@@ -220,7 +256,9 @@ class MainScreen(Screen[None]):
             yield RequestEditor()
             yield ResponseArea()
 
-        yield Footer(show_command_palette=False)
+        footer = Footer(show_command_palette=False)
+        footer.compact = self.posting.spacing == "compact"
+        yield footer
 
     def get_and_run_script(
         self,
@@ -306,8 +344,17 @@ class MainScreen(Screen[None]):
             raise
 
     async def send_request(self) -> None:
-        self.url_bar.clear_events()
-        script_output = self.response_script_output
+        try:
+            self.url_bar.clear_events()
+            script_output = self.response_script_output
+        except NoMatches:
+            # The UI is lazily loaded, so the widgets are not guaranteed to be available.
+            # If you load the UI then immediately press enter, this method would be called
+            # but if the widgets are not available, there's nothing we can do.
+            # We no-op, as the widgets are only unavailable for some milliseconds, and
+            # so it's almost certainly just a mistaken double-tap of the enter key.
+            return
+
         script_output.reset()
 
         request_options = self.request_options.to_model()
@@ -479,6 +526,8 @@ class MainScreen(Screen[None]):
             self.response_area.content_tabs.focus()
 
         self.response_area.response = event.response
+        self.url_bar.response_status_code = event.response.status_code
+        self.url_bar.response_reason_phrase = event.response.reason_phrase
         self.cookies.update(event.response.cookies)
         self.response_trace.trace_complete()
 
@@ -691,7 +740,7 @@ class MainScreen(Screen[None]):
             path=open_request.path if open_request else None,
             description=self.request_metadata.description,
             method=self.selected_method,
-            url=self.url_input.value.strip(),
+            url=self.url_input.value_including_protocol,
             params=self.params_table.to_model(),
             headers=headers,
             options=request_options,
@@ -751,6 +800,7 @@ class MainScreen(Screen[None]):
                 if isinstance(node.data, RequestModel)
             ],
             placeholder="Search for a request…",
+            palette_id="request-search-palette",
         )
 
     def load_request_model(
@@ -807,9 +857,76 @@ class MainScreen(Screen[None]):
         self.request_auth.load_auth(request_model.auth)
         self.request_scripts.load_scripts(request_model.scripts)
 
+    def action_toggle_jump_mode(self) -> None:
+        self._jumping = not self._jumping
+
+    def watch__jumping(self, jumping: bool) -> None:
+        if self.jumper is None:
+            return
+
+        focused_before = self.focused
+        if focused_before is not None:
+            self.set_focus(None, scroll_visible=False)
+
+        def handle_jump_target(target: str | Widget | None) -> None:
+            if isinstance(target, str):
+                try:
+                    target_widget = self.screen.query_one(f"#{target}")
+                except NoMatches:
+                    log.warning(
+                        f"Attempted to jump to target #{target}, but it couldn't be found on {self.screen!r}"
+                    )
+                else:
+                    if target_widget.focusable:
+                        self.set_focus(target_widget)
+                    else:
+                        if isinstance(target_widget, Tab):
+                            try:
+                                parent_tabs = target_widget.query_ancestor(Tabs)
+                                if parent_tabs and target_widget.id:
+                                    parent_tabs.active = target_widget.id
+                                    self.set_focus(parent_tabs)
+                            except NoMatches:
+                                log.warning(
+                                    "Programming error - no parent Tabs widget found"
+                                    "when trying to focus from Jump Mode."
+                                )
+                        else:
+                            # We're trying to move to something that isn't focusable,
+                            # and isn't a Tab within a Tabs, so just send a click event.
+                            # It's probably the best we can do.
+                            target_widget.post_message(
+                                Click(
+                                    widget=target_widget,
+                                    x=0,
+                                    y=0,
+                                    delta_x=0,
+                                    delta_y=0,
+                                    button=0,
+                                    shift=False,
+                                    meta=False,
+                                    ctrl=False,
+                                ),
+                            )
+            elif isinstance(target, Widget):
+                self.set_focus(target)
+            else:
+                # If there's no target (i.e. the user pressed ESC to dismiss)
+                # then re-focus the widget that was focused before we opened
+                # the jumper.
+                if focused_before is not None:
+                    self.set_focus(focused_before, scroll_visible=False)
+
+        self.app.clear_notifications()
+        self.app.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+
     @property
     def url_bar(self) -> UrlBar:
         return self.query_one(UrlBar)
+
+    @property
+    def footer(self) -> Footer:
+        return self.query_one(Footer)
 
     @property
     def method_selector(self) -> MethodSelector:
@@ -842,6 +959,10 @@ class MainScreen(Screen[None]):
     @property
     def app_body(self) -> AppBody:
         return self.query_one(AppBody)
+
+    @property
+    def app_header(self) -> AppHeader:
+        return self.query_one(AppHeader)
 
     @property
     def request_options(self) -> RequestOptions:
@@ -891,13 +1012,6 @@ class Posting(App[None], inherit_bindings=False):
             id="commands",
         ),
         Binding(
-            "ctrl+o",
-            "toggle_jump_mode",
-            description="Jump",
-            tooltip="Activate jump mode to quickly move focus between widgets.",
-            id="jump",
-        ),
-        Binding(
             "ctrl+c",
             "app.quit",
             description="Quit",
@@ -914,6 +1028,8 @@ class Posting(App[None], inherit_bindings=False):
         ),
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
+
+    spacing: Reactive[str] = reactive("standard", init=False, always_update=True)
 
     def __init__(
         self,
@@ -957,8 +1073,9 @@ class Posting(App[None], inherit_bindings=False):
         self.animation_level = settings.animation
         """The level of animation to use in the app. This is used by Textual."""
 
-    _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
-    """True if 'jump mode' is currently active, otherwise False."""
+        self.set_reactive(Posting.spacing, settings.spacing)
+        """The initial spacing of the app is taken from settings, but is a reactive
+        which can be toggled via the command palette."""
 
     def on_ready(self) -> None:
         import time
@@ -966,6 +1083,16 @@ class Posting(App[None], inherit_bindings=False):
 
         message = f"Posting started in {(time.perf_counter_ns() - START_TIME) // 1_000_000} milliseconds."
         log.debug(message)
+
+    def watch_spacing(self, spacing: Literal["standard", "compact"]) -> None:
+        is_compact = spacing == "compact"
+        self.app.set_class(is_compact, "-compact")
+        try:
+            footer = self.screen.query_one(Footer)
+        except NoMatches:
+            pass
+        else:
+            footer.compact = is_compact
 
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
@@ -1038,7 +1165,7 @@ class Posting(App[None], inherit_bindings=False):
                     try:
                         theme = load_user_theme(Path(file_path))
                     except Exception as e:
-                        print(f"Couldn't load theme from {str(file_path)}: {e}.")
+                        log.warning(f"Couldn't load theme from {str(file_path)}: {e}.")
                         continue
                     if theme and theme.name == self.theme:
                         self.register_theme(theme)
@@ -1050,10 +1177,10 @@ class Posting(App[None], inherit_bindings=False):
                             # use heuristics to determine whether to save a file. This could
                             # prove jarring if we pop up a notification without the user
                             # explicitly saving the file in their editor.
-                            print(f"Error refreshing CSS: {e}")
+                            log.warning(f"Error refreshing CSS: {e}")
 
     def on_mount(self) -> None:
-        settings = SETTINGS.get()
+        settings = self.settings
 
         available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 
@@ -1103,26 +1230,9 @@ class Posting(App[None], inherit_bindings=False):
             )
 
         self.set_keymap(self.settings.keymap)
-        self.jumper = Jumper(
-            {
-                "method-selector": "1",
-                "url-input": "2",
-                "collection-tree": "tab",
-                "--content-tab-headers-pane": "q",
-                "--content-tab-body-pane": "w",
-                "--content-tab-query-pane": "e",
-                "--content-tab-auth-pane": "r",
-                "--content-tab-info-pane": "t",
-                "--content-tab-scripts-pane": "y",
-                "--content-tab-options-pane": "u",
-                "--content-tab-response-body-pane": "a",
-                "--content-tab-response-headers-pane": "s",
-                "--content-tab-response-cookies-pane": "d",
-                "--content-tab-response-scripts-pane": "f",
-                "--content-tab-response-trace-pane": "g",
-            },
-            screen=self.screen,
-        )
+
+        self.spacing = self.settings.spacing
+
         if self.settings.watch_env_files:
             self.watch_environment_files()
 
@@ -1142,6 +1252,14 @@ class Posting(App[None], inherit_bindings=False):
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
+
+    def command_toggle_spacing(self) -> None:
+        self.spacing = "compact" if self.spacing == "standard" else "standard"
+
+    def action_open_web_docs(self) -> None:
+        import webbrowser
+
+        webbrowser.open("https://posting.sh/guide")
 
     def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
         main_screen = self.main_screen
@@ -1250,41 +1368,28 @@ class Posting(App[None], inherit_bindings=False):
         if not event.option_selected:
             self.theme = self._original_theme
 
-    def action_toggle_jump_mode(self) -> None:
-        self._jumping = not self._jumping
+    def search_commands(
+        self,
+        commands: Sequence[CommandListItem],
+        placeholder: str = "Search for commands…",
+        palette_id: str = "",
+    ) -> AwaitMount:
+        """Show a list of commands in the app.
 
-    def watch__jumping(self, jumping: bool) -> None:
-        focused_before = self.focused
-        if focused_before is not None:
-            self.set_focus(None, scroll_visible=False)
+        Args:
+            commands: A list of SimpleCommand instances.
+            placeholder: Placeholder text for the search field.
+            palette_id: The id of the palette to use.
 
-        def handle_jump_target(target: str | Widget | None) -> None:
-            if isinstance(target, str):
-                try:
-                    target_widget = self.screen.query_one(f"#{target}")
-                except NoMatches:
-                    log.warning(
-                        f"Attempted to jump to target #{target}, but it couldn't be found on {self.screen!r}"
-                    )
-                else:
-                    if target_widget.focusable:
-                        self.set_focus(target_widget)
-                    else:
-                        target_widget.post_message(
-                            Click(target_widget, 0, 0, 0, 0, 0, False, False, False)
-                        )
-
-            elif isinstance(target, Widget):
-                self.set_focus(target)
-            else:
-                # If there's no target (i.e. the user pressed ESC to dismiss)
-                # then re-focus the widget that was focused before we opened
-                # the jumper.
-                if focused_before is not None:
-                    self.set_focus(focused_before, scroll_visible=False)
-
-        self.clear_notifications()
-        self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+        Returns:
+            AwaitMount: An awaitable that resolves when the commands are shown.
+        """
+        palette = CommandPalette(
+            providers=[SimpleProvider(self.screen, commands)],
+            placeholder=placeholder,
+            id=palette_id or None,
+        )
+        return self.push_screen(palette)
 
     async def action_help(self) -> None:
         focused = self.focused

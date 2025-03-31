@@ -1,23 +1,21 @@
 from typing import TYPE_CHECKING, Any, cast
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 from textual.lazy import Lazy
-from textual.widgets import ContentSwitcher, Label, Select, TabPane
+from textual.widgets import ContentSwitcher, Select, TabPane
 from posting.collection import RequestBody
-from posting.widgets.center_middle import CenterMiddle
 from posting.widgets.request.form_editor import FormEditor
 
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor
 from posting.widgets.request.request_auth import RequestAuth
-from posting.widgets.request.request_body import RequestBodyEditor, RequestBodyTextArea
+from posting.widgets.request.request_body import RequestBodyEditor
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
-from posting.widgets.select import PostingSelect
 from posting.widgets.tabbed_content import PostingTabbedContent
-from posting.widgets.text_area import TextAreaFooter, TextEditor
+from posting.widgets.text_area import TextEditor
 
 
 if TYPE_CHECKING:
