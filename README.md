@@ -21,6 +21,7 @@ Some notable features include:
 - import curl commands by pasting them into the URL bar
 - export requests as cURL commands
 - import OpenAPI specs
+- import from Postman collections
 - a command palette for quickly accessing functionality
 
 Visit the [website](https://posting.sh) for more information, the roadmap, and the user guide.
