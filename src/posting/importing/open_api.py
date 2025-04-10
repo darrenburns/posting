@@ -2,6 +2,7 @@ from __future__ import annotations
 import re
 from typing import Any
 from urllib.parse import urlparse
+import json
 
 import yaml
 from openapi_pydantic import (
@@ -11,6 +12,8 @@ from openapi_pydantic import (
     Operation,
     RequestBody as OpenAPIRequestBody,
     Schema,
+    MediaType,
+    DataType,
 )
 from pathlib import Path
 
@@ -209,6 +212,74 @@ def create_env_file(
     return env_file
 
 
+def parse_schema_ref(ref: str, openapi: OpenAPI) -> Schema | None:
+    if not openapi.components or not openapi.components.schemas:
+        return None
+    if not ref.startswith("#/components/schemas/"):
+        return None
+    ref_name = ref[len("#/components/schemas/") :]
+    return openapi.components.schemas.get(ref_name)
+
+
+class JsonBodyGenerator:
+    def __init__(self, openapi: OpenAPI):
+        self.openapi = openapi
+        self.cache = {}
+        self.seen = set()
+
+    def generate_json(self, src: Reference | Schema | MediaType):
+        obj = self.generate(src)
+        if obj is None:
+            return "{}"
+        return json.dumps(obj, indent=2)
+
+    def generate(self, src: Reference | Schema | MediaType):
+        if isinstance(src, MediaType):
+            if src.media_type_schema is None:
+                return
+            return self.generate(src.media_type_schema)
+
+        if isinstance(src, Reference):
+            ref = src.ref
+            if ref in self.cache:
+                return self.cache[ref]
+
+            if ref in self.seen:
+                return
+
+            ref_schema = parse_schema_ref(ref, self.openapi)
+            if ref_schema is None:
+                return
+
+            self.seen.add(ref)
+            refobj = self._any_from_schema(ref_schema)
+            self.seen.remove(ref)
+
+            self.cache[ref] = refobj
+            return refobj
+        return self._any_from_schema(src)
+
+    def _any_from_schema(self, schema: Schema):
+        if schema.type == DataType.STRING:
+            return schema.default or ""
+        elif schema.type == DataType.NUMBER or schema.type == DataType.INTEGER:
+            return schema.default or 0
+        elif schema.type == DataType.BOOLEAN:
+            return schema.default or False
+        elif schema.type == DataType.ARRAY:
+            if schema.items is None:
+                return []
+            item = self.generate(schema.items)
+            if item is None:
+                return []
+            return [item]
+        elif schema.type == DataType.OBJECT:
+            obj = {}
+            for name, schema in (schema.properties or {}).items():
+                obj[name] = self.generate(schema)
+            return obj
+
+
 def import_openapi_spec(spec_path: str | Path) -> Collection:
     console = Console()
     console.print(f"Importing OpenAPI spec from {spec_path!r}.")
@@ -300,8 +371,10 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                 content = operation.requestBody.content
                 if "application/json" in content:
                     request.body = RequestBody(
-                        content="{}"
-                    )  # Empty JSON object as template
+                        content=JsonBodyGenerator(openapi).generate_json(
+                            content["application/json"]
+                        )
+                    )
                 elif "application/x-www-form-urlencoded" in content:
                     form_data: list[FormItem] = []
                     body = content["application/x-www-form-urlencoded"]
