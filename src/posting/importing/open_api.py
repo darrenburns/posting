@@ -2,9 +2,19 @@ from __future__ import annotations
 import re
 from typing import Any
 from urllib.parse import urlparse
+import json
 
 import yaml
-from openapi_pydantic import OpenAPI, Reference, SecurityScheme
+from openapi_pydantic import (
+    OpenAPI,
+    Reference,
+    SecurityScheme,
+    Operation,
+    RequestBody as OpenAPIRequestBody,
+    Schema,
+    MediaType,
+    DataType,
+)
 from pathlib import Path
 
 
@@ -202,6 +212,74 @@ def create_env_file(
     return env_file
 
 
+def parse_schema_ref(ref: str, openapi: OpenAPI) -> Schema | None:
+    if not openapi.components or not openapi.components.schemas:
+        return None
+    if not ref.startswith("#/components/schemas/"):
+        return None
+    ref_name = ref[len("#/components/schemas/") :]
+    return openapi.components.schemas.get(ref_name)
+
+
+class JsonBodyGenerator:
+    def __init__(self, openapi: OpenAPI):
+        self.openapi = openapi
+        self.cache = {}
+        self.seen = set()
+
+    def generate_json(self, src: Reference | Schema | MediaType):
+        obj = self.generate(src)
+        if obj is None:
+            return "{}"
+        return json.dumps(obj, indent=2)
+
+    def generate(self, src: Reference | Schema | MediaType):
+        if isinstance(src, MediaType):
+            if src.media_type_schema is None:
+                return
+            return self.generate(src.media_type_schema)
+
+        if isinstance(src, Reference):
+            ref = src.ref
+            if ref in self.cache:
+                return self.cache[ref]
+
+            if ref in self.seen:
+                return
+
+            ref_schema = parse_schema_ref(ref, self.openapi)
+            if ref_schema is None:
+                return
+
+            self.seen.add(ref)
+            refobj = self._any_from_schema(ref_schema)
+            self.seen.remove(ref)
+
+            self.cache[ref] = refobj
+            return refobj
+        return self._any_from_schema(src)
+
+    def _any_from_schema(self, schema: Schema):
+        if schema.type == DataType.STRING:
+            return schema.default or ""
+        elif schema.type == DataType.NUMBER or schema.type == DataType.INTEGER:
+            return schema.default or 0
+        elif schema.type == DataType.BOOLEAN:
+            return schema.default or False
+        elif schema.type == DataType.ARRAY:
+            if schema.items is None:
+                return []
+            item = self.generate(schema.items)
+            if item is None:
+                return []
+            return [item]
+        elif schema.type == DataType.OBJECT:
+            obj = {}
+            for name, schema in (schema.properties or {}).items():
+                obj[name] = self.generate(schema)
+            return obj
+
+
 def import_openapi_spec(spec_path: str | Path) -> Collection:
     console = Console()
     console.print(f"Importing OpenAPI spec from {spec_path!r}.")
@@ -222,6 +300,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
         path=spec_path.parent,
         name=collection_name,
     )
+    tag_collections: map[str, Collection] = {}
 
     openapi = OpenAPI.model_validate(spec)
     security_schemes = openapi.components.securitySchemes or {}
@@ -243,67 +322,84 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
     readme = generate_readme(spec_path, info, external_docs, servers, env_files)
     main_collection.readme = readme
 
-    for path, path_item in spec.get("paths", {}).items():
-        for method, operation in path_item.items():
+    for path, path_item in (openapi.paths or {}).items():
+        for method in path_item.model_fields_set:
+            operation: Operation = getattr(path_item, method)
             method = method.upper()
             if method not in VALID_HTTP_METHODS:
                 continue
 
             request = RequestModel(
-                name=operation.get("summary", path.strip("/")),
-                description=operation.get("description", ""),
+                name=operation.summary or path.strip("/"),
+                description=operation.description or "",
                 method=method,
                 url=f"${{BASE_URL}}{path}",
             )
 
             # Add auth
-            for security in operation.get("security", []):
+            for security in operation.security or []:
                 for scheme_name, _scopes in security.items():
                     if scheme := security_schemes.get(scheme_name):
                         request.auth = security_scheme_to_auth(scheme_name, scheme)
                         break
 
             # Add query parameters
-            for param in operation.get("parameters", []):
-                if param["in"] == "query":
+            for param in operation.parameters or []:
+                if isinstance(param, Reference):
+                    continue
+                if param.param_in == "query":
                     request.params.append(
                         QueryParam(
-                            name=param["name"],
+                            name=param.name,
                             value="",  # Leave empty as it's just a template
-                            enabled=not param.get("deprecated", False),
+                            enabled=not param.deprecated,
                         )
                     )
 
             # Add headers
-            for param in operation.get("parameters", []):
-                if param["in"] == "header":
+            for param in operation.parameters or []:
+                if param.param_in == "header":
                     request.headers.append(
                         Header(
-                            name=param["name"],
+                            name=param.name,
                             value="",  # Leave empty as it's just a template
-                            enabled=not param.get("deprecated", False),
+                            enabled=not param.deprecated,
                         )
                     )
 
             # Add request body if present
-            if "requestBody" in operation:
-                content = operation["requestBody"].get("content", {})
+            if isinstance(operation.requestBody, OpenAPIRequestBody):
+                content = operation.requestBody.content
                 if "application/json" in content:
                     request.body = RequestBody(
-                        content="{}"
-                    )  # Empty JSON object as template
+                        content=JsonBodyGenerator(openapi).generate_json(
+                            content["application/json"]
+                        )
+                    )
                 elif "application/x-www-form-urlencoded" in content:
                     form_data: list[FormItem] = []
+                    body = content["application/x-www-form-urlencoded"]
                     for prop_name, _prop_schema in (
-                        content["application/x-www-form-urlencoded"]
-                        .get("schema", {})
-                        .get("properties", {})
-                        .items()
-                    ):
+                        isinstance(body.media_type_schema, Schema)
+                        and body.media_type_schema.properties
+                        or {}
+                    ).items():
                         form_data.append(FormItem(name=prop_name, value=""))
                     request.body = RequestBody(form_data=form_data)
 
-            main_collection.requests.append(request)
+            if operation.summary and operation.tags:
+                tag = operation.tags[0]
+                tag_collection = tag_collections.get(tag)
+                if tag_collection is None:
+                    tag_collection = Collection(
+                        path=spec_path.parent,
+                        name=tag,
+                    )
+                    tag_collections[tag] = tag_collection
+                    main_collection.children.append(tag_collection)
+                tag_collection.requests.append(request)
+            else:
+                main_collection.requests.append(request)
 
     console.print(f"Imported {len(main_collection.requests)} requests.")
     return main_collection
