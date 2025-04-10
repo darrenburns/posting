@@ -6,6 +6,7 @@ from textual.lazy import Lazy
 from textual.widgets import ContentSwitcher, Select, TabPane
 from posting.collection import RequestBody
 from posting.widgets.request.form_editor import FormEditor
+from posting.widgets.request.multipart_editor import MultipartEditor
 
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor
@@ -77,6 +78,10 @@ class RequestEditor(Vertical):
         return self.query_one("#form-body-editor", FormEditor)
 
     @property
+    def multipart_editor(self) -> MultipartEditor:
+        return self.query_one("#multipart-body-editor", MultipartEditor)
+
+    @property
     def query_editor(self) -> QueryStringEditor:
         return self.query_one(QueryStringEditor)
 
@@ -103,6 +108,14 @@ class RequestEditor(Vertical):
                 "body": RequestBody(
                     form_data=self.form_editor.to_model(),
                     content_type="application/x-www-form-urlencoded",
+                )
+            }
+        elif current == "multipart-body-editor":
+            return {
+                "body": RequestBody(
+                    multipart_data=self.multipart_editor.to_model(),
+                    # MUST NOT USE
+                    # content_type="multipart/form-data",
                 )
             }
         return {}
