@@ -740,7 +740,7 @@ class MainScreen(Screen[None]):
             path=open_request.path if open_request else None,
             description=self.request_metadata.description,
             method=self.selected_method,
-            url=self.url_input.value_including_protocol,
+            url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
             headers=headers,
             options=request_options,
