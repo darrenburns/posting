@@ -4,7 +4,14 @@ from typing import Any
 from urllib.parse import urlparse
 
 import yaml
-from openapi_pydantic import OpenAPI, Reference, SecurityScheme
+from openapi_pydantic import (
+    OpenAPI,
+    Reference,
+    SecurityScheme,
+    Operation,
+    RequestBody as OpenAPIRequestBody,
+    Schema,
+)
 from pathlib import Path
 
 
@@ -243,63 +250,66 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
     readme = generate_readme(spec_path, info, external_docs, servers, env_files)
     main_collection.readme = readme
 
-    for path, path_item in spec.get("paths", {}).items():
-        for method, operation in path_item.items():
+    for path, path_item in (openapi.paths or {}).items():
+        for method in path_item.model_fields_set:
+            operation: Operation = getattr(path_item, method)
             method = method.upper()
             if method not in VALID_HTTP_METHODS:
                 continue
 
             request = RequestModel(
-                name=operation.get("summary", path.strip("/")),
-                description=operation.get("description", ""),
+                name=operation.summary or path.strip("/"),
+                description=operation.description or "",
                 method=method,
                 url=f"${{BASE_URL}}{path}",
             )
 
             # Add auth
-            for security in operation.get("security", []):
+            for security in operation.security or []:
                 for scheme_name, _scopes in security.items():
                     if scheme := security_schemes.get(scheme_name):
                         request.auth = security_scheme_to_auth(scheme_name, scheme)
                         break
 
             # Add query parameters
-            for param in operation.get("parameters", []):
-                if param["in"] == "query":
+            for param in operation.parameters or []:
+                if isinstance(param, Reference):
+                    continue
+                if param.param_in == "query":
                     request.params.append(
                         QueryParam(
-                            name=param["name"],
+                            name=param.name,
                             value="",  # Leave empty as it's just a template
-                            enabled=not param.get("deprecated", False),
+                            enabled=not param.deprecated,
                         )
                     )
 
             # Add headers
-            for param in operation.get("parameters", []):
-                if param["in"] == "header":
+            for param in operation.parameters or []:
+                if param.param_in == "header":
                     request.headers.append(
                         Header(
-                            name=param["name"],
+                            name=param.name,
                             value="",  # Leave empty as it's just a template
-                            enabled=not param.get("deprecated", False),
+                            enabled=not param.deprecated,
                         )
                     )
 
             # Add request body if present
-            if "requestBody" in operation:
-                content = operation["requestBody"].get("content", {})
+            if isinstance(operation.requestBody, OpenAPIRequestBody):
+                content = operation.requestBody.content
                 if "application/json" in content:
                     request.body = RequestBody(
                         content="{}"
                     )  # Empty JSON object as template
                 elif "application/x-www-form-urlencoded" in content:
                     form_data: list[FormItem] = []
+                    body = content["application/x-www-form-urlencoded"]
                     for prop_name, _prop_schema in (
-                        content["application/x-www-form-urlencoded"]
-                        .get("schema", {})
-                        .get("properties", {})
-                        .items()
-                    ):
+                        isinstance(body.media_type_schema, Schema)
+                        and body.media_type_schema.properties
+                        or {}
+                    ).items():
                         form_data.append(FormItem(name=prop_name, value=""))
                     request.body = RequestBody(form_data=form_data)
 
