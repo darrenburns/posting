@@ -300,6 +300,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
         path=spec_path.parent,
         name=collection_name,
     )
+    tag_collections: map[str, Collection] = {}
 
     openapi = OpenAPI.model_validate(spec)
     security_schemes = openapi.components.securitySchemes or {}
@@ -386,7 +387,19 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                         form_data.append(FormItem(name=prop_name, value=""))
                     request.body = RequestBody(form_data=form_data)
 
-            main_collection.requests.append(request)
+            if operation.summary and operation.tags:
+                tag = operation.tags[0]
+                tag_collection = tag_collections.get(tag)
+                if tag_collection is None:
+                    tag_collection = Collection(
+                        path=spec_path.parent,
+                        name=tag,
+                    )
+                    tag_collections[tag] = tag_collection
+                    main_collection.children.append(tag_collection)
+                tag_collection.requests.append(request)
+            else:
+                main_collection.requests.append(request)
 
     console.print(f"Imported {len(main_collection.requests)} requests.")
     return main_collection
