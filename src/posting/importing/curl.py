@@ -4,6 +4,7 @@ from datetime import datetime
 import shlex
 from typing import cast
 from urllib.parse import ParseResult, parse_qsl, urlparse
+import itertools
 
 from posting.collection import (
     Auth,
@@ -48,9 +49,12 @@ class CurlImport:
         parser.add_argument(
             "-H", "--header", action="append", help="Pass custom header(s) to server"
         )
-        parser.add_argument("-d", "--data", help="HTTP POST data")
-        parser.add_argument("--data-raw", help="HTTP POST raw data")
+        parser.add_argument("-d", "--data", action="append", help="HTTP POST data")
+        parser.add_argument("--data-raw", action="append", help="HTTP POST raw data")
         parser.add_argument("--data-binary", help="HTTP POST binary data")
+        parser.add_argument(
+            "--data-urlencode", action="append", help="HTTP POST data with URL encoding"
+        )
         parser.add_argument(
             "-F", "--form", action="append", help="Specify multipart MIME data"
         )
@@ -83,7 +87,11 @@ class CurlImport:
             args.request
             or (
                 "POST"
-                if args.data or args.form or args.data_raw or args.data_binary
+                if args.data
+                or args.form
+                or args.data_raw
+                or args.data_binary
+                or args.data_urlencode
                 else "GET"
             ),
         )
@@ -104,22 +112,35 @@ class CurlImport:
 
         # Determine if the data is form data
         self.is_form_data = False
+        self.is_multipart_data = False
         content_type_header = next(
             (value for name, value in self.headers if name.lower() == "content-type"),
             "",
         ).lower()
 
         if args.form:
-            self.is_form_data = True
-        elif args.data or args.data_raw or args.data_binary:
+            self.is_multipart_data = True
+        elif args.data or args.data_raw or args.data_binary or args.data_urlencode:
             if "application/x-www-form-urlencoded" in content_type_header:
                 self.is_form_data = True
             elif not any("content-type" in h.lower() for h, _ in self.headers):
                 # Default content type for -d is application/x-www-form-urlencoded
                 self.is_form_data = True
 
-        # Store raw data
-        self.data = args.data or args.data_raw or args.data_binary
+        # Store raw data, simply join
+        self.data = "&".join(
+            itertools.chain(
+                *filter(
+                    None,
+                    [
+                        args.data,
+                        args.data_raw,
+                        args.data_binary and [args.data_binary],
+                        args.data_urlencode,
+                    ],
+                )
+            )
+        )
 
         # Parse data into key-value pairs if it is form data
         if self.is_form_data and self.data:
@@ -256,7 +277,7 @@ class CurlImport:
         if self.data or self.form:
             if self.is_form_data:
                 # Use form data pairs from either -F or -d
-                form_data = self.form or self.data_pairs
+                form_data = self.data_pairs
                 body = RequestBody(
                     form_data=[
                         FormItem(name=name, value=value) for name, value in form_data
