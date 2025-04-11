@@ -128,19 +128,18 @@ class CurlImport:
                 self.is_form_data = True
 
         # Store raw data, simply join
-        self.data = "&".join(
-            itertools.chain(
-                *filter(
-                    None,
-                    [
-                        args.data,
-                        args.data_raw,
-                        args.data_binary and [args.data_binary],
-                        args.data_urlencode,
-                    ],
-                )
+        datas = list(
+            filter(
+                None,
+                [
+                    args.data,
+                    args.data_raw,
+                    args.data_binary and [args.data_binary],
+                    args.data_urlencode,
+                ],
             )
         )
+        self.data = "&".join(itertools.chain(*datas)) if datas else None
 
         # Parse data into key-value pairs if it is form data
         if self.is_form_data and self.data:
