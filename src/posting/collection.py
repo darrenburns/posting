@@ -333,7 +333,7 @@ class RequestModel(BaseModel):
         if self.body and self.body.form_data:
             for item in self.body.form_data:
                 if item.enabled:
-                    parts.append(f"-F '{item.name}={item.value}'")
+                    parts.append(f"-d '{item.name}={item.value}'")
 
         if self.auth:
             if self.auth.type == "basic" and self.auth.basic:

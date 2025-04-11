@@ -47,14 +47,14 @@ def test_post_with_json_data():
 
 
 def test_post_with_form_option():
-    """Test POST request with form data using -F."""
+    """Test POST request with form data using -d."""
     curl_command = (
-        "curl -X POST -F 'field1=value1' -F 'field2=value2' http://example.com"
+        "curl -X POST -d 'field1=value1' -d 'field2=value2' http://example.com"
     )
     curl_import = CurlImport(curl_command)
     assert curl_import.method == "POST"
     assert curl_import.url == "http://example.com"
-    assert curl_import.form == [("field1", "value1"), ("field2", "value2")]
+    assert curl_import.data_pairs == [("field1", "value1"), ("field2", "value2")]
     assert curl_import.is_form_data is True
 
 
@@ -63,15 +63,9 @@ def test_multiple_data_options():
     curl_command = "curl -d 'key1=value1' -d 'key2=value2' http://example.com"
     curl_import = CurlImport(curl_command)
     # Depending on implementation, data might be concatenated or last one used
-    assert (
-        curl_import.data == "key1=value1key2=value2"
-        or curl_import.data == "key2=value2"
-    )
+    assert curl_import.data == "key1=value1&key2=value2"
     assert curl_import.is_form_data is True
-    assert curl_import.data_pairs in (
-        [("key1", "value1"), ("key2", "value2")],
-        [("key2", "value2")],
-    )
+    assert curl_import.data_pairs == [("key1", "value1"), ("key2", "value2")]
 
 
 def test_curl_with_user_and_password():
