@@ -1,8 +1,16 @@
-## Unreleased
+## 2.7.0 [Unreleased]
 
 ### Added
 
 - `posting.env` files in the current directory will automatically be loaded if no `--env` options are provided.
+- Generate JSON body with default values after importing OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
+- Use tags to separate sub-collections in OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
+
+### Fixed
+
+- Exported curl command uses `-d` for form data now, rather than `-F`. The result is exported commands with form data will now use `application/x-www-form-urlencoded` instead of `multipart/form-data` (matching Posting's behaviour). [(#252)](https://github.com/darrenburns/posting/pull/252)
+- Fix attempting to add a protocol before applying variables in the URL bar [(#248)](https://github.com/darrenburns/posting/pull/248)
+
 
 ## 2.6.0 [29th March 2025]
 

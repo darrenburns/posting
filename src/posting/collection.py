@@ -14,6 +14,7 @@ from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
 from posting.yaml import dump, load, Loader
+from posting.urls import ensure_protocol
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 VALID_HTTP_METHODS = get_args(HttpRequestMethod)
@@ -197,7 +198,7 @@ class RequestModel(BaseModel):
         """Apply the template to the request model."""
         try:
             template = Template(self.url)
-            self.url = template.substitute(variables)
+            self.url = ensure_protocol(template.substitute(variables))
 
             template = Template(self.description)
             self.description = template.substitute(variables)
@@ -333,7 +334,7 @@ class RequestModel(BaseModel):
         if self.body and self.body.form_data:
             for item in self.body.form_data:
                 if item.enabled:
-                    parts.append(f"-F '{item.name}={item.value}'")
+                    parts.append(f"-d '{item.name}={item.value}'")
 
         if self.auth:
             if self.auth.type == "basic" and self.auth.basic:
