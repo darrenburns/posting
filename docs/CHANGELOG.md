@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- Exported curl command uses `-d` for form data now, rather than `-F`. The result is exported commands with form data will now use `application/x-www-form-urlencoded` instead of `multipart/form-data` (matching Posting's behaviour).
+
 ## 2.6.0 [29th March 2025]
 
 ### Added
