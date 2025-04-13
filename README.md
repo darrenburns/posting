@@ -18,7 +18,7 @@
 | src/posting/help\_screen.py                           |       56 |        4 |     93% |   145-152 |
 | src/posting/highlight\_url.py                         |        0 |        0 |    100% |           |
 | src/posting/highlighters.py                           |       51 |        2 |     96% |    51, 64 |
-| src/posting/importing/curl.py                         |      142 |       62 |     56% |116, 139, 153, 160, 169-239, 244-281 |
+| src/posting/importing/curl.py                         |      146 |       71 |     51% |122, 125, 152, 159, 172-181, 189-259, 264-301 |
 | src/posting/importing/open\_api.py                    |      157 |       43 |     73% |40-42, 56, 86, 103-104, 113, 125-126, 145, 148-155, 158-162, 165-168, 250, 290-304, 313-320 |
 | src/posting/jump\_overlay.py                          |       71 |       17 |     76% |13, 65, 73-78, 85-101 |
 | src/posting/jumper.py                                 |       34 |        1 |     97% |        55 |
@@ -70,7 +70,7 @@
 | src/posting/widgets/variable\_input.py                |       25 |        0 |    100% |           |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
 | src/posting/yaml.py                                   |       14 |        4 |     71% |6-7, 12-15 |
-|                                             **TOTAL** | **4771** | **1072** | **78%** |           |
+|                                             **TOTAL** | **4775** | **1081** | **77%** |           |
 
 
 ## Setup coverage badge
