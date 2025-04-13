@@ -108,10 +108,6 @@ It's recommended you create a new request before pasting a curl command, to avoi
         event.prevent_default()
         self.post_message(CurlMessage(event.text))
 
-    @property
-    def value_including_protocol(self) -> str:
-        return ensure_protocol(self.value.strip())
-
 
 class SendRequestButton(Button, can_focus=False):
     """
