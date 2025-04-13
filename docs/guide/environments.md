@@ -34,6 +34,10 @@ posting --env dev.env --env shared.env
 
 This allows you to build up a set of variables which are common to all environments, and then override them for specific environments.
 
+## Autoloading `.env` files
+
+If no `--env` options are provided, Posting will automatically load a `.env` file in the current directory if it exists.
+
 ## Using environment variables
 
 By default, Posting will only use variables defined in `.env` files that have been explicitly loaded using the `--env` option.
