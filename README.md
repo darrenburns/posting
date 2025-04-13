@@ -20,8 +20,7 @@ Some notable features include:
 - open in $EDITOR/$PAGER
 - import curl commands by pasting them into the URL bar
 - export requests as cURL commands
-- import OpenAPI specs
-- import from Postman collections
+- import from Postman and OpenAPI specs
 - a command palette for quickly accessing functionality
 
 Visit the [website](https://posting.sh) for more information, the roadmap, and the user guide.
