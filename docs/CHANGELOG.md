@@ -4,7 +4,8 @@
 
 - Generate JSON body with default values after importing OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
 - Use tags to separate sub-collections in OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
-- curl 
+- curl import now handles various different data options [(#252)](https://github.com/darrenburns/posting/pull/252)
+- Added `-c` shorthand alias for `--collection` option. [(#249)](https://github.com/darrenburns/posting/pull/249)
 
 ### Fixed
 
