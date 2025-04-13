@@ -1,0 +1,49 @@
+{
+    "info": {
+        "name": "Test API",
+        "description": "A test API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [{"key": "baseUrl", "value": "https://api.example.com"}],
+    "item": [
+        {
+            "name": "Users",
+            "item": [
+                {
+                    "name": "Get Users",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{host}}/api/users?email=example@gmail.com&relations=organization,impersonating_user",
+                            "host": ["{{host}}"],
+                            "path": ["api", "users"],
+                            "query": [
+                                {"key": "email", "value": "example@gmail.com"},
+                                {
+                                    "key": "relations",
+                                    "value": "organization,impersonating_user"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "User Details",
+                    "item": [
+                        {
+                            "name": "Get User",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/users/{id}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["users", "{id}"]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
