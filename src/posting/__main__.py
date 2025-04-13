@@ -1,6 +1,8 @@
 """The main entry point for the Posting CLI."""
+
 from pathlib import Path
 import click
+import os
 
 from click_default_group import DefaultGroup
 from rich.console import Console
@@ -48,6 +50,7 @@ def cli() -> None:
 @cli.command()
 @click.option(
     "--collection",
+    "-c",
     type=click.Path(exists=True),
     help="Path to the collection directory",
 )
@@ -135,6 +138,10 @@ def make_posting(
 ) -> Posting:
     """Return a Posting instance with the given collection and environment."""
     collection_tree = Collection.from_directory(str(collection.resolve()))
+
+    # if env empty then load current directory posting.env file if it exists
+    if not env and os.path.exists("posting.env"):
+        env = ("posting.env",)
 
     env_paths = tuple(Path(e).resolve() for e in env)
     settings = Settings(_env_file=env_paths)  # type: ignore[call-arg]

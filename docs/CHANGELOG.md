@@ -2,6 +2,7 @@
 
 ### Added
 
+- `posting.env` files in the current directory will automatically be loaded if no `--env` options are provided.
 - Generate JSON body with default values after importing OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
 - Use tags to separate sub-collections in OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
 - curl import now handles various different data options [(#252)](https://github.com/darrenburns/posting/pull/252)
