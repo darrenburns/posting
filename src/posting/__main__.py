@@ -1,4 +1,5 @@
 """The main entry point for the Posting CLI."""
+
 from pathlib import Path
 import click
 
@@ -8,8 +9,6 @@ from rich.console import Console
 from posting.app import Posting
 from posting.collection import Collection
 from posting.config import Settings
-from posting.importing.open_api import import_openapi_spec
-from posting.importing.postman import import_postman_spec
 from posting.locations import (
     config_file,
     default_collection_directory,
@@ -111,15 +110,17 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
         "Importing is currently an experimental feature.", style="bold yellow"
     )
 
-    # We defer this import as it takes 64ms on an M4 MacBook Pro,
-    # and is only needed for a single CLI command - not for the main TUI.
-    from posting.importing.open_api import import_openapi_spec
-
     try:
         if type.lower() == "openapi":
+            # We defer this import as it takes 64ms on an M4Pro MBP,
+            # and is only needed for a single CLI command - not for the main TUI.
+            from posting.importing.open_api import import_openapi_spec
+
             spec_type = "OpenAPI"
             collection = import_openapi_spec(spec_path)
         elif type.lower() == "postman":
+            from posting.importing.postman import import_postman_spec
+
             spec_type = "Postman"
             collection = import_postman_spec(spec_path, output)
         else:
