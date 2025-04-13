@@ -1,4 +1,5 @@
 """The main entry point for the Posting CLI."""
+
 from pathlib import Path
 import click
 import os
@@ -60,13 +61,22 @@ def cli() -> None:
     help="Path to the .env environment file(s)",
     multiple=True,
 )
-def default(collection: str | None = None, env: tuple[str, ...] = ()) -> None:
+@click.option(
+    "--no-auto-env",
+    is_flag=True,
+    default=False,
+    help="Disable autoloading of .env file in the current directory.",
+)
+def default(
+    collection: str | None = None, env: tuple[str, ...] = (), no_auto_env: bool = False
+) -> None:
     create_config_file()
     default_collection = create_default_collection()
     collection_path = Path(collection) if collection else default_collection
     app = make_posting(
         collection=collection_path,
         env=env,
+        no_auto_env=no_auto_env,
         using_default_collection=collection is None,
     )
     app.run()
@@ -133,13 +143,14 @@ def import_spec(spec_path: str, output: str | None) -> None:
 def make_posting(
     collection: Path,
     env: tuple[str, ...] = (),
+    no_auto_env: bool = False,
     using_default_collection: bool = False,
 ) -> Posting:
     """Return a Posting instance with the given collection and environment."""
     collection_tree = Collection.from_directory(str(collection.resolve()))
 
-    # if env empty then load current directory .env file if it exists
-    if not env and os.path.exists(".env"):
+    # if env empty then load current directory .env file if it exists, unless disabled
+    if not no_auto_env and not env and os.path.exists(".env"):
         env = (".env",)
 
     env_paths = tuple(Path(e).resolve() for e in env)
