@@ -1,3 +1,9 @@
+## Unreleased
+
+### Added
+
+- `posting.env` files in the current directory will automatically be loaded if no `--env` options are provided.
+
 ## 2.6.0 [29th March 2025]
 
 ### Added
