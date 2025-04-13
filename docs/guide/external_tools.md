@@ -53,13 +53,13 @@ your `config.yaml` file.
 For example:
 
 ```yaml title="config.yaml"
-pager_json: jq
+pager_json: fx
 ```
 
 Alternatively, you can set the `POSTING_PAGER_JSON` environment variable.
 
 ```bash
-export POSTING_PAGER_JSON=jq
+export POSTING_PAGER_JSON=fx
 ```
 
 If neither is set, Posting will try to use the default pager lookup rules discussed earlier.
