@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Optional
 import json
 import re
+from urllib.parse import urlparse, urlunparse
 
 from pydantic import BaseModel, Field
 
@@ -21,12 +23,12 @@ from posting.collection import (
 
 class Variable(BaseModel):
     key: str
-    value: Optional[str] = None
-    src: Optional[str | List[str]] = None
-    fileNotInWorkingDirectoryWarning: Optional[str] = None
-    filesNotInWorkingDirectory: Optional[List[str]] = None
-    type: Optional[str] = None
-    disabled: Optional[bool] = None
+    value: str | None = None
+    src: str | list[str] | None = None
+    fileNotInWorkingDirectoryWarning: str | None = None
+    filesNotInWorkingDirectory: list[str] | None = None
+    type: str | None = None
+    disabled: bool | None = None
 
 
 class RawRequestOptions(BaseModel):
@@ -39,47 +41,46 @@ class RequestOptions(BaseModel):
 
 class Body(BaseModel):
     mode: str
-    options: Optional[RequestOptions] = None
-    raw: Optional[str] = None
-    formdata: Optional[List[Variable]] = None
+    options: RequestOptions | None = None
+    raw: str | None = None
+    formdata: list[Variable] | None = None
 
 
 class Url(BaseModel):
     raw: str
-    host: Optional[List[str]] = None
-    path: Optional[List[str]] = None
-    query: Optional[List[Variable]] = None
+    host: list[str] | None = None
+    path: list[str] | None = None
+    query: list[Variable] | None = None
 
 
 class PostmanRequest(BaseModel):
     method: HttpRequestMethod
-    url: Optional[str | Url] = None
-    header: Optional[List[Variable]] = None
-    description: Optional[str] = None
-    body: Optional[Body] = None
+    url: str | Url | None = None
+    header: list[Variable] | None = None
+    description: str | None = None
+    body: Body | None = None
 
 
 class RequestItem(BaseModel):
     name: str
-    item: Optional[List["RequestItem"]] = None
-    request: Optional[PostmanRequest] = None
+    item: list["RequestItem"] | None = None
+    request: PostmanRequest | None = None
 
 
 class PostmanCollection(BaseModel):
     info: dict[str, str] = Field(default_factory=dict)
-    variable: List[Variable] = Field(default_factory=list)
-
-    item: List[RequestItem]
+    variable: list[Variable] = Field(default_factory=list)
+    item: list[RequestItem]
 
 
 # Converts variable names like userId to $USER_ID, or user-id to $USER_ID
-def sanitize_variables(string):
+def sanitize_variables(string: str) -> str:
     underscore_case = re.sub(r"(?<!^)(?=[A-Z-])", "_", string).replace("-", "")
     return underscore_case.upper()
 
 
-def sanitize_str(string):
-    def replace_match(match):
+def sanitize_str(string: str) -> str:
+    def replace_match(match: re.Match[str]) -> str:
         value = match.group(1)
         return f"${sanitize_variables(value)}"
 
@@ -87,8 +88,8 @@ def sanitize_str(string):
     return transformed
 
 
-def create_env_file(path: Path, env_filename: str, variables: List[Variable]) -> Path:
-    env_content: List[str] = []
+def create_env_file(path: Path, env_filename: str, variables: list[Variable]) -> Path:
+    env_content: list[str] = []
 
     for var in variables:
         env_content.append(f"{sanitize_variables(var.key)}={var.value}")
@@ -99,20 +100,38 @@ def create_env_file(path: Path, env_filename: str, variables: List[Variable]) ->
 
 
 def format_request(name: str, request: PostmanRequest) -> RequestModel:
-    postingRequest = RequestModel(
+    # Extract the raw URL first
+    raw_url_with_query: str = ""
+    if request.url is not None:
+        raw_url_with_query = (
+            request.url.raw if isinstance(request.url, Url) else request.url
+        )
+
+    # Parse the URL and remove query parameters
+    parsed_url = urlparse(raw_url_with_query)
+    # Reconstruct the URL without the query string
+    url_without_query = urlunparse(
+        (
+            parsed_url.scheme,
+            parsed_url.netloc,
+            parsed_url.path,
+            parsed_url.params,  # Keep fragment/params if they exist
+            "",  # Empty query string
+            parsed_url.fragment,
+        )
+    )
+    sanitized_url = sanitize_str(url_without_query)
+
+    posting_request = RequestModel(
         name=name,
         method=request.method,
         description=request.description if request.description is not None else "",
-        url=sanitize_str(
-            request.url.raw if isinstance(request.url, Url) else request.url
-        )
-        if request.url is not None
-        else "",
+        url=sanitized_url,
     )
 
     if request.header is not None:
         for header in request.header:
-            postingRequest.headers.append(
+            posting_request.headers.append(
                 Header(
                     name=header.key,
                     value=header.value if header.value is not None else "",
@@ -120,17 +139,18 @@ def format_request(name: str, request: PostmanRequest) -> RequestModel:
                 )
             )
 
+    # Add query params to the request, and remove them from the URL.
     if (
         request.url is not None
         and isinstance(request.url, Url)
         and request.url.query is not None
     ):
         for param in request.url.query:
-            postingRequest.params.append(
+            posting_request.params.append(
                 QueryParam(
                     name=param.key,
                     value=param.value if param.value is not None else "",
-                    enabled=param.disabled if param.disabled is not None else False,
+                    enabled=param.disabled if param.disabled is not None else True,
                 )
             )
 
@@ -140,7 +160,7 @@ def format_request(name: str, request: PostmanRequest) -> RequestModel:
             and request.body.options is not None
             and request.body.options.raw.language == "json"
         ):
-            postingRequest.body = RequestBody(content=sanitize_str(request.body.raw))
+            posting_request.body = RequestBody(content=sanitize_str(request.body.raw))
         elif request.body.mode == "formdata" and request.body.formdata is not None:
             form_data: list[FormItem] = [
                 FormItem(
@@ -150,9 +170,9 @@ def format_request(name: str, request: PostmanRequest) -> RequestModel:
                 )
                 for data in request.body.formdata
             ]
-            postingRequest.body = RequestBody(form_data=form_data)
+            posting_request.body = RequestBody(form_data=form_data)
 
-    return postingRequest
+    return posting_request
 
 
 def process_item(
@@ -161,8 +181,6 @@ def process_item(
     if item.item is not None:
         # This is a folder - create a subcollection
         child_path = base_path / item.name
-        child_path.mkdir(parents=True, exist_ok=True)
-
         child_collection = Collection(path=child_path, name=item.name)
         parent_collection.children.append(child_collection)
 
@@ -181,13 +199,11 @@ def process_item(
         request.path = request_path
         parent_collection.requests.append(request)
 
-        # Ensure the request is saved to disk
-        request.save_to_disk(request_path)
-
 
 def import_postman_spec(
     spec_path: str | Path, output_path: str | Path | None
-) -> Collection:
+) -> tuple[Collection, PostmanCollection]:
+    """Import a Postman collection from a file and save it to disk."""
     console = Console()
     console.print(f"Importing Postman spec from {spec_path!r}.")
 
@@ -208,22 +224,11 @@ def import_postman_spec(
     if output_path is not None:
         base_dir = Path(output_path) if isinstance(output_path, str) else output_path
 
-    console.print(f"Output path: {str(base_dir)!r}")
-
-    # Create the base directory if it doesn't exist
     base_dir.mkdir(parents=True, exist_ok=True)
-
-    env_file = create_env_file(base_dir, f"{info.title}.env", spec.variable)
-    console.print(f"Created environment file {str(env_file)!r}.")
-
     main_collection = Collection(path=base_dir, name=info.title)
     main_collection.readme = main_collection.generate_readme(info)
-
-    # Save the readme to disk
-    readme_path = base_dir / "README.md"
-    readme_path.write_text(main_collection.readme)
 
     for item in spec.item:
         process_item(item, main_collection, base_dir)
 
-    return main_collection
+    return main_collection, spec

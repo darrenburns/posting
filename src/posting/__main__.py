@@ -110,37 +110,65 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
         "Importing is currently an experimental feature.", style="bold yellow"
     )
 
+    output_path = None
+    if output:
+        output_path = Path(output)
+
     try:
         if type.lower() == "openapi":
-            # We defer this import as it takes 64ms on an M4Pro MBP,
+            # We defer this import as it takes 64ms on an M4 MacBook Pro,
             # and is only needed for a single CLI command - not for the main TUI.
             from posting.importing.open_api import import_openapi_spec
 
             spec_type = "OpenAPI"
             collection = import_openapi_spec(spec_path)
+            if output_path is None:
+                output_path = (
+                    Path(default_collection_directory()) / f"{collection.name}"
+                )
+
+            output_path.mkdir(parents=True, exist_ok=True)
+            collection.path = output_path
+            collection.save_to_disk(output_path)
         elif type.lower() == "postman":
-            from posting.importing.postman import import_postman_spec
+            from posting.importing.postman import import_postman_spec, create_env_file
 
             spec_type = "Postman"
-            collection = import_postman_spec(spec_path, output)
+            collection, postman_collection = import_postman_spec(spec_path, output)
+            if output_path is None:
+                output_path = (
+                    Path(default_collection_directory()) / f"{collection.name}"
+                )
+
+            output_path.mkdir(parents=True, exist_ok=True)
+            collection.path = output_path
+            collection.save_to_disk(output_path)
+
+            # Create the environment file in the collection directory.
+            env_file = create_env_file(
+                output_path, f"{collection.name}.env", postman_collection.variable
+            )
+            console.print(f"Created environment file {str(env_file)!r}.")
         else:
             console.print(f"Unknown spec type: {type!r}", style="red")
             return
-
-        if output:
-            output_path = Path(output)
-        else:
-            output_path = Path(default_collection_directory()) / f"{collection.name}"
-
-        output_path.mkdir(parents=True, exist_ok=True)
-        collection.path = output_path
-        collection.save_to_disk(output_path)
 
         console.print(
             f"Successfully imported {spec_type!r} spec to {str(output_path)!r}"
         )
     except Exception:
         console.print("An error occurred during the import process.", style="red")
+        console.print(
+            "Ensure you're importing the correct type of collection.", style="red"
+        )
+        console.print(
+            "For Postman collections, use `posting import --type postman <path>`",
+            style="red",
+        )
+        console.print(
+            "No luck? Please include the traceback below in your issue report.",
+            style="red",
+        )
         console.print_exception()
 
 
