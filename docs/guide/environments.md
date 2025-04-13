@@ -38,8 +38,6 @@ This allows you to build up a set of variables which are common to all environme
 
 If no `--env` options are provided, Posting will automatically load a `.env` file in the current directory if it exists.
 
-You can disable this behaviour by passing the `--no-auto-env` option.
-
 ## Using environment variables
 
 By default, Posting will only use variables defined in `.env` files that have been explicitly loaded using the `--env` option.
