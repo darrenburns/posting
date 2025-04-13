@@ -139,7 +139,7 @@ def format_request(name: str, request: PostmanRequest) -> RequestModel:
                 )
             )
 
-    # Add query params to the request, and remove them from the URL.
+    # Add query params to the request (they've been removed from the URL)
     if (
         request.url is not None
         and isinstance(request.url, Url)
