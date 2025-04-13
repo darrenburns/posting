@@ -81,7 +81,7 @@ def extract_server_variables(spec: dict[str, Any]) -> dict[str, dict[str, str]]:
         var_name = f"SERVER_URL_{i}" if i > 0 else "BASE_URL"
         variables[var_name] = {
             "value": server.get("url", ""),
-            "description": f"Server URL {i+1}: {server.get('description', '')}",
+            "description": f"Server URL {i + 1}: {server.get('description', '')}",
         }
 
     return variables
