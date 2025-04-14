@@ -131,6 +131,23 @@ def import_spec(spec_path: str, output: str | None) -> None:
         console.print_exception()
 
 
+@cli.command(name="sponsors")
+def sponsors() -> None:
+    """Show the list of sponsors."""
+    print("Thanks to everyone below who contributed to the development of Posting 🚀\n")
+
+    # Sponsors are added to the list below, name on the left, description on the right
+    sponsors = [
+        ("Michael Howard", "https://github.com/elithper"),
+    ]
+    for sponsor in sponsors:
+        print(f"{sponsor[0]} - {sponsor[1]}")
+
+    print()
+    print("If you'd like to sponsor the development of Posting, please visit:")
+    print("https://github.com/sponsors/darrenburns")
+
+
 def make_posting(
     collection: Path,
     env: tuple[str, ...] = (),
