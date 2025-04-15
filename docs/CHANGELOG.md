@@ -12,7 +12,7 @@
 
 - Exported curl command uses `-d` for form data now, rather than `-F`. The result is exported commands with form data will now use `application/x-www-form-urlencoded` instead of `multipart/form-data` (matching Posting's behaviour). [(#252)](https://github.com/darrenburns/posting/pull/252)
 - Fix attempting to add a protocol before applying variables in the URL bar [(#248)](https://github.com/darrenburns/posting/pull/248)
-
+- Fix script path with custom function [(#254)](https://github.com/darrenburns/posting/pull/254)
 
 ## 2.6.0 [29th March 2025]
 
