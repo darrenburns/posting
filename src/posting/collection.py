@@ -230,6 +230,12 @@ class RequestModel(BaseModel):
                         item.name = template.substitute(variables)
                         template = Template(item.value)
                         item.value = template.substitute(variables)
+                if self.body.multipart_data:
+                    for item in self.body.multipart_data:
+                        template = Template(item.name)
+                        item.name = template.substitute(variables)
+                        template = Template(item.value)
+                        item.value = template.substitute(variables)
 
             for header in self.headers:
                 template = Template(header.name)
@@ -350,6 +356,11 @@ class RequestModel(BaseModel):
             for item in self.body.form_data:
                 if item.enabled:
                     parts.append(f"-d '{item.name}={item.value}'")
+
+        if self.body and self.body.multipart_data:
+            for item in self.body.multipart_data:
+                if item.enabled:
+                    parts.append(f"-F '{item.name}={item.value}'")
 
         if self.auth:
             if self.auth.type == "basic" and self.auth.basic:

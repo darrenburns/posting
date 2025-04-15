@@ -27,6 +27,7 @@ from posting.collection import (
     Collection,
     ExternalDocs,
     FormItem,
+    MultipartItem,
     Header,
     QueryParam,
     RequestBody,
@@ -386,7 +387,16 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                     ).items():
                         form_data.append(FormItem(name=prop_name, value=""))
                     request.body = RequestBody(form_data=form_data)
-
+                elif "multipart/form-data" in content:
+                    multipart_data: list[MultipartItem] = []
+                    body = content["multipart/form-data"]
+                    for prop_name, _prop_schema in (
+                        isinstance(body.media_type_schema, Schema)
+                        and body.media_type_schema.properties
+                        or {}
+                    ).items():
+                        multipart_data.append(MultipartItem(name=prop_name, value=""))
+                    request.body = RequestBody(multipart_data=multipart_data)
             if operation.summary and operation.tags:
                 tag = operation.tags[0]
                 tag_collection = tag_collections.get(tag)

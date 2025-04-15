@@ -9,6 +9,7 @@ import itertools
 from posting.collection import (
     Auth,
     FormItem,
+    MultipartItem,
     Header,
     HttpRequestMethod,
     Options,
@@ -275,11 +276,22 @@ class CurlImport:
         body: RequestBody | None = None
         if self.data or self.form:
             if self.is_form_data:
-                # Use form data pairs from either -F or -d
+                # Use form data pairs from either -d
                 form_data = self.data_pairs
                 body = RequestBody(
                     form_data=[
                         FormItem(name=name, value=value) for name, value in form_data
+                    ]
+                )
+            elif self.is_multipart_data:
+                # Use multipart form data from -F
+                body = RequestBody(
+                    multipart_data=[
+                        MultipartItem(
+                            name=name,
+                            value=value,
+                        )
+                        for name, value in self.form
                     ]
                 )
             else:
