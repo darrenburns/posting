@@ -85,6 +85,12 @@ class QueryParam(BaseModel):
     enabled: bool = Field(default=True)
 
 
+class MultipartItem(BaseModel):
+    name: str
+    value: str
+    enabled: bool = Field(default=True)
+
+
 class Cookie(BaseModel):
     name: str
     value: str
@@ -110,6 +116,9 @@ class RequestBody(BaseModel):
     form_data: list[FormItem] | None = Field(default=None)
     """The form data of the request."""
 
+    multipart_data: list[MultipartItem] | None = Field(default=None)
+    """The multipart form data of the request."""
+
     content_type: str | None = Field(default=None, init=False)
     """We may set an additional header if the content type is known."""
 
@@ -122,6 +131,12 @@ class RequestBody(BaseModel):
             httpx_args["data"] = tuples_to_dict(
                 [(item.name, item.value) for item in self.form_data if item.enabled]
             )
+        if self.multipart_data:
+            # httpx must have at least one file
+            # Multipart Requests Without Attaching Files
+            # https://github.com/encode/httpx/issues/3396#issuecomment-2508142475
+            # TODO: file upload
+            httpx_args["files"] = [(item.name, (None, item.value)) for item in self.multipart_data if item.enabled]
         return httpx_args
 
 
@@ -211,6 +226,12 @@ class RequestModel(BaseModel):
                     self.body.content = template.substitute(variables)
                 if self.body.form_data:
                     for item in self.body.form_data:
+                        template = Template(item.name)
+                        item.name = template.substitute(variables)
+                        template = Template(item.value)
+                        item.value = template.substitute(variables)
+                if self.body.multipart_data:
+                    for item in self.body.multipart_data:
                         template = Template(item.name)
                         item.name = template.substitute(variables)
                         template = Template(item.value)
@@ -335,6 +356,11 @@ class RequestModel(BaseModel):
             for item in self.body.form_data:
                 if item.enabled:
                     parts.append(f"-d '{item.name}={item.value}'")
+
+        if self.body and self.body.multipart_data:
+            for item in self.body.multipart_data:
+                if item.enabled:
+                    parts.append(f"-F '{item.name}={item.value}'")
 
         if self.auth:
             if self.auth.type == "basic" and self.auth.basic:

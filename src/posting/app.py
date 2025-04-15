@@ -832,6 +832,7 @@ class MainScreen(Screen[None]):
                 self.request_body_text_area.text = request_model.body.content
                 self.request_editor.request_body_type_select.value = "text-body-editor"
                 self.request_editor.form_editor.replace_all_rows([])
+                self.request_editor.multipart_editor.replace_all_rows([])
             elif request_model.body.form_data:
                 self.request_editor.form_editor.replace_all_rows(
                     (
@@ -842,10 +843,23 @@ class MainScreen(Screen[None]):
                 )
                 self.request_editor.request_body_type_select.value = "form-body-editor"
                 self.request_body_text_area.text = ""
+                self.request_editor.multipart_editor.replace_all_rows([])
+            elif request_model.body.multipart_data:
+                self.request_editor.multipart_editor.replace_all_rows(
+                    (
+                        (param.name, param.value)
+                        for param in request_model.body.multipart_data
+                    ),
+                    (param.enabled for param in request_model.body.multipart_data),
+                )
+                self.request_editor.request_body_type_select.value = "multipart-body-editor"
+                self.request_body_text_area.text = ""
+                self.request_editor.form_editor.replace_all_rows([])
         else:
             self.request_body_text_area.text = ""
             self.request_editor.form_editor.replace_all_rows([])
             self.request_editor.request_body_type_select.value = "no-body-label"
+            self.request_editor.multipart_editor.replace_all_rows([])
 
         if overwrite_metadata:
             # Sometimes we don't wish to write request metadata, for example, if we're
