@@ -276,12 +276,12 @@ class MainScreen(Screen[None]):
             write_logs_to_ui: Whether to write logs to the UI.
             *args: Arguments to pass to the script function.
         """
-        script_path = Path(path_to_script)
-        path_name_parts = script_path.name.split(":")
+        path_name_parts = path_to_script.split(":")
         if len(path_name_parts) == 2:
             script_path = Path(path_name_parts[0])
             function_name = path_name_parts[1]
         else:
+            script_path = Path(path_to_script)
             function_name = default_function_name
 
         try:
