@@ -221,6 +221,8 @@ class KeyValueEditor(Vertical):
     @on(PostingDataTable.RowSelected)
     def row_selected(self, event: PostingDataTable.RowSelected) -> None:
         """Switch to edit mode when a row is selected."""
+        if getattr(event, "_click_chain", None) != 2:
+            return
         row_key = self.get_row_to_edit()
         if row_key is None:
             return
