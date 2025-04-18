@@ -260,6 +260,7 @@ PostingDataTable {
         self.click_chain = event.chain
         await super()._on_click(event)
         self.click_chain = None
+        event.prevent_default()
 
     def post_message(self, message: Message) -> bool:
         if self.click_chain and isinstance(message, DataTable.RowSelected):
