@@ -41,9 +41,9 @@
 | src/posting/widgets/collection/browser.py             |      314 |       79 |     75% |121, 131, 140, 172, 267, 275, 289-290, 299, 307, 329, 343-345, 362, 366, 371, 435-441, 447-455, 458-483, 490-497, 500-526, 539-540, 654-662 |
 | src/posting/widgets/collection/new\_request\_modal.py |      149 |        6 |     96% |18, 191, 271, 276, 285-289 |
 | src/posting/widgets/confirmation.py                   |       39 |       21 |     46% |51-57, 60-64, 67-72, 76, 80, 84 |
-| src/posting/widgets/datatable.py                      |      173 |       37 |     79% |67, 98, 111, 116, 119-122, 143, 161, 167, 171, 174-186, 194-199, 206-207, 212-213, 225-226, 254-256 |
+| src/posting/widgets/datatable.py                      |      183 |       42 |     77% |68, 99, 112, 117, 120-123, 144, 162, 168, 172, 175-187, 195-200, 207-208, 213-214, 226-227, 255-257, 260-263, 267 |
 | src/posting/widgets/input.py                          |       17 |        1 |     94% |        20 |
-| src/posting/widgets/key\_value.py                     |      202 |       36 |     82% |28, 112-120, 170-173, 184-186, 194-195, 210, 214, 226, 233, 250, 264-271, 274-275, 283-285, 297, 316-327 |
+| src/posting/widgets/key\_value.py                     |      205 |       37 |     82% |28, 112-120, 170-173, 184-186, 194-195, 210, 214, 226, 229, 236, 253, 267-274, 277-278, 286-288, 300, 319-330 |
 | src/posting/widgets/request/\_\_init\_\_.py           |        0 |        0 |    100% |           |
 | src/posting/widgets/request/form\_editor.py           |       31 |        0 |    100% |           |
 | src/posting/widgets/request/header\_editor.py         |       67 |        6 |     91% |   284-289 |
@@ -71,7 +71,7 @@
 | src/posting/widgets/variable\_input.py                |       25 |        0 |    100% |           |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
 | src/posting/yaml.py                                   |       14 |        4 |     71% |6-7, 12-15 |
-|                                             **TOTAL** | **4988** | **1172** | **77%** |           |
+|                                             **TOTAL** | **5001** | **1178** | **76%** |           |
 
 
 ## Setup coverage badge
