@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Iterable, Self
 from rich.style import Style
 from rich.text import Text
-from textual import on
+from textual import on, events
 from textual.app import RenderResult
 from textual.binding import Binding
 from textual.color import Color
@@ -44,6 +44,7 @@ PostingDataTable {
         self.row_disable = False
         """If True, rows will have a checkbox added to them and can be disabled with space bar."""
         self.cursor_foreground_priority = "renderable"
+        self.click_chain = None
 
     @dataclass
     class Checkbox:
@@ -254,6 +255,17 @@ PostingDataTable {
         if self.row_disable:
             event.prevent_default()
             self.toggle_row(event.row_key)
+
+    async def _on_click(self, event: events.Click) -> None:
+        self.click_chain = event.chain
+        await super()._on_click(event)
+        self.click_chain = None
+        event.prevent_default()
+
+    def post_message(self, message: Message) -> bool:
+        if self.click_chain and isinstance(message, DataTable.RowSelected):
+            message._click_chain = self.click_chain
+        return super().post_message(message)
 
     def __rich_repr__(self):
         yield "id", self.id
