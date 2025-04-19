@@ -1,0 +1,1244 @@
+{
+	"info": {
+		"_postman_id": "0d9c66b3-5f1a-42ed-a5ca-379217bd629d",
+		"name": "Fixer",
+		"description": "Powered by 15+ exchange rate data sources, the Fixer API is capable of delivering real-time exchange rate data for 170 world currencies. The API comes with multiple endpoints, each serving a different use case. Endpoint functionalities include getting the latest exchange rate data for all or a specific set of currencies, converting amounts from one currency to another, retrieving Time-Series data for one or multiple currencies and querying the API for daily fluctuation data.\n\n# Quick Start Guide\n\n## Step 1: Your API Access Key\n\nTo get started quickly, you need to fork the Fixer Postman Collection. Simply click the button below to fork it.\n\n[<img src=\"https://run.pstmn.io/button.svg\">](https://god.gw.postman.com/run-collection/10131015-0d9c66b3-5f1a-42ed-a5ca-379217bd629d?action=collection/fork)\n\n### Step 2: Get your API Access Key\n\n1. Go to the [Fixer](https://fixer.io/?utm_source=Postman&utm_medium=Referral) website and choose the right subscription plan for your particular project.\n    \n2. Get your personal API Access Key on the [Dashboard](https://fixer.io/dashboard) to authenticate with the API. Keep it safe! You can reset it at any time in your Account Dashboard.\n    \n\n## Step 3: Make your first API call\n\nFixer Postman collection contains all the endpoints supported by Fixer API.\n\n1. Symbols\n    \n2. Latest Rates\n    \n3. Historical Rates\n    \n4. Specific Symbols\n    \n5. Change Base Currency\n    \n6. Covert\n    \n7. Time Series\n    \n8. Fluctuations\n    \n\nWe recommend you to start with the `Latest Rates` endpoint to get the latest rates of mentioned currency according to the base currency (EUR) or mentioned currency.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "64221",
+		"_collection_link": "https://www.postman.com/apilayer/apilayer/collection/xvuply8/fixer?action=share&source=collection_link&creator=64221"
+	},
+	"item": [
+		{
+			"name": "Symbols",
+			"item": [
+				{
+					"name": "Currencies List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/symbols",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"symbols"
+							]
+						},
+						"description": "Fixer API's symbol endpoint returns a list of all the available currencies."
+					},
+					"response": [
+						{
+							"name": "200 OK – Currencies List",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/symbols?access_key={PASTE_YOUR_API_KEY_HERE}",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"symbols"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 14:00:03 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "a5c6d110-b57a-4605-b6bc-da902592c621"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "etag",
+									"value": "4a9cb6879f6edec160d789bd9905b4f8"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.006"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"symbols\": {\n        \"AED\": \"United Arab Emirates Dirham\",\n        \"AFN\": \"Afghan Afghani\",\n        \"ALL\": \"Albanian Lek\",\n        \"AMD\": \"Armenian Dram\",\n        \"ANG\": \"Netherlands Antillean Guilder\",\n        \"AOA\": \"Angolan Kwanza\",\n        \"ARS\": \"Argentine Peso\",\n        \"AUD\": \"Australian Dollar\",\n        \"AWG\": \"Aruban Florin\",\n        \"AZN\": \"Azerbaijani Manat\",\n        \"BAM\": \"Bosnia-Herzegovina Convertible Mark\",\n        \"BBD\": \"Barbadian Dollar\",\n        \"BDT\": \"Bangladeshi Taka\",\n        \"BGN\": \"Bulgarian Lev\",\n        \"BHD\": \"Bahraini Dinar\",\n        \"BIF\": \"Burundian Franc\",\n        \"BMD\": \"Bermudan Dollar\",\n        \"BND\": \"Brunei Dollar\",\n        \"BOB\": \"Bolivian Boliviano\",\n        \"BRL\": \"Brazilian Real\",\n        \"BSD\": \"Bahamian Dollar\",\n        \"BTC\": \"Bitcoin\",\n        \"BTN\": \"Bhutanese Ngultrum\",\n        \"BWP\": \"Botswanan Pula\",\n        \"BYN\": \"New Belarusian Ruble\",\n        \"BYR\": \"Belarusian Ruble\",\n        \"BZD\": \"Belize Dollar\",\n        \"CAD\": \"Canadian Dollar\",\n        \"CDF\": \"Congolese Franc\",\n        \"CHF\": \"Swiss Franc\",\n        \"CLF\": \"Chilean Unit of Account (UF)\",\n        \"CLP\": \"Chilean Peso\",\n        \"CNY\": \"Chinese Yuan\",\n        \"COP\": \"Colombian Peso\",\n        \"CRC\": \"Costa Rican Colón\",\n        \"CUC\": \"Cuban Convertible Peso\",\n        \"CUP\": \"Cuban Peso\",\n        \"CVE\": \"Cape Verdean Escudo\",\n        \"CZK\": \"Czech Republic Koruna\",\n        \"DJF\": \"Djiboutian Franc\",\n        \"DKK\": \"Danish Krone\",\n        \"DOP\": \"Dominican Peso\",\n        \"DZD\": \"Algerian Dinar\",\n        \"EGP\": \"Egyptian Pound\",\n        \"ERN\": \"Eritrean Nakfa\",\n        \"ETB\": \"Ethiopian Birr\",\n        \"EUR\": \"Euro\",\n        \"FJD\": \"Fijian Dollar\",\n        \"FKP\": \"Falkland Islands Pound\",\n        \"GBP\": \"British Pound Sterling\",\n        \"GEL\": \"Georgian Lari\",\n        \"GGP\": \"Guernsey Pound\",\n        \"GHS\": \"Ghanaian Cedi\",\n        \"GIP\": \"Gibraltar Pound\",\n        \"GMD\": \"Gambian Dalasi\",\n        \"GNF\": \"Guinean Franc\",\n        \"GTQ\": \"Guatemalan Quetzal\",\n        \"GYD\": \"Guyanaese Dollar\",\n        \"HKD\": \"Hong Kong Dollar\",\n        \"HNL\": \"Honduran Lempira\",\n        \"HRK\": \"Croatian Kuna\",\n        \"HTG\": \"Haitian Gourde\",\n        \"HUF\": \"Hungarian Forint\",\n        \"IDR\": \"Indonesian Rupiah\",\n        \"ILS\": \"Israeli New Sheqel\",\n        \"IMP\": \"Manx pound\",\n        \"INR\": \"Indian Rupee\",\n        \"IQD\": \"Iraqi Dinar\",\n        \"IRR\": \"Iranian Rial\",\n        \"ISK\": \"Icelandic Króna\",\n        \"JEP\": \"Jersey Pound\",\n        \"JMD\": \"Jamaican Dollar\",\n        \"JOD\": \"Jordanian Dinar\",\n        \"JPY\": \"Japanese Yen\",\n        \"KES\": \"Kenyan Shilling\",\n        \"KGS\": \"Kyrgystani Som\",\n        \"KHR\": \"Cambodian Riel\",\n        \"KMF\": \"Comorian Franc\",\n        \"KPW\": \"North Korean Won\",\n        \"KRW\": \"South Korean Won\",\n        \"KWD\": \"Kuwaiti Dinar\",\n        \"KYD\": \"Cayman Islands Dollar\",\n        \"KZT\": \"Kazakhstani Tenge\",\n        \"LAK\": \"Laotian Kip\",\n        \"LBP\": \"Lebanese Pound\",\n        \"LKR\": \"Sri Lankan Rupee\",\n        \"LRD\": \"Liberian Dollar\",\n        \"LSL\": \"Lesotho Loti\",\n        \"LTL\": \"Lithuanian Litas\",\n        \"LVL\": \"Latvian Lats\",\n        \"LYD\": \"Libyan Dinar\",\n        \"MAD\": \"Moroccan Dirham\",\n        \"MDL\": \"Moldovan Leu\",\n        \"MGA\": \"Malagasy Ariary\",\n        \"MKD\": \"Macedonian Denar\",\n        \"MMK\": \"Myanma Kyat\",\n        \"MNT\": \"Mongolian Tugrik\",\n        \"MOP\": \"Macanese Pataca\",\n        \"MRU\": \"Mauritanian Ouguiya\",\n        \"MUR\": \"Mauritian Rupee\",\n        \"MVR\": \"Maldivian Rufiyaa\",\n        \"MWK\": \"Malawian Kwacha\",\n        \"MXN\": \"Mexican Peso\",\n        \"MYR\": \"Malaysian Ringgit\",\n        \"MZN\": \"Mozambican Metical\",\n        \"NAD\": \"Namibian Dollar\",\n        \"NGN\": \"Nigerian Naira\",\n        \"NIO\": \"Nicaraguan Córdoba\",\n        \"NOK\": \"Norwegian Krone\",\n        \"NPR\": \"Nepalese Rupee\",\n        \"NZD\": \"New Zealand Dollar\",\n        \"OMR\": \"Omani Rial\",\n        \"PAB\": \"Panamanian Balboa\",\n        \"PEN\": \"Peruvian Nuevo Sol\",\n        \"PGK\": \"Papua New Guinean Kina\",\n        \"PHP\": \"Philippine Peso\",\n        \"PKR\": \"Pakistani Rupee\",\n        \"PLN\": \"Polish Zloty\",\n        \"PYG\": \"Paraguayan Guarani\",\n        \"QAR\": \"Qatari Rial\",\n        \"RON\": \"Romanian Leu\",\n        \"RSD\": \"Serbian Dinar\",\n        \"RUB\": \"Russian Ruble\",\n        \"RWF\": \"Rwandan Franc\",\n        \"SAR\": \"Saudi Riyal\",\n        \"SBD\": \"Solomon Islands Dollar\",\n        \"SCR\": \"Seychellois Rupee\",\n        \"SDG\": \"South Sudanese Pound\",\n        \"SEK\": \"Swedish Krona\",\n        \"SGD\": \"Singapore Dollar\",\n        \"SHP\": \"Saint Helena Pound\",\n        \"SLE\": \"Sierra Leonean Leone\",\n        \"SLL\": \"Sierra Leonean Leone\",\n        \"SOS\": \"Somali Shilling\",\n        \"SRD\": \"Surinamese Dollar\",\n        \"STD\": \"São Tomé and Príncipe Dobra\",\n        \"SVC\": \"Salvadoran Colón\",\n        \"SYP\": \"Syrian Pound\",\n        \"SZL\": \"Swazi Lilangeni\",\n        \"THB\": \"Thai Baht\",\n        \"TJS\": \"Tajikistani Somoni\",\n        \"TMT\": \"Turkmenistani Manat\",\n        \"TND\": \"Tunisian Dinar\",\n        \"TOP\": \"Tongan Paʻanga\",\n        \"TRY\": \"Turkish Lira\",\n        \"TTD\": \"Trinidad and Tobago Dollar\",\n        \"TWD\": \"New Taiwan Dollar\",\n        \"TZS\": \"Tanzanian Shilling\",\n        \"UAH\": \"Ukrainian Hryvnia\",\n        \"UGX\": \"Ugandan Shilling\",\n        \"USD\": \"United States Dollar\",\n        \"UYU\": \"Uruguayan Peso\",\n        \"UZS\": \"Uzbekistan Som\",\n        \"VEF\": \"Venezuelan Bolívar Fuerte\",\n        \"VES\": \"Sovereign Bolivar\",\n        \"VND\": \"Vietnamese Dong\",\n        \"VUV\": \"Vanuatu Vatu\",\n        \"WST\": \"Samoan Tala\",\n        \"XAF\": \"CFA Franc BEAC\",\n        \"XAG\": \"Silver (troy ounce)\",\n        \"XAU\": \"Gold (troy ounce)\",\n        \"XCD\": \"East Caribbean Dollar\",\n        \"XDR\": \"Special Drawing Rights\",\n        \"XOF\": \"CFA Franc BCEAO\",\n        \"XPF\": \"CFP Franc\",\n        \"YER\": \"Yemeni Rial\",\n        \"ZAR\": \"South African Rand\",\n        \"ZMK\": \"Zambian Kwacha (pre-2013)\",\n        \"ZMW\": \"Zambian Kwacha\",\n        \"ZWL\": \"Zimbabwean Dollar\"\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "The Fixer API comes with a constantly updated endpoint returning all available currencies. To access this list, make a request to the API's `symbols` endpoint."
+		},
+		{
+			"name": "Latest Rates",
+			"item": [
+				{
+					"name": "Latest Rates of single currency",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/latest?base=USD&symbols=INR",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"latest"
+							],
+							"query": [
+								{
+									"key": "base",
+									"value": "USD",
+									"description": "[optional] Enter the three-letter currency code of your preferred base currency.\n"
+								},
+								{
+									"key": "symbols",
+									"value": "INR",
+									"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+								}
+							]
+						},
+						"description": "Depending on your subscription plan, the API's `latest` endpoint will return real-time exchange rate data updated every 60 minutes, every 10 minutes or every 60 seconds."
+					},
+					"response": [
+						{
+							"name": "200 OK – Latest Rates of single currency",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/latest?access_key={PASTE_YOUR_API_KEY_HERE}&base=USD&symbols=INR",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"latest"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": "base",
+											"value": "USD",
+											"description": "[optional] Enter the three-letter currency code of your preferred base currency.\n"
+										},
+										{
+											"key": "symbols",
+											"value": "INR",
+											"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 14:03:11 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "9990df89-64fb-458b-9066-4584933dabb4"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "last-modified",
+									"value": "Tue, 19 Mar 2024 14:03:03 GMT"
+								},
+								{
+									"key": "etag",
+									"value": "9dcd85a6be21bd44feb86dd73b6caa77"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.011"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"timestamp\": 1710856983,\n    \"base\": \"USD\",\n    \"date\": \"2024-03-19\",\n    \"rates\": {\n        \"INR\": 83.01835\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Latest Rates of multiple currency",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/latest? base=USD&symbols=GBP,JPY,EUR",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"latest"
+							],
+							"query": [
+								{
+									"key": " base",
+									"value": "USD",
+									"description": "[optional] Enter the three-letter currency code of your preferred base currency.\n"
+								},
+								{
+									"key": "symbols",
+									"value": "GBP,JPY,EUR",
+									"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+								}
+							]
+						},
+						"description": "Depending on your subscription plan, the API's `latest` endpoint will return real-time exchange rate data updated every 60 minutes, every 10 minutes or every 60 seconds."
+					},
+					"response": [
+						{
+							"name": "200 OK – Latest Rates of multiple currency",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/latest?access_key={PASTE_YOUR_API_KEY_HERE}& base=USD&symbols=GBP,JPY,EUR",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"latest"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": " base",
+											"value": "USD",
+											"description": "[optional] Enter the three-letter currency code of your preferred base currency.\n"
+										},
+										{
+											"key": "symbols",
+											"value": "GBP,JPY,EUR",
+											"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 14:05:44 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "5a51d227-c08d-4f41-ae81-1a23e57e951d"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "last-modified",
+									"value": "Tue, 19 Mar 2024 14:05:04 GMT"
+								},
+								{
+									"key": "etag",
+									"value": "bfb246e3eff6608cdfa4249e33e640d6"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.009"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"timestamp\": 1710857104,\n    \"base\": \"USD\",\n    \"date\": \"2024-03-19\",\n    \"rates\": {\n        \"GBP\": 0.78741,\n        \"JPY\": 150.687984,\n        \"EUR\": 0.921205\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "Fixer API's `latest` endpoint will return real-time exchange rate data updated every 60 minutes, every 10 minutes or every 60 seconds."
+		},
+		{
+			"name": "Historial Rates",
+			"item": [
+				{
+					"name": "Historical Rates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/2013-12-24?base=USD&symbols=INR",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"2013-12-24"
+							],
+							"query": [
+								{
+									"key": "base",
+									"value": "USD",
+									"description": "[optional] Enter the three-letter currency code of your preferred base currency.\n"
+								},
+								{
+									"key": "symbols",
+									"value": "INR",
+									"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+								}
+							]
+						},
+						"description": "Historical rates are available for most currencies all the way back to the year of 1999. You can query the Fixer API for historical rates by appending a date (format `YYYY-MM-DD`) to the base URL."
+					},
+					"response": [
+						{
+							"name": "200 OK – Historical Rates",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/2013-12-24?access_key={PASTE_YOUR_API_KEY_HERE}&base=USD&symbols=INR",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"2013-12-24"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": "base",
+											"value": "USD",
+											"description": "[optional] Enter the three-letter currency code of your preferred base currency.\n"
+										},
+										{
+											"key": "symbols",
+											"value": "INR",
+											"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 14:14:42 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "4605c076-2696-4f3e-ad29-0ce88b287730"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "last-modified",
+									"value": "Tue, 24 Dec 2013 23:59:59 GMT"
+								},
+								{
+									"key": "etag",
+									"value": "7e79f2cfe912da36f23083f8660dd68f"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.011"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"timestamp\": 1387929599,\n    \"historical\": true,\n    \"base\": \"USD\",\n    \"date\": \"2013-12-24\",\n    \"rates\": {\n        \"INR\": 61.78381\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "Historical rates are available for most currencies all the way back to the year of 1999. You can query the Fixer API for historical rates by appending a date (format `YYYY-MM-DD`) to the base URL."
+		},
+		{
+			"name": "Specific Symbols",
+			"item": [
+				{
+					"name": "Specific Currencies Rate",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/latest?symbols=USD,CAD,JPY",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"latest"
+							],
+							"query": [
+								{
+									"key": "symbols",
+									"value": "USD,CAD,JPY",
+									"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+								}
+							]
+						},
+						"description": "To reduce bandwidth you can limit the number of output currencies to a specific set of your choice on most API endpoints. To do so, simply append the Fixer API's `symbols` parameter to your API request and set it to one or more comma-separated currency codes."
+					},
+					"response": [
+						{
+							"name": "200 OK – Specific Currencies Rates",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/latest?access_key={PASTE_YOUR_API_KEY_HERE}&symbols=USD,CAD,JPY",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"latest"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": "symbols",
+											"value": "USD,CAD,JPY",
+											"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 14:17:41 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "ac193b46-01ee-480a-b211-80df06c8d996"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "last-modified",
+									"value": "Tue, 19 Mar 2024 14:17:04 GMT"
+								},
+								{
+									"key": "etag",
+									"value": "b64fe09c440d652171991e6adef38427"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.009"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"timestamp\": 1710857824,\n    \"base\": \"EUR\",\n    \"date\": \"2024-03-19\",\n    \"rates\": {\n        \"USD\": 1.086124,\n        \"CAD\": 1.477482,\n        \"JPY\": 163.643091\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "To reduce bandwidth you can limit the number of output currencies to a specific set of your choice on most API endpoints. To do so, simply append the Fixer API's `symbols` parameter to your API request and set it to one or more comma-separated currency codes."
+		},
+		{
+			"name": "Change Base Currency",
+			"item": [
+				{
+					"name": "Change base currency",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/latest?base=USD",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"latest"
+							],
+							"query": [
+								{
+									"key": "base",
+									"value": "USD",
+									"description": "[optional] Enter the three-letter currency code of your preferred base currency.\n"
+								}
+							]
+						},
+						"description": "You can change the currency to which your output currency rates are relative to by appending the `base` parameter to your API request URL and setting it to the three-letter code of your preferred base currency."
+					},
+					"response": [
+						{
+							"name": "200 OK – Change base currency",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/latest?access_key={PASTE_YOUR_API_KEY_HERE}&base=USD",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"latest"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": "base",
+											"value": "USD",
+											"description": "[optional] Enter the three-letter currency code of your preferred base currency.\n"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 15:34:22 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "74ba3ad2-a2dc-4a66-bf23-4ac6ff5b1996"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "last-modified",
+									"value": "Tue, 19 Mar 2024 15:34:05 GMT"
+								},
+								{
+									"key": "etag",
+									"value": "5d424e42a6b7b264261d0717209dc7e3"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.012"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"timestamp\": 1710862445,\n    \"base\": \"USD\",\n    \"date\": \"2024-03-19\",\n    \"rates\": {\n        \"AED\": 3.672403,\n        \"AFN\": 71.265629,\n        \"ALL\": 95.213955,\n        \"AMD\": 402.331958,\n        \"ANG\": 1.802429,\n        \"AOA\": 832.633032,\n        \"ARS\": 852.753905,\n        \"AUD\": 1.531394,\n        \"AWG\": 1.8,\n        \"AZN\": 1.697294,\n        \"BAM\": 1.802655,\n        \"BBD\": 2.019254,\n        \"BDT\": 109.75621,\n        \"BGN\": 1.801798,\n        \"BHD\": 0.376877,\n        \"BIF\": 2860.592654,\n        \"BMD\": 1,\n        \"BND\": 1.342089,\n        \"BOB\": 6.911077,\n        \"BRL\": 5.025199,\n        \"BSD\": 1.000041,\n        \"BTC\": 0.000015759735,\n        \"BTN\": 83.028596,\n        \"BWP\": 13.718541,\n        \"BYN\": 3.272317,\n        \"BYR\": 19600,\n        \"BZD\": 2.015844,\n        \"CAD\": 1.359035,\n        \"CDF\": 2773.000062,\n        \"CHF\": 0.88837,\n        \"CLF\": 0.034982,\n        \"CLP\": 965.200977,\n        \"CNY\": 7.199298,\n        \"COP\": 3892.29,\n        \"CRC\": 502.799733,\n        \"CUC\": 1,\n        \"CUP\": 26.5,\n        \"CVE\": 101.630943,\n        \"CZK\": 23.286604,\n        \"DJF\": 178.091156,\n        \"DKK\": 6.869699,\n        \"DOP\": 59.027122,\n        \"DZD\": 134.599405,\n        \"EGP\": 47.050201,\n        \"ERN\": 15,\n        \"ETB\": 56.799779,\n        \"EUR\": 0.92124,\n        \"FJD\": 2.26815,\n        \"FKP\": 0.78544,\n        \"GBP\": 0.78712,\n        \"GEL\": 2.679878,\n        \"GGP\": 0.78544,\n        \"GHS\": 13.018411,\n        \"GIP\": 0.78544,\n        \"GMD\": 67.92498,\n        \"GNF\": 8596.709526,\n        \"GTQ\": 7.800539,\n        \"GYD\": 209.452266,\n        \"HKD\": 7.822065,\n        \"HNL\": 24.695033,\n        \"HRK\": 6.882375,\n        \"HTG\": 132.586144,\n        \"HUF\": 363.670971,\n        \"IDR\": 15740.8,\n        \"ILS\": 3.67315,\n        \"IMP\": 0.78544,\n        \"INR\": 83.02555,\n        \"IQD\": 1310.106457,\n        \"IRR\": 42034.999801,\n        \"ISK\": 137.179945,\n        \"JEP\": 0.78544,\n        \"JMD\": 154.093601,\n        \"JOD\": 0.7089,\n        \"JPY\": 150.775991,\n        \"KES\": 132.497187,\n        \"KGS\": 89.510254,\n        \"KHR\": 4048.094161,\n        \"KMF\": 452.950526,\n        \"KPW\": 899.97938,\n        \"KRW\": 1338.929755,\n        \"KWD\": 0.30751,\n        \"KYD\": 0.833399,\n        \"KZT\": 451.753537,\n        \"LAK\": 20925.870452,\n        \"LBP\": 89558.264396,\n        \"LKR\": 303.977142,\n        \"LRD\": 192.649748,\n        \"LSL\": 18.949797,\n        \"LTL\": 2.95274,\n        \"LVL\": 0.60489,\n        \"LYD\": 4.820476,\n        \"MAD\": 10.046777,\n        \"MDL\": 17.726571,\n        \"MGA\": 4495.241607,\n        \"MKD\": 56.761599,\n        \"MMK\": 2100.17927,\n        \"MNT\": 3400.292164,\n        \"MOP\": 8.058437,\n        \"MRU\": 39.914989,\n        \"MUR\": 46.08936,\n        \"MVR\": 15.405027,\n        \"MWK\": 1683.526511,\n        \"MXN\": 16.86776,\n        \"MYR\": 4.732997,\n        \"MZN\": 63.499756,\n        \"NAD\": 18.969783,\n        \"NGN\": 1477.249886,\n        \"NIO\": 36.803539,\n        \"NOK\": 10.647498,\n        \"NPR\": 132.846049,\n        \"NZD\": 1.65241,\n        \"OMR\": 0.384942,\n        \"PAB\": 1.000041,\n        \"PEN\": 3.70127,\n        \"PGK\": 3.769742,\n        \"PHP\": 55.921979,\n        \"PKR\": 278.65069,\n        \"PLN\": 3.98115,\n        \"PYG\": 7303.730673,\n        \"QAR\": 3.64075,\n        \"RON\": 4.582198,\n        \"RSD\": 107.992059,\n        \"RUB\": 91.449759,\n        \"RWF\": 1284.200727,\n        \"SAR\": 3.75034,\n        \"SBD\": 8.475185,\n        \"SCR\": 13.543068,\n        \"SDG\": 585.999997,\n        \"SEK\": 10.44705,\n        \"SGD\": 1.34213,\n        \"SHP\": 1.272979,\n        \"SLE\": 22.592355,\n        \"SLL\": 22592.354936,\n        \"SOS\": 571.50088,\n        \"SRD\": 35.2385,\n        \"STD\": 20697.981008,\n        \"SVC\": 8.750593,\n        \"SYP\": 13001.807992,\n        \"SZL\": 18.976911,\n        \"THB\": 36.08031,\n        \"TJS\": 10.970989,\n        \"TMT\": 3.51,\n        \"TND\": 3.10275,\n        \"TOP\": 2.368982,\n        \"TRY\": 32.344298,\n        \"TTD\": 6.788488,\n        \"TWD\": 31.793503,\n        \"TZS\": 2549.999971,\n        \"UAH\": 39.157384,\n        \"UGX\": 3880.345268,\n        \"USD\": 1,\n        \"UYU\": 38.471642,\n        \"UZS\": 12562.733017,\n        \"VEF\": 3624928.073833,\n        \"VES\": 36.219996,\n        \"VND\": 24750,\n        \"VUV\": 119.91961,\n        \"WST\": 2.751039,\n        \"XAF\": 604.593739,\n        \"XAG\": 0.040067,\n        \"XAU\": 0.000464,\n        \"XCD\": 2.70255,\n        \"XDR\": 0.751002,\n        \"XOF\": 604.593739,\n        \"XPF\": 110.15002,\n        \"YER\": 250.349832,\n        \"ZAR\": 18.936703,\n        \"ZMK\": 9001.186468,\n        \"ZMW\": 25.727124,\n        \"ZWL\": 321.999592\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "Provided changing base currency is supported on your subscription plan, you can change the currency to which your output currency rates are relative to by appending the `base` parameter to your API request URL and setting it to the three-letter code of your preferred base currency.\n\nCheck out the basic GET request inside this folder."
+		},
+		{
+			"name": "Convert",
+			"item": [
+				{
+					"name": "Convert according to latest rates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/convert?from=USD&to=INR&amount=100",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"convert"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "USD",
+									"description": "[required] The three-letter currency code of the currency you would like to convert from.\n"
+								},
+								{
+									"key": "to",
+									"value": "INR"
+								},
+								{
+									"key": "amount",
+									"value": "100",
+									"description": "[required] The amount to be converted.\n"
+								}
+							]
+						},
+						"description": "Using `convert` endpoint, you can convert any amount from one currency to another based on the latest rates or historical rates."
+					},
+					"response": [
+						{
+							"name": "200 OK – Convert according to latest rates",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/convert?access_key={PASTE_YOUR_API_KEY_HERE}&from=USD& to=INR&amount=100",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"convert"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": "from",
+											"value": "USD",
+											"description": "[required] The three-letter currency code of the currency you would like to convert from.\n"
+										},
+										{
+											"key": " to",
+											"value": "INR",
+											"description": "[required] The three-letter currency code of the currency you would like to convert to.\n"
+										},
+										{
+											"key": "amount",
+											"value": "100",
+											"description": "[optional] Specify a date (format YYYY-MM-DD) to use historical rates for this conversion."
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 15:39:22 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "b67084af-3ba9-4ebf-814e-659abe3a918b"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "etag",
+									"value": "2fea930f725fa93e65644694c9f201e3"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.009"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"query\": {\n        \"from\": \"USD\",\n        \"to\": \"INR\",\n        \"amount\": 100\n    },\n    \"info\": {\n        \"timestamp\": 1710862743,\n        \"rate\": 83.01935\n    },\n    \"date\": \"2024-03-19\",\n    \"result\": 8301.935\n}"
+						}
+					]
+				},
+				{
+					"name": "Convert according to historical rates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/convert?from=USD&to=INR&amount=100&date=1999-08-14",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"convert"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "USD",
+									"description": "[required] The three-letter currency code of the currency you would like to convert from.\n"
+								},
+								{
+									"key": "to",
+									"value": "INR"
+								},
+								{
+									"key": "amount",
+									"value": "100",
+									"description": "[required] The amount to be converted.\n"
+								},
+								{
+									"key": "date",
+									"value": "1999-08-14",
+									"description": "[optional] Specify a date (format YYYY-MM-DD) to use historical rates for this conversion."
+								}
+							]
+						},
+						"description": "Using `convert` endpoint, you can convert any amount from one currency to another based on the latest rates or historical rates."
+					},
+					"response": [
+						{
+							"name": "200 OK – Convert according to historical rates",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/convert?access_key={PASTE_YOUR_API_KEY_HERE}&from=USD&to=INR&amount=100&date=1999-08-14",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"convert"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": "from",
+											"value": "USD",
+											"description": "[required] The three-letter currency code of the currency you would like to convert from.\n"
+										},
+										{
+											"key": "to",
+											"value": "INR"
+										},
+										{
+											"key": "amount",
+											"value": "100",
+											"description": "[required] The amount to be converted.\n"
+										},
+										{
+											"key": "date",
+											"value": "1999-08-14",
+											"description": "[optional] Specify a date (format YYYY-MM-DD) to use historical rates for this conversion."
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 15:46:03 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "7638dccc-aa07-4070-9ee6-f288d7ee2a73"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "etag",
+									"value": "b15df7337e33b47189142eb5b5ddf689"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.008"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"query\": {\n        \"from\": \"USD\",\n        \"to\": \"INR\",\n        \"amount\": 100\n    },\n    \"info\": {\n        \"timestamp\": 934675199,\n        \"rate\": 43.49913\n    },\n    \"date\": \"1999-08-14\",\n    \"historical\": true,\n    \"result\": 4349.913\n}"
+						}
+					]
+				}
+			],
+			"description": "The Fixer API comes with a separate currency conversion endpoint, which can be used to convert any amount from one currency to another. In order to convert currencies, please use the API's `convert` endpoint, append the `from` and `to` parameters and set them to your preferred base and target currency codes.\n\nIt is also possible to convert currencies using historical exchange rate data. To do this, please also use the API's `date parameter` and set it to your preferred date. (format `YYYY-MM-DD`)"
+		},
+		{
+			"name": "Time Series",
+			"item": [
+				{
+					"name": "Rates b/w two dates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/timeseries?symbols=USD,EUR&start_date=2012-05-01&end_date=2012-05-25",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"timeseries"
+							],
+							"query": [
+								{
+									"key": "symbols",
+									"value": "USD,EUR",
+									"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+								},
+								{
+									"key": "start_date",
+									"value": "2012-05-01",
+									"description": "[required] The start date of your preferred timeframe.\n"
+								},
+								{
+									"key": "end_date",
+									"value": "2012-05-25",
+									"description": "[required] The end date of your preferred timeframe.\n"
+								}
+							]
+						},
+						"description": "If supported by your subscription plan, the Fixer API's `timeseries` endpoint lets you query the API for daily historical rates between two dates of your choice, with a maximum time frame of 365 days."
+					},
+					"response": [
+						{
+							"name": "200 OK – Rates b/w two dates",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/timeseries?access_key={PASTE_YOUR_API_KEY_HERE}&symbols=USD,EUR&start_date=2012-05-01&end_date=2012-05-25",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"timeseries"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": "symbols",
+											"value": "USD,EUR",
+											"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+										},
+										{
+											"key": "start_date",
+											"value": "2012-05-01",
+											"description": "[required] The start date of your preferred timeframe.\n"
+										},
+										{
+											"key": "end_date",
+											"value": "2012-05-25",
+											"description": "[required] The end date of your preferred timeframe.\n"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 15:48:57 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "5cf8855e-8d3d-4ebc-9882-555f23ca8b41"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "etag",
+									"value": "2f4fba675530a12a97b6529e13623687"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.038"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"timeseries\": true,\n    \"start_date\": \"2012-05-01\",\n    \"end_date\": \"2012-05-25\",\n    \"base\": \"EUR\",\n    \"rates\": {\n        \"2012-05-01\": {\n            \"USD\": 1.322891,\n            \"EUR\": 1\n        },\n        \"2012-05-02\": {\n            \"USD\": 1.315066,\n            \"EUR\": 1\n        },\n        \"2012-05-03\": {\n            \"USD\": 1.314491,\n            \"EUR\": 1\n        },\n        \"2012-05-04\": {\n            \"USD\": 1.309598,\n            \"EUR\": 1\n        },\n        \"2012-05-05\": {\n            \"USD\": 1.310795,\n            \"EUR\": 1\n        },\n        \"2012-05-06\": {\n            \"USD\": 1.310795,\n            \"EUR\": 1\n        },\n        \"2012-05-07\": {\n            \"USD\": 1.305192,\n            \"EUR\": 1\n        },\n        \"2012-05-08\": {\n            \"USD\": 1.301463,\n            \"EUR\": 1\n        },\n        \"2012-05-09\": {\n            \"USD\": 1.294599,\n            \"EUR\": 1\n        },\n        \"2012-05-10\": {\n            \"USD\": 1.295035,\n            \"EUR\": 1\n        },\n        \"2012-05-11\": {\n            \"USD\": 1.293056,\n            \"EUR\": 1\n        },\n        \"2012-05-12\": {\n            \"USD\": 1.293268,\n            \"EUR\": 1\n        },\n        \"2012-05-13\": {\n            \"USD\": 1.293268,\n            \"EUR\": 1\n        },\n        \"2012-05-14\": {\n            \"USD\": 1.284365,\n            \"EUR\": 1\n        },\n        \"2012-05-15\": {\n            \"USD\": 1.276179,\n            \"EUR\": 1\n        },\n        \"2012-05-16\": {\n            \"USD\": 1.272686,\n            \"EUR\": 1\n        },\n        \"2012-05-17\": {\n            \"USD\": 1.269783,\n            \"EUR\": 1\n        },\n        \"2012-05-18\": {\n            \"USD\": 1.273209,\n            \"EUR\": 1\n        },\n        \"2012-05-19\": {\n            \"USD\": 1.274101,\n            \"EUR\": 1\n        },\n        \"2012-05-20\": {\n            \"USD\": 1.274101,\n            \"EUR\": 1\n        },\n        \"2012-05-21\": {\n            \"USD\": 1.278812,\n            \"EUR\": 1\n        },\n        \"2012-05-22\": {\n            \"USD\": 1.271223,\n            \"EUR\": 1\n        },\n        \"2012-05-23\": {\n            \"USD\": 1.25921,\n            \"EUR\": 1\n        },\n        \"2012-05-24\": {\n            \"USD\": 1.255457,\n            \"EUR\": 1\n        },\n        \"2012-05-25\": {\n            \"USD\": 1.252213,\n            \"EUR\": 1\n        }\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "If supported by your subscription plan, the Fixer API's `timeseries` endpoint lets you query the API for daily historical rates between two dates of your choice, with a maximum time frame of 365 days."
+		},
+		{
+			"name": "Fluctuation",
+			"item": [
+				{
+					"name": "Fluctuation b/w two dates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://data.fixer.io/api/fluctuation?symbols=USD&start_date=2015-12-01&end_date=2016-05-24",
+							"protocol": "https",
+							"host": [
+								"data",
+								"fixer",
+								"io"
+							],
+							"path": [
+								"api",
+								"fluctuation"
+							],
+							"query": [
+								{
+									"key": "symbols",
+									"value": "USD",
+									"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+								},
+								{
+									"key": "start_date",
+									"value": "2015-12-01",
+									"description": "[required] The start date of your preferred fluctuation timeframe.\n"
+								},
+								{
+									"key": "end_date",
+									"value": "2016-05-24",
+									"description": "[required] The end date of your preferred fluctuation timeframe.\n"
+								}
+							]
+						},
+						"description": "Using the Fixer API's `fluctuation` endpoint you will be able to retrieve information about how currencies fluctuate on a day-to-day basis. To use this feature, simply append a `start_date` and `end_date` and choose which currencies (symbols) you would like to query the API for. Please note that the maximum allowed timeframe is 365 days."
+					},
+					"response": [
+						{
+							"name": "200 OK – Fluctuation b/w two dates",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://data.fixer.io/api/fluctuation?access_key={PASTE_YOUR_API_KEY_HERE}&symbols=USD&start_date=2015-12-01&end_date=2016-05-24",
+									"protocol": "https",
+									"host": [
+										"data",
+										"fixer",
+										"io"
+									],
+									"path": [
+										"api",
+										"fluctuation"
+									],
+									"query": [
+										{
+											"key": "access_key",
+											"value": "{PASTE_YOUR_API_KEY_HERE}",
+											"description": "[Required] Specify your API access key, available in your account dashboard.\n"
+										},
+										{
+											"key": "symbols",
+											"value": "USD",
+											"description": "[optional] Enter a list of comma-separated currency codes to limit output currencies."
+										},
+										{
+											"key": "start_date",
+											"value": "2015-12-01",
+											"description": "[required] The start date of your preferred fluctuation timeframe.\n"
+										},
+										{
+											"key": "end_date",
+											"value": "2016-05-24",
+											"description": "[required] The end date of your preferred fluctuation timeframe.\n"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "date",
+									"value": "Tue, 19 Mar 2024 15:54:46 GMT"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; Charset=UTF-8"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "x-apilayer-transaction-id",
+									"value": "e680afc7-8860-46b6-9e14-1e7006231134"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+								},
+								{
+									"key": "etag",
+									"value": "0947f20b73d8c2f8133978d942911701"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-request-time",
+									"value": "0.008"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"fluctuation\": true,\n    \"start_date\": \"2015-12-01\",\n    \"end_date\": \"2016-05-24\",\n    \"base\": \"EUR\",\n    \"rates\": {\n        \"USD\": {\n            \"start_rate\": 1.062855,\n            \"end_rate\": 1.114116,\n            \"change\": 0.0513,\n            \"change_pct\": 4.823\n        }\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "Using the Fixer API's `fluctuation` endpoint you will be able to retrieve information about how currencies fluctuate on a day-to-day basis. To use this feature, simply append a `start_date` and `end_date` and choose which currencies (symbols) you would like to query the API for. Please note that the maximum allowed timeframe is 365 days."
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "in",
+				"value": "query",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "{{access_key}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "access_key",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "access_key",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

@@ -12,6 +12,7 @@ wheels/
 # editor
 .vscode/
 .idea/
+pyrightconfig.json
 
 snapshot_report.html
 *.afdesign
