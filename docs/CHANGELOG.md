@@ -1,18 +1,26 @@
-## 2.7.0 [Unreleased]
+## 2.7.0 [19th April 2025]
 
 ### Added
 
-- `posting.env` files in the current directory will automatically be loaded if no `--env` options are provided.
+- Collections can now be imported from Postman [(#106)](https://github.com/darrenburns/posting/pull/106)
+- `posting.env` files in the current directory will automatically be loaded if no `--env` options are provided [(#249)](https://github.com/darrenburns/posting/pull/249)
 - Generate JSON body with default values after importing OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
 - Use tags to separate sub-collections in OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
 - curl import now handles various different data options [(#252)](https://github.com/darrenburns/posting/pull/252)
-- Added `-c` shorthand alias for `--collection` option. [(#249)](https://github.com/darrenburns/posting/pull/249)
+- Added `-c` shorthand alias for `--collection` option [(#250)](https://github.com/darrenburns/posting/pull/250)
+- Added `posting sponsors` command, which lists people who have supported Posting via GitHub Sponsors (specific sponsor tiers only). [(#253)](https://github.com/darrenburns/posting/pull/253)
+
+### Changed
+
+- A double-click rather than a single-click is now required to enter edit mode inside data tables (e.g. headers, query params, etc.) [(#256)](https://github.com/darrenburns/posting/pull/256)
+- In the body editor, the `Form data` menu item now shows `(x-www-form-urlencoded)` after the label, to suggest the type of data being sent. [(#259)](https://github.com/darrenburns/posting/pull/259)
 
 ### Fixed
 
 - Exported curl command uses `-d` for form data now, rather than `-F`. The result is exported commands with form data will now use `application/x-www-form-urlencoded` instead of `multipart/form-data` (matching Posting's behaviour). [(#252)](https://github.com/darrenburns/posting/pull/252)
 - Fix attempting to add a protocol before applying variables in the URL bar [(#248)](https://github.com/darrenburns/posting/pull/248)
 - Fix script path with custom function [(#254)](https://github.com/darrenburns/posting/pull/254)
+- Fixed Posting's default `User-Agent` header not being used [(#259)](https://github.com/darrenburns/posting/pull/259)
 
 ## 2.6.0 [29th March 2025]
 
