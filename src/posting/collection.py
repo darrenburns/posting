@@ -263,13 +263,11 @@ class RequestModel(BaseModel):
 
     def to_httpx(self, client: httpx.AsyncClient) -> httpx.Request:
         """Convert the request model to an httpx request."""
-        headers = httpx.Headers(
-            {
-                header.name: header.value
-                for header in self.headers
-                if header.enabled and header.name.lower() != "content-type"
-            }
-        )
+        headers = httpx.Headers([
+            (header.name, header.value)
+            for header in self.headers
+            if header.enabled and header.name.lower() != "content-type"
+        ])
 
         httpx_args = self.body.to_httpx_args() if self.body else {}
 
