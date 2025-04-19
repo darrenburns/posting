@@ -436,7 +436,9 @@ class MainScreen(Screen[None]):
                 request = self.build_httpx_request(request_model, client)
 
                 # Prioritise user-defined `User-Agent` header over Posting's default.
-                if "User-Agent" not in request.headers:
+                if "User-Agent" not in request.headers or request.headers.get(
+                    "user-agent", ""
+                ).startswith("python-httpx"):
                     request.headers["User-Agent"] = (
                         f"Posting/{VERSION} (Terminal-based API client)"
                     )
