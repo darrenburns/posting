@@ -56,10 +56,10 @@
 .terminal-r22 { fill: #190b21;font-weight: bold }
 .terminal-r23 { fill: #525258 }
 .terminal-r24 { fill: #c45aff }
-.terminal-r25 { fill: #7b7b7b }
-.terminal-r26 { fill: #7b7b7b;font-weight: bold }
+.terminal-r25 { fill: #858584 }
+.terminal-r26 { fill: #858584;font-weight: bold }
 .terminal-r27 { fill: #403e62 }
-.terminal-r28 { fill: #9a9a9c;font-weight: bold }
+.terminal-r28 { fill: #a7a7a6;font-weight: bold }
 .terminal-r29 { fill: #98e024 }
 .terminal-r30 { fill: #ff8456 }
 .terminal-r31 { fill: #f4005f }

@@ -50,8 +50,8 @@
 .terminal-r16 { fill: #c45aff }
 .terminal-r17 { fill: #56fbbc }
 .terminal-r18 { fill: #252441 }
-.terminal-r19 { fill: #969692 }
-.terminal-r20 { fill: #969692;font-weight: bold }
+.terminal-r19 { fill: #a3a39e }
+.terminal-r20 { fill: #a3a39e;font-weight: bold }
 .terminal-r21 { fill: #524f75 }
 .terminal-r22 { fill: #190b21;font-weight: bold }
 .terminal-r23 { fill: #191129 }
