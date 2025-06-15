@@ -54,8 +54,8 @@
 .terminal-r20 { fill: #c45aff }
 .terminal-r21 { fill: #cdc7c6;font-weight: bold }
 .terminal-r22 { fill: #56fbbc;font-weight: bold }
-.terminal-r23 { fill: #7b7b7b }
-.terminal-r24 { fill: #7b7b7b;font-weight: bold }
+.terminal-r23 { fill: #858584 }
+.terminal-r24 { fill: #858584;font-weight: bold }
 .terminal-r25 { fill: #3f9181;font-weight: bold }
 .terminal-r26 { fill: #96919d }
 .terminal-r27 { fill: #8c8c93 }

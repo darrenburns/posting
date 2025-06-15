@@ -38,7 +38,7 @@
 .terminal-r4 { fill: #1e864a;text-decoration: underline; }
 .terminal-r5 { fill: #6e8d7d }
 .terminal-r6 { fill: #9b59b6;font-weight: bold;text-decoration: underline; }
-.terminal-r7 { fill: #de4e88;text-decoration: underline; }
+.terminal-r7 { fill: #e14282;text-decoration: underline; }
 .terminal-r8 { fill: #3498db;font-style: italic; }
 .terminal-r9 { fill: #130f0e }
 .terminal-r10 { fill: #663a78;font-weight: bold }
@@ -47,8 +47,8 @@
 .terminal-r13 { fill: #a995b4 }
 .terminal-r14 { fill: #9b59b6 }
 .terminal-r15 { fill: #130f0e;font-weight: bold }
-.terminal-r16 { fill: #838483 }
-.terminal-r17 { fill: #838483;font-weight: bold }
+.terminal-r16 { fill: #797978 }
+.terminal-r17 { fill: #797978;font-weight: bold }
 .terminal-r18 { fill: #3e3c3b }
 .terminal-r19 { fill: #7f7f7f }
 .terminal-r20 { fill: #00ffff;font-weight: bold }

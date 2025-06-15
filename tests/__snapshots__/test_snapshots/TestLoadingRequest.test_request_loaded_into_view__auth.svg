@@ -53,8 +53,8 @@
 .terminal-r19 { fill: #525258 }
 .terminal-r20 { fill: #c45aff }
 .terminal-r21 { fill: #cdc7c6;font-weight: bold }
-.terminal-r22 { fill: #7b7b7b }
-.terminal-r23 { fill: #7b7b7b;font-weight: bold }
+.terminal-r22 { fill: #858584 }
+.terminal-r23 { fill: #858584;font-weight: bold }
 .terminal-r24 { fill: #737387 }
 .terminal-r25 { fill: #403e62 }
 .terminal-r26 { fill: #56fbbc }

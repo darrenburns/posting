@@ -38,7 +38,7 @@
 .terminal-r4 { fill: #135997;text-decoration: underline; }
 .terminal-r5 { fill: #678297 }
 .terminal-r6 { fill: #d32f2f }
-.terminal-r7 { fill: #766d67 }
+.terminal-r7 { fill: #685f58 }
 .terminal-r8 { fill: #00acc1 }
 .terminal-r9 { fill: #1b0d02 }
 .terminal-r10 { fill: #8b1f1f;font-weight: bold }
@@ -47,8 +47,8 @@
 .terminal-r13 { fill: #b7888e }
 .terminal-r14 { fill: #d22f2f }
 .terminal-r15 { fill: #1b0d02;font-weight: bold }
-.terminal-r16 { fill: #838384 }
-.terminal-r17 { fill: #838384;font-weight: bold }
+.terminal-r16 { fill: #797878 }
+.terminal-r17 { fill: #797878;font-weight: bold }
 .terminal-r18 { fill: #433a34 }
 .terminal-r19 { fill: #7f7f7f }
 .terminal-r20 { fill: #00ffff;font-weight: bold }
