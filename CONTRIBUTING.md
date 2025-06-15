@@ -32,7 +32,7 @@ uv sync
 ```
 
 This will create a virtual environment with the dependencies installed.
-Activate the virutal environment with:
+Activate the virtual environment with:
 
 ```bash
 source .venv/bin/activate
