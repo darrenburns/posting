@@ -1,3 +1,9 @@
+## 2.7.1 [22nd July 2025]
+
+### Fixed
+
+- Pin tree-sitter to <0.25.0 to fix crash due to breaking API change.
+
 ## 2.7.0 [19th April 2025]
 
 ### Added
