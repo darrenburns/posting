@@ -200,9 +200,9 @@ kbd { border: 1px solid black; border-color: #888 #333 #333 #888; padding: .1em 
 
 #source p .t .key { font-weight: bold; line-height: 1px; }
 
-#source p .t .str { color: #0451a5; }
+#source p .t .str, #source p .t .fst { color: #0451a5; }
 
-@media (prefers-color-scheme: dark) { #source p .t .str { color: #9cdcfe; } }
+@media (prefers-color-scheme: dark) { #source p .t .str, #source p .t .fst { color: #9cdcfe; } }
 
 #source p.mis .t { border-left: 0.2em solid #ff0000; }
 

@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Coverage for src/posting/importing/open_api.py: 55%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
-    <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
+    <link rel="stylesheet" href="style_cb_81f8c14c.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
 </head>
 <body class="pyfile">
@@ -64,8 +64,8 @@
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a id="nextFileLink" class="nav" href="z_b5b42f8a0c4c47e8_postman_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.8.2">coverage.py v7.8.2</a>,
-            created at 2025-06-15 15:09 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.9.2">coverage.py v7.9.2</a>,
+            created at 2025-07-22 22:27 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -130,7 +130,7 @@
     <p class="pln"><span class="n"><a id="t48" href="#t48">48</a></span><span class="t"><span class="str">        str: The resolved URL.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">    <span class="key">for</span> <span class="nam">var</span><span class="op">,</span> <span class="nam">info</span> <span class="key">in</span> <span class="nam">variables</span><span class="op">.</span><span class="nam">items</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">        <span class="nam">url</span> <span class="op">=</span> <span class="nam">url</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="fst">f"</span><span class="fst">{</span> <span class="op">{</span><span class="nam">var</span><span class="op">}</span><span class="fst">}</span> <span class="fst">"</span><span class="op">,</span> <span class="nam">info</span><span class="op">[</span><span class="str">"value"</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">        <span class="nam">url</span> <span class="op">=</span> <span class="nam">url</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="fst">f"</span><span class="fst">{{</span><span class="op">{</span><span class="nam">var</span><span class="op">}</span><span class="fst">}}</span><span class="fst">"</span><span class="op">,</span> <span class="nam">info</span><span class="op">[</span><span class="str">"value"</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">    <span class="key">return</span> <span class="nam">url</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -205,14 +205,14 @@
     <p class="mis show_mis"><span class="n"><a id="t123" href="#t123">123</a></span><span class="t">            <span class="key">return</span> <span class="nam">Auth</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t124" href="#t124">124</a></span><span class="t">                <span class="nam">type</span><span class="op">=</span><span class="str">"basic"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t125" href="#t125">125</a></span><span class="t">                <span class="nam">basic</span><span class="op">=</span><span class="nam">BasicAuth</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t126" href="#t126">126</a></span><span class="t">                    <span class="nam">username</span><span class="op">=</span><span class="fst">f"</span><span class="fst">${</span> <span class="op">{</span><span class="nam">name</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="fst">_USERNAME}</span> <span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t127" href="#t127">127</a></span><span class="t">                    <span class="nam">password</span><span class="op">=</span><span class="fst">f"</span><span class="fst">${</span> <span class="op">{</span><span class="nam">name</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="fst">_PASSWORD}</span> <span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t126" href="#t126">126</a></span><span class="t">                    <span class="nam">username</span><span class="op">=</span><span class="fst">f"</span><span class="fst">${{</span><span class="op">{</span><span class="nam">name</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="fst">_USERNAME}}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t127" href="#t127">127</a></span><span class="t">                    <span class="nam">password</span><span class="op">=</span><span class="fst">f"</span><span class="fst">${{</span><span class="op">{</span><span class="nam">name</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="fst">_PASSWORD}}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t128" href="#t128">128</a></span><span class="t">                <span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t129" href="#t129">129</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t130" href="#t130">130</a></span><span class="t">        <span class="key">case</span> <span class="nam">SecurityScheme</span><span class="op">(</span><span class="nam">type</span><span class="op">=</span><span class="str">"http"</span><span class="op">,</span> <span class="nam">scheme</span><span class="op">=</span><span class="str">"bearer"</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t131" href="#t131">131</a></span><span class="t">            <span class="key">return</span> <span class="nam">Auth</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t132" href="#t132">132</a></span><span class="t">                <span class="nam">type</span><span class="op">=</span><span class="str">"bearer_token"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t133" href="#t133">133</a></span><span class="t">                <span class="nam">bearer_token</span><span class="op">=</span><span class="nam">BearerTokenAuth</span><span class="op">(</span><span class="nam">token</span><span class="op">=</span><span class="fst">f"</span><span class="fst">${</span> <span class="op">{</span><span class="nam">name</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="fst">_BEARER_TOKEN}</span> <span class="fst">"</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t133" href="#t133">133</a></span><span class="t">                <span class="nam">bearer_token</span><span class="op">=</span><span class="nam">BearerTokenAuth</span><span class="op">(</span><span class="nam">token</span><span class="op">=</span><span class="fst">f"</span><span class="fst">${{</span><span class="op">{</span><span class="nam">name</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="fst">_BEARER_TOKEN}}</span><span class="fst">"</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t134" href="#t134">134</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t135" href="#t135">135</a></span><span class="t">        <span class="key">case</span> <span class="nam">_</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t136" href="#t136">136</a></span><span class="t">            <span class="key">return</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
@@ -415,7 +415,7 @@
     <p class="pln"><span class="n"><a id="t333" href="#t333">333</a></span><span class="t">                <span class="nam">name</span><span class="op">=</span><span class="nam">operation</span><span class="op">.</span><span class="nam">summary</span> <span class="key">or</span> <span class="nam">path</span><span class="op">.</span><span class="nam">strip</span><span class="op">(</span><span class="str">"/"</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t334" href="#t334">334</a></span><span class="t">                <span class="nam">description</span><span class="op">=</span><span class="nam">operation</span><span class="op">.</span><span class="nam">description</span> <span class="key">or</span> <span class="str">""</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t335" href="#t335">335</a></span><span class="t">                <span class="nam">method</span><span class="op">=</span><span class="nam">method</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t336" href="#t336">336</a></span><span class="t">                <span class="nam">url</span><span class="op">=</span><span class="fst">f"</span><span class="fst">${</span> <span class="fst">BASE_URL}</span> <span class="op">{</span><span class="nam">path</span><span class="op">}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t336" href="#t336">336</a></span><span class="t">                <span class="nam">url</span><span class="op">=</span><span class="fst">f"</span><span class="fst">${{</span><span class="fst">BASE_URL}}</span><span class="op">{</span><span class="nam">path</span><span class="op">}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t337" href="#t337">337</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t338" href="#t338">338</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t339" href="#t339">339</a></span><span class="t">            <span class="com"># Add auth</span>&nbsp;</span><span class="r"></span></p>
@@ -504,8 +504,8 @@
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a class="nav" href="z_b5b42f8a0c4c47e8_postman_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.8.2">coverage.py v7.8.2</a>,
-            created at 2025-06-15 15:09 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.9.2">coverage.py v7.9.2</a>,
+            created at 2025-07-22 22:27 +0000
         </p>
     </div>
 </footer>
