@@ -1303,7 +1303,7 @@ class Posting(App[None], inherit_bindings=False):
             extra_args=self.settings.curl_export_extra_args
         )
 
-        if os.getenv("TERM_PROGRAM") == "Apple_Terminal":
+        if sys.platform == 'darwin' and os.getenv("TERM_PROGRAM") in ["Apple_Terminal", "tmux"]:
             # Apple terminal doesn't support OSC 52, so we need to use
             # pyperclip to copy the command to the clipboard.
             try:
