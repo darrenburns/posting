@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from textual import on
+from textual.binding import Binding
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -50,9 +50,24 @@ class PathParamsEditor(KeyValueEditor):
     Editor for path parameters. Users may only edit values, not add or remove rows.
     """
 
+    BINDINGS = [
+        Binding(
+            "alt+down", "jump_to_url_param", "Jump to param in URL bar", show=False
+        ),
+    ]
+
     @dataclass
     class PathParamsUpdated(Message):
         params: dict[str, str]
+
+    @dataclass
+    class PathParamJumpRequestedFromPathEditor(Message):  # type: ignore[misc]
+        name: str
+        editor: "PathParamsEditor"
+
+        @property
+        def control(self) -> "PathParamsEditor":
+            return self.editor
 
     def __init__(self) -> None:
         super().__init__(
@@ -88,6 +103,19 @@ class PathParamsEditor(KeyValueEditor):
         self.key_value_input.value_input.disabled = True
         params = self._get_params()
         self.post_message(self.PathParamsUpdated(params))
+
+    def action_jump_to_url_param(self) -> None:
+        """Post a message requesting a jump to the corresponding param in the URL bar."""
+        table = self.table
+        row_index = table.cursor_row
+        if row_index < 0 or row_index >= table.row_count:
+            return
+        row = table.get_row_at(row_index)
+        key_cell = row[0]
+        name = key_cell.plain if isinstance(key_cell, Text) else key_cell
+        self.post_message(
+            self.PathParamJumpRequestedFromPathEditor(name=str(name), editor=self)
+        )
 
     def _get_params(self) -> dict[str, str]:
         params: dict[str, str] = {}

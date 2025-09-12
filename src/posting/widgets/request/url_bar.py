@@ -82,6 +82,7 @@ It's recommended you create a new request before pasting a curl command, to avoi
             return self.input
 
     def on_mount(self):
+        self.select_on_focus = False
         self.highlighter = VariablesAndUrlHighlighter(self)
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
         self._path_param_pattern = re.compile(r":([A-Za-z_][A-Za-z0-9_]*)")

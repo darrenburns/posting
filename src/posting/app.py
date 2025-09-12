@@ -29,6 +29,7 @@ from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import AwaitMount, Widget
+from textual.widgets.input import Selection
 from textual.widgets import Button, Footer, Input, Label, Tab, Tabs
 from textual.widgets.tabbed_content import ContentTab
 from posting.collection import (
@@ -584,6 +585,24 @@ class MainScreen(Screen[None]):
             if str(key) == name:
                 table.move_cursor(row=row_index)
                 break
+
+    @on(PathParamsEditor.PathParamJumpRequestedFromPathEditor)
+    def on_path_param_jump(
+        self, event: PathParamsEditor.PathParamJumpRequestedFromPathEditor
+    ) -> None:
+        """Focus the URL input and select the matching path param (excluding leading colon)."""
+        name = event.name
+        url_input = self.url_input
+        value = url_input.value
+        # Find ":name" occurrences, then select the name portion only.
+        token = f":{name}"
+        index = value.find(token)
+        if index == -1:
+            return
+        start = index + 1  # exclude the leading colon
+        end = start + len(name)
+        self.set_focus(url_input)
+        url_input.selection = Selection(start, end)
 
     async def action_send_request(self) -> None:
         """Send the request."""
