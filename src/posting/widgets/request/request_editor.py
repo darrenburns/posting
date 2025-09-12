@@ -44,10 +44,10 @@ class RequestEditor(Vertical):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
                     yield Lazy(RequestBodyEditor())
-                with TabPane("Query", id="query-pane"):
-                    yield Lazy(QueryStringEditor())
                 with TabPane("Path", id="path-pane"):
                     yield Lazy(PathEditor())
+                with TabPane("Query", id="query-pane"):
+                    yield Lazy(QueryStringEditor())
                 with TabPane("Auth", id="auth-pane"):
                     yield Lazy(RequestAuth())
                 with TabPane("Info", id="info-pane"):
