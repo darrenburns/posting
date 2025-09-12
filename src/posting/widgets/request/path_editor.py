@@ -57,6 +57,8 @@ class PathParamsEditor(KeyValueEditor):
             ),
             empty_message="No path parameters in URL",
         )
+        # Disable value input until a row is selected for editing.
+        self.key_value_input.value_input.disabled = True
 
     def add_key_value_pair(self, event: KeyValueInput.Change) -> None:  # type: ignore[override]
         # Only allow updates to existing rows. Do nothing if no row is selected for editing.
@@ -68,7 +70,13 @@ class PathParamsEditor(KeyValueEditor):
         super().enter_edit_mode(row_key, focus_value=True)
         # Ensure the key field stays disabled and we focus value.
         self.key_value_input.key_input.disabled = True
+        self.key_value_input.value_input.disabled = False
         self.key_value_input.value_input.focus()
+
+    def exit_edit_mode(self, revert: bool = False) -> None:
+        super().exit_edit_mode(revert)
+        # After exiting edit mode, prevent focusing value input.
+        self.key_value_input.value_input.disabled = True
 
 
 class PathEditor(Vertical):
