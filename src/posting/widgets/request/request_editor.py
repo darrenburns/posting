@@ -14,6 +14,7 @@ from posting.widgets.request.request_body import RequestBodyEditor
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
+from posting.widgets.request.path_editor import PathEditor
 from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.widgets.text_area import TextEditor
 
@@ -42,6 +43,8 @@ class RequestEditor(Vertical):
                     yield Lazy(RequestBodyEditor())
                 with TabPane("Query", id="query-pane"):
                     yield Lazy(QueryStringEditor())
+                with TabPane("Path", id="path-pane"):
+                    yield Lazy(PathEditor())
                 with TabPane("Auth", id="auth-pane"):
                     yield Lazy(RequestAuth())
                 with TabPane("Info", id="info-pane"):

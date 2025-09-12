@@ -68,6 +68,7 @@ from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
 
 from posting.widgets.request.query_editor import ParamsTable
+from posting.widgets.request.path_editor import PathParamsTable
 from posting.widgets.request.request_auth import RequestAuth
 
 from posting.widgets.request.request_body import RequestBodyTextArea
@@ -76,6 +77,7 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
+from posting.urls import extract_path_param_names
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
@@ -231,6 +233,7 @@ class MainScreen(Screen[None]):
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-query-pane": "e",
+                "--content-tab-path-pane": "i",
                 "--content-tab-auth-pane": "r",
                 "--content-tab-info-pane": "t",
                 "--content-tab-scripts-pane": "y",
@@ -697,6 +700,30 @@ class MainScreen(Screen[None]):
         else:
             params_tab.update("Query")
 
+    @on(PostingDataTable.RowsRemoved, selector="PathParamsTable")
+    @on(PostingDataTable.RowsAdded, selector="PathParamsTable")
+    def on_path_params_changed(
+        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
+    ) -> None:
+        """Update the path tab to indicate if there are any path params."""
+        path_tab = self.query_one("#--content-tab-path-pane", ContentTab)
+        if event.data_table.row_count:
+            path_tab.update("Path[cyan b]•[/]")
+        else:
+            path_tab.update("Path")
+
+    @on(PostingDataTable.RowsRemoved, selector="PathParamsTable")
+    @on(PostingDataTable.RowsAdded, selector="PathParamsTable")
+    def on_path_params_changed(
+        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
+    ) -> None:
+        """Update the path tab to indicate if there are any path params."""
+        path_tab = self.query_one("#--content-tab-path-pane", ContentTab)
+        if event.data_table.row_count:
+            path_tab.update("Path[cyan b]•[/]")
+        else:
+            path_tab.update("Path")
+
     def build_httpx_request(
         self,
         request_model: RequestModel,
@@ -707,6 +734,39 @@ class MainScreen(Screen[None]):
         request.extensions = {"trace": self.log_request_trace_event}
 
         return request
+
+    @on(Input.Changed, selector="UrlInput")
+    def on_url_changed(self, event: Input.Changed) -> None:
+        """When the URL changes, sync path params table rows to match placeholders."""
+        self._sync_path_params_from_url()
+
+    def _sync_path_params_from_url(
+        self, preferred_values: dict[str, str] | None = None
+    ) -> None:
+        url = self.url_input.value
+        names = extract_path_param_names(url)
+        if not preferred_values:
+            # Pull current values from the table if present
+            current_values: dict[str, str] = {}
+            try:
+                table = self.path_params_table
+            except NoMatches:
+                table = None  # type: ignore[assignment]
+            if table:
+                for row_index in range(table.row_count):
+                    row = table.get_row_at(row_index)
+                    key = row[0].plain if hasattr(row[0], "plain") else row[0]
+                    val = row[1].plain if hasattr(row[1], "plain") else row[1]
+                    current_values[str(key)] = str(val)
+        else:
+            current_values = preferred_values
+
+        rows = [(name, current_values.get(name, "")) for name in names]
+        try:
+            self.path_params_table.replace_all_rows(rows, None)
+        except NoMatches:
+            # Path tab may be lazily mounted; ignore if not present yet.
+            pass
 
     async def log_request_trace_event(self, event: Event, info: dict[str, Any]) -> None:
         """Log an event to the request trace."""
@@ -744,6 +804,7 @@ class MainScreen(Screen[None]):
             method=self.selected_method,
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
+            path_params=self.path_params_table.to_model(),
             headers=headers,
             options=request_options,
             auth=self.request_auth.to_model(),
@@ -823,6 +884,11 @@ class MainScreen(Screen[None]):
             ((param.name, param.value) for param in request_model.params),
             (param.enabled for param in request_model.params),
         )
+        # Prefer values from the model, but ensure they align with placeholders in the URL
+        preferred_values = {
+            p.name: p.value for p in getattr(request_model, "path_params", [])
+        }
+        self._sync_path_params_from_url(preferred_values)
         self.headers_table.replace_all_rows(
             ((header.name, header.value) for header in request_model.headers),
             (header.enabled for header in request_model.headers),
@@ -957,6 +1023,10 @@ class MainScreen(Screen[None]):
     @property
     def params_table(self) -> ParamsTable:
         return self.query_one(ParamsTable)
+
+    @property
+    def path_params_table(self) -> PathParamsTable:
+        return self.query_one(PathParamsTable)
 
     @property
     def app_body(self) -> AppBody:

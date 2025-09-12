@@ -14,7 +14,7 @@ from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
 from posting.yaml import dump, load, Loader
-from posting.urls import ensure_protocol
+from posting.urls import ensure_protocol, substitute_path_params
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 VALID_HTTP_METHODS = get_args(HttpRequestMethod)
@@ -65,6 +65,11 @@ class DigestAuth(BaseModel):
 
 class BearerTokenAuth(BaseModel):
     token: str = Field(default="")
+
+
+class PathParam(BaseModel):
+    name: str
+    value: str
 
 
 class Header(BaseModel):
@@ -177,6 +182,9 @@ class RequestModel(BaseModel):
     params: list[QueryParam] = Field(default_factory=list)
     """The query parameters of the request."""
 
+    path_params: list[PathParam] = Field(default_factory=list)
+    """The path parameters of the request (for :param placeholders)."""
+
     cookies: list[Cookie] = Field(default_factory=list, exclude=True)
     """The cookies of the request.
     
@@ -197,8 +205,15 @@ class RequestModel(BaseModel):
     def apply_template(self, variables: dict[str, Any]) -> None:
         """Apply the template to the request model."""
         try:
+            # Resolve variables in path parameter values
+            if self.path_params:
+                for param in self.path_params:
+                    template = Template(param.value)
+                    param.value = template.substitute(variables)
+
+            # Resolve variables in URL and other fields
             template = Template(self.url)
-            self.url = ensure_protocol(template.substitute(variables))
+            self.url = template.substitute(variables)
 
             template = Template(self.description)
             self.description = template.substitute(variables)
@@ -241,6 +256,13 @@ class RequestModel(BaseModel):
                 if self.auth.bearer_token is not None:
                     template = Template(self.auth.bearer_token.token)
                     self.auth.bearer_token.token = template.substitute(variables)
+            # After resolving variables, substitute path parameters into the URL and ensure protocol
+            if self.path_params:
+                substitutions = {p.name: p.value for p in self.path_params}
+                self.url = substitute_path_params(self.url, substitutions)
+
+            self.url = ensure_protocol(self.url)
+
         except (KeyError, ValueError) as e:
             raise SubstitutionError(f"Variable not defined: {e}")
 
