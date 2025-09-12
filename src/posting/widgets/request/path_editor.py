@@ -1,6 +1,9 @@
+from dataclasses import dataclass
+from textual import on
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.containers import Vertical
+from textual.message import Message
 from textual.widgets import Input
 from textual.widgets.data_table import RowKey
 
@@ -47,6 +50,10 @@ class PathParamsEditor(KeyValueEditor):
     Editor for path parameters. Users may only edit values, not add or remove rows.
     """
 
+    @dataclass
+    class PathParamsUpdated(Message):  # type: ignore[misc]
+        params: dict[str, str]
+
     def __init__(self) -> None:
         super().__init__(
             PathParamsTable(),
@@ -60,11 +67,13 @@ class PathParamsEditor(KeyValueEditor):
         # Disable value input until a row is selected for editing.
         self.key_value_input.value_input.disabled = True
 
-    def add_key_value_pair(self, event: KeyValueInput.Change) -> None:  # type: ignore[override]
+    def add_key_value_pair(self, event: KeyValueInput.Change) -> None:
         # Only allow updates to existing rows. Do nothing if no row is selected for editing.
         if self._row_being_edited is None:
             return
-        return super().add_key_value_pair(event)
+        super().add_key_value_pair(event)
+        params = self._get_params()
+        self.post_message(self.PathParamsUpdated(params))
 
     def enter_edit_mode(self, row_key: RowKey, focus_value: bool = False) -> None:
         super().enter_edit_mode(row_key, focus_value=True)
@@ -77,6 +86,17 @@ class PathParamsEditor(KeyValueEditor):
         super().exit_edit_mode(revert)
         # After exiting edit mode, prevent focusing value input.
         self.key_value_input.value_input.disabled = True
+        params = self._get_params()
+        self.post_message(self.PathParamsUpdated(params))
+
+    def _get_params(self) -> dict[str, str]:
+        params: dict[str, str] = {}
+        for row_index in range(self.table.row_count):
+            row = self.table.get_row_at(row_index)
+            key = row[0].plain if isinstance(row[0], Text) else row[0]
+            val = row[1].plain if isinstance(row[1], Text) else row[1]
+            params[str(key)] = str(val)
+        return params
 
 
 class PathEditor(Vertical):

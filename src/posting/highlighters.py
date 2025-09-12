@@ -41,6 +41,21 @@ def highlight_variables(text: Text, styles: VariableStyles) -> None:
             text.stylize(Style.parse(styles.resolved or ""), start, end)
 
 
+_PATH_PARAM_REGEX = re.compile(r":([A-Za-z_][A-Za-z0-9_]*)")
+
+
+def highlight_path_params(
+    text: Text, styles: VariableStyles, has_value: set[str]
+) -> None:
+    for match in _PATH_PARAM_REGEX.finditer(text.plain):
+        name = match.group(1)
+        start, end = match.span(0)
+        if name in has_value:
+            text.stylize(Style.parse(styles.resolved or ""), start, end)
+        else:
+            text.stylize(Style.parse(styles.unresolved or "dim"), start, end)
+
+
 class VariableHighlighter(Highlighter):
     def __init__(self, variable_styles: VariableStyles | None = None) -> None:
         super().__init__()
@@ -58,6 +73,15 @@ class VariablesAndUrlHighlighter(Highlighter):
         self.input = input
         self.variable_styles: VariableStyles = VariableStyles()
         self.url_styles: UrlStyles = UrlStyles()
+        self._path_params: dict[str, str] = {}
+
+    def set_path_params(self, params: dict[str, str]) -> None:
+        """Update the current path params used for highlighting.
+
+        Args:
+            params: Mapping of placeholder name to value (empty string if unset).
+        """
+        self._path_params = dict(params)
 
     def highlight(self, text: Text) -> None:
         if text.plain == "":
@@ -65,6 +89,10 @@ class VariablesAndUrlHighlighter(Highlighter):
 
         highlight_url(text, self.url_styles)
         highlight_variables(text, self.variable_styles)
+
+        # Highlight path parameters based on current values provided externally.
+        has_value = {name for name, value in self._path_params.items() if value}
+        highlight_path_params(text, self.variable_styles, has_value)
 
         input = self.input
         cursor_position = input.cursor_position  # type:ignore

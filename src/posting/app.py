@@ -70,6 +70,7 @@ from posting.widgets.request.method_selection import MethodSelector
 
 from posting.widgets.request.query_editor import ParamsTable
 from posting.widgets.request.path_editor import PathParamsTable
+from posting.widgets.request.path_editor import PathParamsEditor
 from posting.widgets.request.request_auth import RequestAuth
 
 from posting.widgets.request.request_body import RequestBodyTextArea
@@ -713,6 +714,14 @@ class MainScreen(Screen[None]):
         else:
             path_tab.update("Path")
 
+    @on(PathParamsEditor.PathParamsUpdated)
+    def on_path_param_values_updated(
+        self, event: PathParamsEditor.PathParamsUpdated
+    ) -> None:
+        """Keep URL highlighting in sync when values change via editor."""
+        self.url_input.highlighter.set_path_params(event.params)
+        self.url_input.refresh()
+
     def build_httpx_request(
         self,
         request_model: RequestModel,
@@ -728,6 +737,23 @@ class MainScreen(Screen[None]):
     def on_url_changed(self, event: Input.Changed) -> None:
         """When the URL changes, sync path params table rows to match placeholders."""
         self._sync_path_params_from_url()
+
+        # Inform the URL highlighter of current path param values (by name) for highlighting.
+        try:
+            table = self.path_params_table
+        except NoMatches:
+            table = None  # type: ignore[assignment]
+        params: dict[str, str] = {}
+        if table:
+            for row_index in range(table.row_count):
+                row = table.get_row_at(row_index)
+                key_cell = row[0]
+                val_cell = row[1]
+                key = key_cell.plain if isinstance(key_cell, Text) else key_cell
+                val = val_cell.plain if isinstance(val_cell, Text) else val_cell
+                params[str(key)] = str(val)
+        self.url_input.highlighter.set_path_params(params)
+        self.url_input.refresh()
 
     def _sync_path_params_from_url(
         self, preferred_values: dict[str, str] | None = None
@@ -892,6 +918,9 @@ class MainScreen(Screen[None]):
             p.name: p.value for p in getattr(request_model, "path_params", [])
         }
         self._sync_path_params_from_url(preferred_values)
+        # Update URL input highlighter with current path param values
+        self.url_input.highlighter.set_path_params(preferred_values)
+        self.url_input.refresh()
         self.headers_table.replace_all_rows(
             ((header.name, header.value) for header in request_model.headers),
             (header.enabled for header in request_model.headers),
