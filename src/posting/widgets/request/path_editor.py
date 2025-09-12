@@ -2,6 +2,7 @@ from rich.text import Text
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Input
+from textual.widgets.data_table import RowKey
 
 from posting.collection import PathParam
 from posting.widgets.datatable import PostingDataTable
@@ -63,7 +64,7 @@ class PathParamsEditor(KeyValueEditor):
             return
         return super().add_key_value_pair(event)
 
-    def enter_edit_mode(self, row_key, focus_value: bool = False) -> None:  # type: ignore[override]
+    def enter_edit_mode(self, row_key: RowKey, focus_value: bool = False) -> None:
         super().enter_edit_mode(row_key, focus_value=True)
         # Ensure the key field stays disabled and we focus value.
         self.key_value_input.key_input.disabled = True
