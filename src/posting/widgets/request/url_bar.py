@@ -1,6 +1,6 @@
 from dataclasses import dataclass
+import re
 from typing import Any
-import httpx
 from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
@@ -28,7 +28,6 @@ from posting.widgets.input import PostingInput
 from posting.widgets.request.method_selection import MethodSelector
 from posting.widgets.response.response_trace import Event
 from posting.widgets.variable_autocomplete import VariableAutoComplete
-from posting.urls import ensure_protocol
 
 
 class CurlMessage(Message):
@@ -60,6 +59,7 @@ It's recommended you create a new request before pasting a curl command, to avoi
 
     BINDINGS = [
         Binding("down", "app.focus_next", "Focus next", show=False),
+        Binding("alt+down", "jump_to_path_param", "Jump to Path param", show=False),
     ]
 
     @dataclass
@@ -72,9 +72,19 @@ It's recommended you create a new request before pasting a curl command, to avoi
         def control(self) -> "UrlInput":
             return self.input
 
+    @dataclass
+    class PathParamJumpRequestedFromUrlInput(Message):
+        name: str
+        input: "UrlInput"
+
+        @property
+        def control(self) -> "UrlInput":
+            return self.input
+
     def on_mount(self):
         self.highlighter = VariablesAndUrlHighlighter(self)
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
+        self._path_param_pattern = re.compile(r":([A-Za-z_][A-Za-z0-9_]*)")
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
@@ -107,6 +117,19 @@ It's recommended you create a new request before pasting a curl command, to avoi
             return
         event.prevent_default()
         self.post_message(CurlMessage(event.text))
+
+    def action_jump_to_path_param(self) -> None:
+        """If cursor is on a :param token, emit a jump request for that param name."""
+        value = self.value
+        pos = self.cursor_position
+        for match in self._path_param_pattern.finditer(value):
+            token_start, token_end = match.span(0)
+            if token_start <= pos <= token_end:
+                name = match.group(1)
+                self.post_message(
+                    self.PathParamJumpRequestedFromUrlInput(name=name, input=self)
+                )
+                break
 
 
 class SendRequestButton(Button, can_focus=False):

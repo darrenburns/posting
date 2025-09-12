@@ -51,7 +51,7 @@ class PathParamsEditor(KeyValueEditor):
     """
 
     @dataclass
-    class PathParamsUpdated(Message):  # type: ignore[misc]
+    class PathParamsUpdated(Message):
         params: dict[str, str]
 
     def __init__(self) -> None:

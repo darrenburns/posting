@@ -561,6 +561,30 @@ class MainScreen(Screen[None]):
         """Update the autocomplete suggestions when the request cache is updated."""
         self.url_bar.cached_base_urls = sorted(event.cached_base_urls)
 
+    @on(UrlInput.PathParamJumpRequestedFromUrlInput)
+    def on_url_param_jump(
+        self, event: UrlInput.PathParamJumpRequestedFromUrlInput
+    ) -> None:
+        """Focus the Path params table and move cursor to the row for the named param."""
+        name = event.name
+        try:
+            table = self.query_one(PathParamsTable)
+        except NoMatches:
+            log.warning(
+                f"PathParamsTable not found when trying to jump to path param {name}"
+            )
+            return
+
+        table.focus()
+
+        for row_index in range(table.row_count):
+            row = table.get_row_at(row_index)
+            key_cell = row[0]
+            key = key_cell.plain if isinstance(key_cell, Text) else key_cell
+            if str(key) == name:
+                table.move_cursor(row=row_index)
+                break
+
     async def action_send_request(self) -> None:
         """Send the request."""
         self.send_via_worker()
