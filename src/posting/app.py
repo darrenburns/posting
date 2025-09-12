@@ -712,17 +712,6 @@ class MainScreen(Screen[None]):
         else:
             path_tab.update("Path")
 
-    @on(PostingDataTable.RowsRemoved, selector="PathParamsTable")
-    @on(PostingDataTable.RowsAdded, selector="PathParamsTable")
-    def on_path_params_changed(
-        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
-    ) -> None:
-        """Update the path tab to indicate if there are any path params."""
-        path_tab = self.query_one("#--content-tab-path-pane", ContentTab)
-        if event.data_table.row_count:
-            path_tab.update("Path[cyan b]•[/]")
-        else:
-            path_tab.update("Path")
 
     def build_httpx_request(
         self,
