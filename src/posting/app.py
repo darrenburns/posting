@@ -7,6 +7,7 @@ from typing import Any, Literal, Sequence, cast
 
 import httpx
 from rich.console import RenderableType
+from rich.text import Text
 from textual.content import Content
 
 from posting.importing.curl import CurlImport
@@ -712,7 +713,6 @@ class MainScreen(Screen[None]):
         else:
             path_tab.update("Path")
 
-
     def build_httpx_request(
         self,
         request_model: RequestModel,
@@ -732,25 +732,39 @@ class MainScreen(Screen[None]):
     def _sync_path_params_from_url(
         self, preferred_values: dict[str, str] | None = None
     ) -> None:
+        """Sync Path tab rows from the URL, preserving values by index.
+
+        If the user renames placeholders, values remain associated with their
+        positional index among placeholders rather than the placeholder name.
+        """
         url = self.url_input.value
         names = extract_path_param_names(url)
-        if not preferred_values:
-            # Pull current values from the table if present
-            current_values: dict[str, str] = {}
-            try:
-                table = self.path_params_table
-            except NoMatches:
-                table = None  # type: ignore[assignment]
-            if table:
-                for row_index in range(table.row_count):
-                    row = table.get_row_at(row_index)
-                    key = row[0].plain if hasattr(row[0], "plain") else row[0]
-                    val = row[1].plain if hasattr(row[1], "plain") else row[1]
-                    current_values[str(key)] = str(val)
-        else:
-            current_values = preferred_values
 
-        rows = [(name, current_values.get(name, "")) for name in names]
+        # Determine the source of truth for values in index order.
+        values_by_index: list[str] = []
+        try:
+            table = self.path_params_table
+        except NoMatches:
+            table = None  # type: ignore[assignment]
+
+        if table and table.row_count > 0:
+            # Use current table order/values to preserve by index.
+            for row_index in range(table.row_count):
+                row = table.get_row_at(row_index)
+                cell = row[1]
+                val = cell.plain if isinstance(cell, Text) else cell
+                values_by_index.append(str(val))
+        elif preferred_values:
+            # Fall back to provided preferred values, preserving their given order.
+            # Dicts preserve insertion order, which should correspond to saved order.
+            values_by_index.extend(list(preferred_values.values()))
+
+        # Build new rows, mapping values by index.
+        rows = [
+            (name, values_by_index[i] if i < len(values_by_index) else "")
+            for i, name in enumerate(names)
+        ]
+
         try:
             self.path_params_table.replace_all_rows(rows, None)
         except NoMatches:
