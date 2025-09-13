@@ -389,11 +389,6 @@ Sub-collections cannot be deleted from the UI yet.
             save_path = new_request.path
             assert save_path is not None, "new request must have a path"
             new_request.save_to_disk(save_path)
-            self.notify(
-                title="Request saved",
-                message=f"{save_path.resolve().relative_to(root_path.resolve())}",
-                timeout=3,
-            )
 
             def post_new_request() -> None:
                 self.screen.set_focus(focused_before)

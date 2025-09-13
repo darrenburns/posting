@@ -48,16 +48,12 @@ If you have any feedback or suggestions, please open a [new discussion on GitHub
 
 Features that are currently being worked on.
 
-- Add contributing guide <span class="tag documentation">Documentation</span>
+- Path parameters <span class="tag requests">Requests</span>
 
-## Upcoming 🚀
+## Next planned features 🚀
 
-Features planned for the near future.
+Features planned to be worked on next.
 
-- Editing key/value editor rows without having to delete/re-add them <span class="tag ux">UX</span>
-- Adjustable padding in UI via config file <span class="tag ui">UI</span>
-- Don't require user to type `http://` or `https://` in URL field <span class="tag ux">UX</span>
-- Documentation on changing the UI at runtime (e.g. showing/hiding sections, etc.) <span class="tag documentation">Documentation</span>
 - Documentation on using 3rd party libraries in scripts <span class="tag documentation">Documentation</span>
 - Transparent background support (experimentation) <span class="tag ui">UI</span>
 - In-app information about headers <span class="tag documentation">Documentation</span>
@@ -100,6 +96,10 @@ Features that are planned for future development but are not immediate prioritie
 
 Features that have been implemented and are available in the current version.
 
+- Adjustable padding in UI via config file <span class="tag ui">UI</span>
+- Don't require user to type `http://` or `https://` in URL field <span class="tag ux">UX</span>
+- Documentation on changing the UI at runtime (e.g. showing/hiding sections, etc.) <span class="tag documentation">Documentation</span>
+- Editing key/value editor rows without having to delete/re-add them <span class="tag ux">UX</span>
 - Keymaps <span class="tag ui">UI</span>
 - Pre-request and post-response scripts <span class="tag scripting">Scripting</span>
 - Parse cURL commands <span class="tag import">Import</span>
