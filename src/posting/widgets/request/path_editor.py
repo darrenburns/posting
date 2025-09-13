@@ -79,8 +79,8 @@ class PathParamsEditor(KeyValueEditor):
             ),
             empty_message=(
                 "[b]No path parameters in URL[/]\n"
-                "Use [$accent]:param[/] syntax to add them\n"
-                "e.g. http://example.com/:param1/:param2"
+                "Use [$text-accent]:param[/] syntax to add them\n"
+                "e.g. http://example.com/:foo/:bar"
             ),
         )
         # Disable value input until a row is selected for editing.
