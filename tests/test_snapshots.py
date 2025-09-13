@@ -171,7 +171,7 @@ class TestNewRequest:
             await pilot.press("tab", "tab")
             await pilot.press(*"bar")
             await pilot.pause()
-            await pilot.pause(1)
+            await pilot.pause(2)
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -639,7 +639,7 @@ class TestCurlExport:
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl no setup", "enter")
             await pilot.pause()
-            await pilot.pause(1)
+            await pilot.pause(2)
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -652,7 +652,7 @@ class TestCurlExport:
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl", "enter")
             await pilot.pause()
-            await pilot.pause(1)
+            await pilot.pause(2)
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
