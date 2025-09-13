@@ -171,7 +171,7 @@ class TestNewRequest:
             await pilot.press("tab", "tab")
             await pilot.press(*"bar")
             await pilot.pause()
-            await pilot.pause(2)
+            await pilot.pause(3)
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -188,6 +188,8 @@ class TestNewRequest:
             await pilot.press("tab", "tab")
             await pilot.press(*"bar")
             await pilot.press("ctrl+n")
+            await pilot.pause()
+            await pilot.pause(2)
 
             # Check the file exists
             new_request_file = (
@@ -639,7 +641,7 @@ class TestCurlExport:
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl no setup", "enter")
             await pilot.pause()
-            await pilot.pause(2)
+            await pilot.pause(3)
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -652,7 +654,7 @@ class TestCurlExport:
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl", "enter")
             await pilot.pause()
-            await pilot.pause(2)
+            await pilot.pause(3)
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
