@@ -628,8 +628,7 @@ class TestDisableRowInTable:
 @use_config("general.yaml")
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 class TestCurlExport:
-    # TODO - there's an ordering dependency between the two tests here.
-
+    @pytest.mark.serial
     def test_curl_export_no_setup(self, snap_compare):
         """Check that the curl export works when setup scripts are not run."""
 
@@ -637,9 +636,11 @@ class TestCurlExport:
             await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl no setup", "enter")
+            await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
+    @pytest.mark.serial
     def test_curl_export(self, snap_compare):
         """Check that the curl export works correctly."""
 
@@ -647,6 +648,7 @@ class TestCurlExport:
             await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl", "enter")
+            await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
