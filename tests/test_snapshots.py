@@ -634,6 +634,7 @@ class TestCurlExport:
         """Check that the curl export works when setup scripts are not run."""
 
         async def run_before(pilot: Pilot):
+            await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl no setup", "enter")
 
@@ -643,6 +644,7 @@ class TestCurlExport:
         """Check that the curl export works correctly."""
 
         async def run_before(pilot: Pilot):
+            await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl", "enter")
 
