@@ -102,3 +102,11 @@ class VariablesAndUrlHighlighter(Highlighter):
             start = find_variable_start(cursor_position, value)  # type: ignore
             end = find_variable_end(cursor_position, value)  # type: ignore
             text.stylize("u", start, end)
+
+        # Underline path param token under cursor, similar to variables.
+        for match in _PATH_PARAM_REGEX.finditer(value):
+            token_start, token_end = match.span(0)
+            # Use half-open interval to match caret within token
+            if token_start <= cursor_position <= token_end:
+                text.stylize("u", token_start, token_end)
+                break

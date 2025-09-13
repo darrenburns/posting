@@ -78,13 +78,17 @@ class PathParamsEditor(KeyValueEditor):
                 button_label="Update",
             ),
             empty_message=(
-                "No path parameters in URL\n"
-                "Use :param syntax in the URL to add path parameters.\n"
+                "[b]No path parameters in URL[/]\n"
+                "Use [$accent]:param[/] syntax add path parameters.\n"
                 "e.g. http://example.com/:param1/:param2"
             ),
         )
         # Disable value input until a row is selected for editing.
         self.key_value_input.value_input.disabled = True
+
+    def on_mount(self) -> None:
+        # Hide the action button unless we're editing a row.
+        self.key_value_input.button.display = False
 
     def add_key_value_pair(self, event: KeyValueInput.Change) -> None:
         # Only allow updates to existing rows. Do nothing if no row is selected for editing.
@@ -100,11 +104,17 @@ class PathParamsEditor(KeyValueEditor):
         self.key_value_input.key_input.disabled = True
         self.key_value_input.value_input.disabled = False
         self.key_value_input.value_input.focus()
+        # Show the action button while editing.
+        self.key_value_input.button.display = True
 
     def exit_edit_mode(self, revert: bool = False) -> None:
+        if self._row_being_edited is None:
+            return
         super().exit_edit_mode(revert)
         # After exiting edit mode, prevent focusing value input.
         self.key_value_input.value_input.disabled = True
+        # Hide the action button when not editing.
+        self.key_value_input.button.display = False
         params = self._get_params()
         self.post_message(self.PathParamsUpdated(params))
 
@@ -117,6 +127,7 @@ class PathParamsEditor(KeyValueEditor):
         row = table.get_row_at(row_index)
         key_cell = row[0]
         name = key_cell.plain if isinstance(key_cell, Text) else key_cell
+        self.exit_edit_mode(revert=True)
         self.post_message(
             self.PathParamJumpRequestedFromPathEditor(name=str(name), editor=self)
         )
