@@ -660,6 +660,7 @@ class TestScripts:
         """Check that a script runs correctly."""
 
         async def run_before(pilot: Pilot):
+            await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+j")
             await pilot.app.workers.wait_for_complete()
