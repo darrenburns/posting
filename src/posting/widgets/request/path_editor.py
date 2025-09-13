@@ -77,7 +77,11 @@ class PathParamsEditor(KeyValueEditor):
                 VariableInput(placeholder="Value"),
                 button_label="Update",
             ),
-            empty_message="No path parameters in URL",
+            empty_message=(
+                "No path parameters in URL\n"
+                "Use :param syntax in the URL to add path parameters.\n"
+                "e.g. http://example.com/:param1/:param2"
+            ),
         )
         # Disable value input until a row is selected for editing.
         self.key_value_input.value_input.disabled = True

@@ -25,6 +25,7 @@ from textual.app import App, ComposeResult, InvalidThemeError
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
+from textual.coordinate import Coordinate
 from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
@@ -584,6 +585,20 @@ class MainScreen(Screen[None]):
             key = key_cell.plain if isinstance(key_cell, Text) else key_cell
             if str(key) == name:
                 table.move_cursor(row=row_index)
+                # Enter edit mode on the corresponding row in the editor and focus value
+                try:
+                    editor = self.query_one(PathParamsEditor)
+                except NoMatches:
+                    pass
+                else:
+                    try:
+                        row_key, _ = table.coordinate_to_cell_key(
+                            Coordinate(row_index, 0)
+                        )
+                        editor.enter_edit_mode(row_key, focus_value=True)
+                    except Exception:
+                        # If we can't resolve the row key for any reason, ignore gracefully
+                        pass
                 break
 
     @on(PathParamsEditor.PathParamJumpRequestedFromPathEditor)
