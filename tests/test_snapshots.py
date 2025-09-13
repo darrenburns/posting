@@ -637,6 +637,7 @@ class TestCurlExport:
             await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl", "enter")
+            await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
