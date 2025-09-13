@@ -79,7 +79,7 @@ class PathParamsEditor(KeyValueEditor):
             ),
             empty_message=(
                 "[b]No path parameters in URL[/]\n"
-                "Use [$accent]:param[/] syntax add path parameters.\n"
+                "Use [$accent]:param[/] syntax to add them\n"
                 "e.g. http://example.com/:param1/:param2"
             ),
         )
