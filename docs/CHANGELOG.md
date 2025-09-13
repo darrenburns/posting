@@ -1,3 +1,10 @@
+## 2.8.0 [13th September 2025]
+
+### Changed
+
+- Update to Textual 6.1.0 from 3.0.0.
+- Remove notification when creating + opening a new request.
+
 ## 2.7.1 [22nd July 2025]
 
 ### Fixed
