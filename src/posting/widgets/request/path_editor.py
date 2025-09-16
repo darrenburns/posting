@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from textual import on
 from textual.binding import Binding
 from rich.text import Text
 from textual.app import ComposeResult
@@ -20,6 +21,21 @@ class PathParamsTable(PostingDataTable):
     Rows are controlled by the URL. Users cannot add or remove rows manually.
     """
 
+    @dataclass
+    class PathParamJumpRequestedFromPathParamsTable(Message):
+        name: str
+        editor_table: "PathParamsTable"
+
+        @property
+        def control(self) -> "PathParamsTable":
+            return self.editor_table
+
+    BINDINGS = [
+        Binding(
+            "alt+down", "jump_to_url_param", "Jump to param in URL bar", show=False
+        ),
+    ]
+
     def on_mount(self):
         self.fixed_columns = 0
         self.show_header = False
@@ -31,6 +47,21 @@ class PathParamsTable(PostingDataTable):
     def action_remove_row(self) -> None:
         # Disallow manual row removal.
         return
+
+    def action_jump_to_url_param(self) -> None:
+        """Post a message requesting a jump to the corresponding param in the URL bar."""
+        table = self
+        row_index = table.cursor_row
+        if row_index < 0 or row_index >= table.row_count:
+            return
+        row = table.get_row_at(row_index)
+        key_cell = row[0]
+        name = key_cell.plain if isinstance(key_cell, Text) else key_cell
+        self.post_message(
+            self.PathParamJumpRequestedFromPathParamsTable(
+                name=str(name), editor_table=self
+            )
+        )
 
     def to_model(self) -> list[PathParam]:
         params: list[PathParam] = []
@@ -47,33 +78,23 @@ class PathParamsTable(PostingDataTable):
 
 class PathParamsEditor(KeyValueEditor):
     """
-    Editor for path parameters. Users may only edit values, not add or remove rows.
+    Editor for path parameters. Users may edit keys and values, not add or remove rows.
     """
-
-    BINDINGS = [
-        Binding(
-            "alt+down", "jump_to_url_param", "Jump to param in URL bar", show=False
-        ),
-    ]
 
     @dataclass
     class PathParamsUpdated(Message):
         params: dict[str, str]
 
     @dataclass
-    class PathParamJumpRequestedFromPathEditor(Message):  # type: ignore[misc]
-        name: str
-        editor: "PathParamsEditor"
-
-        @property
-        def control(self) -> "PathParamsEditor":
-            return self.editor
+    class PathParamRenamed(Message):
+        old_name: str
+        new_name: str
 
     def __init__(self) -> None:
         super().__init__(
             PathParamsTable(),
             KeyValueInput(
-                Input(placeholder="Key", id="path-key-input", disabled=True),
+                Input(placeholder="Key", id="path-key-input"),
                 VariableInput(placeholder="Value"),
                 button_label="Update",
             ),
@@ -84,26 +105,41 @@ class PathParamsEditor(KeyValueEditor):
             ),
         )
         # Disable value input until a row is selected for editing.
+        self.key_value_input.key_input.disabled = True
         self.key_value_input.value_input.disabled = True
 
     def on_mount(self) -> None:
         # Hide the action button unless we're editing a row.
         self.key_value_input.button.display = False
 
+    @on(KeyValueInput.Change)
     def add_key_value_pair(self, event: KeyValueInput.Change) -> None:
+        event.stop()
+        event.prevent_default()
         # Only allow updates to existing rows. Do nothing if no row is selected for editing.
         if self._row_being_edited is None:
             return
+
+        # Capture the original key before updating so we can detect a rename.
+        old_key = None
+        if self._row_being_edited_prior_state is not None:
+            old_key = self._row_being_edited_prior_state[0]
+
         super().add_key_value_pair(event)
+
+        # If the key was renamed, emit a rename event so the URL bar can be updated.
+        if old_key is not None and old_key != event.key:
+            self.post_message(
+                self.PathParamRenamed(old_name=str(old_key), new_name=str(event.key))
+            )
         params = self._get_params()
         self.post_message(self.PathParamsUpdated(params))
 
     def enter_edit_mode(self, row_key: RowKey, focus_value: bool = False) -> None:
-        super().enter_edit_mode(row_key, focus_value=True)
-        # Ensure the key field stays disabled and we focus value.
-        self.key_value_input.key_input.disabled = True
+        # Enable both inputs and let the base class decide which to focus based on focus_value.
+        self.key_value_input.key_input.disabled = False
         self.key_value_input.value_input.disabled = False
-        self.key_value_input.value_input.focus()
+        super().enter_edit_mode(row_key, focus_value=focus_value)
         # Show the action button while editing.
         self.key_value_input.button.display = True
 
@@ -111,26 +147,13 @@ class PathParamsEditor(KeyValueEditor):
         if self._row_being_edited is None:
             return
         super().exit_edit_mode(revert)
-        # After exiting edit mode, prevent focusing value input.
+        # After exiting edit mode, disable inputs again.
+        self.key_value_input.key_input.disabled = True
         self.key_value_input.value_input.disabled = True
         # Hide the action button when not editing.
         self.key_value_input.button.display = False
         params = self._get_params()
         self.post_message(self.PathParamsUpdated(params))
-
-    def action_jump_to_url_param(self) -> None:
-        """Post a message requesting a jump to the corresponding param in the URL bar."""
-        table = self.table
-        row_index = table.cursor_row
-        if row_index < 0 or row_index >= table.row_count:
-            return
-        row = table.get_row_at(row_index)
-        key_cell = row[0]
-        name = key_cell.plain if isinstance(key_cell, Text) else key_cell
-        self.exit_edit_mode(revert=True)
-        self.post_message(
-            self.PathParamJumpRequestedFromPathEditor(name=str(name), editor=self)
-        )
 
     def _get_params(self) -> dict[str, str]:
         params: dict[str, str] = {}

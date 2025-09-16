@@ -82,6 +82,7 @@ from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
 from posting.urls import extract_path_param_names
+from urllib.parse import urlparse, urlunparse
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
@@ -601,9 +602,9 @@ class MainScreen(Screen[None]):
                         pass
                 break
 
-    @on(PathParamsEditor.PathParamJumpRequestedFromPathEditor)
+    @on(PathParamsTable.PathParamJumpRequestedFromPathParamsTable)
     def on_path_param_jump(
-        self, event: PathParamsEditor.PathParamJumpRequestedFromPathEditor
+        self, event: PathParamsTable.PathParamJumpRequestedFromPathParamsTable
     ) -> None:
         """Focus the URL input and select the matching path param (excluding leading colon)."""
         name = event.name
@@ -618,6 +619,36 @@ class MainScreen(Screen[None]):
         end = start + len(name)
         self.set_focus(url_input)
         url_input.selection = Selection(start, end)
+
+    @on(PathParamsEditor.PathParamRenamed)
+    def on_path_param_renamed(self, event: PathParamsEditor.PathParamRenamed) -> None:
+        """Rename the placeholder token in the URL path when a key is renamed in the editor."""
+        old_name = event.old_name
+        new_name = event.new_name
+        if not old_name or not new_name or old_name == new_name:
+            return
+
+        value = self.url_input.value
+        try:
+            parsed = urlparse(value)
+            path = parsed.path or ""
+        except Exception:
+            # Best-effort replace on the full string
+            self.url_input.value = value.replace(f":{old_name}", f":{new_name}")
+        else:
+            new_path = path.replace(f":{old_name}", f":{new_name}")
+            if new_path != path:
+                self.url_input.value = urlunparse(
+                    (
+                        parsed.scheme,
+                        parsed.netloc,
+                        new_path,
+                        parsed.params,
+                        parsed.query,
+                        parsed.fragment,
+                    )
+                )
+        # Value change will trigger URL change handler to resync the table/highlighter
 
     async def action_send_request(self) -> None:
         """Send the request."""
