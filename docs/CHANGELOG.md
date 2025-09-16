@@ -1,3 +1,9 @@
+## Unreleased
+
+### Added
+
+- Path parameter support (`:param` syntax) [(#295)](https://github.com/darrenburns/posting/pull/295)
+
 ## 2.8.0 [13th September 2025]
 
 ### Changed
