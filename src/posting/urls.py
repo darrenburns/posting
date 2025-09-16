@@ -2,7 +2,8 @@ import re
 from urllib.parse import urlparse, urlunparse
 
 
-_PATH_PARAM_PATTERN = re.compile(r":([A-Za-z_][A-Za-z0-9_]*)")
+# Match a single-colon path param like ":id", but ignore escaped tokens like "::id".
+_PATH_PARAM_PATTERN = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
 
 
 def ensure_protocol(url: str) -> str:
@@ -61,16 +62,22 @@ def substitute_path_params(url: str, params: dict[str, str]) -> str:
         parsed = urlparse(url)
         path = parsed.path or ""
     except Exception:
-        # If parsing fails, do a simple best-effort replace on the whole string
-        result = url
-        for name, value in params.items():
-            result = result.replace(f":{name}", value)
-        return result
+        # If parsing fails, do a best-effort regex-based replacement on the whole string
+        def replace(match: re.Match[str]) -> str:
+            name = match.group(1)
+            return params.get(name, match.group(0))
 
-    new_path = path
-    for name, value in params.items():
-        # Simple literal replacement for ":name" within the path
-        new_path = new_path.replace(f":{name}", value)
+        result = _PATH_PARAM_PATTERN.sub(replace, url)
+        # Unescape any escaped colons in the result
+        return result.replace("::", ":")
+
+    # Replace only unescaped tokens and then unescape literal colons
+    def replace(match: re.Match[str]) -> str:
+        name = match.group(1)
+        return params.get(name, match.group(0))
+
+    new_path = _PATH_PARAM_PATTERN.sub(replace, path)
+    new_path = new_path.replace("::", ":")
 
     return urlunparse(
         (

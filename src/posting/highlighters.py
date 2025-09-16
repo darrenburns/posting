@@ -41,7 +41,8 @@ def highlight_variables(text: Text, styles: VariableStyles) -> None:
             text.stylize(Style.parse(styles.resolved or ""), start, end)
 
 
-_PATH_PARAM_REGEX = re.compile(r":([A-Za-z_][A-Za-z0-9_]*)")
+# Match ":name" but not "::name" (escaped literal)
+_PATH_PARAM_REGEX = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
 
 
 def highlight_path_params(

@@ -610,15 +610,17 @@ class MainScreen(Screen[None]):
         name = event.name
         url_input = self.url_input
         value = url_input.value
-        # Find ":name" occurrences, then select the name portion only.
-        token = f":{name}"
-        index = value.find(token)
-        if index == -1:
-            return
-        start = index + 1  # exclude the leading colon
-        end = start + len(name)
-        self.set_focus(url_input)
-        url_input.selection = Selection(start, end)
+        # Find unescaped ":name" occurrences, then select the name portion only.
+        import re
+
+        pattern = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
+        for match in pattern.finditer(value):
+            if match.group(1) == name:
+                start = match.start(0) + 1  # exclude the leading colon
+                end = start + len(name)
+                self.set_focus(url_input)
+                url_input.selection = Selection(start, end)
+                break
 
     @on(PathParamsEditor.PathParamRenamed)
     def on_path_param_renamed(self, event: PathParamsEditor.PathParamRenamed) -> None:
@@ -636,7 +638,15 @@ class MainScreen(Screen[None]):
             # Best-effort replace on the full string
             self.url_input.value = value.replace(f":{old_name}", f":{new_name}")
         else:
-            new_path = path.replace(f":{old_name}", f":{new_name}")
+            # Replace only unescaped tokens matching the old name
+            import re
+
+            pattern = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
+
+            def repl(m: re.Match[str]) -> str:
+                return f":{new_name}" if m.group(1) == old_name else m.group(0)
+
+            new_path = pattern.sub(repl, path)
             if new_path != path:
                 self.url_input.value = urlunparse(
                     (
