@@ -57,7 +57,7 @@ class FocusSettings(BaseModel):
     """Configuration relating to focus."""
 
     on_startup: Literal["url", "method", "collection"] = Field(default="url")
-    """On startup, move focus to the URL bar, method, or collection browser."""
+    """On startup, move focus to the URL bar, method, collection browser, or path editor."""
 
     on_response: Literal["body", "tabs"] | None = Field(default=None)
     """On receiving a response, move focus to the body or the response section (the tabs).
@@ -65,7 +65,7 @@ class FocusSettings(BaseModel):
     If this value is unset, focus will not shift when a response is received."""
 
     on_request_open: (
-        Literal["headers", "body", "query", "info", "url", "method"] | None
+        Literal["headers", "body", "query", "info", "url", "method", "path"] | None
     ) = Field(default=None)
     """On opening a request using the sidebar collection browser, move focus to the specified target.
 

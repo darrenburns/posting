@@ -62,6 +62,44 @@ Requests are stored on your file system as simple YAML files, suffixed with `.po
 
 A directory can be loaded into Posting using the `--collection` option, and all `.posting.yaml` files in that directory will be displayed in the sidebar.
 
+## Path parameters
+
+Path parameters let you insert placeholders directly in the URL path using `:name` syntax. For example:
+
+```
+https://api.example.com/users/:id/comments/:commentId
+```
+
+When you type placeholders like this in the URL bar, Posting automatically extracts them and shows them in the Path tab. You can edit the values there, but you cannot add or remove rows manually — the rows come from the URL. Values are substituted into the URL path when the request is sent.
+
+### Useful shortcuts
+
+- With the cursor over a `:name` token in the URL bar, press ++alt+down++ to jump to that row in the Path tab.
+- With a row highlighted in the Path tab, press ++alt+down++ to jump to the corresponding token in the URL bar.
+
+
+### YAML representation
+
+Path parameter values are saved in the request file under `path_params`:
+
+```yaml
+name: get comments
+url: https://jsonplaceholder.typicode.com/posts/:postId/comments
+path_params:
+- name: postId
+  value: '3'
+```
+
+You can also use variables from the environment in path parameter values (e.g., `$FOO`). Variables are resolved before the values are substituted into the URL.
+
+### Escaping literal colons
+
+If you need a literal `:name` in the path, escape it by doubling the colon. For example, `::id` renders as `:id` and is not treated as a placeholder:
+
+```
+http://example.com/users/::id/:id  →  http://example.com/users/:id/123
+```
+
 ## Deleting a request
 
 You can delete a request by moving the cursor over it in the tree, and pressing ++backspace++.

@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, Any, cast
-from textual import on
+from rich.text import Text
+from textual import on, log
+from textual.css.query import NoMatches
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.lazy import Lazy
@@ -14,7 +16,9 @@ from posting.widgets.request.request_body import RequestBodyEditor
 from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
+from posting.widgets.request.path_editor import PathEditor, PathParamsTable
 from posting.widgets.tabbed_content import PostingTabbedContent
+from posting.widgets.request.url_bar import UrlInput
 from posting.widgets.text_area import TextEditor
 
 
@@ -40,6 +44,8 @@ class RequestEditor(Vertical):
                     yield HeaderEditor()
                 with TabPane("Body", id="body-pane"):
                     yield Lazy(RequestBodyEditor())
+                with TabPane("Path", id="path-pane"):
+                    yield Lazy(PathEditor())
                 with TabPane("Query", id="query-pane"):
                     yield Lazy(QueryStringEditor())
                 with TabPane("Auth", id="auth-pane"):

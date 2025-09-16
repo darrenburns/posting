@@ -324,7 +324,7 @@ class TestLoadingRequest:
             # Navigate to 'GET comments via query' and select it.
             await pilot.press(*"JJJjj")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "e")  # jump to 'Query Params' tab
+            await pilot.press("ctrl+o", "r")  # jump to 'Query Params' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
 
@@ -335,9 +335,19 @@ class TestLoadingRequest:
             # Navigate to 'GET comments via query' and select it.
             await pilot.press(*"jj")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "r")  # jump to 'Auth' tab
+            await pilot.press("ctrl+o", "t")  # jump to 'Auth' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
+
+    def test_request_loaded_into_view__path_params(self, snap_compare):
+        """Check that the request path params are loaded into the view."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"jj")
+            await pilot.press("enter")
+            await pilot.press("ctrl+o", "e")  # jump to 'Path Params' tab
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
 
     # @pytest.mark.skip(
     #     reason="info tab contains a path, specific to the host the test runs on"
@@ -358,7 +368,7 @@ class TestLoadingRequest:
         async def run_before(pilot: Pilot):
             await pilot.press(*"jj")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "u")  # jump to 'Options' tab
+            await pilot.press("ctrl+o", "i")  # jump to 'Options' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
 
@@ -387,7 +397,7 @@ class TestSave:
 
         async def run_before(pilot: Pilot):
             await pilot.press(*"JJj")
-            await pilot.press("ctrl+o", "t")  # select 'Info' tab
+            await pilot.press("ctrl+o", "y")  # select 'Info' tab
             await pilot.press("j")  # move down into 'Info' tab
             await pilot.press(*"Foo: Bar")
             await pilot.press("tab")
@@ -449,7 +459,7 @@ class TestVariables:
         async def run_before(pilot: Pilot):
             await pilot.press(*"JJJJj")  # go to 'get one user'
             await pilot.press("enter")  # press 'enter' to select
-            await pilot.press("ctrl+o", "e")  # go to 'Query' tab
+            await pilot.press("ctrl+o", "r")  # go to 'Query' tab
             await pilot.press("down")  # move down into 'Query' tab
             await pilot.press(*"foo", "enter")  # pressing enter should shift to value
             # The params typed below should be dimmed since they dont resolve

@@ -36,7 +36,7 @@ This allows you to build up a set of variables which are common to all environme
 
 ## Autoloading `.env` files
 
-If no `--env` options are provided, Posting will automatically load a `.env` file in the current directory if it exists.
+If no `--env` options are provided, Posting will automatically load a `posting.env` file in the current working directory if it exists.
 
 ## Using environment variables
 

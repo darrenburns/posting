@@ -7,6 +7,7 @@ from typing import Any, Literal, Sequence, cast
 
 import httpx
 from rich.console import RenderableType
+from rich.text import Text
 from textual.content import Content
 
 from posting.importing.curl import CurlImport
@@ -24,10 +25,12 @@ from textual.app import App, ComposeResult, InvalidThemeError
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
+from textual.coordinate import Coordinate
 from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import AwaitMount, Widget
+from textual.widgets.input import Selection
 from textual.widgets import Button, Footer, Input, Label, Tab, Tabs
 from textual.widgets.tabbed_content import ContentTab
 from posting.collection import (
@@ -68,6 +71,8 @@ from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
 
 from posting.widgets.request.query_editor import ParamsTable
+from posting.widgets.request.path_editor import PathParamsTable
+from posting.widgets.request.path_editor import PathParamsEditor
 from posting.widgets.request.request_auth import RequestAuth
 
 from posting.widgets.request.request_body import RequestBodyTextArea
@@ -76,6 +81,8 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
+from posting.urls import extract_path_param_names
+from urllib.parse import urlparse, urlunparse
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
@@ -230,11 +237,12 @@ class MainScreen(Screen[None]):
                 "collection-tree": "tab",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
-                "--content-tab-query-pane": "e",
-                "--content-tab-auth-pane": "r",
-                "--content-tab-info-pane": "t",
-                "--content-tab-scripts-pane": "y",
-                "--content-tab-options-pane": "u",
+                "--content-tab-path-pane": "e",
+                "--content-tab-query-pane": "r",
+                "--content-tab-auth-pane": "t",
+                "--content-tab-info-pane": "y",
+                "--content-tab-scripts-pane": "u",
+                "--content-tab-options-pane": "i",
                 "--content-tab-response-body-pane": "a",
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
@@ -556,6 +564,102 @@ class MainScreen(Screen[None]):
         """Update the autocomplete suggestions when the request cache is updated."""
         self.url_bar.cached_base_urls = sorted(event.cached_base_urls)
 
+    @on(UrlInput.PathParamJumpRequestedFromUrlInput)
+    def on_url_param_jump(
+        self, event: UrlInput.PathParamJumpRequestedFromUrlInput
+    ) -> None:
+        """Focus the Path params table and move cursor to the row for the named param."""
+        name = event.name
+        try:
+            table = self.query_one(PathParamsTable)
+        except NoMatches:
+            log.warning(
+                f"PathParamsTable not found when trying to jump to path param {name}"
+            )
+            return
+
+        table.focus()
+
+        for row_index in range(table.row_count):
+            row = table.get_row_at(row_index)
+            key_cell = row[0]
+            key = key_cell.plain if isinstance(key_cell, Text) else key_cell
+            if str(key) == name:
+                table.move_cursor(row=row_index)
+                # Enter edit mode on the corresponding row in the editor and focus value
+                try:
+                    editor = self.query_one(PathParamsEditor)
+                except NoMatches:
+                    pass
+                else:
+                    try:
+                        row_key, _ = table.coordinate_to_cell_key(
+                            Coordinate(row_index, 0)
+                        )
+                        editor.enter_edit_mode(row_key, focus_value=True)
+                    except Exception:
+                        # If we can't resolve the row key for any reason, ignore gracefully
+                        pass
+                break
+
+    @on(PathParamsTable.PathParamJumpRequestedFromPathParamsTable)
+    def on_path_param_jump(
+        self, event: PathParamsTable.PathParamJumpRequestedFromPathParamsTable
+    ) -> None:
+        """Focus the URL input and select the matching path param (excluding leading colon)."""
+        name = event.name
+        url_input = self.url_input
+        value = url_input.value
+        # Find unescaped ":name" occurrences, then select the name portion only.
+        import re
+
+        pattern = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
+        for match in pattern.finditer(value):
+            if match.group(1) == name:
+                start = match.start(0) + 1  # exclude the leading colon
+                end = start + len(name)
+                self.set_focus(url_input)
+                url_input.selection = Selection(start, end)
+                break
+
+    @on(PathParamsEditor.PathParamRenamed)
+    def on_path_param_renamed(self, event: PathParamsEditor.PathParamRenamed) -> None:
+        """Rename the placeholder token in the URL path when a key is renamed in the editor."""
+        old_name = event.old_name
+        new_name = event.new_name
+        if not old_name or not new_name or old_name == new_name:
+            return
+
+        value = self.url_input.value
+        try:
+            parsed = urlparse(value)
+            path = parsed.path or ""
+        except Exception:
+            # Best-effort replace on the full string
+            self.url_input.value = value.replace(f":{old_name}", f":{new_name}")
+        else:
+            # Replace only unescaped tokens matching the old name
+            import re
+
+            pattern = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
+
+            def repl(m: re.Match[str]) -> str:
+                return f":{new_name}" if m.group(1) == old_name else m.group(0)
+
+            new_path = pattern.sub(repl, path)
+            if new_path != path:
+                self.url_input.value = urlunparse(
+                    (
+                        parsed.scheme,
+                        parsed.netloc,
+                        new_path,
+                        parsed.params,
+                        parsed.query,
+                        parsed.fragment,
+                    )
+                )
+        # Value change will trigger URL change handler to resync the table/highlighter
+
     async def action_send_request(self) -> None:
         """Send the request."""
         self.send_via_worker()
@@ -697,6 +801,26 @@ class MainScreen(Screen[None]):
         else:
             params_tab.update("Query")
 
+    @on(PostingDataTable.RowsRemoved, selector="PathParamsTable")
+    @on(PostingDataTable.RowsAdded, selector="PathParamsTable")
+    def on_path_params_changed(
+        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
+    ) -> None:
+        """Update the path tab to indicate if there are any path params."""
+        path_tab = self.query_one("#--content-tab-path-pane", ContentTab)
+        if event.data_table.row_count:
+            path_tab.update("Path[cyan b]•[/]")
+        else:
+            path_tab.update("Path")
+
+    @on(PathParamsEditor.PathParamsUpdated)
+    def on_path_param_values_updated(
+        self, event: PathParamsEditor.PathParamsUpdated
+    ) -> None:
+        """Keep URL highlighting in sync when values change via editor."""
+        self.url_input.highlighter.set_path_params(event.params)
+        self.url_input.refresh()
+
     def build_httpx_request(
         self,
         request_model: RequestModel,
@@ -707,6 +831,70 @@ class MainScreen(Screen[None]):
         request.extensions = {"trace": self.log_request_trace_event}
 
         return request
+
+    @on(Input.Changed, selector="UrlInput")
+    def on_url_changed(self, event: Input.Changed) -> None:
+        """When the URL changes, sync path params table rows to match placeholders."""
+        self._sync_path_params_from_url()
+
+        # Inform the URL highlighter of current path param values (by name) for highlighting.
+        try:
+            table = self.path_params_table
+        except NoMatches:
+            table = None  # type: ignore[assignment]
+        params: dict[str, str] = {}
+        if table:
+            for row_index in range(table.row_count):
+                row = table.get_row_at(row_index)
+                key_cell = row[0]
+                val_cell = row[1]
+                key = key_cell.plain if isinstance(key_cell, Text) else key_cell
+                val = val_cell.plain if isinstance(val_cell, Text) else val_cell
+                params[str(key)] = str(val)
+        self.url_input.highlighter.set_path_params(params)
+        self.url_input.refresh()
+
+    def _sync_path_params_from_url(
+        self, preferred_values: dict[str, str] | None = None
+    ) -> None:
+        """Sync Path tab rows from the URL, preserving values by index.
+
+        If the user renames placeholders, values remain associated with their
+        positional index among placeholders rather than the placeholder name.
+        """
+        url = self.url_input.value
+        names = extract_path_param_names(url)
+
+        # Determine the source of truth for values in index order.
+        values_by_index: list[str] = []
+        try:
+            table = self.path_params_table
+        except NoMatches:
+            table = None  # type: ignore[assignment]
+
+        if table and table.row_count > 0:
+            # Use current table order/values to preserve by index.
+            for row_index in range(table.row_count):
+                row = table.get_row_at(row_index)
+                cell = row[1]
+                val = cell.plain if isinstance(cell, Text) else cell
+                values_by_index.append(str(val))
+        elif preferred_values:
+            # Fall back to provided preferred values, preserving their given order.
+            # Dicts preserve insertion order, which should correspond to saved order.
+            values_by_index.extend(list(preferred_values.values()))
+
+        # Build new rows, mapping values by index.
+        rows = [
+            (name, values_by_index[i] if i < len(values_by_index) else "")
+            for i, name in enumerate(names)
+        ]
+
+        try:
+            self.path_params_table.replace_all_rows(rows, None)
+        except NoMatches:
+            # Path tab may be lazily mounted; ignore if not present yet.
+            pass
 
     async def log_request_trace_event(self, event: Event, info: dict[str, Any]) -> None:
         """Log an event to the request trace."""
@@ -744,6 +932,7 @@ class MainScreen(Screen[None]):
             method=self.selected_method,
             url=self.url_input.value.strip(),
             params=self.params_table.to_model(),
+            path_params=self.path_params_table.to_model(),
             headers=headers,
             options=request_options,
             auth=self.request_auth.to_model(),
@@ -823,6 +1012,14 @@ class MainScreen(Screen[None]):
             ((param.name, param.value) for param in request_model.params),
             (param.enabled for param in request_model.params),
         )
+        # Prefer values from the model, but ensure they align with placeholders in the URL
+        preferred_values = {
+            p.name: p.value for p in getattr(request_model, "path_params", [])
+        }
+        self._sync_path_params_from_url(preferred_values)
+        # Update URL input highlighter with current path param values
+        self.url_input.highlighter.set_path_params(preferred_values)
+        self.url_input.refresh()
         self.headers_table.replace_all_rows(
             ((header.name, header.value) for header in request_model.headers),
             (header.enabled for header in request_model.headers),
@@ -957,6 +1154,10 @@ class MainScreen(Screen[None]):
     @property
     def params_table(self) -> ParamsTable:
         return self.query_one(ParamsTable)
+
+    @property
+    def path_params_table(self) -> PathParamsTable:
+        return self.query_one(PathParamsTable)
 
     @property
     def app_body(self) -> AppBody:
