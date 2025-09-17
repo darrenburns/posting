@@ -3,7 +3,7 @@
 ### Added
 
 - Path parameter support (`:param` syntax) [(#295)](https://github.com/darrenburns/posting/pull/295)
-- Added `export: copy as YAML` command to the command palette [(#296)](https://github.com/darrenburns/posting/pull/296)
+- Added `export: copy as YAML` command to the command palette [(#299)](https://github.com/darrenburns/posting/pull/299)
 
 ## 2.8.0 [13th September 2025]
 
