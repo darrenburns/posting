@@ -1511,7 +1511,7 @@ class Posting(App[None], inherit_bindings=False):
                 import pyperclip
 
                 pyperclip.copy(curl_command)
-            except pyperclip.PyperclipException as exc:
+            except Exception as exc:
                 self.notify(
                     str(exc),
                     title="Clipboard error",
@@ -1525,7 +1525,48 @@ class Posting(App[None], inherit_bindings=False):
                 escape(curl_command),
                 title="Copied to clipboard",
             )
-            self.app.copy_to_clipboard(curl_command)
+            self.copy_to_clipboard(curl_command)
+
+    def command_copy_request_yaml(self) -> None:
+        """Copy the current request (as shown in the UI) to the clipboard in YAML format.
+
+        This builds a `RequestModel` from the current UI state (even if unsaved),
+        and dumps the model to YAML, mirroring what would be saved to disk.
+        """
+        main_screen = self.main_screen
+        request_model = main_screen.build_request_model(
+            main_screen.request_options.to_model()
+        )
+
+        # Serialize to YAML similar to save_to_disk
+        from posting.yaml import dump
+
+        content = request_model.model_dump(exclude_defaults=True, exclude_none=True)
+        yaml_content = dump(
+            content,
+            None,
+            sort_keys=False,
+            allow_unicode=True,
+        )
+
+        if os.getenv("TERM_PROGRAM") == "Apple_Terminal":
+            try:
+                import pyperclip
+
+                pyperclip.copy(yaml_content)
+            except Exception as exc:
+                self.notify(
+                    str(exc),
+                    title="Clipboard error",
+                    severity="error",
+                    timeout=10,
+                )
+            else:
+                self.notify("YAML copied to clipboard", title="Copied to clipboard")
+        else:
+            # Use OSC 52 via Textual's clipboard helper
+            self.notify("YAML copied to clipboard", title="Copied to clipboard")
+            self.copy_to_clipboard(yaml_content)
 
     def action_save_screenshot(
         self,
