@@ -1,4 +1,4 @@
-## Unreleased
+## 2.9.0 [17th September 2025]
 
 ### Added
 
