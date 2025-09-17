@@ -61,6 +61,16 @@ class PostingProvider(Provider):
                         True,
                     ),
                 )
+
+                # Copy current request YAML (reflecting unsaved UI state)
+                commands_to_show.append(
+                    (
+                        "export: copy as YAML",
+                        app.command_copy_request_yaml,
+                        "Copy the current request YAML to the clipboard",
+                        True,
+                    ),
+                )
             # Change the available commands depending on what is currently
             # maximized on the main screen.
             expand_section_callback: IgnoreReturnCallbackType = partial[None](
