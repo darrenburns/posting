@@ -3,6 +3,7 @@
 ### Added
 
 - Path parameter support (`:param` syntax) [(#295)](https://github.com/darrenburns/posting/pull/295)
+- New built-in themes: `hypernova`, `synthwave`.
 
 ## 2.8.0 [13th September 2025]
 
