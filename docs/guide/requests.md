@@ -51,8 +51,7 @@ If you haven't saved the request yet, a dialog will appear, prompting you to giv
 
 !!! tip "Folders"
 
-    Requests can be saved to folders - simply include a `/` in the `Path in collection` field when you save the request,
-    and Posting will create the required directory structure for you.
+    Requests can be saved to folders - simply include a `/` in the `Path in collection` field when you save the request, and Posting will create the required directory structure for you.
 
 If the request is already saved on disk, ++ctrl+s++ will overwrite the previous version with your new changes.
 
@@ -103,3 +102,10 @@ http://example.com/users/::id/:id  →  http://example.com/users/:id/123
 ## Deleting a request
 
 You can delete a request by moving the cursor over it in the tree, and pressing ++backspace++.
+
+## Sharing requests
+
+An easy way to share a request with others is to copy it as a cURL command.
+Press ++ctrl+p++ and select `export: copy as curl` to copy the request as a cURL command to your clipboard.
+
+You can also press ++ctrl+p++ and select `export: copy as YAML` to copy the request as YAML. This provides a quick way to share a request with other Posting users, e.g. via Slack.

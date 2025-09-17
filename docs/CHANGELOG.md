@@ -3,7 +3,8 @@
 ### Added
 
 - Path parameter support (`:param` syntax) [(#295)](https://github.com/darrenburns/posting/pull/295)
-- New built-in themes: `hypernova`, `synthwave`.
+- New built-in themes: `hypernova`, `synthwave`. [(#300)](https://github.com/darrenburns/posting/pull/300)
+- Added `export: copy as YAML` command to the command palette [(#299)](https://github.com/darrenburns/posting/pull/299)
 
 ## 2.8.0 [13th September 2025]
 
