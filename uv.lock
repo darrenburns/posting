@@ -1014,7 +1014,7 @@ wheels = [
 
 [[package]]
 name = "posting"
-version = "2.8.0"
+version = "2.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -1057,7 +1057,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.1,<2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2,<7.0.0" },
     { name = "textual", extras = ["syntax"], specifier = "==6.1.0" },
-    { name = "textual-autocomplete", specifier = ">=4.0.4,<5.0.0" },
+    { name = "textual-autocomplete", editable = "../textual-autocomplete" },
     { name = "watchfiles", specifier = ">=0.24.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.1,<7.0.0" },
 ]
@@ -1550,15 +1550,27 @@ syntax = [
 
 [[package]]
 name = "textual-autocomplete"
-version = "4.0.5"
-source = { registry = "https://pypi.org/simple" }
+version = "4.0.6"
+source = { editable = "../textual-autocomplete" }
 dependencies = [
     { name = "textual" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/02/6a/40d48d98ac4417943a55832d44001e2940fc68f6a671d12f5818c65cec52/textual_autocomplete-4.0.5.tar.gz", hash = "sha256:db8066fc7d87c74afd08367f8fc2144bcec5ddbdea63a637249754e9d1fd8755", size = 94310, upload-time = "2025-07-29T21:55:11.251Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/2c/5b12e8d1ad64244188c9f2c8c87d00c8b3b2ad5f93ba617e61fc548d5cf8/textual_autocomplete-4.0.5-py3-none-any.whl", hash = "sha256:85eb9ca20c0f2c5a3916458b20ef2ea8c839a86dfbf4150a44fd0ad26ec6e1cb", size = 15989, upload-time = "2025-07-29T21:55:09.873Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "textual", specifier = ">=2.0.0" },
+    { name = "typing-extensions", specifier = ">=4.5.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-textual-snapshot", specifier = ">=1.1.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "textual-dev" },
 ]
 
 [[package]]

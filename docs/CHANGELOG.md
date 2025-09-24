@@ -1,3 +1,9 @@
+## 2.9.1 [24th September 2025]
+
+### Fixed
+
+- Fixed unexpectedly high CPU usage via updating textual-autocomplete to 4.0.6.
+
 ## 2.9.0 [17th September 2025]
 
 ### Added
