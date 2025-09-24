@@ -44,12 +44,6 @@ If you have any feedback or suggestions, please open a [new discussion on GitHub
 }
 </style>
 
-## Ongoing 🔄
-
-Features that are currently being worked on.
-
-- Path parameters <span class="tag requests">Requests</span>
-
 ## Next planned features 🚀
 
 Features planned to be worked on next.
@@ -94,8 +88,9 @@ Features that are planned for future development but are not immediate prioritie
 
 ## Completed ✓
 
-Features that have been implemented and are available in the current version.
+Features that have been implemented and are available in the latest version.
 
+- Path parameters <span class="tag requests">Requests</span>
 - Adjustable padding in UI via config file <span class="tag ui">UI</span>
 - Don't require user to type `http://` or `https://` in URL field <span class="tag ux">UX</span>
 - Documentation on changing the UI at runtime (e.g. showing/hiding sections, etc.) <span class="tag documentation">Documentation</span>
