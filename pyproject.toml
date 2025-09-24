@@ -62,9 +62,6 @@ dev-dependencies = [
     "pyinstrument>=5.0.1",
 ]
 
-[tool.uv.sources]
-textual-autocomplete = { path = "../textual-autocomplete", editable = true }
-
 [tool.hatch.metadata]
 allow-direct-references = true
 
