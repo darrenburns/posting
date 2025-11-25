@@ -2,6 +2,7 @@ from functools import partial
 from typing import TYPE_CHECKING, cast
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from textual.types import IgnoreReturnCallbackType
+from posting.widgets.environment_dialog import EnvironmentDialog
 
 if TYPE_CHECKING:
     from posting.app import Posting
@@ -151,6 +152,17 @@ class PostingProvider(Provider):
                     "Preview a theme for the current session",
                     True,
                 ),
+            )
+
+            commands_to_show.append(
+                (
+                    "environment: Environment variables",
+                    lambda: app.push_screen(
+                        EnvironmentDialog(),
+                    ),
+                    "View the existing environment variables",
+                    True
+                )
             )
 
         if screen.query("HelpPanel"):
