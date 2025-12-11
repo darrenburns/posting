@@ -25,13 +25,13 @@ The dropdown does not need to be expanded in order to select a method.
     BINDING_GROUP_TITLE = "HTTP Method Selector"
 
     BINDINGS = [
-        Binding("g", "select_method('GET')", "GET", show=False),
-        Binding("p", "select_method('POST')", "POST", show=False),
-        Binding("a", "select_method('PATCH')", "PATCH", show=False),
-        Binding("u", "select_method('PUT')", "PUT", show=False),
-        Binding("d", "select_method('DELETE')", "DELETE", show=False),
-        Binding("o", "select_method('OPTIONS')", "OPTIONS", show=False),
-        Binding("h", "select_method('HEAD')", "HEAD", show=False),
+        Binding("g,G", "select_method('GET')", "GET", show=False),
+        Binding("p,P", "select_method('POST')", "POST", show=False),
+        Binding("a,A", "select_method('PATCH')", "PATCH", show=False),
+        Binding("u,U", "select_method('PUT')", "PUT", show=False),
+        Binding("d,D", "select_method('DELETE')", "DELETE", show=False),
+        Binding("o,O", "select_method('OPTIONS')", "OPTIONS", show=False),
+        Binding("h,H", "select_method('HEAD')", "HEAD", show=False),
     ]
 
     def __init__(
@@ -57,6 +57,7 @@ The dropdown does not need to be expanded in order to select a method.
             ],
             prompt=prompt,
             allow_blank=False,
+            type_to_search=False,
             value=value,
             name=name,
             id=id,
@@ -83,4 +84,4 @@ The dropdown does not need to be expanded in order to select a method.
             )
 
     def action_select_method(self, method: str) -> None:
-        self.value = method
+        self.select_or_highlight(method)

@@ -1,3 +1,16 @@
+## [Unreleased]
+
+### Fixed
+- Fixed the test snapshot for test_select_post_method
+
+### Changed
+- `MethodSelector`: uppercase letters can now be used to change the method.
+- `MethodSelector`: Disables Textual's built-in `type_to_search` behavior.
+- `MethodSelector`: Navigation using the underlined letters in the select overlay is now supported. 
+- `PostingSelect`: You can navigate options using j,k,l, space.
+    - k and j move the cursor up and down through options.
+    - l selects the highlighted option. Space now also selects the highlighted option
+
 ## 2.9.2 [14th October 2025]
 
 ### Fixed
