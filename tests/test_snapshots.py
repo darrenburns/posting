@@ -765,3 +765,43 @@ class TestEditKeyValues:
             await pilot.press("enter")  # Accept the change
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestKeyValueCopyModal:
+    def test_copy_modal_appears(self, snap_compare):
+        """Check that the copy modal appears when pressing 'c' on a table row."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")  # Select a request with headers
+            await pilot.press("ctrl+o", "q")  # Jump to Headers tab
+            await pilot.press("down")  # Move into the table
+            await pilot.press("c")  # Trigger copy modal
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_copy_modal_dismiss_on_escape(self, snap_compare):
+        """Check that the copy modal is dismissed when pressing escape."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")  # Select a request with headers
+            await pilot.press("ctrl+o", "q")  # Jump to Headers tab
+            await pilot.press("down")  # Move into the table
+            await pilot.press("c")  # Trigger copy modal
+            await pilot.press("escape")  # Dismiss modal
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_copy_modal_select_via_option_list(self, snap_compare):
+        """Check that an option can be selected via the option list."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")  # Select a request with headers
+            await pilot.press("ctrl+o", "q")  # Jump to Headers tab
+            await pilot.press("down")  # Move into the table
+            await pilot.press("c")  # Trigger copy modal
+            await pilot.press("down")  # Move to second option
+            await pilot.press("enter")  # Select the option
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)

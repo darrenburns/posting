@@ -1,3 +1,9 @@
+## Unreleased
+
+### Added
+
+- Added copy functionality to key-value tables (headers, query params, cookies, etc.) via `c` key, allowing copying of name, value, or both.
+
 ## 2.9.2 [14th October 2025]
 
 ### Fixed
