@@ -58,6 +58,7 @@ The dropdown does not need to be expanded in order to select a method.
             prompt=prompt,
             allow_blank=False,
             value=value,
+            type_to_search=False,
             name=name,
             id=id,
             classes=classes,
