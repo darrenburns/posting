@@ -1,3 +1,8 @@
+## Unreleased
+
+### Added
+- Added `Ctrl+Y` command to copy URL from address bar.
+
 ## 2.9.2 [14th October 2025]
 
 ### Fixed
