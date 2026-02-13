@@ -60,6 +60,7 @@ It's recommended you create a new request before pasting a curl command, to avoi
     BINDINGS = [
         Binding("down", "app.focus_next", "Focus next", show=False),
         Binding("alt+down", "jump_to_path_param", "Jump to Path param", show=False),
+        Binding("ctrl+y", "copy_url", "Copy URL", show=False),
     ]
 
     @dataclass
@@ -132,6 +133,13 @@ It's recommended you create a new request before pasting a curl command, to avoi
                     self.PathParamJumpRequestedFromUrlInput(name=name, input=self)
                 )
                 break
+    
+    def action_copy_url(self) -> None:
+        """Copy the URL to the clipboard."""
+        url = self.value
+        if url:
+            self.app.copy_to_clipboard(url)
+            self.notify(f"Copied URL to clipboard: {url}")
 
 
 class SendRequestButton(Button, can_focus=False):
