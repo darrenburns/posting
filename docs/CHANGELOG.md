@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- Support importing OpenAPI 3.0 specs (previously only 3.1 was supported).
+
 ## 2.9.2 [14th October 2025]
 
 ### Fixed

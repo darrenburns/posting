@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from typing import Any
+from typing import Any, NamedTuple
 from urllib.parse import urlparse
 import json
 
@@ -35,6 +35,39 @@ from posting.collection import (
 
 
 from rich.console import Console
+
+
+class OpenAPIModels(NamedTuple):
+    OpenAPI: type
+    Reference: type
+    SecurityScheme: type
+    Operation: type
+    RequestBody: type
+    Schema: type
+    MediaType: type
+    DataType: type
+
+
+def _get_openapi_models(version: str) -> OpenAPIModels:
+    """Return the correct set of OpenAPI pydantic models for the given spec version."""
+    if version.startswith("3.0"):
+        from openapi_pydantic.v3.v3_0 import (
+            OpenAPI as _OpenAPI,
+            Reference as _Reference,
+            SecurityScheme as _SecurityScheme,
+            Operation as _Operation,
+            RequestBody as _RequestBody,
+            Schema as _Schema,
+            MediaType as _MediaType,
+            DataType as _DataType,
+        )
+        return OpenAPIModels(_OpenAPI, _Reference, _SecurityScheme, _Operation, _RequestBody, _Schema, _MediaType, _DataType)
+    elif version.startswith("3.1"):
+        return OpenAPIModels(OpenAPI, Reference, SecurityScheme, Operation, OpenAPIRequestBody, Schema, MediaType, DataType)
+    else:
+        raise ValueError(
+            f"Unsupported OpenAPI version: {version!r}. Only 3.0.x and 3.1.x are supported."
+        )
 
 
 def resolve_url_variables(url: str, variables: dict[str, dict[str, str]]) -> str:
@@ -90,9 +123,10 @@ def extract_server_variables(spec: dict[str, Any]) -> dict[str, dict[str, str]]:
 def security_scheme_to_variables(
     name: str,
     security_scheme: SecurityScheme | Reference,
+    security_scheme_cls: type = SecurityScheme,
 ) -> dict[str, dict[str, str]]:
     match security_scheme:
-        case SecurityScheme(type="http", scheme="basic"):
+        case security_scheme_cls(type="http", scheme="basic"):
             return {
                 f"{name.upper()}_USERNAME": {
                     "value": "YOUR USERNAME HERE",
@@ -103,7 +137,7 @@ def security_scheme_to_variables(
                     "description": f"Password for {name} authentication",
                 },
             }
-        case SecurityScheme(type="http", scheme="bearer"):
+        case security_scheme_cls(type="http", scheme="bearer"):
             return {
                 f"{name.upper()}_BEARER_TOKEN": {
                     "value": "YOUR BEARER TOKEN HERE",
@@ -117,9 +151,10 @@ def security_scheme_to_variables(
 def security_scheme_to_auth(
     name: str,
     security_scheme: SecurityScheme | Reference,
+    security_scheme_cls: type = SecurityScheme,
 ) -> Auth | None:
     match security_scheme:
-        case SecurityScheme(type="http", scheme="basic"):
+        case security_scheme_cls(type="http", scheme="basic"):
             return Auth(
                 type="basic",
                 basic=BasicAuth(
@@ -127,7 +162,7 @@ def security_scheme_to_auth(
                     password=f"${{{name.upper()}_PASSWORD}}",
                 ),
             )
-        case SecurityScheme(type="http", scheme="bearer"):
+        case security_scheme_cls(type="http", scheme="bearer"):
             return Auth(
                 type="bearer_token",
                 bearer_token=BearerTokenAuth(token=f"${{{name.upper()}_BEARER_TOKEN}}"),
@@ -222,24 +257,31 @@ def parse_schema_ref(ref: str, openapi: OpenAPI) -> Schema | None:
 
 
 class JsonBodyGenerator:
-    def __init__(self, openapi: OpenAPI):
+    def __init__(
+        self,
+        openapi: OpenAPI,
+        reference_cls: type = Reference,
+        datatype_cls: type = DataType,
+    ):
         self.openapi = openapi
-        self.cache = {}
-        self.seen = set()
+        self.reference_cls = reference_cls
+        self.datatype_cls = datatype_cls
+        self.cache: dict[str, Any] = {}
+        self.seen: set[str] = set()
 
-    def generate_json(self, src: Reference | Schema | MediaType):
+    def generate_json(self, src: Reference | Schema | MediaType) -> str:
         obj = self.generate(src)
         if obj is None:
             return "{}"
         return json.dumps(obj, indent=2)
 
     def generate(self, src: Reference | Schema | MediaType):
-        if isinstance(src, MediaType):
+        if hasattr(src, "media_type_schema"):
             if src.media_type_schema is None:
                 return
             return self.generate(src.media_type_schema)
 
-        if isinstance(src, Reference):
+        if isinstance(src, self.reference_cls):
             ref = src.ref
             if ref in self.cache:
                 return self.cache[ref]
@@ -260,20 +302,21 @@ class JsonBodyGenerator:
         return self._any_from_schema(src)
 
     def _any_from_schema(self, schema: Schema):
-        if schema.type == DataType.STRING:
+        dt = self.datatype_cls
+        if schema.type == dt.STRING:
             return schema.default or ""
-        elif schema.type == DataType.NUMBER or schema.type == DataType.INTEGER:
+        elif schema.type == dt.NUMBER or schema.type == dt.INTEGER:
             return schema.default or 0
-        elif schema.type == DataType.BOOLEAN:
+        elif schema.type == dt.BOOLEAN:
             return schema.default or False
-        elif schema.type == DataType.ARRAY:
+        elif schema.type == dt.ARRAY:
             if schema.items is None:
                 return []
             item = self.generate(schema.items)
             if item is None:
                 return []
             return [item]
-        elif schema.type == DataType.OBJECT:
+        elif schema.type == dt.OBJECT:
             obj = {}
             for name, schema in (schema.properties or {}).items():
                 obj[name] = self.generate(schema)
@@ -287,6 +330,9 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
     spec_path = Path(spec_path)
     with open(spec_path, "r") as file:
         spec = yaml.safe_load(file)
+
+    version = spec.get("openapi", "")
+    models = _get_openapi_models(version)
 
     info = APIInfo(**spec.get("info", {}))
     external_docs = (
@@ -302,14 +348,14 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
     )
     tag_collections: map[str, Collection] = {}
 
-    openapi = OpenAPI.model_validate(spec)
+    openapi = models.OpenAPI.model_validate(spec)
     security_schemes = openapi.components.securitySchemes or {}
 
     env_files: list[Path] = []
     for server in servers:
         security_variables = {}
         for scheme_name, scheme in security_schemes.items():
-            security_variables.update(security_scheme_to_variables(scheme_name, scheme))
+            security_variables.update(security_scheme_to_variables(scheme_name, scheme, models.SecurityScheme))
 
         variables = {**extract_server_variables(server), **security_variables}
         env_filename = generate_unique_env_filename(collection_name, server["url"])
@@ -340,12 +386,12 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
             for security in operation.security or []:
                 for scheme_name, _scopes in security.items():
                     if scheme := security_schemes.get(scheme_name):
-                        request.auth = security_scheme_to_auth(scheme_name, scheme)
+                        request.auth = security_scheme_to_auth(scheme_name, scheme, models.SecurityScheme)
                         break
 
             # Add query parameters
             for param in operation.parameters or []:
-                if isinstance(param, Reference):
+                if isinstance(param, models.Reference):
                     continue
                 if param.param_in == "query":
                     request.params.append(
@@ -368,11 +414,11 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                     )
 
             # Add request body if present
-            if isinstance(operation.requestBody, OpenAPIRequestBody):
+            if isinstance(operation.requestBody, models.RequestBody):
                 content = operation.requestBody.content
                 if "application/json" in content:
                     request.body = RequestBody(
-                        content=JsonBodyGenerator(openapi).generate_json(
+                        content=JsonBodyGenerator(openapi, models.Reference, models.DataType).generate_json(
                             content["application/json"]
                         )
                     )
@@ -380,7 +426,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                     form_data: list[FormItem] = []
                     body = content["application/x-www-form-urlencoded"]
                     for prop_name, _prop_schema in (
-                        isinstance(body.media_type_schema, Schema)
+                        isinstance(body.media_type_schema, models.Schema)
                         and body.media_type_schema.properties
                         or {}
                     ).items():
