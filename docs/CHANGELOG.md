@@ -1,7 +1,7 @@
 ## Unreleased
 
-### Added
-- Added `Ctrl+Y` command to copy URL from address bar.
+### Fixed
+- Fixed themes not auto-reloading when the theme file is a symlink.
 
 ## 2.9.2 [14th October 2025]
 
