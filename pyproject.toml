@@ -49,18 +49,25 @@ build-backend = "hatchling.build"
 [project.scripts]
 posting = "posting.__main__:cli"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "textual-dev>=1.5.1",
+    "pyinstrument>=5.0.1",
+    {include-group = "test"},
+    {include-group = "docs"},
+]
+test = [
     "pytest>=8.3.1",
     "jinja2>=3.1.4",
     "syrupy>=4.6.1",
     "pytest-xdist>=3.6.1",
     "pytest-cov>=5.0.0",
     "pytest-textual-snapshot>=1.0.0",
-    "mkdocs-material>=9.5.30",
-    "pyinstrument>=5.0.1",
 ]
+docs = [
+    "mkdocs-material>=9.5.30",
+]
+
 
 [tool.hatch.metadata]
 allow-direct-references = true
