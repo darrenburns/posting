@@ -2,6 +2,7 @@
 
 ### Fixed
 - Fixed themes not auto-reloading when the theme file is a symlink.
+- Fixed last character being omitted when yanking text in visual mode.
 
 ## 2.9.2 [14th October 2025]
 
