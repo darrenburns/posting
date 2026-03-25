@@ -47,7 +47,7 @@
 | src/posting/widgets/request/\_\_init\_\_.py           |        0 |        0 |    100% |           |
 | src/posting/widgets/request/form\_editor.py           |       31 |        0 |    100% |           |
 | src/posting/widgets/request/header\_editor.py         |       67 |        6 |     91% |   284-289 |
-| src/posting/widgets/request/method\_selection.py      |       29 |        2 |     93% |    75, 86 |
+| src/posting/widgets/request/method\_selection.py      |       29 |        1 |     97% |        76 |
 | src/posting/widgets/request/path\_editor.py           |      102 |       44 |     57% |31, 49, 53-60, 69-70, 117-136, 140-144, 147-156, 159-165, 178 |
 | src/posting/widgets/request/query\_editor.py          |       33 |        4 |     88% |32-33, 38-39 |
 | src/posting/widgets/request/request\_auth.py          |      142 |       56 |     61% |52, 96-99, 102, 105, 178-190, 197-220, 230-233, 238-260, 271-274 |
@@ -64,7 +64,7 @@
 | src/posting/widgets/response/response\_trace.py       |       38 |        5 |     87% | 63, 75-78 |
 | src/posting/widgets/response/script\_output.py        |       63 |        1 |     98% |        80 |
 | src/posting/widgets/rich\_log.py                      |       29 |        0 |    100% |           |
-| src/posting/widgets/select.py                         |       18 |        5 |     72% |17-20, 24, 30 |
+| src/posting/widgets/select.py                         |       45 |       10 |     78% |20-21, 23-24, 26-27, 31-32, 46, 57 |
 | src/posting/widgets/tabbed\_content.py                |       12 |        6 |     50% |14-16, 19-21 |
 | src/posting/widgets/text\_area.py                     |      371 |      183 |     51% |86-88, 134, 172-173, 193-202, 205-228, 231-262, 268, 271-275, 280-285, 287-334, 339-344, 349-360, 462, 467, 470-475, 478, 481, 484, 487, 490, 493, 496, 499, 502-525, 528, 531, 535-549, 553-560, 564-571, 575, 578-583, 588-599, 639, 651, 656-661 |
 | src/posting/widgets/tree.py                           |       26 |        8 |     69% |35-40, 54-55 |
@@ -72,7 +72,7 @@
 | src/posting/widgets/variable\_input.py                |       25 |        0 |    100% |           |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
 | src/posting/yaml.py                                   |       14 |        4 |     71% |6-7, 12-15 |
-|                                             **TOTAL** | **5316** | **1356** | **74%** |           |
+|                                             **TOTAL** | **5343** | **1360** | **75%** |           |
 
 
 ## Setup coverage badge
