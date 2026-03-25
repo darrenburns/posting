@@ -16,7 +16,6 @@ from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 
 from posting.locations import config_directory
 from posting.variables import load_variables, update_variables
-from posting.widgets.center_middle import CenterMiddle
 from posting.widgets.input import PostingInput
 
 if TYPE_CHECKING:
@@ -141,11 +140,14 @@ class EnvFilePathAutoComplete(PathAutoComplete):
 
     def _build_empty_candidates(self) -> list[DropdownItem]:
         cwd_candidates = self._build_directory_candidates(self.working_directory)
+        cwd_files = [candidate for candidate in cwd_candidates if not candidate.value.endswith("/")]
+        cwd_directories = [
+            candidate for candidate in cwd_candidates if candidate.value.endswith("/")
+        ]
 
         seen_paths = {
             (self.working_directory / candidate.value).resolve(strict=False)
-            for candidate in cwd_candidates
-            if not candidate.value.endswith("/")
+            for candidate in cwd_files
         }
         config_candidates: list[DropdownItem] = []
         for entry in self._directory_entries(self._config_directory):
@@ -161,14 +163,14 @@ class EnvFilePathAutoComplete(PathAutoComplete):
             config_candidates.append(self._file_item(value))
 
         config_candidates.sort(key=self._candidate_sort_key)
-        return [*cwd_candidates, *config_candidates]
+        return [*cwd_files, *config_candidates, *cwd_directories]
 
     def _candidate_sort_key(self, item: DropdownItem) -> tuple[bool, bool, str]:
         value = item.value
         name = value.rstrip("/").split("/")[-1]
         is_directory = value.endswith("/")
         is_dotfile = name.startswith(".")
-        return (not is_directory, not is_dotfile, name.lower())
+        return (is_directory, not is_dotfile, name.lower())
 
     def get_candidates(self, target_state: TargetState) -> list[DropdownItem]:
         current_input = self._get_input_before_cursor(target_state)
@@ -222,7 +224,11 @@ class LoadEnvFileDialog(ModalScreen[str | None]):
         }
 
         & #env-input {
+            margin-bottom: 0;
+        }
+        & #env-help-text {
             margin-bottom: 1;
+            color: $text-muted;
         }
         & #env-buttons {
             width: 100%;
@@ -274,6 +280,10 @@ class LoadEnvFileDialog(ModalScreen[str | None]):
             yield PostingInput(
                 placeholder=".env, path/to/file.env, ~/posting.env",
                 id="env-input",
+            )
+            yield Static(
+                "Press \\[down] or type for suggestions",
+                id="env-help-text",
             )
 
             with Horizontal(id="env-buttons"):

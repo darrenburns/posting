@@ -1,13 +1,20 @@
+from pathlib import Path
 from types import SimpleNamespace
 
 from textual.widgets import Input
 from textual_autocomplete import TargetState
 
+from posting.__main__ import make_posting
 from posting.widgets.load_env_file_dialog import (
     EnvFilePathAutoComplete,
     load_env_file,
 )
-from posting.variables import get_variables
+from posting.variables import get_variables, load_variables
+
+
+TESTS_DIR = Path(__file__).parent
+ENV_DIR = TESTS_DIR / "sample-envs"
+SAMPLE_COLLECTIONS = TESTS_DIR / "sample-collections"
 
 
 def test_empty_input_includes_cwd_and_config_env_candidates(
@@ -38,6 +45,9 @@ def test_empty_input_includes_cwd_and_config_env_candidates(
     assert "nested/" in values
     assert str(config_env.resolve()) in values
     assert "notes.txt" not in values
+    assert values.index(".env") < values.index("nested/")
+    assert values.index(".env.dev") < values.index("nested/")
+    assert values.index(str(config_env.resolve())) < values.index("nested/")
 
 
 def test_empty_input_candidates_use_relative_and_absolute_values(
@@ -83,6 +93,7 @@ def test_relative_input_browses_from_working_directory(tmp_path, monkeypatch) ->
     values = [candidate.value for candidate in candidates]
     assert "dev.env" in values
     assert "nested/" in values
+    assert values.index("dev.env") < values.index("nested/")
 
 
 def test_absolute_input_browses_from_absolute_path(tmp_path, monkeypatch) -> None:
@@ -195,3 +206,20 @@ def test_load_env_file_updates_app_state_and_variables(tmp_path) -> None:
     assert notifications == [(f"Loaded environment from: {env_file.resolve()}", None)]
     assert get_variables()["FROM_FILE"] == "1"
     assert get_variables()["FROM_SESSION"] == "2"
+
+
+def test_make_posting_reloads_env_variables_even_when_cache_is_populated(tmp_path) -> None:
+    other_env = tmp_path / "other.env"
+    other_env.write_text("OTHER=1\n", encoding="utf-8")
+    load_variables((other_env,), use_host_environment=False, avoid_cache=True)
+
+    env_path = str((ENV_DIR / "sample_base.env").resolve())
+    make_posting(
+        collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
+        env=(env_path,),
+    )
+
+    variables = get_variables()
+    assert variables["POST_ID"] == "1"
+    assert variables["USER_ID"] == "2"
+    assert "OTHER" not in variables
