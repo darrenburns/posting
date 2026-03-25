@@ -1,8 +1,18 @@
-## Unreleased
+## [Unreleased]
 
 ### Fixed
-
+- Fixed themes not auto-reloading when the theme file is a symlink.
+- Fixed last character being omitted when yanking text in visual mode.
 - Support importing OpenAPI 3.0 specs (previously only 3.1 was supported).
+
+
+### Changed
+- `MethodSelector`: uppercase letters can now be used to change the method.
+- `MethodSelector`: Disables Textual's built-in `type_to_search` behavior.
+- `MethodSelector`: Navigation using the underlined letters in the select overlay is now supported. 
+- `PostingSelect`: You can navigate options using j,k,l, space.
+    - k and j move the cursor up and down through options.
+    - l selects the highlighted option. Space now also selects the highlighted option
 
 ## 2.9.2 [14th October 2025]
 

@@ -499,7 +499,13 @@ class ReadOnlyTextArea(PostingTextArea):
         return super().action_cursor_word_right(self.visual_mode or select)
 
     def action_copy_to_clipboard(self) -> None:
-        text_to_copy = self.selected_text
+        if self.visual_mode and not self.selection.is_empty:
+            start, end = sorted([self.selection.start, self.selection.end])
+            
+            inclusive_end = (end[0], end[1] + 1)
+            text_to_copy = self.get_text_range(start, inclusive_end)
+        else:
+            text_to_copy = self.selected_text
         if text_to_copy:
             message = f"Copied {len(text_to_copy)} characters."
             title = "Selection copied"
