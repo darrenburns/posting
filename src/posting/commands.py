@@ -2,6 +2,7 @@ from functools import partial
 from typing import TYPE_CHECKING, cast
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from textual.types import IgnoreReturnCallbackType
+from posting.widgets.load_env_file_dialog import show_load_env_file_dialog
 
 if TYPE_CHECKING:
     from posting.app import Posting
@@ -149,6 +150,15 @@ class PostingProvider(Provider):
                     "theme: Preview theme",
                     app.action_change_theme,
                     "Preview a theme for the current session",
+                    True,
+                ),
+            )
+
+            commands_to_show.append(
+                (
+                    "environment: Load env file",
+                    lambda: show_load_env_file_dialog(app),
+                    "Load environment variables from a .env file",
                     True,
                 ),
             )

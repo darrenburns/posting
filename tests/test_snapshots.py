@@ -159,6 +159,66 @@ class TestCommandPalette:
 
 
 @use_config("general.yaml")
+class TestLoadEnvFileDialog:
+    def test_dialog_loads_with_single_path_input(
+        self, tmp_path, monkeypatch, snap_compare
+    ):
+        working_env = tmp_path / ".env"
+        working_env.write_text("FROM_CWD=1\n", encoding="utf-8")
+
+        config_home = tmp_path / "xdg-config"
+        posting_config = config_home / "posting"
+        posting_config.mkdir(parents=True)
+        (posting_config / "config.env").write_text("FROM_CONFIG=1\n", encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(config_home))
+
+        app = make_posting(collection=SAMPLE_COLLECTIONS)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+p")
+            await disable_blink_for_active_cursors(pilot)
+            await pilot.press(*"load env")
+            await pilot.press("enter")
+            await pilot.pause()
+            pilot.app.screen.query_one("#env-input", Input).cursor_blink = False
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
+
+    def test_dialog_shows_autocomplete_suggestions(
+        self, tmp_path, monkeypatch, snap_compare
+    ):
+        working_env = tmp_path / ".env"
+        working_env.write_text("FROM_CWD=1\n", encoding="utf-8")
+        (tmp_path / ".env.dev").write_text("FROM_CWD_DEV=1\n", encoding="utf-8")
+        (tmp_path / "configs").mkdir()
+
+        config_home = tmp_path / "xdg-config"
+        posting_config = config_home / "posting"
+        posting_config.mkdir(parents=True)
+        (posting_config / "config.env").write_text("FROM_CONFIG=1\n", encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(config_home))
+
+        app = make_posting(collection=SAMPLE_COLLECTIONS)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+p")
+            await disable_blink_for_active_cursors(pilot)
+            await pilot.press(*"load env")
+            await pilot.press("enter")
+            await pilot.pause()
+            env_input = pilot.app.screen.query_one("#env-input", Input)
+            env_input.cursor_blink = False
+            await pilot.press(*".env")
+            await pilot.pause()
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
+
+
+@use_config("general.yaml")
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 class TestNewRequest:
     def test_dialog_loads_and_can_be_used(self, snap_compare):
