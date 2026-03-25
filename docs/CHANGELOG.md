@@ -1,13 +1,18 @@
-## [Unreleased]
+## 2.10.0 [25th March 2026]
 
 ### Added
 
 - Added copy functionality to key-value tables (headers, query params, cookies, etc.) via `c` or `y` key, allowing copying of name, value, or both.
+- Added ability to load environment files at runtime via new command palette `Load environment file`.
+- Added ability to copy the URL using `ctrl+y`.
+
 
 ### Fixed
 - Fixed themes not auto-reloading when the theme file is a symlink.
 - Fixed last character being omitted when yanking text in visual mode.
 - Support importing OpenAPI 3.0 specs (previously only 3.1 was supported).
+- Ensure we enforce UTF-8 when raeding files (already enforced for writing).
+- Ensure Vim keybinds work in the method selector dropdown.
 
 
 ### Changed
