@@ -3,6 +3,8 @@
 ### Fixed
 - Fixed themes not auto-reloading when the theme file is a symlink.
 - Fixed last character being omitted when yanking text in visual mode.
+- Support importing OpenAPI 3.0 specs (previously only 3.1 was supported).
+
 
 ### Changed
 - `MethodSelector`: uppercase letters can now be used to change the method.
