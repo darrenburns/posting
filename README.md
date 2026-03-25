@@ -49,6 +49,10 @@ Homebrew and NixOS are not officially supported at the moment.
 
 If you'd prefer to use `pipx`, that works too: `pipx install posting`.
 
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, information on setting up your development environment, and running tests.
+
 ## Learn More
 
 Learn more about Posting at [https://posting.sh](https://posting.sh).

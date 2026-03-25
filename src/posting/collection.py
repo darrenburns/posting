@@ -559,6 +559,6 @@ def load_request_from_yaml(file_path: str) -> RequestModel:
     Returns:
         RequestModel: The request model loaded from the YAML file.
     """
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         data = load(file, Loader=Loader)
         return RequestModel(**data, path=Path(file_path))
