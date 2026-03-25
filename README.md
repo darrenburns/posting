@@ -19,7 +19,7 @@
 | src/posting/highlight\_url.py                         |        0 |        0 |    100% |           |
 | src/posting/highlighters.py                           |       69 |       11 |     84% |52-57, 67, 89, 109-113 |
 | src/posting/importing/curl.py                         |      146 |       71 |     51% |122, 125, 152, 159, 172-181, 189-259, 264-301 |
-| src/posting/importing/open\_api.py                    |      227 |      102 |     55% |50-52, 66, 96, 113-114, 123, 135-136, 155, 158-165, 168-172, 175-178, 216-221, 226-228, 231-234, 237-260, 263-280, 330, 349, 372-388, 391-400, 409-416 |
+| src/posting/importing/open\_api.py                    |      269 |       58 |     78% |84, 99, 149-150, 172-173, 192, 195-202, 205-209, 212-215, 262, 266, 270, 272-277, 331, 337, 343, 346, 350, 367, 369-374, 440, 499-508, 529-536 |
 | src/posting/importing/postman.py                      |      111 |       13 |     88% |92-99, 133-134, 158-173 |
 | src/posting/jump\_overlay.py                          |       69 |       16 |     77% |65, 73-78, 85-101 |
 | src/posting/jumper.py                                 |       34 |        1 |     97% |        55 |
@@ -72,7 +72,7 @@
 | src/posting/widgets/variable\_input.py                |       25 |        0 |    100% |           |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
 | src/posting/yaml.py                                   |       14 |        4 |     71% |6-7, 12-15 |
-|                                             **TOTAL** | **5357** | **1373** | **74%** |           |
+|                                             **TOTAL** | **5399** | **1329** | **75%** |           |
 
 
 ## Setup coverage badge
