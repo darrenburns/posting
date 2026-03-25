@@ -19,3 +19,6 @@ snapshot_report.html
 *.afdesign*
 *.afphoto
 *.afphoto*
+
+# .env to test environment variable dialog
+.env

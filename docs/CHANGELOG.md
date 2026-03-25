@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Dialog displaying the environment variables present.
+
 ## 2.9.2 [14th October 2025]
 
 ### Fixed
