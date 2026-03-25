@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for src/posting/config.py: 98%</title>
+    <title>Coverage for src/posting/config.py: 100%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_6b508a39.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>src/posting/config.py</b>:
-            <span class="pc_cov">98%</span>
+            <span class="pc_cov">100%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">118 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">116<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">2<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">118<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">0<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_84a7554037279c84_exit_codes_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.11.0">coverage.py v7.11.0</a>,
-            created at 2026-03-25 22:43 +0000
+            created at 2026-03-25 23:03 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -310,7 +310,7 @@
     <p class="run"><span class="n"><a id="t228" href="#t228">228</a></span><span class="t">        <span class="key">if</span> <span class="nam">config_from_env</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t229" href="#t229">229</a></span><span class="t">            <span class="nam">conf_file</span> <span class="op">=</span> <span class="nam">Path</span><span class="op">(</span><span class="nam">config_from_env</span><span class="op">)</span><span class="op">.</span><span class="nam">resolve</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t230" href="#t230">230</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t231" href="#t231">231</a></span><span class="t">            <span class="nam">conf_file</span> <span class="op">=</span> <span class="nam">config_file</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t231" href="#t231">231</a></span><span class="t">            <span class="nam">conf_file</span> <span class="op">=</span> <span class="nam">config_file</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t232" href="#t232">232</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t233" href="#t233">233</a></span><span class="t">        <span class="nam">default_sources</span> <span class="op">=</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t234" href="#t234">234</a></span><span class="t">            <span class="nam">init_settings</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -327,7 +327,7 @@
     <p class="run run2"><span class="n"><a id="t245" href="#t245">245</a></span><span class="t">                <span class="nam">dotenv_settings</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t246" href="#t246">246</a></span><span class="t">                <span class="nam">file_secret_settings</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t247" href="#t247">247</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t248" href="#t248">248</a></span><span class="t">        <span class="key">return</span> <span class="nam">default_sources</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t248" href="#t248">248</a></span><span class="t">        <span class="key">return</span> <span class="nam">default_sources</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t249" href="#t249">249</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t250" href="#t250">250</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t251" href="#t251">251</a></span><span class="t"><span class="nam">SETTINGS</span><span class="op">:</span> <span class="nam">ContextVar</span><span class="op">[</span><span class="nam">Settings</span><span class="op">]</span> <span class="op">=</span> <span class="nam">ContextVar</span><span class="op">(</span><span class="str">"settings"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -340,7 +340,7 @@
             <a class="nav" href="z_84a7554037279c84_exit_codes_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.11.0">coverage.py v7.11.0</a>,
-            created at 2026-03-25 22:43 +0000
+            created at 2026-03-25 23:03 +0000
         </p>
     </div>
 </footer>
