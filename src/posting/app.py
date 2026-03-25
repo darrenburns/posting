@@ -1364,7 +1364,14 @@ class Posting(App[None], inherit_bindings=False):
 
         from watchfiles import awatch
 
-        async for changes in awatch(self.settings.theme_directory):
+        paths_to_watch = {self.settings.theme_directory}
+        
+        if self.settings.theme_directory.exists():
+            for p in self.settings.theme_directory.iterdir():
+                if p.is_symlink():
+                    paths_to_watch.add(p.resolve().parent)
+
+        async for changes in awatch(*paths_to_watch):
             for _change_type, file_path in changes:
                 if file_path.endswith((".yml", ".yaml")):
                     try:
@@ -1378,10 +1385,6 @@ class Posting(App[None], inherit_bindings=False):
                         try:
                             self._watch_theme(theme.name)
                         except Exception as e:
-                            # I don't think we want to notify here, as editors often
-                            # use heuristics to determine whether to save a file. This could
-                            # prove jarring if we pop up a notification without the user
-                            # explicitly saving the file in their editor.
                             log.warning(f"Error refreshing CSS: {e}")
 
     def on_mount(self) -> None:

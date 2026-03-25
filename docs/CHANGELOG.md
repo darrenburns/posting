@@ -1,7 +1,8 @@
 ## [Unreleased]
 
 ### Fixed
-- Fixed the test snapshot for test_select_post_method
+- Fixed themes not auto-reloading when the theme file is a symlink.
+- Fixed last character being omitted when yanking text in visual mode.
 
 ### Changed
 - `MethodSelector`: uppercase letters can now be used to change the method.
