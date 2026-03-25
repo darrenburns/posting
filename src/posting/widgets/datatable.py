@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Self
+
 from rich.style import Style
 from rich.text import Text
 from textual import on, events
@@ -14,6 +15,13 @@ from textual.message_pump import MessagePump
 from textual.strip import Strip
 from textual.widgets import DataTable
 from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey
+
+from posting.widgets.key_value_copy_modal import CopyChoice, KeyValueCopyModal
+
+try:
+    import pyperclip
+except ImportError:
+    pyperclip = None  # type: ignore[assignment]
 
 
 class PostingDataTable(DataTable[str | Text]):
@@ -35,6 +43,7 @@ PostingDataTable {
         Binding("end", "scroll_end", "End", show=False),
         Binding("g,ctrl+home", "scroll_top", "Top", show=False),
         Binding("G,ctrl+end", "scroll_bottom", "Bottom", show=False),
+        Binding("c,y", "copy_cell", "Copy cell", show=False),
     ]
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -206,6 +215,58 @@ PostingDataTable {
             self.toggle_row(cursor_row_key)
         except CellDoesNotExist:
             pass
+
+    def action_copy_cell(self) -> None:
+        """Show copy options modal for the current row."""
+        try:
+            row = self.get_row_at(self.cursor_coordinate.row)
+        except CellDoesNotExist:
+            return
+
+        # Require at least 2 columns (name and value)
+        if len(row) < 2:
+            return
+
+        # Get plain text values
+        name = row[0].plain if isinstance(row[0], Text) else str(row[0])
+        value = row[1].plain if isinstance(row[1], Text) else str(row[1])
+
+        def handle_copy_choice(choice: CopyChoice) -> None:
+            if choice is None:
+                return
+
+            if choice == "name":
+                text_to_copy = name
+                description = "Copied name"
+            elif choice == "value":
+                text_to_copy = value
+                description = "Copied value"
+            else:  # choice == "both"
+                text_to_copy = f"{name}: {value}"
+                description = "Copied row"
+
+            if pyperclip is None:
+                self.notify(
+                    "pyperclip is not installed",
+                    title="Clipboard error",
+                    severity="error",
+                    timeout=5,
+                )
+                return
+
+            try:
+                pyperclip.copy(text_to_copy)
+            except pyperclip.PyperclipException as exc:
+                self.notify(
+                    str(exc),
+                    title="Clipboard error",
+                    severity="error",
+                    timeout=5,
+                )
+            else:
+                self.notify(description, title=text_to_copy)
+
+        self.app.push_screen(KeyValueCopyModal(), handle_copy_choice)
 
     def toggle_row(self, row_key: RowKey) -> None:
         try:

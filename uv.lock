@@ -1044,6 +1044,17 @@ dev = [
     { name = "syrupy" },
     { name = "textual-dev" },
 ]
+docs = [
+    { name = "mkdocs-material" },
+]
+test = [
+    { name = "jinja2" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-textual-snapshot" },
+    { name = "pytest-xdist" },
+    { name = "syrupy" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -1073,6 +1084,15 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "syrupy", specifier = ">=4.6.1" },
     { name = "textual-dev", specifier = ">=1.5.1" },
+]
+docs = [{ name = "mkdocs-material", specifier = ">=9.5.30" }]
+test = [
+    { name = "jinja2", specifier = ">=3.1.4" },
+    { name = "pytest", specifier = ">=8.3.1" },
+    { name = "pytest-cov", specifier = ">=5.0.0" },
+    { name = "pytest-textual-snapshot", specifier = ">=1.0.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "syrupy", specifier = ">=4.6.1" },
 ]
 
 [[package]]

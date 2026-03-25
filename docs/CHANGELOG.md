@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- Added copy functionality to key-value tables (headers, query params, cookies, etc.) via `c` or `y` key, allowing copying of name, value, or both.
+
 ### Fixed
 - Fixed themes not auto-reloading when the theme file is a symlink.
 - Fixed last character being omitted when yanking text in visual mode.
