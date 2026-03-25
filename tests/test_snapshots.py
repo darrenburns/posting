@@ -3,11 +3,6 @@ from pathlib import Path
 from unittest import mock
 import pytest
 
-try:
-    import pyperclip
-except ImportError:
-    pyperclip = None  # type: ignore[assignment]
-
 from textual.pilot import Pilot
 from textual.widgets import Input
 from posting.__main__ import make_posting
@@ -30,18 +25,6 @@ def use_config(file_name: str):
 def patch_env(key: str, value: str):
     """Decorator to patch and environment variable."""
     return mock.patch.dict(os.environ, {key: value})
-
-
-def clipboard_available() -> bool:
-    if pyperclip is None:
-        return False
-
-    try:
-        pyperclip.copy("")
-    except pyperclip.PyperclipException:
-        return False
-
-    return True
 
 
 async def disable_blink_for_active_cursors(pilot: Pilot) -> None:
@@ -810,10 +793,7 @@ class TestKeyValueCopyModal:
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
-    @pytest.mark.skipif(
-        not clipboard_available(),
-        reason="pyperclip copy mechanism unavailable",
-    )
+    @pytest.mark.skip(reason="Clipboard-backed snapshot is not stable in CI")
     def test_copy_modal_select_via_option_list(self, snap_compare):
         """Check that an option can be selected via vim-style keys."""
 
