@@ -164,6 +164,122 @@ def test_import_openapi_3_0(tmp_path: Path):
     assert "tag" in body
 
 
+def test_import_openapi_3_0_without_components_and_with_server_url(tmp_path: Path):
+    """Test importing a 3.0 spec without components still creates requests and env vars."""
+    spec = {
+        "openapi": "3.0.3",
+        "info": {"title": "No Components", "version": "1.0"},
+        "servers": [{"url": "https://api.example.com", "description": "Production"}],
+        "paths": {
+            "/health": {
+                "get": {
+                    "summary": "Health check",
+                    "responses": {"200": {"description": "OK"}},
+                }
+            }
+        },
+    }
+    spec_path = tmp_path / "spec30_no_components.json"
+    spec_path.write_text(json.dumps(spec))
+
+    collection = import_openapi_spec(spec_path)
+
+    assert len(collection.requests) == 1
+    assert collection.requests[0].url == "${BASE_URL}/health"
+
+    env_files = list(tmp_path.glob("*.env"))
+    assert len(env_files) == 1
+    assert "BASE_URL=https://api.example.com" in env_files[0].read_text()
+
+
+def test_import_openapi_3_0_resolves_parameter_refs(tmp_path: Path):
+    """Test importing referenced query and header parameters from components."""
+    spec = {
+        "openapi": "3.0.3",
+        "info": {"title": "Parameter refs", "version": "1.0"},
+        "paths": {
+            "/pets": {
+                "get": {
+                    "parameters": [
+                        {"$ref": "#/components/parameters/Limit"},
+                        {"$ref": "#/components/parameters/TraceId"},
+                    ],
+                    "responses": {"200": {"description": "OK"}},
+                }
+            }
+        },
+        "components": {
+            "parameters": {
+                "Limit": {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {"type": "integer"},
+                },
+                "TraceId": {
+                    "name": "X-Trace-Id",
+                    "in": "header",
+                    "schema": {"type": "string"},
+                },
+            }
+        },
+    }
+    spec_path = tmp_path / "spec30_parameter_refs.json"
+    spec_path.write_text(json.dumps(spec))
+
+    collection = import_openapi_spec(spec_path)
+
+    assert len(collection.requests) == 1
+    request = collection.requests[0]
+    assert [param.name for param in request.params] == ["limit"]
+    assert [header.name for header in request.headers] == ["X-Trace-Id"]
+
+
+def test_import_openapi_3_0_resolves_request_body_refs(tmp_path: Path):
+    """Test importing a referenced request body that itself points at a schema."""
+    spec = {
+        "openapi": "3.0.3",
+        "info": {"title": "Request body refs", "version": "1.0"},
+        "paths": {
+            "/pets": {
+                "post": {
+                    "requestBody": {"$ref": "#/components/requestBodies/PetBody"},
+                    "responses": {"201": {"description": "Created"}},
+                }
+            }
+        },
+        "components": {
+            "schemas": {
+                "Pet": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "age": {"type": "integer"},
+                    },
+                }
+            },
+            "requestBodies": {
+                "PetBody": {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/Pet"},
+                        }
+                    },
+                }
+            },
+        },
+    }
+    spec_path = tmp_path / "spec30_request_body_refs.json"
+    spec_path.write_text(json.dumps(spec))
+
+    collection = import_openapi_spec(spec_path)
+
+    assert len(collection.requests) == 1
+    request = collection.requests[0]
+    assert request.body is not None
+    assert json.loads(request.body.content) == {"name": "", "age": 0}
+
+
 def test_import_unsupported_version(tmp_path: Path):
     """Test that an unsupported OpenAPI version raises ValueError."""
     spec = {
