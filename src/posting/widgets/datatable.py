@@ -43,7 +43,7 @@ PostingDataTable {
         Binding("end", "scroll_end", "End", show=False),
         Binding("g,ctrl+home", "scroll_top", "Top", show=False),
         Binding("G,ctrl+end", "scroll_bottom", "Bottom", show=False),
-        Binding("c", "copy_cell", "Copy cell", show=False),
+        Binding("c,y", "copy_cell", "Copy cell", show=False),
     ]
 
     def __init__(self, *args: Any, **kwargs: Any):

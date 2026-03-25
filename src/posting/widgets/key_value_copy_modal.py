@@ -44,6 +44,9 @@ class KeyValueCopyModal(ModalScreen[CopyChoice]):
 
     BINDINGS = [
         Binding("escape", "dismiss(None)", "Cancel", show=False),
+        Binding("j", "cursor_down", "Down", show=False),
+        Binding("k", "cursor_up", "Up", show=False),
+        Binding("l", "select_highlighted", "Select", show=False),
         Binding("n", "select('name')", "Copy name", show=False),
         Binding("v", "select('value')", "Copy value", show=False),
         Binding("b", "select('both')", "Copy both", show=False),
@@ -53,9 +56,9 @@ class KeyValueCopyModal(ModalScreen[CopyChoice]):
         with Vertical(classes="modal-body") as container:
             container.border_title = "Copy"
             yield OptionList(
-                Option("Copy name    [dim][[n]][/]", id="name"),
-                Option("Copy value   [dim][[v]][/]", id="value"),
-                Option("Copy both    [dim][[b]][/]", id="both"),
+                Option(r"Copy name    [dim]\[n][/]", id="name"),
+                Option(r"Copy value   [dim]\[v][/]", id="value"),
+                Option(r"Copy both    [dim]\[b][/]", id="both"),
             )
 
     def on_mount(self) -> None:
@@ -64,6 +67,15 @@ class KeyValueCopyModal(ModalScreen[CopyChoice]):
     @on(OptionList.OptionSelected)
     def on_option_selected(self, event: OptionList.OptionSelected) -> None:
         self.dismiss(event.option.id)
+
+    def action_cursor_down(self) -> None:
+        self.query_one(OptionList).action_cursor_down()
+
+    def action_cursor_up(self) -> None:
+        self.query_one(OptionList).action_cursor_up()
+
+    def action_select_highlighted(self) -> None:
+        self.query_one(OptionList).action_select()
 
     def action_select(self, choice: CopyChoice) -> None:
         self.dismiss(choice)
