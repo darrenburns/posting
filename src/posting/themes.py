@@ -341,7 +341,7 @@ def load_user_themes() -> UserThemeLoadResult:
 def load_user_theme(path: Path) -> TextualTheme | None:
     with path.open() as theme_file:
         try:
-            theme_content = yaml.load(theme_file, Loader=yaml.FullLoader) or {}
+            theme_content = yaml.safe_load(theme_file) or {}
         except Exception as e:
             raise InvalidThemeError(f"Could not parse theme file: {str(e)}.")
 
