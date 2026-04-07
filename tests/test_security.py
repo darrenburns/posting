@@ -8,8 +8,13 @@ import pytest
 import yaml
 
 from posting.yaml import Loader, load
-from posting.collection import load_request_from_yaml
-from posting.importing.postman import process_item, RequestItem, Collection
+from posting.collection import (
+    Collection,
+    RequestModel,
+    _sanitize_path_component,
+    _unique_safe_name,
+)
+from posting.importing.postman import process_item, RequestItem
 from posting.scripts import execute_script, clear_module_cache
 
 
@@ -274,6 +279,121 @@ class TestPostmanFolderSanitization:
 
         child = parent.children[0]
         assert child.path == tmp_path / "my-api_v2"
+
+
+class TestSaveToDiskSanitization:
+    """Verify that Collection.save_to_disk sanitizes names used as paths."""
+
+    def test_request_name_traversal_blocked(self, tmp_path: Path) -> None:
+        """A request with ../ in the name must not escape the output dir."""
+        collection = Collection(
+            path=tmp_path,
+            name="root",
+            requests=[
+                RequestModel(
+                    name="../../etc/evil",
+                    method="GET",
+                    url="http://example.com",
+                ),
+            ],
+        )
+        collection.save_to_disk(tmp_path)
+
+        # Must not write outside tmp_path
+        assert not (tmp_path / ".." / ".." / "etc").exists()
+        # Should have written a sanitized file inside tmp_path
+        written = list(tmp_path.glob("*.posting.yaml"))
+        assert len(written) == 1
+        assert ".." not in written[0].name
+
+    def test_child_name_traversal_blocked(self, tmp_path: Path) -> None:
+        """A child collection with ../ in the name must not escape the output dir."""
+        collection = Collection(
+            path=tmp_path,
+            name="root",
+            children=[
+                Collection(
+                    path=tmp_path / "child",
+                    name="../../escape",
+                    requests=[
+                        RequestModel(
+                            name="test",
+                            method="GET",
+                            url="http://example.com",
+                        ),
+                    ],
+                ),
+            ],
+        )
+        collection.save_to_disk(tmp_path)
+
+        # Must not create directories outside tmp_path
+        assert not (tmp_path / ".." / ".." / "escape").exists()
+        # Should have created a sanitized subdirectory
+        subdirs = [p for p in tmp_path.iterdir() if p.is_dir()]
+        assert len(subdirs) == 1
+        assert ".." not in subdirs[0].name
+
+    def test_openapi_style_name_sanitized(self, tmp_path: Path) -> None:
+        """Names from OpenAPI specs (with slashes) must be sanitized."""
+        collection = Collection(
+            path=tmp_path,
+            name="root",
+            requests=[
+                RequestModel(
+                    name="/api/users/{id}",
+                    method="GET",
+                    url="http://example.com",
+                ),
+            ],
+        )
+        collection.save_to_disk(tmp_path)
+
+        written = list(tmp_path.glob("*.posting.yaml"))
+        assert len(written) == 1
+        assert "/" not in written[0].name
+
+    def test_duplicate_request_names_deduplicated(self, tmp_path: Path) -> None:
+        """Requests whose names sanitize to the same value must not collide."""
+        collection = Collection(
+            path=tmp_path,
+            name="root",
+            requests=[
+                RequestModel(name="foo/bar", method="GET", url="http://a.com"),
+                RequestModel(name="foobar", method="GET", url="http://b.com"),
+            ],
+        )
+        collection.save_to_disk(tmp_path)
+
+        written = list(tmp_path.glob("*.posting.yaml"))
+        assert len(written) == 2
+        assert len({f.name for f in written}) == 2  # unique filenames
+
+
+class TestSanitizePathComponent:
+    """Unit tests for _sanitize_path_component."""
+
+    def test_strips_traversal(self) -> None:
+        assert ".." not in _sanitize_path_component("../../etc")
+
+    def test_strips_slashes(self) -> None:
+        result = _sanitize_path_component("foo/bar\\baz")
+        assert "/" not in result
+        assert "\\" not in result
+
+    def test_empty_returns_unnamed(self) -> None:
+        assert _sanitize_path_component("///") == "unnamed"
+
+    def test_preserves_normal_names(self) -> None:
+        assert _sanitize_path_component("My API v2") == "My API v2"
+
+    def test_unique_safe_name_deduplicates(self) -> None:
+        used: set[str] = set()
+        first = _unique_safe_name("test", used)
+        second = _unique_safe_name("test", used)
+        assert first == "test"
+        assert second == "test_2"
+        assert len(used) == 2
 
 
 class TestSysPathIsolation:

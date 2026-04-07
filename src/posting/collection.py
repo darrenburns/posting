@@ -4,6 +4,7 @@ from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from pathlib import Path
 from string import Template
 from typing import Any, Literal, get_args
+import re
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
 import rich
@@ -544,10 +545,36 @@ class Collection(BaseModel):
             readme_path = path / "README.md"
             readme_path.write_text(self.readme)
             rich.print(f"Saved collection README to {str(readme_path)!r}.")
+        used_request_names: set[str] = set()
         for request in self.requests:
-            request.save_to_disk(path / f"{request.name}.posting.yaml")
+            safe = _unique_safe_name(request.name, used_request_names)
+            request.save_to_disk(path / f"{safe}.posting.yaml")
+        used_child_names: set[str] = set()
         for child in self.children:
-            child.save_to_disk(path / child.name)
+            safe = _unique_safe_name(child.name, used_child_names)
+            child.save_to_disk(path / safe)
+
+
+def _sanitize_path_component(name: str) -> str:
+    """Strip a string down to a safe single-path component.
+
+    Removes path separators, traversal sequences, and characters that are
+    problematic on common filesystems. Returns 'unnamed' when nothing is left.
+    """
+    safe = re.sub(r"[^\w\s\-.]", "", name).strip(" .")
+    return safe or "unnamed"
+
+
+def _unique_safe_name(name: str, used: set[str]) -> str:
+    """Return a sanitized name that is unique within *used*, then register it."""
+    base = _sanitize_path_component(name)
+    candidate = base
+    counter = 1
+    while candidate in used:
+        counter += 1
+        candidate = f"{base}_{counter}"
+    used.add(candidate)
+    return candidate
 
 
 def load_request_from_yaml(file_path: str) -> RequestModel:
