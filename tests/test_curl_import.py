@@ -239,3 +239,48 @@ curl \
 }"""
     )
     assert curl_import.user == "darren:"
+
+
+def test_curl_with_cookies_before_url():
+    """Test that --cookie flags before the URL don't clobber the URL.
+
+    Regression test for https://github.com/darrenburns/posting/issues/309
+    """
+    curl_command = (
+        "curl "
+        "--cookie 'session=abc123' "
+        "--cookie 'token=xyz' "
+        "'http://example.com/api'"
+    )
+    curl_import = CurlImport(curl_command)
+    assert curl_import.url == "http://example.com/api"
+    assert curl_import.method == "GET"
+
+
+def test_curl_with_cookies_and_headers_before_url():
+    """Test that a complex curl command with cookies and headers before the URL
+    correctly identifies the URL."""
+    curl_command = (
+        "curl "
+        "-H 'Accept: application/json' "
+        "--cookie 'AEC=value1' "
+        "--cookie 'logged_in=no' "
+        "'http://google.com'"
+    )
+    curl_import = CurlImport(curl_command)
+    assert curl_import.url == "http://google.com"
+    assert curl_import.headers == [("Accept", "application/json")]
+
+
+def test_curl_with_location_flag():
+    """Test that -L/--location flag is recognized without breaking URL parsing."""
+    curl_command = "curl -L http://example.com"
+    curl_import = CurlImport(curl_command)
+    assert curl_import.url == "http://example.com"
+
+
+def test_curl_with_proxy_flag():
+    """Test that --proxy flag is recognized without breaking URL parsing."""
+    curl_command = "curl --proxy 'http://proxy:8080' http://example.com"
+    curl_import = CurlImport(curl_command)
+    assert curl_import.url == "http://example.com"
