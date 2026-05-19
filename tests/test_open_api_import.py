@@ -305,3 +305,243 @@ def test_get_openapi_models_31():
     models = _get_openapi_models("3.1.0")
     OpenAPI = models[0]
     assert "v3_0" not in OpenAPI.__module__
+
+
+def test_import_inline_path_params(tmp_path: Path):
+    """Inline path parameters should be converted to :param style and added to path_params."""
+    spec = {
+        "openapi": "3.1.0",
+        "info": {"title": "Test", "version": "1.0.0"},
+        "paths": {
+            "/users/{user_id}/posts/{post_id}": {
+                "get": {
+                    "summary": "Get post",
+                    "parameters": [
+                        {
+                            "name": "user_id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                        },
+                        {
+                            "name": "post_id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "integer"},
+                        },
+                        {
+                            "name": "format",
+                            "in": "query",
+                            "schema": {"type": "string"},
+                        },
+                    ],
+                    "responses": {"200": {"description": "OK"}},
+                }
+            }
+        },
+    }
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text(json.dumps(spec))
+    collection = import_openapi_spec(spec_path)
+
+    assert len(collection.requests) == 1
+    request = collection.requests[0]
+
+    assert request.url == "${BASE_URL}/users/:user_id/posts/:post_id"
+
+    assert len(request.path_params) == 2
+    param_names = [p.name for p in request.path_params]
+    assert "user_id" in param_names
+    assert "post_id" in param_names
+    for p in request.path_params:
+        assert p.value == ""
+
+    assert len(request.params) == 1
+    assert request.params[0].name == "format"
+
+
+def test_import_ref_path_params(tmp_path: Path):
+    """$ref path parameters should be resolved and treated identically to inline path params."""
+    spec = {
+        "openapi": "3.1.0",
+        "info": {"title": "example API", "version": "1.0.0"},
+        "paths": {
+            "/example/{id}": {
+                "get": {
+                    "summary": "example GET endpoint",
+                    "parameters": [
+                        {"$ref": "#/components/parameters/IdParam"}
+                    ],
+                    "responses": {"200": {"description": "successful"}},
+                }
+            }
+        },
+        "components": {
+            "parameters": {
+                "IdParam": {
+                    "name": "id",
+                    "in": "path",
+                    "required": True,
+                    "description": "id example",
+                    "schema": {"type": "string"},
+                }
+            }
+        },
+    }
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text(json.dumps(spec))
+    collection = import_openapi_spec(spec_path)
+
+    assert len(collection.requests) == 1
+    request = collection.requests[0]
+
+    assert request.url == "${BASE_URL}/example/:id"
+    assert len(request.path_params) == 1
+    assert request.path_params[0].name == "id"
+    assert request.path_params[0].value == ""
+
+
+def test_import_path_params_openapi_30(tmp_path: Path):
+    """Path parameters should work identically for OpenAPI 3.0.x specs."""
+    spec = {
+        "openapi": "3.0.3",
+        "info": {"title": "Test 3.0", "version": "1.0"},
+        "paths": {
+            "/items/{item_id}": {
+                "get": {
+                    "summary": "Get item",
+                    "parameters": [
+                        {
+                            "name": "item_id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "integer"},
+                        },
+                        {
+                            "name": "verbose",
+                            "in": "query",
+                            "schema": {"type": "boolean"},
+                        },
+                    ],
+                    "responses": {"200": {"description": "OK"}},
+                }
+            }
+        },
+    }
+    spec_path = tmp_path / "spec30.json"
+    spec_path.write_text(json.dumps(spec))
+    collection = import_openapi_spec(spec_path)
+
+    assert len(collection.requests) == 1
+    request = collection.requests[0]
+
+    assert request.url == "${BASE_URL}/items/:item_id"
+    assert len(request.path_params) == 1
+    assert request.path_params[0].name == "item_id"
+    assert request.path_params[0].value == ""
+    assert len(request.params) == 1
+    assert request.params[0].name == "verbose"
+
+
+def test_import_path_item_level_params(tmp_path: Path):
+    """Path-item level parameters should be merged with operation parameters.
+
+    OpenAPI allows parameters at the path item level (shared across all
+    operations on that path) as well as at the operation level. Operation-level
+    parameters override path-item parameters with the same (name, in) pair.
+    """
+    spec = {
+        "openapi": "3.1.0",
+        "info": {"title": "Test", "version": "1.0.0"},
+        "paths": {
+            "/orgs/{org_id}/users/{user_id}": {
+                "parameters": [
+                    {
+                        "name": "org_id",
+                        "in": "path",
+                        "required": True,
+                        "schema": {"type": "string"},
+                    },
+                ],
+                "get": {
+                    "summary": "Get user",
+                    "parameters": [
+                        {
+                            "name": "user_id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                        },
+                        {
+                            "name": "verbose",
+                            "in": "query",
+                            "schema": {"type": "boolean"},
+                        },
+                    ],
+                    "responses": {"200": {"description": "OK"}},
+                },
+            }
+        },
+    }
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text(json.dumps(spec))
+    collection = import_openapi_spec(spec_path)
+
+    assert len(collection.requests) == 1
+    request = collection.requests[0]
+
+    assert request.url == "${BASE_URL}/orgs/:org_id/users/:user_id"
+
+    assert len(request.path_params) == 2
+    param_names = [p.name for p in request.path_params]
+    assert "org_id" in param_names
+    assert "user_id" in param_names
+    for p in request.path_params:
+        assert p.value == ""
+
+    assert len(request.params) == 1
+    assert request.params[0].name == "verbose"
+
+
+def test_import_path_item_params_operation_overrides(tmp_path: Path):
+    """Operation-level parameters override path-item parameters with the same (name, in)."""
+    spec = {
+        "openapi": "3.1.0",
+        "info": {"title": "Test", "version": "1.0.0"},
+        "paths": {
+            "/items/{item_id}": {
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "required": True,
+                        "schema": {"type": "string"},
+                        "description": "path-level description",
+                    },
+                ],
+                "get": {
+                    "summary": "Get item",
+                    "parameters": [
+                        {
+                            "name": "item_id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "integer"},
+                            "description": "operation-level description",
+                        },
+                    ],
+                    "responses": {"200": {"description": "OK"}},
+                },
+            }
+        },
+    }
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text(json.dumps(spec))
+    collection = import_openapi_spec(spec_path)
+
+    assert len(collection.requests) == 1
+    request = collection.requests[0]
+
+    assert request.url == "${BASE_URL}/items/:item_id"
+    assert len(request.path_params) == 1
+    assert request.path_params[0].name == "item_id"
