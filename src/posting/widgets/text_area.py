@@ -166,22 +166,23 @@ class PostingTextArea(TextArea):
     def on_theme_change(self, theme: TextualTheme) -> None:
         builtin_theme = theme.variables.get("syntax-theme")
         if isinstance(builtin_theme, str):
-            # A builtin theme was requested
             try:
                 self.theme = builtin_theme
+                self.call_after_refresh(self.refresh)
+                return
             except ThemeDoesNotExist:
-                self.app.exit(
-                    return_code=GENERAL_ERROR,
-                    message=f"The syntax theme {builtin_theme!r} is invalid.",
+                self.app.notify(
+                    severity="warning",
+                    title="Invalid syntax theme",
+                    message=f"The syntax theme {builtin_theme!r} is not available.",
+                    timeout=5,
                 )
-        else:
-            # Generate a TextAreaTheme from the Textual them
-            text_area_theme = Theme.text_area_theme_from_theme_variables(
-                self.app.theme_variables
-            )
-            self.register_theme(text_area_theme)
-            self.theme = text_area_theme.name
 
+        text_area_theme = Theme.text_area_theme_from_theme_variables(
+            self.app.theme_variables
+        )
+        self.register_theme(text_area_theme)
+        self.theme = text_area_theme.name
         self.call_after_refresh(self.refresh)
 
     @on(TextArea.Changed)
