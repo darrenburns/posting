@@ -94,3 +94,47 @@ def test_import_postman_spec():
     assert postman_collection.variable == [
         Variable(key="baseUrl", value="https://api.example.com")
     ]
+
+
+def test_import_postman_env(tmp_path):
+    import json
+    from posting.importing.postman import import_postman_env
+
+    # Mock environment dictionary exported from Postman
+    mock_env = {
+        "name": "Production Env",
+        "values": [
+            {
+                "key": "baseUrl",
+                "value": "https://production.example.com",
+                "enabled": True
+            },
+            {
+                "key": "api-key",
+                "value": "my-secret-key",
+                "enabled": True
+            },
+            {
+                "key": "disabled-key",
+                "value": "disabled-val",
+                "enabled": False
+            }
+        ]
+    }
+
+    env_json_path = tmp_path / "prod.postman_environment.json"
+    env_json_path.write_text(json.dumps(mock_env))
+
+    # Import environment to output directory as foo.env
+    output_env_path = tmp_path / "foo.env"
+    imported_file = import_postman_env(env_json_path, output_env_path)
+
+    assert imported_file == output_env_path
+    assert imported_file.exists()
+
+    content = imported_file.read_text()
+    # Check that enabled keys are sanitized and present, and disabled keys are omitted.
+    assert "BASE_URL=https://production.example.com" in content
+    assert "API_KEY=my-secret-key" in content
+    assert "DISABLED_KEY" not in content
+
