@@ -232,3 +232,40 @@ def import_postman_spec(
         process_item(item, main_collection, base_dir)
 
     return main_collection, spec
+
+
+def import_postman_env(
+    spec_path: str | Path, output_path: str | Path | None
+) -> Path:
+    """Import a Postman environment from a file and save it as a .env file."""
+    spec_path = Path(spec_path)
+    with open(spec_path, "r") as file:
+        spec_dict = json.load(file)
+
+    env_name = spec_dict.get("name", "environment")
+    values = spec_dict.get("values", [])
+
+    env_content: list[str] = []
+    for item in values:
+        if not item.get("enabled", True):
+            continue
+        key = item.get("key")
+        value = item.get("value")
+        if key:
+            # We sanitize the variable key to match what Posting expects in templates
+            env_content.append(f"{sanitize_variables(key)}={value if value is not None else ''}")
+
+    if output_path is not None:
+        out_path = Path(output_path)
+        if out_path.is_dir():
+            env_file = out_path / f"{env_name}.env"
+        else:
+            env_file = out_path
+    else:
+        # Default to current directory
+        env_file = Path.cwd() / f"{env_name}.env"
+
+    env_file.parent.mkdir(parents=True, exist_ok=True)
+    env_file.write_text("\n".join(env_content) + "\n")
+    return env_file
+

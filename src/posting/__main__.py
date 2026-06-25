@@ -103,10 +103,10 @@ def locate(thing_to_locate: str) -> None:
     default=None,
 )
 @click.option(
-    "--type", "-t", default="openapi", help="Specify spec type [openapi, postman]"
+    "--type", "-t", default="openapi", help="Specify spec type [openapi, postman, postman-env]"
 )
 def import_spec(spec_path: str, output: str | None, type: str) -> None:
-    """Import an OpenAPI specification into a Posting collection."""
+    """Import an OpenAPI specification or Postman collection/environment."""
     console = Console()
     console.print(
         "Importing is currently an experimental feature.", style="bold yellow"
@@ -151,6 +151,13 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
                 output_path, f"{collection.name}.env", postman_collection.variable
             )
             console.print(f"Created environment file {str(env_file)!r}.")
+        elif type.lower() == "postman-env":
+            from posting.importing.postman import import_postman_env
+
+            spec_type = "Postman Environment"
+            env_file = import_postman_env(spec_path, output_path)
+            console.print(f"Created environment file {str(env_file)!r}.")
+            return
         else:
             console.print(f"Unknown spec type: {type!r}", style="red")
             return
@@ -161,10 +168,10 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
     except Exception:
         console.print("An error occurred during the import process.", style="red")
         console.print(
-            "Ensure you're importing the correct type of collection.", style="red"
+            "Ensure you're importing the correct type of collection/environment.", style="red"
         )
         console.print(
-            "For Postman collections, use `posting import --type postman <path>`",
+            "For Postman specs, use `posting import --type [postman|postman-env] <path>`",
             style="red",
         )
         console.print(
