@@ -78,6 +78,13 @@ This will load all of the shared variables from `shared.env`, and then load the 
 Note that you do *not* need to restart to load changes made to these files,
 so you can open and edit your env files in an editor of your choice alongside Posting.
 
+## Editing env files
+
+You can edit the currently loaded env files without leaving Posting.
+Open the command palette with ++ctrl+p++ and select `environment: Edit env file`.
+
+Posting will suspend and open the loaded env files in the editor specified in the `editor` config option (or the `$EDITOR` / `$POSTING_EDITOR` environment variables). When you close the editor, Posting resumes and immediately reloads the variables — any changes are reflected in your next request.
+
 ### Environment specific config
 
 Since all Posting configuration options can also be specified as environment variables, we can also put environment specific config inside `.env` files. There's a dedicated "Configuration" section in this document which covers this in more detail.
