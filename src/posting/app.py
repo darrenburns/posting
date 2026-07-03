@@ -1464,6 +1464,58 @@ class Posting(App[None], inherit_bindings=False):
     def command_toggle_spacing(self) -> None:
         self.spacing = "compact" if self.spacing == "standard" else "standard"
 
+    def command_edit_env_files(self) -> None:
+        """Open the loaded environment file(s) in the external editor."""
+        import shlex
+        import subprocess
+
+        editor = self.settings.editor
+        if not editor:
+            self.notify(
+                severity="warning",
+                title="No editor configured",
+                message="Set the [b]$EDITOR[/b] or [b]$POSTING_EDITOR[/b] environment variable.",
+            )
+            return
+
+        if not self.environment_files:
+            self.notify(
+                severity="warning",
+                title="No environment files loaded",
+                message="Load an env file with [b]--env[/b] or the [b]environment: Load env file[/b] command.",
+            )
+            return
+
+        command_args = shlex.split(editor)
+        command_args.extend(str(path) for path in self.environment_files)
+
+        with self.suspend():
+            try:
+                subprocess.call(command_args)
+            except OSError:
+                command_string = shlex.join(command_args)
+                self.notify(
+                    severity="error",
+                    title="Can't run editor command",
+                    message=f"The command [b]{command_string}[/b] failed to run.",
+                )
+                return
+
+        # Reload variables immediately rather than relying on the file
+        # watcher, which may be disabled via the watch_env_files setting.
+        load_variables(
+            self.environment_files,
+            self.settings.use_host_environment,
+            avoid_cache=True,
+        )
+        update_variables(self.session_env)
+        self.env_changed_signal.publish(None)
+        self.notify(
+            title="Environment reloaded",
+            message="Reloaded environment files after editing",
+            timeout=3,
+        )
+
     def action_open_web_docs(self) -> None:
         import webbrowser
 
