@@ -46,6 +46,7 @@ from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.method_styles import get_method_label, get_method_style
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
 from posting.themes import (
     BUILTIN_THEMES,
@@ -977,11 +978,26 @@ class MainScreen(Screen[None]):
                     self.collection_tree.select_node(node)
                     break
 
+        theme_variables = self.app.theme_variables
+
+        def method_tag(method: str) -> str:
+            """A colour-coded, fixed-width method badge for a palette entry.
+
+            Without this, requests with the same name (but different methods
+            and/or directories) are indistinguishable in the palette. See
+            `CollectionTree.render_label` for the equivalent in the sidebar.
+            """
+            label = get_method_label(method, pad=True)
+            style = get_method_style(theme_variables, method)
+            if style is None:
+                return label
+            return f"[{style} bold]{label}[/{style} bold]"
+
         collection_path = self.collection.path
         self.app.search_commands(
             [
                 SimpleCommand(
-                    name=node.data.name if node.data.path else node.data.name,
+                    name=f"{method_tag(node.data.method)} {node.data.name}",
                     callback=lambda request=node.data: load_and_select_request(request),
                     help_text=(
                         str(node.data.path.relative_to(collection_path))
