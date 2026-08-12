@@ -66,6 +66,7 @@ from posting.widgets.collection.browser import (
     CollectionTree,
 )
 from posting.widgets.datatable import PostingDataTable
+from posting.widgets.variables_modal import VariableChange, VariablesModal
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
@@ -1231,6 +1232,13 @@ class Posting(App[None], inherit_bindings=False):
             tooltip="Open the help dialog for the currently focused widget.",
             id="help",
         ),
+        Binding(
+            "ctrl+shift+v",
+            "show_variables",
+            description="Variables",
+            tooltip="Show the variables available to requests.",
+            id="variables",
+        ),
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
 
@@ -1266,6 +1274,12 @@ class Posting(App[None], inherit_bindings=False):
         `self.environment_files`) have been modified."""
 
         self.session_env: dict[str, object] = {}
+        self.variable_history: list[VariableChange] = []
+        """Undo history for variable edits made from the variables screen.
+
+        Lives on the app rather than the screen, so closing and reopening the
+        screen keeps the history."""
+        self.variable_redo_stack: list[VariableChange] = []
         """Users can set the value of variables for the duration of the
         session (until the app is quit). This can be done via the scripting
         interface: pre-request or post-response scripts."""
@@ -1639,6 +1653,9 @@ class Posting(App[None], inherit_bindings=False):
             id=palette_id or None,
         )
         return self.push_screen(palette)
+
+    def action_show_variables(self) -> None:
+        self.push_screen(VariablesModal())
 
     async def action_help(self) -> None:
         focused = self.focused
