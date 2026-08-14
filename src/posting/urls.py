@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 
 # Match a single-colon path param like ":id", but ignore escaped tokens like "::id".
@@ -89,3 +89,60 @@ def substitute_path_params(url: str, params: dict[str, str]) -> str:
             parsed.fragment,
         )
     )
+
+
+def extract_query_pairs(url: str) -> list[tuple[str, str]]:
+    """Return query-string pairs from ``url``, preserving blanks and order."""
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return []
+    return parse_qsl(parsed.query, keep_blank_values=True)
+
+
+def set_query_pairs(url: str, pairs: list[tuple[str, str]]) -> str:
+    """Return ``url`` with its query string replaced by ``pairs``."""
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return url
+    return urlunparse(
+        (
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            parsed.params,
+            urlencode(pairs, doseq=True, safe="${}"),
+            parsed.fragment,
+        )
+    )
+
+
+def merge_url_query_into_params(
+    url: str, params: list[tuple[str, str, bool]]
+) -> tuple[str, list[tuple[str, str, bool]]]:
+    """Absorb ``url``'s query string into param triples ``(name, value, enabled)``.
+
+    URL-bar pairs fill in empty table values for the same name. Table-only
+    params are kept. The returned URL has an empty query string so callers
+    can send params from one place without duplicating keys.
+    """
+    url_pairs = extract_query_pairs(url)
+    if not url_pairs:
+        return url, params
+
+    table_by_name = {name: (value, enabled) for name, value, enabled in params}
+    merged: list[tuple[str, str, bool]] = []
+    seen: set[str] = set()
+    for name, value in url_pairs:
+        seen.add(name)
+        if name in table_by_name:
+            existing_value, enabled = table_by_name[name]
+            merged.append((name, existing_value if existing_value else value, enabled))
+        else:
+            merged.append((name, value, True))
+    for name, value, enabled in params:
+        if name not in seen:
+            merged.append((name, value, enabled))
+
+    return set_query_pairs(url, []), merged

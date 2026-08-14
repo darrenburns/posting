@@ -39,6 +39,7 @@ from posting.collection import (
     Header,
     HttpRequestMethod,
     Options,
+    QueryParam,
     RequestModel,
 )
 
@@ -66,6 +67,7 @@ from posting.widgets.collection.browser import (
     CollectionTree,
 )
 from posting.widgets.datatable import PostingDataTable
+from posting.widgets.key_value import KeyValueInput
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
@@ -81,7 +83,12 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
-from posting.urls import extract_path_param_names
+from posting.urls import (
+    extract_path_param_names,
+    extract_query_pairs,
+    merge_url_query_into_params,
+    set_query_pairs,
+)
 from urllib.parse import urlparse, urlunparse
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
@@ -207,7 +214,8 @@ class MainScreen(Screen[None]):
         self.settings = SETTINGS.get()
         self.jumper: Jumper | None = None
         self.posting = cast("Posting", self.app)
-
+        self._syncing_query = False
+        
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
 
@@ -836,6 +844,7 @@ class MainScreen(Screen[None]):
     def on_url_changed(self, event: Input.Changed) -> None:
         """When the URL changes, sync path params table rows to match placeholders."""
         self._sync_path_params_from_url()
+        self._sync_query_params_from_url()
 
         # Inform the URL highlighter of current path param values (by name) for highlighting.
         try:
@@ -898,6 +907,78 @@ class MainScreen(Screen[None]):
             # Path tab may be lazily mounted; ignore if not present yet.
             pass
 
+    def _sync_query_params_from_url(self) -> None:
+        """Copy query-string pairs from the URL bar into the Query tab."""
+        if self._syncing_query:
+            return
+        try:
+            table = self.params_table
+        except NoMatches:
+            return
+
+        url_pairs = extract_query_pairs(self.url_input.value)
+        current = [
+            (param.name, param.value, param.enabled) for param in table.to_model()
+        ]
+        # Keep disabled table-only rows so toggling one off does not delete it
+        # when the URL no longer lists that pair.
+        disabled_only = [
+            (name, value, False)
+            for name, value, enabled in current
+            if not enabled and (name, value) not in {(n, v) for n, v in url_pairs}
+        ]
+        new_rows = [(name, value) for name, value in url_pairs] + [
+            (name, value) for name, value, _ in disabled_only
+        ]
+        new_enabled = [True] * len(url_pairs) + [False] * len(disabled_only)
+        current_enabled = [(name, value) for name, value, enabled in current if enabled]
+        if current_enabled == list(url_pairs) and [
+            (n, v) for n, v, e in current if not e
+        ] == [(n, v) for n, v, _ in disabled_only]:
+            return
+
+        self._syncing_query = True
+        try:
+            table.replace_all_rows(new_rows, new_enabled)
+        finally:
+            self._syncing_query = False
+
+    def _sync_url_from_query_params(self) -> None:
+        """Write enabled Query-tab rows back into the URL bar query string."""
+        if self._syncing_query:
+            return
+        try:
+            table = self.params_table
+        except NoMatches:
+            return
+
+        pairs = [
+            (param.name, param.value)
+            for param in table.to_model()
+            if param.enabled
+        ]
+        current = self.url_input.value
+        updated = set_query_pairs(current, pairs)
+        if updated == current:
+            return
+        self._syncing_query = True
+        try:
+            self.url_input.value = updated
+        finally:
+            self._syncing_query = False
+
+    @on(PostingDataTable.RowsAdded, selector="ParamsTable")
+    @on(PostingDataTable.RowsRemoved, selector="ParamsTable")
+    def on_query_params_table_changed(self, event: object) -> None:
+        self._sync_url_from_query_params()
+
+    @on(KeyValueInput.Change)
+    def on_query_key_value_changed(self, event: KeyValueInput.Change) -> None:
+        # Several editors use KeyValueInput; only the Query tab should rewrite the URL.
+        if event.control.key_input.id != "query-key-input":
+            return
+        self._sync_url_from_query_params()
+
     async def log_request_trace_event(self, event: Event, info: dict[str, Any]) -> None:
         """Log an event to the request trace."""
         await self.response_trace.log_event(event, info)
@@ -927,13 +1008,22 @@ class MainScreen(Screen[None]):
                         value=request_body.content_type,
                     )
                 )
+        url = self.url_input.value.strip()
+        params = self.params_table.to_model()
+        url, merged_params = merge_url_query_into_params(
+            url,
+            [(param.name, param.value, param.enabled) for param in params],
+        )
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
             description=self.request_metadata.description,
             method=self.selected_method,
-            url=self.url_input.value.strip(),
-            params=self.params_table.to_model(),
+            url=url,
+            params=[
+                QueryParam(name=name, value=value, enabled=enabled)
+                for name, value, enabled in merged_params
+            ],
             path_params=self.path_params_table.to_model(),
             headers=headers,
             options=request_options,
@@ -1014,6 +1104,8 @@ class MainScreen(Screen[None]):
             ((param.name, param.value) for param in request_model.params),
             (param.enabled for param in request_model.params),
         )
+        # Show table params in the URL bar so the two views stay aligned.
+        self._sync_url_from_query_params()
         # Prefer values from the model, but ensure they align with placeholders in the URL
         preferred_values = {
             p.name: p.value for p in getattr(request_model, "path_params", [])

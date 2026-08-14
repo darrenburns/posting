@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- Query parameters typed in the URL bar are now kept in sync with the Query tab and sent with the request (#272, #362).
+
 ## 2.10.0 [25th March 2026]
 
 ### Added

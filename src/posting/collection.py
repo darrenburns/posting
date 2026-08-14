@@ -14,7 +14,7 @@ from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
 from posting.yaml import dump, load, Loader
-from posting.urls import ensure_protocol, substitute_path_params
+from posting.urls import ensure_protocol, merge_url_query_into_params, substitute_path_params
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 VALID_HTTP_METHODS = get_args(HttpRequestMethod)
@@ -262,6 +262,19 @@ class RequestModel(BaseModel):
                 self.url = substitute_path_params(self.url, substitutions)
 
             self.url = ensure_protocol(self.url)
+
+            # Query params typed in the URL bar are a second view of the Query tab.
+            # Absorb them after substitution so `$BASE_URL?api_key=$API_KEY` works,
+            # and so an empty table row does not overwrite a URL-bar value.
+            merged_url, merged_params = merge_url_query_into_params(
+                self.url,
+                [(param.name, param.value, param.enabled) for param in self.params],
+            )
+            self.url = merged_url
+            self.params = [
+                QueryParam(name=name, value=value, enabled=enabled)
+                for name, value, enabled in merged_params
+            ]
 
         except (KeyError, ValueError) as e:
             raise SubstitutionError(f"Variable not defined: {e}")
