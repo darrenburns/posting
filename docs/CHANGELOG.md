@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- Restore an open request to the Collection Browser when it is saved after deletion.
+
 ## 2.10.0 [25th March 2026]
 
 ### Added
