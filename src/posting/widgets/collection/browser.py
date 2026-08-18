@@ -647,14 +647,41 @@ class CollectionBrowser(Vertical):
     def update_currently_open_node(self, request_model: RequestModel) -> None:
         """Update the request tree node with the new request model."""
         currently_open = self.collection_tree.currently_open
-        if currently_open is not None and isinstance(currently_open.data, RequestModel):
-            currently_open.data = request_model
-            currently_open.set_label(request_model.name or "")
-            self.collection_tree.cache_request(request_model)
-            currently_open.refresh()
-            # Update the description preview if it's the one currently being displayed.
-            if currently_open is self.collection_tree.cursor_node:
-                self.request_preview.request = request_model
+        if currently_open is None or not isinstance(
+            currently_open.data, RequestModel
+        ):
+            return
+
+        parent = currently_open.parent
+
+        # The request may still be open in the editor after its tree node was
+        # deleted. Saving recreates the file, so restore the node to the tree too.
+        if parent is not None and currently_open not in parent.children:
+            sibling_requests = [
+                child.data
+                for child in parent.children
+                if isinstance(child.data, RequestModel)
+            ]
+            index = bisect.bisect_right(sibling_requests, request_model)
+            before = index if index < len(sibling_requests) else None
+
+            new_node = self.collection_tree.add_request(
+                request_model,
+                parent,
+                before=before,
+            )
+            if new_node is not None:
+                self.collection_tree.currently_open = new_node
+                self.collection_tree.select_node(new_node)
+            return
+
+        currently_open.data = request_model
+        currently_open.set_label(request_model.name or "")
+        self.collection_tree.cache_request(request_model)
+        currently_open.refresh()
+
+        if currently_open is self.collection_tree.cursor_node:
+            self.request_preview.request = request_model
 
     @property
     def request_preview(self) -> RequestPreview:
