@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Fixed
+
+- Fixed a crash (`StyleSyntaxError`) when the active theme is one of Textual's builtin `ansi-dark`/`ansi-light` themes, which express colors using the `ansi_<name>` convention that `rich.style.Style.parse` doesn't understand.
+
 ## 2.11.0 [26th September 2026]
 
 ### Added
