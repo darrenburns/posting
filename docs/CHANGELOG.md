@@ -4,6 +4,7 @@
 
 - Query parameters typed in the URL bar are now kept in sync with the Query tab and sent with the request (#272, #362).
 - Fall back to Textual's terminal clipboard when the native clipboard is unavailable.
+- Fixed a crash (`StyleSyntaxError`) when the active theme is one of Textual's builtin `ansi-dark`/`ansi-light` themes, which express colors using the `ansi_<name>` convention that `rich.style.Style.parse` doesn't understand.
 
 ### Added
 
