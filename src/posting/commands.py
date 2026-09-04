@@ -122,6 +122,24 @@ class PostingProvider(Provider):
             )
             commands_to_show.append(toggle_collection_browser_command)
 
+            if screen.graphql_body_selected:
+                commands_to_show.append(
+                    (
+                        "graphql: Fetch schema",
+                        screen.action_fetch_graphql_schema,
+                        "Introspect the endpoint to enable GraphQL autocompletion",
+                        True,
+                    ),
+                )
+                commands_to_show.append(
+                    (
+                        "graphql: Browse schema",
+                        screen.action_browse_graphql_schema,
+                        "Browse the schema, and insert operations into the query",
+                        True,
+                    ),
+                )
+
             toggle_spacing_callback: IgnoreReturnCallbackType = partial[None](
                 app.command_toggle_spacing
             )

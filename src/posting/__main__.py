@@ -12,6 +12,7 @@ from posting.collection import Collection
 from posting.config import Settings
 from posting.locations import (
     config_file,
+    data_directory,
     default_collection_directory,
     theme_directory,
 )
@@ -87,6 +88,9 @@ def locate(thing_to_locate: str) -> None:
     elif thing_to_locate == "themes":
         print("Themes directory:")
         print(theme_directory())
+    elif thing_to_locate == "data":
+        print("Data directory:")
+        print(data_directory())
     else:
         # This shouldn't happen because the type annotation should enforce that
         # the only valid options are "config" and "collection".

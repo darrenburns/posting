@@ -5,6 +5,7 @@ from posting.help_data import HelpData
 
 from posting.widgets.center_middle import CenterMiddle
 from posting.widgets.request.form_editor import FormEditor
+from posting.widgets.request.graphql_editor import GraphQLEditor
 from posting.widgets.select import PostingSelect
 from posting.widgets.text_area import PostingTextArea, TextAreaFooter, TextEditor
 
@@ -24,6 +25,7 @@ class RequestBodyEditor(Vertical):
                     ("None", "no-body-label"),
                     ("Raw (json, text, etc.)", "text-body-editor"),
                     ("Form data (x-www-form-urlencoded)", "form-body-editor"),
+                    ("GraphQL", "graphql-body-editor"),
                 ],
                 id="request-body-type-select",
                 allow_blank=False,
@@ -44,6 +46,9 @@ class RequestBodyEditor(Vertical):
             )
             yield FormEditor(
                 id="form-body-editor",
+            )
+            yield GraphQLEditor(
+                id="graphql-body-editor",
             )
 
 

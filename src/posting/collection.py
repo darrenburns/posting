@@ -4,6 +4,7 @@ from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from pathlib import Path
 from string import Template
 from typing import Any, Literal, get_args
+import json
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
 import rich
@@ -108,6 +109,77 @@ class Options(BaseModel):
     timeout: float = Field(default=5.0)
 
 
+class GraphQLQueryTemplate(Template):
+    """A template which only recognises the `${name}` form of a variable.
+
+    GraphQL uses `$name` for its own variables, so inside a GraphQL query
+    that form is left completely untouched. Posting variables must be
+    written using braces, e.g. `${my_variable}`.
+    """
+
+    pattern = r"""
+    \$(?:
+      (?P<escaped>\$)                        |
+      (?P<named>(?!))                        |
+      {(?P<braced>(?a:[_a-z][_a-z0-9]*))}    |
+      (?P<invalid>(?!))
+    )
+    """
+
+
+class GraphQLError(ValueError):
+    """Raised when a GraphQL body cannot be converted into a request payload."""
+
+
+class GraphQLBody(BaseModel):
+    """A GraphQL query or mutation, alongside its variables.
+
+    The query and variables are written as plain, unescaped text by the user.
+    Posting serialises them into the JSON payload that GraphQL servers expect
+    when the request is sent, so there's no need to escape anything by hand.
+    """
+
+    query: str = Field(default="")
+    """The GraphQL query or mutation."""
+
+    variables: str = Field(default="")
+    """The variables for the query, written as a JSON object."""
+
+    operation_name: str = Field(default="")
+    """The operation to execute. Only required when the query contains
+    more than one named operation."""
+
+    def to_payload(self) -> dict[str, Any]:
+        """Build the JSON payload which will be sent to the GraphQL server.
+
+        Raises:
+            GraphQLError: If the variables are not a valid JSON object.
+        """
+        payload: dict[str, Any] = {"query": self.query}
+
+        variables = self.variables.strip()
+        if variables:
+            try:
+                parsed_variables = json.loads(variables)
+            except json.JSONDecodeError as error:
+                raise GraphQLError(
+                    f"GraphQL variables are not valid JSON: {error}"
+                ) from error
+            if not isinstance(parsed_variables, dict):
+                raise GraphQLError("GraphQL variables must be a JSON object.")
+            payload["variables"] = parsed_variables
+
+        operation_name = self.operation_name.strip()
+        if operation_name:
+            payload["operationName"] = operation_name
+
+        return payload
+
+    def to_content(self) -> str:
+        """Serialise this body into the JSON string that will be sent."""
+        return json.dumps(self.to_payload())
+
+
 class RequestBody(BaseModel):
     content: str | None = Field(default=None)
     """The content of the request."""
@@ -115,13 +187,26 @@ class RequestBody(BaseModel):
     form_data: list[FormItem] | None = Field(default=None)
     """The form data of the request."""
 
+    graphql: GraphQLBody | None = Field(default=None)
+    """The GraphQL query, variables and operation name of the request."""
+
     content_type: str | None = Field(default=None, init=False)
     """We may set an additional header if the content type is known."""
 
+    def to_content(self) -> str | None:
+        """The raw content that will be sent as the request body, if any.
+
+        For GraphQL bodies this is the serialised JSON payload, meaning the
+        user never has to escape their query themselves.
+        """
+        if self.graphql is not None:
+            return self.graphql.to_content()
+        return self.content
+
     def to_httpx_args(self) -> dict[str, Any]:
         httpx_args: dict[str, Any] = {}
-        if self.content:
-            httpx_args["content"] = self.content
+        if content := self.to_content():
+            httpx_args["content"] = content
         if self.form_data:
             # Ensure we don't delete duplicate keys
             httpx_args["data"] = tuples_to_dict(
@@ -230,6 +315,16 @@ class RequestModel(BaseModel):
                         item.name = template.substitute(variables)
                         template = Template(item.value)
                         item.value = template.substitute(variables)
+                if self.body.graphql:
+                    graphql = self.body.graphql
+                    # GraphQL queries use `$name` for their own variables, so
+                    # only the `${name}` form refers to a Posting variable here.
+                    query_template = GraphQLQueryTemplate(graphql.query)
+                    graphql.query = query_template.substitute(variables)
+                    template = Template(graphql.variables)
+                    graphql.variables = template.substitute(variables)
+                    template = Template(graphql.operation_name)
+                    graphql.operation_name = template.substitute(variables)
 
             for header in self.headers:
                 template = Template(header.name)
@@ -350,8 +445,8 @@ class RequestModel(BaseModel):
             )
         )
 
-        if self.body and self.body.content:
-            parts.append(f"-d '{self.body.content}'")
+        if self.body and (body_content := self.body.to_content()):
+            parts.append(f"-d '{body_content}'")
 
         if self.body and self.body.form_data:
             for item in self.body.form_data:

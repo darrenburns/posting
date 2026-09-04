@@ -1,3 +1,17 @@
+## Unreleased
+
+### Added
+
+- Added a GraphQL request body type, with dedicated fields for the query/mutation, variables and operation name. Queries are written unescaped and serialised into the JSON payload when the request is sent.
+- GraphQL requests are now supported when importing Postman collections.
+- Sending a GraphQL request whose query defines more than one operation now prompts for the operation to run, instead of leaving the server to reject the request. The choice is written into the `Operation` field.
+- Added GraphQL schema fetching: press `f5` (or use the `graphql: Fetch schema` command) to introspect the endpoint of the open request. Schemas are cached per endpoint, in memory and on disk.
+- Added `posting locate data` to print the application data directory (where GraphQL schemas are cached).
+- Added syntax highlighting for GraphQL queries, and inferred more syntax highlighting colours (comments, keywords, types, arguments and constants) from the theme for text areas which don't use one of Textual's built-in syntax themes.
+- Selecting the GraphQL body type now switches the request method to `POST`. Loading a request no longer applies the side effects of choosing a body type, so a saved request always keeps the method it was saved with.
+- Added a GraphQL schema browser (`f2`, or the `graphql: Browse schema` command): a tree of every operation and type in the schema, with a detail pane, a search across every field in the schema, and `enter` to insert a field into the query - root fields become a complete operation with a variables template, and any other field is inserted as a selection at the cursor.
+- Added schema-aware autocompletion to the GraphQL query editor, covering fields, arguments, enum values, input object fields, operation variables and inline fragment type conditions.
+
 ## 2.10.0 [25th March 2026]
 
 ### Added
