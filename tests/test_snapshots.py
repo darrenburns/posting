@@ -866,3 +866,160 @@ class TestKeyValueCopyModal:
             await pilot.press("l")  # Select the option
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+class TestGraphQLBody:
+    def test_graphql_editor_displayed(self, snap_compare):
+        """Check the GraphQL body editor is displayed when selected."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "w")  # Jump to Body tab
+            await pilot.pause()
+            request_editor = pilot.app.screen.request_editor
+            request_editor.request_body_type_select.value = "graphql-body-editor"
+            await pilot.pause()
+
+            graphql_editor = request_editor.graphql_editor
+            graphql_editor.query_text_area.focus()
+            await pilot.press(*"query GetUser($id: ID!) { user(id: $id) { name } }")
+            graphql_editor.variables_text_area.focus()
+            await pilot.press(*'{"id": "1"}')
+            graphql_editor.operation_name_input.focus()
+            await pilot.press(*"GetUser")
+            await pilot.pause()
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+
+
+@use_config("general.yaml")
+class TestGraphQLAutocomplete:
+    def test_completions_displayed(
+        self, snap_compare, monkeypatch, tmp_path, introspection_response
+    ):
+        """Check that schema-aware completions are offered in the query editor."""
+        monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+
+        from posting.graphql.cache import store_schema
+
+        url = "https://example.com/graphql"
+        store_schema(url, introspection_response)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "w")  # Jump to Body tab
+            await pilot.pause()
+            screen = pilot.app.screen
+            screen.url_input.value = url
+            request_editor = screen.request_editor
+            request_editor.request_body_type_select.value = "graphql-body-editor"
+            await pilot.pause()
+
+            query_text_area = request_editor.graphql_editor.query_text_area
+            query_text_area.focus()
+            await pilot.pause()
+            await pilot.press(*"query { us")
+            await pilot.pause()
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+
+
+@use_config("general.yaml")
+class TestGraphQLSchemaBrowser:
+    def test_schema_browser(
+        self, snap_compare, monkeypatch, tmp_path, introspection_response
+    ):
+        """Check the schema browser, with a field expanded into its type."""
+        monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+
+        from posting.graphql.cache import store_schema
+
+        url = "https://example.com/graphql"
+        store_schema(url, introspection_response)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "w")  # Jump to Body tab
+            await pilot.pause()
+            screen = pilot.app.screen
+            screen.url_input.value = url
+            request_editor = screen.request_editor
+            request_editor.request_body_type_select.value = "graphql-body-editor"
+            await pilot.pause()
+
+            request_editor.graphql_editor.query_text_area.focus()
+            await pilot.pause()
+            await pilot.press("f2")  # Open the schema browser
+            await pilot.pause()
+            await pilot.press("down")  # Move to the first root field
+            await pilot.press("space")  # Expand it
+            await pilot.pause()
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(100, 32)
+        )
+
+    def test_schema_browser_field_search(
+        self, snap_compare, monkeypatch, tmp_path, introspection_response
+    ):
+        """Check that filtering finds fields anywhere in the schema."""
+        monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+
+        from posting.graphql.cache import store_schema
+
+        url = "https://example.com/graphql"
+        store_schema(url, introspection_response)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "w")  # Jump to Body tab
+            await pilot.pause()
+            screen = pilot.app.screen
+            screen.url_input.value = url
+            request_editor = screen.request_editor
+            request_editor.request_body_type_select.value = "graphql-body-editor"
+            await pilot.pause()
+
+            request_editor.graphql_editor.query_text_area.focus()
+            await pilot.pause()
+            await pilot.press("f2")  # Open the schema browser
+            await pilot.pause()
+            await pilot.press("slash")  # Focus the filter
+            await pilot.press(*"post")
+            await pilot.pause()
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(100, 32)
+        )
+
+
+@use_config("general.yaml")
+class TestGraphQLOperationPicker:
+    def test_operation_picker(self, snap_compare):
+        """Check the prompt shown when a query defines several operations."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "w")  # Jump to Body tab
+            await pilot.pause()
+            screen = pilot.app.screen
+            screen.url_input.value = "https://example.com/graphql"
+            request_editor = screen.request_editor
+            request_editor.request_body_type_select.value = "graphql-body-editor"
+            await pilot.pause()
+
+            request_editor.graphql_editor.query_text_area.text = (
+                "query Articles {\n  articles { items { id } }\n}\n\n"
+                "query Podcasts {\n  podcasts { items { id } }\n}"
+            )
+            await pilot.pause()
+            screen.run_worker(screen.choose_graphql_operation())
+
+            # Wait for the prompt to be pushed and rendered.
+            from posting.widgets.request.graphql_operation_modal import (
+                GraphQLOperationModal,
+            )
+
+            for _ in range(20):
+                await pilot.pause()
+                if isinstance(pilot.app.screen, GraphQLOperationModal):
+                    break
+            await pilot.pause()
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(90, 30))

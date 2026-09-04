@@ -1,4 +1,5 @@
 import inspect
+import json
 from contextlib import redirect_stdout, redirect_stderr
 import os
 from pathlib import Path
@@ -31,7 +32,7 @@ from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
 from textual.widget import AwaitMount, Widget
 from textual.widgets.input import Selection
-from textual.widgets import Button, Footer, Input, Label, Tab, Tabs
+from textual.widgets import Button, Footer, Input, Label, Select, Tab, Tabs
 from textual.widgets.tabbed_content import ContentTab
 from posting.collection import (
     Collection,
@@ -75,6 +76,13 @@ from posting.widgets.request.path_editor import PathParamsTable
 from posting.widgets.request.path_editor import PathParamsEditor
 from posting.widgets.request.request_auth import RequestAuth
 
+from posting.graphql.cache import store_schema
+from posting.graphql.operations import operations_to_choose
+from posting.graphql.schema import INTROSPECTION_QUERY, SchemaError
+from posting.graphql.snippets import SchemaSelection
+from posting.widgets.request.graphql_editor import GraphQLEditor
+from posting.widgets.request.graphql_operation_modal import GraphQLOperationModal
+from posting.widgets.request.graphql_schema_browser import GraphQLSchemaBrowser
 from posting.widgets.request.request_body import RequestBodyTextArea
 from posting.widgets.request.request_editor import RequestEditor
 from posting.widgets.request.request_metadata import RequestMetadata
@@ -361,6 +369,9 @@ class MainScreen(Screen[None]):
             # but if the widgets are not available, there's nothing we can do.
             # We no-op, as the widgets are only unavailable for some milliseconds, and
             # so it's almost certainly just a mistaken double-tap of the enter key.
+            return
+
+        if not await self.choose_graphql_operation():
             return
 
         script_output.reset()
@@ -664,6 +675,167 @@ class MainScreen(Screen[None]):
         """Send the request."""
         self.send_via_worker()
 
+    def action_fetch_graphql_schema(self) -> None:
+        """Fetch the GraphQL schema for the current endpoint."""
+        self.fetch_graphql_schema()
+
+    @work(exclusive=True, group="graphql-schema")
+    async def fetch_graphql_schema(self) -> None:
+        """Introspect the current endpoint, and cache the schema it returns.
+
+        The schema powers autocompletion in the GraphQL query editor. It's
+        fetched using the URL, headers, auth and options of the open request,
+        so endpoints behind authentication work the same as they do when
+        sending the request itself.
+        """
+        try:
+            graphql_editor = self.request_editor.graphql_editor
+        except NoMatches:
+            return
+
+        request_model = self.build_request_model(self.request_options.to_model())
+        try:
+            request_model.apply_template(get_variables())
+        except SubstitutionError as error:
+            self.notify(
+                severity="error",
+                title="Couldn't fetch schema",
+                message=str(error),
+            )
+            return
+
+        url = request_model.url
+        if not url:
+            self.notify(
+                severity="warning",
+                title="Couldn't fetch schema",
+                message="Enter the URL of the GraphQL endpoint first.",
+            )
+            return
+
+        headers = httpx.Headers(
+            [
+                (header.name, header.value)
+                for header in request_model.headers
+                if header.enabled
+            ]
+        )
+        headers["content-type"] = "application/json"
+        if "accept" not in headers:
+            headers["accept"] = "application/json"
+
+        cert_config = SETTINGS.get().ssl
+        options = request_model.options
+        verify: str | bool = options.verify_ssl
+        if options.verify_ssl and cert_config.ca_bundle is not None:
+            verify = cert_config.ca_bundle
+
+        self.notify(
+            title="Fetching GraphQL schema",
+            message=f"Introspecting {url}",
+            timeout=3,
+        )
+        try:
+            async with httpx.AsyncClient(
+                verify=verify,
+                proxy=options.proxy_url or None,
+                timeout=options.timeout,
+                auth=request_model.auth.to_httpx_auth() if request_model.auth else None,
+            ) as client:
+                response = await client.post(
+                    url,
+                    headers=headers,
+                    content=json.dumps({"query": INTROSPECTION_QUERY}),
+                    follow_redirects=options.follow_redirects,
+                )
+
+            if response.status_code >= 400:
+                raise SchemaError(
+                    f"The endpoint responded with {response.status_code} "
+                    f"{response.reason_phrase}."
+                )
+            try:
+                payload = response.json()
+            except ValueError:
+                raise SchemaError("The endpoint didn't return JSON.") from None
+
+            cached = store_schema(url, payload)
+        except (httpx.HTTPError, SchemaError) as error:
+            log.error("Error fetching GraphQL schema", error)
+            self.notify(
+                severity="error",
+                title="Couldn't fetch schema",
+                message=str(error) or type(error).__name__,
+            )
+            return
+
+        graphql_editor.refresh_schema_status()
+        self.notify(
+            title="Fetched GraphQL schema",
+            message=f"{cached.schema.type_count} types available for autocompletion.",
+        )
+
+    async def choose_graphql_operation(self) -> bool:
+        """Ask which operation to send, if the query defines more than one.
+
+        A GraphQL server can't pick between the operations in a document, so
+        it needs to be told which one to run. The choice is written into the
+        `Operation` field, so it's visible, saved with the request, and only
+        asked for once.
+
+        Returns:
+            False if the user dismissed the prompt, meaning the request
+            shouldn't be sent.
+        """
+        try:
+            graphql_editor = self.request_editor.graphql_editor
+        except NoMatches:
+            return True
+
+        if not self.graphql_body_selected:
+            return True
+
+        operations = operations_to_choose(
+            graphql_editor.query_text_area.text,
+            graphql_editor.operation_name_input.value,
+        )
+        if not operations:
+            return True
+
+        chosen = await self.app.push_screen_wait(GraphQLOperationModal(operations))
+        if chosen is None:
+            return False
+
+        graphql_editor.operation_name_input.value = chosen
+        return True
+
+    def action_browse_graphql_schema(self) -> None:
+        """Open the schema browser for the current endpoint."""
+        try:
+            graphql_editor = self.request_editor.graphql_editor
+        except NoMatches:
+            return
+
+        cached = graphql_editor.cached_schema()
+        if cached is None:
+            self.notify(
+                severity="warning",
+                title="No schema",
+                message="Press f5 to fetch the schema for this endpoint first.",
+            )
+            return
+
+        def insert_selection(selection: SchemaSelection | None) -> None:
+            if selection is None:
+                return
+            graphql_editor.insert_selection(cached.schema, selection)
+            graphql_editor.query_text_area.focus()
+
+        self.app.push_screen(
+            GraphQLSchemaBrowser(cached.schema, cached.url),
+            callback=insert_selection,
+        )
+
     def action_change_method(self) -> None:
         """Change the method of the request."""
         method_selector = self.method_selector
@@ -768,14 +940,38 @@ class MainScreen(Screen[None]):
         request_editor.set_class(section == "response", "hidden")
         response_area.set_class(section == "request", "hidden")
 
+    @on(Select.Changed, selector="#request-body-type-select")
+    def on_request_body_type_changed(self, event: Select.Changed) -> None:
+        """Switch to POST when the user selects the GraphQL body type.
+
+        GraphQL is sent as a POST, so this saves a step. Loading a request
+        must never change the method it was saved with, and the `Changed`
+        message is suppressed while a request is loaded, so this only ever
+        runs for a change the user made.
+        """
+        if event.value != "graphql-body-editor":
+            return
+        if self.selected_method != "POST":
+            self.method_selector.value = "POST"
+
     @on(RequestBodyTextArea.Changed, selector="RequestBodyTextArea")
-    def on_request_body_change(self, event: RequestBodyTextArea.Changed) -> None:
+    @on(GraphQLEditor.Changed)
+    @on(Select.Changed, selector="#request-body-type-select")
+    def on_request_body_change(self) -> None:
         """Update the body tab to indicate if there is a body."""
         body_tab = self.query_one("#--content-tab-body-pane", ContentTab)
-        if event.text_area.text:
-            body_tab.update("Body[cyan b]•[/]")
-        else:
-            body_tab.update("Body")
+        has_body = self.request_body_has_content()
+        body_tab.update("Body[cyan b]•[/]" if has_body else "Body")
+
+    def request_body_has_content(self) -> bool:
+        """Whether the currently selected request body type holds any content."""
+        request_editor = self.request_editor
+        current = request_editor.request_body_content_switcher.current
+        if current == "text-body-editor":
+            return bool(request_editor.text_editor.text)
+        elif current == "graphql-body-editor":
+            return request_editor.graphql_editor.has_content
+        return False
 
     @on(PostingDataTable.RowsRemoved, selector="HeadersTable")
     @on(PostingDataTable.RowsAdded, selector="HeadersTable")
@@ -1026,27 +1222,41 @@ class MainScreen(Screen[None]):
             ((header.name, header.value) for header in request_model.headers),
             (header.enabled for header in request_model.headers),
         )
-        if request_model.body:
-            if request_model.body.content:
-                # Set the body content in the text area and ensure the content
-                # switcher is set such that the text area is visible.
-                self.request_body_text_area.text = request_model.body.content
-                self.request_editor.request_body_type_select.value = "text-body-editor"
-                self.request_editor.form_editor.replace_all_rows([])
-            elif request_model.body.form_data:
-                self.request_editor.form_editor.replace_all_rows(
-                    (
-                        (param.name, param.value)
-                        for param in request_model.body.form_data
-                    ),
-                    (param.enabled for param in request_model.body.form_data),
-                )
-                self.request_editor.request_body_type_select.value = "form-body-editor"
-                self.request_body_text_area.text = ""
-        else:
+        body = request_model.body
+        if body is not None and body.content:
+            # Set the body content in the text area, and below, ensure the
+            # content switcher is set such that the text area is visible.
+            body_type = "text-body-editor"
+            self.request_body_text_area.text = body.content
+            self.request_editor.form_editor.replace_all_rows([])
+            self.request_editor.graphql_editor.load_body(None)
+        elif body is not None and body.form_data:
+            body_type = "form-body-editor"
+            self.request_editor.form_editor.replace_all_rows(
+                ((param.name, param.value) for param in body.form_data),
+                (param.enabled for param in body.form_data),
+            )
+            self.request_body_text_area.text = ""
+            self.request_editor.graphql_editor.load_body(None)
+        elif body is not None and body.graphql:
+            body_type = "graphql-body-editor"
+            self.request_editor.graphql_editor.load_body(body.graphql)
             self.request_body_text_area.text = ""
             self.request_editor.form_editor.replace_all_rows([])
-            self.request_editor.request_body_type_select.value = "no-body-label"
+        else:
+            body_type = "no-body-label"
+            self.request_body_text_area.text = ""
+            self.request_editor.form_editor.replace_all_rows([])
+            self.request_editor.graphql_editor.load_body(None)
+
+        # Set the body type without posting a `Changed` message: loading a
+        # request must not trigger the side effects of the *user* choosing a
+        # body type (switching the method to POST for GraphQL, for example),
+        # so the side effects that do apply are applied here instead.
+        with self.prevent(Select.Changed):
+            self.request_editor.request_body_type_select.value = body_type
+        self.request_editor.request_body_content_switcher.current = body_type
+        self.on_request_body_change()
 
         if overwrite_metadata:
             # Sometimes we don't wish to write request metadata, for example, if we're
@@ -1140,6 +1350,15 @@ class MainScreen(Screen[None]):
     @property
     def request_editor(self) -> RequestEditor:
         return self.query_one(RequestEditor)
+
+    @property
+    def graphql_body_selected(self) -> bool:
+        """Whether the GraphQL body editor is the one currently being shown."""
+        try:
+            switcher = self.request_editor.request_body_content_switcher
+        except NoMatches:
+            return False
+        return switcher.current == "graphql-body-editor"
 
     @property
     def response_area(self) -> ResponseArea:
@@ -1365,7 +1584,7 @@ class Posting(App[None], inherit_bindings=False):
         from watchfiles import awatch
 
         paths_to_watch = {self.settings.theme_directory}
-        
+
         if self.settings.theme_directory.exists():
             for p in self.settings.theme_directory.iterdir():
                 if p.is_symlink():

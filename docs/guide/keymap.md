@@ -80,3 +80,6 @@ These are the IDs of the actions that you can change the keybinding for:
 - `open-in-pager` - Open the content of the focused text area in your $PAGER/$POSTING_PAGER/$POSTING_PAGER_JSON. Default: `f3`.
 - `open-in-editor` - Open the content of the focused text area in your $EDITOR/$POSTING_EDITOR. Default: `f4`.
 - `search-requests` - Go to a request by name. Default: `ctrl+shift+p`.
+- `fetch-graphql-schema` - Fetch the GraphQL schema from the endpoint of the open request. Default: `f5`.
+- `graphql-suggest` - Suggest GraphQL completions at the cursor. Default: `ctrl+space`.
+- `browse-graphql-schema` - Browse the GraphQL schema of the open request's endpoint. Default: `f2`.
