@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict, deque
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 
@@ -91,13 +92,18 @@ def substitute_path_params(url: str, params: dict[str, str]) -> str:
     )
 
 
-def extract_query_pairs(url: str) -> list[tuple[str, str]]:
+def extract_query_pairs(
+    url: str, *, escape_dollars: bool = False
+) -> list[tuple[str, str]]:
     """Return query-string pairs from ``url``, preserving blanks and order."""
     try:
         parsed = urlparse(url)
     except Exception:
         return []
-    return parse_qsl(parsed.query, keep_blank_values=True)
+    # QueryParam values are templates. An encoded dollar is literal URL data,
+    # so escape it before decoding when the values still await substitution.
+    query = parsed.query.replace("%24", "%24%24") if escape_dollars else parsed.query
+    return parse_qsl(query, keep_blank_values=True)
 
 
 def set_query_pairs(url: str, pairs: list[tuple[str, str]]) -> str:
@@ -119,7 +125,7 @@ def set_query_pairs(url: str, pairs: list[tuple[str, str]]) -> str:
 
 
 def merge_url_query_into_params(
-    url: str, params: list[tuple[str, str, bool]]
+    url: str, params: list[tuple[str, str, bool]], *, escape_dollars: bool = False
 ) -> tuple[str, list[tuple[str, str, bool]]]:
     """Absorb ``url``'s query string into param triples ``(name, value, enabled)``.
 
@@ -127,22 +133,27 @@ def merge_url_query_into_params(
     params are kept. The returned URL has an empty query string so callers
     can send params from one place without duplicating keys.
     """
-    url_pairs = extract_query_pairs(url)
+    url_pairs = extract_query_pairs(url, escape_dollars=escape_dollars)
     if not url_pairs:
         return url, params
 
-    table_by_name = {name: (value, enabled) for name, value, enabled in params}
+    # Match repeated names by occurrence rather than overwriting all their values
+    # with the final table row. Unmatched table occurrences must also survive.
+    table_by_name: dict[str, deque[int]] = defaultdict(deque)
+    for index, (name, _, _) in enumerate(params):
+        table_by_name[name].append(index)
     merged: list[tuple[str, str, bool]] = []
-    seen: set[str] = set()
+    consumed: set[int] = set()
     for name, value in url_pairs:
-        seen.add(name)
-        if name in table_by_name:
-            existing_value, enabled = table_by_name[name]
+        if table_by_name[name]:
+            index = table_by_name[name].popleft()
+            consumed.add(index)
+            _, existing_value, enabled = params[index]
             merged.append((name, existing_value if existing_value else value, enabled))
         else:
             merged.append((name, value, True))
-    for name, value, enabled in params:
-        if name not in seen:
+    for index, (name, value, enabled) in enumerate(params):
+        if index not in consumed:
             merged.append((name, value, enabled))
 
     return set_query_pairs(url, []), merged

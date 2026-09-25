@@ -202,9 +202,24 @@ class RequestModel(BaseModel):
     options: Options = Field(default_factory=Options)
     """The options for the request."""
 
+    def absorb_url_query(self, *, escape_dollars: bool = True) -> None:
+        """Move URL query pairs into the parameter model without losing duplicates."""
+        self.url, params = merge_url_query_into_params(
+            self.url,
+            [(param.name, param.value, param.enabled) for param in self.params],
+            escape_dollars=escape_dollars,
+        )
+        self.params = [
+            QueryParam(name=name, value=value, enabled=enabled)
+            for name, value, enabled in params
+        ]
+
     def apply_template(self, variables: dict[str, Any]) -> None:
         """Apply the template to the request model."""
         try:
+            # Parse query values before substitution, so an '&' or '+' inside a
+            # variable remains part of its value rather than becoming URL syntax.
+            self.absorb_url_query()
             # Resolve variables in path parameter values
             if self.path_params:
                 for param in self.path_params:
@@ -263,18 +278,8 @@ class RequestModel(BaseModel):
 
             self.url = ensure_protocol(self.url)
 
-            # Query params typed in the URL bar are a second view of the Query tab.
-            # Absorb them after substitution so `$BASE_URL?api_key=$API_KEY` works,
-            # and so an empty table row does not overwrite a URL-bar value.
-            merged_url, merged_params = merge_url_query_into_params(
-                self.url,
-                [(param.name, param.value, param.enabled) for param in self.params],
-            )
-            self.url = merged_url
-            self.params = [
-                QueryParam(name=name, value=value, enabled=enabled)
-                for name, value, enabled in merged_params
-            ]
+            # A variable containing an entire URL may introduce more query pairs.
+            self.absorb_url_query(escape_dollars=False)
 
         except (KeyError, ValueError) as e:
             raise SubstitutionError(f"Variable not defined: {e}")

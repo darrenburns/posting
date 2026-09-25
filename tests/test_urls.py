@@ -107,3 +107,11 @@ def test_set_query_pairs_preserves_variable_syntax():
         set_query_pairs(url, [("api_key", "${API_KEY}")])
         == "http://localhost:8000/items/?api_key=${API_KEY}"
     )
+
+
+def test_merge_query_matches_duplicate_rows_by_occurrence():
+    _, params = merge_url_query_into_params(
+        'http://example.com/?q=first&q=second',
+        [('q', '', True), ('q', '', False), ('q', 'third', True)],
+    )
+    assert params == [('q', 'first', True), ('q', 'second', False), ('q', 'third', True)]
