@@ -14,7 +14,7 @@ from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
 from posting.yaml import dump, load, Loader
-from posting.urls import ensure_protocol, substitute_path_params
+from posting.urls import ensure_protocol, merge_url_query_into_params, substitute_path_params
 
 HttpRequestMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 VALID_HTTP_METHODS = get_args(HttpRequestMethod)
@@ -202,9 +202,24 @@ class RequestModel(BaseModel):
     options: Options = Field(default_factory=Options)
     """The options for the request."""
 
+    def absorb_url_query(self, *, escape_dollars: bool = True) -> None:
+        """Move URL query pairs into the parameter model without losing duplicates."""
+        self.url, params = merge_url_query_into_params(
+            self.url,
+            [(param.name, param.value, param.enabled) for param in self.params],
+            escape_dollars=escape_dollars,
+        )
+        self.params = [
+            QueryParam(name=name, value=value, enabled=enabled)
+            for name, value, enabled in params
+        ]
+
     def apply_template(self, variables: dict[str, Any]) -> None:
         """Apply the template to the request model."""
         try:
+            # Parse query values before substitution, so an '&' or '+' inside a
+            # variable remains part of its value rather than becoming URL syntax.
+            self.absorb_url_query()
             # Resolve variables in path parameter values
             if self.path_params:
                 for param in self.path_params:
@@ -262,6 +277,9 @@ class RequestModel(BaseModel):
                 self.url = substitute_path_params(self.url, substitutions)
 
             self.url = ensure_protocol(self.url)
+
+            # A variable containing an entire URL may introduce more query pairs.
+            self.absorb_url_query(escape_dollars=False)
 
         except (KeyError, ValueError) as e:
             raise SubstitutionError(f"Variable not defined: {e}")
