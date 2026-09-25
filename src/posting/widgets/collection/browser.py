@@ -21,6 +21,7 @@ from posting.collection import Collection, RequestModel
 from posting.config import SETTINGS
 from posting.files import get_unique_request_filename
 from posting.help_data import HelpData
+from posting.method_styles import get_method_abbreviation, get_method_style
 from posting.save_request import generate_request_filename
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,
@@ -183,25 +184,13 @@ Sub-collections cannot be deleted from the UI yet.
             if self._cursor_node is not node:
                 node_label.stylize(Style(dim=True, bold=True))
         else:
-            theme_vars = self.app.theme_variables
-            default_styles = {
-                "get": theme_vars.get("text-primary"),
-                "post": theme_vars.get("text-success"),
-                "put": theme_vars.get("text-warning"),
-                "delete": theme_vars.get("text-error"),
-                "options": theme_vars.get("text-muted"),
-                "head": theme_vars.get("text-muted"),
-            }
-
-            method = node.data.method.lower()
-            method_style = theme_vars.get(
-                f"method-{method}",
-                default_styles.get(method),
-            )
+            method_style = get_method_style(self.app.theme_variables, node.data.method)
 
             open_indicator = ">" if node is self.currently_open else " "
             method = (
-                f"{node.data.method[:3]}" if isinstance(node.data, RequestModel) else ""
+                get_method_abbreviation(node.data.method)
+                if isinstance(node.data, RequestModel)
+                else ""
             )
             node_label = Text.assemble(
                 open_indicator,

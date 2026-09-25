@@ -15,7 +15,6 @@ from textual import messages, on, log, work
 from textual.command import (
     CommandListItem,
     CommandPalette,
-    SimpleCommand,
     SimpleProvider,
 )
 from textual.css.query import NoMatches
@@ -42,7 +41,7 @@ from posting.collection import (
     RequestModel,
 )
 
-from posting.commands import PostingProvider
+from posting.commands import PostingProvider, RequestSearchProvider
 from posting.config import SETTINGS, Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
@@ -1033,32 +1032,12 @@ class MainScreen(Screen[None]):
 
     def action_open_request_search_palette(self) -> None:
         """Open the request search palette."""
-        collection_tree_nodes = list(self.collection_tree.walk_nodes())
-
-        def load_and_select_request(request: RequestModel) -> None:
-            self.load_request_model(request)
-            for node in collection_tree_nodes:
-                if node.data == request:
-                    self.collection_tree.select_node(node)
-                    break
-
-        collection_path = self.collection.path
-        self.app.search_commands(
-            [
-                SimpleCommand(
-                    name=node.data.name if node.data.path else node.data.name,
-                    callback=lambda request=node.data: load_and_select_request(request),
-                    help_text=(
-                        str(node.data.path.relative_to(collection_path))
-                        if node.data.path
-                        else ""
-                    ),
-                )
-                for node in collection_tree_nodes
-                if isinstance(node.data, RequestModel)
-            ],
-            placeholder="Search for a request…",
-            palette_id="request-search-palette",
+        self.app.push_screen(
+            CommandPalette(
+                providers=[RequestSearchProvider],
+                placeholder="Search for a request…",
+                id="request-search-palette",
+            )
         )
 
     def load_request_model(
