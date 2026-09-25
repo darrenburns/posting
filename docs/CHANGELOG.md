@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- Fall back to Textual's terminal clipboard when the native clipboard is unavailable.
+
 ## 2.10.0 [25th March 2026]
 
 ### Added

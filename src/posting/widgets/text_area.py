@@ -514,19 +514,14 @@ class ReadOnlyTextArea(PostingTextArea):
             message = f"Copied ({len(text_to_copy)} characters)."
             title = "Text copied"
 
-        try:
-            import pyperclip
+        import pyperclip
 
+        try:
             pyperclip.copy(text_to_copy)
-        except pyperclip.PyperclipException as exc:
-            self.notify(
-                str(exc),
-                title="Clipboard error",
-                severity="error",
-                timeout=10,
-            )
-        else:
-            self.notify(message, title=title)
+        except pyperclip.PyperclipException:
+            self.app.copy_to_clipboard(text_to_copy)
+
+        self.notify(message, title=title)
 
         self.visual_mode = False
 
