@@ -104,6 +104,7 @@ class Options(BaseModel):
     follow_redirects: bool = Field(default=True)
     verify_ssl: bool = Field(default=True)
     attach_cookies: bool = Field(default=True)
+    substitute_body_variables: bool = Field(default=True)
     proxy_url: str = Field(default="")
     timeout: float = Field(default=5.0)
 
@@ -235,7 +236,7 @@ class RequestModel(BaseModel):
             template = Template(self.options.proxy_url)
             self.options.proxy_url = template.substitute(variables)
 
-            if self.body:
+            if self.body and self.options.substitute_body_variables:
                 if self.body.content:
                     template = Template(self.body.content)
                     self.body.content = template.substitute(variables)
