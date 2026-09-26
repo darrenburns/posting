@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_84a7554037279c84_config_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.11.0">coverage.py v7.11.0</a>,
-            created at 2026-09-26 21:18 +0000
+            created at 2026-09-26 21:31 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -87,7 +87,7 @@
     <p class="run"><span class="n"><a id="t5" href="#t5">5</a></span><span class="t"><span class="key">from</span> <span class="nam">textual</span><span class="op">.</span><span class="nam">types</span> <span class="key">import</span> <span class="nam">IgnoreReturnCallbackType</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t6" href="#t6">6</a></span><span class="t"><span class="key">from</span> <span class="nam">posting</span><span class="op">.</span><span class="nam">collection</span> <span class="key">import</span> <span class="nam">RequestModel</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t7" href="#t7">7</a></span><span class="t"><span class="key">from</span> <span class="nam">posting</span><span class="op">.</span><span class="nam">method_styles</span> <span class="key">import</span> <span class="nam">get_method_label</span><span class="op">,</span> <span class="nam">get_method_style</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t8" href="#t8">8</a></span><span class="t"><span class="key">from</span> <span class="nam">posting</span><span class="op">.</span><span class="nam">widgets</span><span class="op">.</span><span class="nam">load_env_file_dialog</span> <span class="key">import</span> <span class="nam">show_load_env_file_dialog</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t8" href="#t8">8</a></span><span class="t"><span class="key">from</span> <span class="nam">posting</span><span class="op">.</span><span class="nam">environment_commands</span> <span class="key">import</span> <span class="nam">show_environment_palette</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t9" href="#t9">9</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t10" href="#t10">10</a></span><span class="t"><span class="key">if</span> <span class="nam">TYPE_CHECKING</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t">    <span class="key">from</span> <span class="nam">posting</span><span class="op">.</span><span class="nam">app</span> <span class="key">import</span> <span class="nam">MainScreen</span><span class="op">,</span> <span class="nam">Posting</span>&nbsp;</span><span class="r"></span></p>
@@ -292,14 +292,14 @@
     <p class="run run2"><span class="n"><a id="t210" href="#t210">210</a></span><span class="t">                <span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t212" href="#t212">212</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">            <span class="nam">commands_to_show</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t214" href="#t214">214</a></span><span class="t">                <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t">                    <span class="str">"environment: Load env file"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t216" href="#t216">216</a></span><span class="t">                    <span class="key">lambda</span><span class="op">:</span> <span class="nam">show_load_env_file_dialog</span><span class="op">(</span><span class="nam">app</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t217" href="#t217">217</a></span><span class="t">                    <span class="str">"Load environment variables from a .env file"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t218" href="#t218">218</a></span><span class="t">                    <span class="key">True</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t219" href="#t219">219</a></span><span class="t">                <span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t220" href="#t220">220</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">        <span class="nam">commands_to_show</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t214" href="#t214">214</a></span><span class="t">            <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t">                <span class="str">"environment: Switch environment"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t216" href="#t216">216</a></span><span class="t">                <span class="key">lambda</span><span class="op">:</span> <span class="nam">show_environment_palette</span><span class="op">(</span><span class="nam">app</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t217" href="#t217">217</a></span><span class="t">                <span class="str">"Choose, clear, or load environment files for this session"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t218" href="#t218">218</a></span><span class="t">                <span class="key">True</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t219" href="#t219">219</a></span><span class="t">            <span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t220" href="#t220">220</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t221" href="#t221">221</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t222" href="#t222">222</a></span><span class="t">        <span class="key">if</span> <span class="nam">screen</span><span class="op">.</span><span class="nam">query</span><span class="op">(</span><span class="str">"HelpPanel"</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t223" href="#t223">223</a></span><span class="t">            <span class="nam">commands_to_show</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
@@ -384,7 +384,7 @@
             <a class="nav" href="z_84a7554037279c84_config_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.11.0">coverage.py v7.11.0</a>,
-            created at 2026-09-26 21:18 +0000
+            created at 2026-09-26 21:31 +0000
         </p>
     </div>
 </footer>
