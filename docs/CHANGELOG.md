@@ -1,21 +1,22 @@
 ## Unreleased
 
-### Fixed
-
-- Restore deleted open requests to the collection browser when saving them again (#369).
-- Keep the correct URL when importing curl commands with cookie, redirect, or proxy flags before the URL (#354).
-
-- Query parameters typed in the URL bar are now kept in sync with the Query tab and sent with the request (#272, #362).
-- Fall back to Textual's terminal clipboard when the native clipboard is unavailable.
+## 2.11.0 [26th September 2026]
 
 ### Added
 
-- A per-request option to send raw and form bodies with literal dollar signs while retaining URL and header variables (#352).
-- Added a History tab to the collections sidebar, with locally persisted request configurations and responses, keyboard navigation, and deletion controls. Selecting an entry loads both panes without sending a request or executing scripts.
-- Switch, clear, and load environments from a command palette submenu without restarting Posting.
-- Variable autocompletion in request body and description text areas, with keyboard navigation and dismissal.
-- Added a colour-coded HTTP method tag (e.g. `GET`, `POST`, `PUT`, `DELETE`) to each entry in the request search palette (`ctrl+shift+p`, or `/` from the collection tree), matching the styling already used in the collection tree. Previously, requests with the same name in different directories/methods were indistinguishable in the palette.
-- A variables screen using the shared key/value editor, with session overrides, source labels, secret masking, and undo/redo. Open it from the command palette or with `ctrl+shift+v`.
+- A History tab beside Requests, with locally persisted request configurations and responses. Load an exchange into both panes without sending a request or running scripts; browse with the keyboard, delete entries, or clear history (#382).
+- A variables screen for inspecting effective values and editing session overrides, with filtering, secret masking, copying, revert, and undo/redo. Open it with `ctrl+shift+v` or the command palette (#376, building on #367).
+- Switch, clear, and load environments from a command palette submenu without restarting Posting. Session overrides are retained (#381).
+- Variable autocompletion in request body and description text areas, with keyboard navigation and dismissal (#380).
+- A per-request **Substitute body variables** option. Disable it to send raw and form bodies with literal dollar signs while retaining URL, header, and authentication substitution (#379; fixes #352).
+- Colour-coded HTTP method tags in the request search palette, matching the request tree (#366).
+
+### Fixed
+
+- Restore deleted open requests to the request tree when saving them again, including requests in subfolders, without creating duplicate nodes (#377; fixes #369).
+- Keep URL-bar query parameters in sync with the Query tab and outgoing requests, preserving duplicate values, disabled rows, and variable expressions (#368; fixes #272 and #362).
+- Keep the correct URL when importing curl commands with cookie, redirect, or proxy flags before the URL (#354).
+- Fall back to Textual's terminal clipboard when the native clipboard is unavailable (#374).
 
 ## 2.10.0 [25th March 2026]
 
@@ -30,11 +31,13 @@
 - Fixed themes not auto-reloading when the theme file is a symlink.
 - Fixed last character being omitted when yanking text in visual mode.
 - Support importing OpenAPI 3.0 specs (previously only 3.1 was supported).
-- Ensure we enforce UTF-8 when raeding files (already enforced for writing).
+- Ensure we enforce UTF-8 when reading files (already enforced for writing) (#311).
 - Ensure Vim keybinds work in the method selector dropdown.
 
 
 ### Changed
+- Use standardized dependency groups in `pyproject.toml` instead of legacy development dependencies (#341).
+- Link the contribution guide from the README (#327).
 - `MethodSelector`: uppercase letters can now be used to change the method.
 - `MethodSelector`: Disables Textual's built-in `type_to_search` behavior.
 - `MethodSelector`: Navigation using the underlined letters in the select overlay is now supported. 

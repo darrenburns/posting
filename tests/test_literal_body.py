@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from posting.collection import RequestBody, RequestModel
 from posting.variables import SubstitutionError
@@ -61,6 +63,10 @@ def test_literal_body_option(snap_compare, tmp_path):
         screen.query_one(
             "RequestEditorTabbedContent", TabbedContent
         ).active = "options-pane"
+        # The Options pane mounts lazily, including under parallel test load.
+        async with asyncio.timeout(10):
+            while not screen.query("#substitute-body-variables"):
+                await pilot.pause()
         checkbox = screen.query_one("#substitute-body-variables", Checkbox)
         checkbox.focus()
         await pilot.press("space")
