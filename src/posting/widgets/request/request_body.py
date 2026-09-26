@@ -6,7 +6,8 @@ from posting.help_data import HelpData
 from posting.widgets.center_middle import CenterMiddle
 from posting.widgets.request.form_editor import FormEditor
 from posting.widgets.select import PostingSelect
-from posting.widgets.text_area import PostingTextArea, TextAreaFooter, TextEditor
+from posting.widgets.text_area import TextAreaFooter, TextEditor
+from posting.widgets.variable_text_area import VariableTextArea
 
 
 class RequestBodyEditor(Vertical):
@@ -47,7 +48,7 @@ class RequestBodyEditor(Vertical):
             )
 
 
-class RequestBodyTextArea(PostingTextArea):
+class RequestBodyTextArea(VariableTextArea):
     """
     For editing request bodies.
     """
@@ -58,7 +59,8 @@ class RequestBodyTextArea(PostingTextArea):
         title="Request Body Text Area",
         description="""\
 A text area for entering the request body.
-Press `ESC` to focus the text area footer bar.
+Type `$` to complete environment variables. Use `up` / `down` to choose,
+`enter` / `tab` to insert, or `escape` to dismiss the dropdown.
 
 Hold `shift` and move the cursor or click and drag to select text.
 """,
