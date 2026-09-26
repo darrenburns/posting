@@ -545,3 +545,30 @@ def test_import_path_item_params_operation_overrides(tmp_path: Path):
     assert request.url == "${BASE_URL}/items/:item_id"
     assert len(request.path_params) == 1
     assert request.path_params[0].name == "item_id"
+
+
+@pytest.mark.parametrize("version", ["3.0.3", "3.1.0"])
+def test_import_non_identifier_path_names_and_query_send(tmp_path, version):
+    import httpx
+    names = ["user-id", "user_id", "1st", "a.b"]
+    path = "/users/" + "/".join("{" + name + "}" for name in names)
+    spec = {
+        "openapi": version,
+        "info": {"title": "Parameters", "version": "1.0"},
+        "paths": {path: {
+            "parameters": [{"name": name, "in": "path", "required": True, "schema": {"type": "string"}} for name in names] + [{"$ref": "#/components/parameters/Search"}],
+            "get": {"summary": "Find user", "responses": {"200": {"description": "OK"}}},
+        }},
+        "components": {"parameters": {"Search": {"name": "search", "in": "query", "schema": {"type": "string"}}}},
+    }
+    spec_path = tmp_path / "parameters.json"
+    spec_path.write_text(json.dumps(spec))
+    request = import_openapi_spec(spec_path).requests[0]
+    assert len({p.name for p in request.path_params}) == len(names)
+    for param in request.path_params:
+        param.value = "42"
+    request.params[0].value = "a&b"
+    request.apply_template({"BASE_URL": "https://example.com"})
+    outgoing = request.to_httpx(httpx.AsyncClient())
+    assert outgoing.url.path == "/users/42/42/42/42"
+    assert outgoing.url.params.multi_items() == [("search", "a&b")]

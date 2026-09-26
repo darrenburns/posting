@@ -2,6 +2,8 @@
 
 ### Fixed
 
+- Import OpenAPI path parameters, inherited parameters, and operation overrides; map path parameter names to compatible, unique identifiers (#355).
+
 - Query parameters typed in the URL bar are now kept in sync with the Query tab and sent with the request (#272, #362).
 - Fall back to Textual's terminal clipboard when the native clipboard is unavailable.
 

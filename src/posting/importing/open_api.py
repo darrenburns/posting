@@ -380,6 +380,27 @@ class JsonBodyGenerator:
             return obj
 
 
+def path_parameter_aliases(path: str) -> dict[str, str]:
+    """Map OpenAPI names onto Posting's identifier syntax without collisions."""
+    names = list(dict.fromkeys(re.findall(r"\{([^}]+)\}", path)))
+    aliases = {name: name for name in names if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name)}
+    used = set(aliases.values())
+    for name in names:
+        if name in aliases:
+            continue
+        base = re.sub(r"[^A-Za-z0-9_]", "_", name)
+        if not base or base[0].isdigit():
+            base = "param_" + base
+        alias = base
+        suffix = 2
+        while alias in used:
+            alias = f"{base}_{suffix}"
+            suffix += 1
+        aliases[name] = alias
+        used.add(alias)
+    return aliases
+
+
 def import_openapi_spec(spec_path: str | Path) -> Collection:
     console = Console()
     console.print(f"Importing OpenAPI spec from {spec_path!r}.")
@@ -440,7 +461,8 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
             if method not in VALID_HTTP_METHODS:
                 continue
 
-            colon_path = re.sub(r"\{([^}]+)\}", r":\1", path)
+            aliases = path_parameter_aliases(path)
+            colon_path = re.sub(r"\{([^}]+)\}", lambda match: ":" + aliases[match[1]], path)
             request = RequestModel(
                 name=operation.summary or path.strip("/"),
                 description=operation.description or "",
@@ -501,7 +523,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                 if param.param_in == "path":
                     request.path_params.append(
                         PathParam(
-                            name=param.name,
+                            name=aliases.get(param.name, param.name),
                             value="",
                         )
                     )
