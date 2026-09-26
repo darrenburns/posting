@@ -15,7 +15,7 @@ from textual.widgets import Button, Input, Static
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 
 from posting.locations import config_directory
-from posting.variables import load_variables, update_variables
+from posting.environments import switch_environment
 from posting.widgets.input import PostingInput
 
 if TYPE_CHECKING:
@@ -56,14 +56,8 @@ def load_env_file(
         app.notify(f"Environment path is not a file: {resolved_path}", severity="error")
         return False
 
-    app.environment_files = (resolved_path,)
-    load_variables(
-        app.environment_files,
-        app.settings.use_host_environment,
-        avoid_cache=True,
-    )
-    update_variables(app.session_env)
-    app.env_changed_signal.publish(None)
+    if not switch_environment(app, (resolved_path,)):
+        return False
     app.notify(f"Loaded environment from: {resolved_path}")
     return True
 
@@ -140,7 +134,11 @@ class EnvFilePathAutoComplete(PathAutoComplete):
 
     def _build_empty_candidates(self) -> list[DropdownItem]:
         cwd_candidates = self._build_directory_candidates(self.working_directory)
-        cwd_files = [candidate for candidate in cwd_candidates if not candidate.value.endswith("/")]
+        cwd_files = [
+            candidate
+            for candidate in cwd_candidates
+            if not candidate.value.endswith("/")
+        ]
         cwd_directories = [
             candidate for candidate in cwd_candidates if candidate.value.endswith("/")
         ]
