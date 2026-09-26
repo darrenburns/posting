@@ -2,7 +2,7 @@
 
 ### Added
 
-- Added a History tab to the collections sidebar, with locally persisted request configurations and responses, keyboard navigation, and deletion controls. Selecting an entry restores both panes without sending a request or executing scripts.
+- Added a History tab to the collections sidebar, with locally persisted request configurations and responses, keyboard navigation, and deletion controls. Selecting an entry loads both panes without sending a request or executing scripts.
 
 ## 2.10.0 [25th March 2026]
 

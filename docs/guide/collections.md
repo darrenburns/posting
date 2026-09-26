@@ -76,19 +76,19 @@ You can check where the default collection is by running `posting locate collect
 
 The **History** tab in the collections sidebar keeps recent exchanges, newest first.
 Each entry shows the sent method, status, URL, and local time. Click an entry or
-highlight it and press `Enter` to restore its saved request configuration and response.
+highlight it and press `Enter` to load its saved request configuration and response.
 This replaces the current editor contents. Moving the highlight alone does not load
-anything. Restoring never sends a request, runs scripts, or changes the session's cookies.
+anything. Loading never sends a request, runs scripts, or changes the session's cookies.
 
 Request snapshots include the method, URL, headers (including disabled rows), body,
 query/path parameters, authentication, metadata, options, and script paths. They are
 captured before variables are resolved and scripts run, so variable expressions and
 script references remain editable. Scripts are references to files relative to the
-collection, not archived copies. Missing scripts do not prevent restoration; resending
+collection, not archived copies. Missing scripts do not prevent loading; resending
 reports the existing script-loading error. Changed variables or scripts can change what
 gets sent next time.
 
-Restored requests are detached from collection files. `Ctrl+S` opens the save dialog
+Loaded requests are detached from collection files. `Ctrl+S` opens the save dialog
 instead of overwriting whichever collection request was open previously. Older history
 entries that were recorded without a request snapshot still load their response and
 show an explanatory notification; their request configuration cannot be recovered.
@@ -105,14 +105,14 @@ If the sidebar is hidden, show it with `Ctrl+H` first.
 1. Press `Ctrl+O`, then `3` to activate the **History tab**.
 2. Press `Down` or `j` to move from the tabs into the **history list**.
 3. Use `Up`/`Down` or `k`/`j` to highlight an entry; `g`/`G` selects the first/last.
-4. Press `Enter` or `l` to restore that request and response. Focus stays in the list.
+4. Press `Enter` or `l` to load that request and response. Focus stays in the list.
 5. Edit the request as needed and press `Ctrl+J` to send it explicitly.
 
 With History already visible, `Ctrl+O`, then `h` jumps directly to the list. The `h`
 target appears only when the list is visible and nonempty. `Ctrl+O`, then `4` activates
 Collections; `Down` enters its tree (or use `Ctrl+O`, then `Tab` when that tree is visible).
 When the sidebar tabs have focus, `Left`/`Right` or `h`/`l` switches between them. These
-keys are context-specific: `h` in jump mode targets history, while `l` in the list restores
+keys are context-specific: `h` in jump mode targets history, while `l` in the list loads
 an entry. `Escape` cancels jump mode and returns focus to where it was.
 
 Press `Backspace` in the history list to delete an entry. `Ctrl+Backspace` clears the

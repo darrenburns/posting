@@ -28,22 +28,22 @@ class HistoryList(OptionList):
         description="""\
 Saved requests and responses for this collection, newest first.
 - `up`/`down` or `k`/`j` moves the cursor without changing the editor.
-- `Enter` or `l` restores the highlighted request and response, replacing the editor contents.
+- `Enter` or `l` loads the highlighted request and response, replacing the editor contents.
 - `g`/`G` jumps to the first/last entry.
 - `backspace` deletes the highlighted entry; `ctrl+backspace` clears history after confirmation.
 - `ctrl+o`, then `3` opens the History tab. Press `down` or `j` to enter the list.
 - With History visible, `ctrl+o`, then `h` jumps straight to the list.
 - `ctrl+o`, then `4` returns to Collections; `ctrl+h` toggles the whole sidebar.
-Restoring does not send a request or run scripts. Press `ctrl+j` to send explicitly.
+Loading does not send a request or run scripts. Press `ctrl+j` to send explicitly.
 """,
     )
     BINDINGS = [
-        Binding("enter", "select", "Restore"),
+        Binding("enter", "select", "Load"),
         Binding("j", "cursor_down", "Down", show=False),
         Binding("k", "cursor_up", "Up", show=False),
         Binding("g", "first", "First", show=False),
         Binding("G", "last", "Last", show=False),
-        Binding("l", "select", "Restore", show=False),
+        Binding("l", "select", "Load", show=False),
         Binding("backspace", "delete_entry", "Delete"),
         Binding("ctrl+backspace", "clear_history", "Clear history"),
     ]
@@ -166,7 +166,7 @@ class HistoryBrowser(Vertical):
             timestamp = entry.received_at.astimezone().strftime("%d %b %Y · %H:%M:%S")
             detail.tooltip = f"{entry.method} {entry.url}"
             action = (
-                "Enter to restore" if entry.has_request else "Enter to view response"
+                "Enter to load" if entry.has_request else "Enter to view response"
             )
             detail.update(f"{entry.method} {entry.url}\n{timestamp}\n{action}")
 

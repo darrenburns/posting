@@ -570,7 +570,7 @@ class MainScreen(Screen[None]):
 
     @on(HistoryBrowser.Selected)
     def on_history_selected(self, event: HistoryBrowser.Selected) -> None:
-        """Restore the saved exchange without sending or executing scripts."""
+        """Load the saved exchange without sending or executing scripts."""
         if event.request is not None:
             self.collection_tree.currently_open = None
             self.load_request_model(event.request)
@@ -587,7 +587,7 @@ class MainScreen(Screen[None]):
             self.url_bar.response_reason_phrase = event.response.reason_phrase
         else:
             self.notify(
-                "This older entry has no saved request configuration. Only the response was restored.",
+                "This older entry has no saved request configuration. Only the response was loaded.",
                 title="Response-only history",
             )
         self.response_area.history_timestamp = event.entry.received_at
