@@ -1,0 +1,1 @@
+Browser screenshots and Textual snapshot evidence for the text-area variable completion and runtime environment palette draft PRs. Captured 26 September 2026. This branch contains verification artifacts only.
