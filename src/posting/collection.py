@@ -1,5 +1,6 @@
 from __future__ import annotations
 from functools import total_ordering
+from collections import defaultdict
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from pathlib import Path
 from string import Template
@@ -8,9 +9,9 @@ import httpx
 from pydantic import BaseModel, Field, HttpUrl
 import rich
 import os
+import mimetypes
 from textual import log
 from posting.auth import HttpxBearerTokenAuth
-from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
 from posting.yaml import dump, load, Loader
@@ -118,15 +119,38 @@ class RequestBody(BaseModel):
     content_type: str | None = Field(default=None, init=False)
     """We may set an additional header if the content type is known."""
 
-    def to_httpx_args(self) -> dict[str, Any]:
+    def to_httpx_args(self, base_directory: Path | None = None) -> dict[str, Any]:
         httpx_args: dict[str, Any] = {}
         if self.content:
             httpx_args["content"] = self.content
         if self.form_data:
-            # Ensure we don't delete duplicate keys
-            httpx_args["data"] = tuples_to_dict(
-                [(item.name, item.value) for item in self.form_data if item.enabled]
-            )
+            files = []
+            data = defaultdict(list)
+
+            for item in self.form_data:
+                if not item.enabled:
+                    continue
+
+                if item.value.startswith("@@"):
+                    data[item.name].append(item.value[1:])
+                elif item.value.startswith("@"):
+                    file_path = Path(item.value[1:]).expanduser()
+                    if not file_path.is_absolute():
+                        file_path = (base_directory or Path.cwd()) / file_path
+                    # Read within a managed open/close operation so failed requests
+                    # and multiple uploads cannot leave file descriptors open.
+                    try:
+                        content = file_path.read_bytes()
+                    except OSError as error:
+                        raise ValueError(f"Cannot read upload file {file_path}: {error.strerror}") from error
+                    media_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
+                    files.append((item.name, (file_path.name, content, media_type)))
+                else:
+                    data[item.name].append(item.value)
+
+            if files:
+                httpx_args["files"] = files
+            httpx_args["data"] = data
         return httpx_args
 
 
@@ -284,15 +308,19 @@ class RequestModel(BaseModel):
         except (KeyError, ValueError) as e:
             raise SubstitutionError(f"Variable not defined: {e}")
 
-    def to_httpx(self, client: httpx.AsyncClient) -> httpx.Request:
+    def to_httpx(self, client: httpx.AsyncClient, base_directory: Path | None = None) -> httpx.Request:
         """Convert the request model to an httpx request."""
-        headers = httpx.Headers(
-            [(header.name, header.value) for header in self.headers if header.enabled]
-        )
+        httpx_args = self.body.to_httpx_args(base_directory) if self.body else {}
+        multipart = bool(httpx_args.get("files"))
+        headers = httpx.Headers([
+            (header.name, header.value)
+            for header in self.headers
+            if header.enabled and not (multipart and header.name.lower() == "content-type")
+        ])
+
         return client.build_request(
             method=self.method,
             url=self.url,
-            **(self.body.to_httpx_args() if self.body else {}),
             headers=headers,
             params=httpx.QueryParams(
                 [(param.name, param.value) for param in self.params if param.enabled]
@@ -304,6 +332,7 @@ class RequestModel(BaseModel):
                     if cookie.enabled
                 ]
             ),
+            **httpx_args
         )
 
     def save_to_disk(self, path: Path) -> None:

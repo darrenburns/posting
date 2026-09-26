@@ -22,6 +22,7 @@ Press `tab` to both insert *and* shift focus.
     )
 
     BINDING_GROUP_TITLE = "Variable Input"
+    autocomplete_class = VariableAutoComplete
 
     def __init__(
         self,
@@ -37,7 +38,7 @@ Press `tab` to both insert *and* shift focus.
 
     def on_mount(self) -> None:
         self.highlighter = VariableHighlighter()
-        self.auto_complete = VariableAutoComplete(
+        self.auto_complete = self.autocomplete_class(
             candidates=self.candidates or [],
             variable_candidates=self._get_variable_candidates,
             target=self,

@@ -7,6 +7,8 @@
 
 ### Added
 
+- Upload form files with `@path`, collection-relative path completion, and `@@` for literal leading at signs (#231).
+
 - Added a colour-coded HTTP method tag (e.g. `GET`, `POST`, `PUT`, `DELETE`) to each entry in the request search palette (`ctrl+shift+p`, or `/` from the collection tree), matching the styling already used in the collection tree. Previously, requests with the same name in different directories/methods were indistinguishable in the palette.
 
 ## 2.10.0 [25th March 2026]
