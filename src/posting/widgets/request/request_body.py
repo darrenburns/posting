@@ -23,7 +23,7 @@ class RequestBodyEditor(Vertical):
                 options=[
                     ("None", "no-body-label"),
                     ("Raw (json, text, etc.)", "text-body-editor"),
-                    ("Form data", "form-body-editor"),
+                    ("Form data (x-www-form-urlencoded)", "form-body-editor"),
                 ],
                 id="request-body-type-select",
                 allow_blank=False,
@@ -33,7 +33,7 @@ class RequestBodyEditor(Vertical):
             id="request-body-type-content-switcher",
         ):
             yield CenterMiddle(
-                Label("The request doesn't have a body."),
+                Label("No request body"),
                 id="no-body-label",
             )
             text_area = RequestBodyTextArea(language="json")

@@ -1,4 +1,5 @@
 from typing import Iterable
+from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
@@ -28,7 +29,9 @@ class FormTable(PostingDataTable):
             row = self.get_row_at(row_index)
             form_data.append(
                 FormItem(
-                    name=row[0], value=row[1], enabled=self.is_row_enabled_at(row_index)
+                    name=row[0].plain if isinstance(row[0], Text) else row[0],
+                    value=row[1].plain if isinstance(row[1], Text) else row[1],
+                    enabled=self.is_row_enabled_at(row_index),
                 )
             )
         return form_data

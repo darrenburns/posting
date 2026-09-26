@@ -44,29 +44,24 @@ If you have any feedback or suggestions, please open a [new discussion on GitHub
 }
 </style>
 
-## Ongoing 🔄
+## Next planned features 🚀
 
-Features that are currently being worked on.
+Features planned to be worked on next.
 
-- Add contributing guide <span class="tag documentation">Documentation</span>
-
-## Upcoming 🚀
-
-Features planned for the near future.
-
-- Editing key/value editor rows without having to delete/re-add them <span class="tag ux">UX</span>
-- Adjustable padding in UI via config file <span class="tag ui">UI</span>
-- Don't require user to type `http://` or `https://` in URL field <span class="tag ux">UX</span>
-- Documentation on changing the UI at runtime (e.g. showing/hiding sections, etc.) <span class="tag documentation">Documentation</span>
 - Documentation on using 3rd party libraries in scripts <span class="tag documentation">Documentation</span>
 - Transparent background support (experimentation) <span class="tag ui">UI</span>
 - In-app information about headers <span class="tag documentation">Documentation</span>
+- A better footer <span class="tag ux">UX</span> <span class="tag ui">UI</span>
+  - The footer currently contains too many bindings. There should be a way to show that it is scrollable, possibly showing grouping of keybindings.
 
 ## Longer Term 🔮
 
 Features that are planned for future development but are not immediate priorities.
 
+- Directional navigation <span class="tag ui">UI</span> <span class="tag ux">UX</span>
+- Jump mode 2-stage jump - if you press shift+[jump target key], then it'll jump to the target and then show a secondary overlay of available targets within that section <span class="tag ux">UX</span>
 - Manually resize sections (sidebar, request, response) <span class="tag ui">UI</span>
+- Searching in responses (this will likely be simpler with upcoming Textual changes) <span class="tag requests">Requests</span>
 - File watcher so that if the request changes on disk then the UI updates to reflect it <span class="tag requests">Requests</span>
 - Translating to other languages <span class="tag documentation">Documentation</span>
     - I'd like to support e.g. Chinese, but need to investigate how that would render with double width characters in the terminal.
@@ -82,6 +77,7 @@ Features that are planned for future development but are not immediate prioritie
 - Add rotating logging <span class="tag logging">Logging</span>
 - Variable completion autocompletion in TextAreas <span class="tag environment">Environment</span>
 - Variable resolution highlighting in TextAreas <span class="tag environment">Environment</span>
+- Status bar? Showing the currently selected env, collection, current path, whether there's unsaved changes, etc. <span class="tag ui">UI</span>
 - Highlighting variables in *tables* to show if they've resolved or not <span class="tag environment">Environment</span>
 - Create a `_template.posting.yaml` file for request templates <span class="tag requests">Requests</span>
 - OAuth2 implementation (need to scope out what's involved) <span class="tag auth">Auth</span>
@@ -92,8 +88,13 @@ Features that are planned for future development but are not immediate prioritie
 
 ## Completed ✓
 
-Features that have been implemented and are available in the current version.
+Features that have been implemented and are available in the latest version.
 
+- Path parameters <span class="tag requests">Requests</span>
+- Adjustable padding in UI via config file <span class="tag ui">UI</span>
+- Don't require user to type `http://` or `https://` in URL field <span class="tag ux">UX</span>
+- Documentation on changing the UI at runtime (e.g. showing/hiding sections, etc.) <span class="tag documentation">Documentation</span>
+- Editing key/value editor rows without having to delete/re-add them <span class="tag ux">UX</span>
 - Keymaps <span class="tag ui">UI</span>
 - Pre-request and post-response scripts <span class="tag scripting">Scripting</span>
 - Parse cURL commands <span class="tag import">Import</span>

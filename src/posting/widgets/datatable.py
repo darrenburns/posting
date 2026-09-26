@@ -1,18 +1,27 @@
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Self
+
 from rich.style import Style
 from rich.text import Text
-from textual import on
+from textual import on, events
 from textual.app import RenderResult
 from textual.binding import Binding
 from textual.color import Color
 from textual.coordinate import Coordinate
 from textual.filter import DimFilter
+from textual.markup import escape
 from textual.message import Message
 from textual.message_pump import MessagePump
 from textual.strip import Strip
 from textual.widgets import DataTable
 from textual.widgets.data_table import CellDoesNotExist, CellKey, RowKey
+
+from posting.widgets.key_value_copy_modal import CopyChoice, KeyValueCopyModal
+
+try:
+    import pyperclip
+except ImportError:
+    pyperclip = None  # type: ignore[assignment]
 
 
 class PostingDataTable(DataTable[str | Text]):
@@ -34,6 +43,7 @@ PostingDataTable {
         Binding("end", "scroll_end", "End", show=False),
         Binding("g,ctrl+home", "scroll_top", "Top", show=False),
         Binding("G,ctrl+end", "scroll_bottom", "Bottom", show=False),
+        Binding("c,y", "copy_cell", "Copy cell", show=False),
     ]
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -42,6 +52,8 @@ PostingDataTable {
         """The cursor can escape the table by pressing up when it's at the top (will focus previous widget in focus chain)."""
         self.row_disable = False
         """If True, rows will have a checkbox added to them and can be disabled with space bar."""
+        self.cursor_foreground_priority = "renderable"
+        self.click_chain = None
 
     @dataclass
     class Checkbox:
@@ -82,6 +94,14 @@ PostingDataTable {
         def control(self) -> "PostingDataTable":
             return self.data_table
 
+    @dataclass
+    class RowToggled(Message):
+        data_table: "PostingDataTable"
+
+        @property
+        def control(self) -> "PostingDataTable":
+            return self.data_table
+
     def add_row(
         self,
         *cells: str | Text,
@@ -95,9 +115,20 @@ PostingDataTable {
         if sender:
             msg.set_sender(sender)
         self.post_message(msg)
+
+        # Bypass the markup processing inside Textual's add_row.
+        # By default, if it sees a string, it will attempt to parse it as markup.
+        # We can avoid that by passing Text objects instead.
+        text_cells: list[Text] = []
+        for cell in cells:
+            if isinstance(cell, str):
+                cell = Text(cell)
+            text_cells.append(cell)
+
         if self.row_disable and label is None:
             label = self.Checkbox(self, True)
-        return super().add_row(*cells, height=height, key=key, label=label)
+
+        return super().add_row(*text_cells, height=height, key=key, label=label)
 
     def action_toggle_fixed_columns(self) -> None:
         self.fixed_columns = 1 if self.fixed_columns == 0 else 0
@@ -105,13 +136,13 @@ PostingDataTable {
     def remove_row(self, row_key: RowKey | str) -> None:
         self.post_message(self.RowsRemoved(self))
         rv = super().remove_row(row_key)
-        self._column_width_refresh()
+        self.column_width_refresh()
         return rv
 
     def clear(self, columns: bool = False) -> Self:
         self.post_message(self.RowsRemoved(self, explicit_by_user=False))
         super().clear(columns=columns)
-        self._column_width_refresh()
+        self.column_width_refresh()
         return self
 
     def replace_all_rows(
@@ -128,9 +159,9 @@ PostingDataTable {
         else:
             for row in rows:
                 self.add_row(*row, explicit_by_user=False)
-        self._column_width_refresh()
+        self.column_width_refresh()
 
-    def _column_width_refresh(self) -> None:
+    def column_width_refresh(self) -> None:
         # TODO - fix this inside Textual.
         if self.row_count > 0:
             row_zero = list(self._data.keys())[0]
@@ -193,6 +224,58 @@ PostingDataTable {
         except CellDoesNotExist:
             pass
 
+    def action_copy_cell(self) -> None:
+        """Show copy options modal for the current row."""
+        try:
+            row = self.get_row_at(self.cursor_coordinate.row)
+        except CellDoesNotExist:
+            return
+
+        # Require at least 2 columns (name and value)
+        if len(row) < 2:
+            return
+
+        # Get plain text values
+        name = row[0].plain if isinstance(row[0], Text) else str(row[0])
+        value = row[1].plain if isinstance(row[1], Text) else str(row[1])
+
+        def handle_copy_choice(choice: CopyChoice) -> None:
+            if choice is None:
+                return
+
+            if choice == "name":
+                text_to_copy = name
+                description = "Copied name"
+            elif choice == "value":
+                text_to_copy = value
+                description = "Copied value"
+            else:  # choice == "both"
+                text_to_copy = f"{name}: {value}"
+                description = "Copied row"
+
+            if pyperclip is None:
+                self.notify(
+                    "pyperclip is not installed",
+                    title="Clipboard error",
+                    severity="error",
+                    timeout=5,
+                )
+                return
+
+            try:
+                pyperclip.copy(text_to_copy)
+            except pyperclip.PyperclipException as exc:
+                self.notify(
+                    str(exc),
+                    title="Clipboard error",
+                    severity="error",
+                    timeout=5,
+                )
+            else:
+                self.notify(description, title=text_to_copy)
+
+        self.app.push_screen(KeyValueCopyModal(), handle_copy_choice)
+
     def toggle_row(self, row_key: RowKey) -> None:
         try:
             checkbox: PostingDataTable.Checkbox = self.rows[row_key].label
@@ -204,6 +287,7 @@ PostingDataTable {
             # only when focus changes to another column.
             self._update_count += 1
             self.refresh()
+            self.post_message(self.RowToggled(self))
 
     def is_row_enabled_at(self, row_index: int) -> bool:
         row_key = self._row_locations.get_key(row_index)
@@ -233,6 +317,7 @@ PostingDataTable {
         if self.row_disable and is_disabled:
             strip = strip.apply_style(Style(dim=True))
             strip = strip.apply_filter(DimFilter(), Color(0, 0, 0))
+
         return strip
 
     @on(DataTable.RowLabelSelected)
@@ -240,6 +325,17 @@ PostingDataTable {
         if self.row_disable:
             event.prevent_default()
             self.toggle_row(event.row_key)
+
+    async def _on_click(self, event: events.Click) -> None:
+        self.click_chain = event.chain
+        await super()._on_click(event)
+        self.click_chain = None
+        event.prevent_default()
+
+    def post_message(self, message: Message) -> bool:
+        if self.click_chain and isinstance(message, DataTable.RowSelected):
+            message._click_chain = self.click_chain
+        return super().post_message(message)
 
     def __rich_repr__(self):
         yield "id", self.id

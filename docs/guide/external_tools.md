@@ -27,6 +27,10 @@ export POSTING_EDITOR=vim
 
 If neither is set, Posting will try to use the `EDITOR` environment variable.
 
+!!! tip "Using VSCode or Cursor"
+
+    If you want to use VSCode or Cursor, you can set the `POSTING_EDITOR` environment variable to `code -w` or `cursor -w` respectively.
+
 ## External Pagers
 
 With a multi-line text area focused, press ++f3++ to open the file in your
@@ -53,13 +57,13 @@ your `config.yaml` file.
 For example:
 
 ```yaml title="config.yaml"
-pager_json: jq
+pager_json: fx
 ```
 
 Alternatively, you can set the `POSTING_PAGER_JSON` environment variable.
 
 ```bash
-export POSTING_PAGER_JSON=jq
+export POSTING_PAGER_JSON=fx
 ```
 
 If neither is set, Posting will try to use the default pager lookup rules discussed earlier.

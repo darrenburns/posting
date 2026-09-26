@@ -6,11 +6,13 @@ post-response scripts.
 
 from typing import Literal
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.reactive import Reactive, reactive
 from textual.widgets import Label, RichLog
 
 from posting.help_data import HelpData
+from posting.widgets.rich_log import PostingRichLog
 
 ScriptStatus = Literal["success", "error", "no-script"]
 
@@ -43,7 +45,7 @@ This log displays the output of scripts that executed during the last request.
                 yield Label(self.response_status, id="response-status")
 
         yield Label("Script output", id="script-output-title")
-        yield RichLog(markup=True, highlight=True)
+        yield PostingRichLog(markup=True, highlight=True)
 
     def set_setup_status(self, status: ScriptStatus) -> None:
         """Set the status of the setup script."""

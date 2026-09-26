@@ -167,7 +167,7 @@ def test_request_with_form_data():
         ),
     )
 
-    expected = "curl \\\n  -X POST \\\n  -F 'name=John Doe' \\\n  -F 'email=john@example.com' \\\n  'https://example.com/api/form'"
+    expected = "curl \\\n  -X POST \\\n  -d 'name=John Doe' \\\n  -d 'email=john@example.com' \\\n  'https://example.com/api/form'"
     assert request.to_curl() == expected
 
 

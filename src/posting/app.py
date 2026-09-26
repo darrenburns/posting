@@ -3,15 +3,20 @@ from contextlib import redirect_stdout, redirect_stderr
 import os
 from pathlib import Path
 import sys
-from typing import Any, Literal, cast
+from typing import Any, Literal, Sequence, cast
 
 import httpx
 from rich.console import RenderableType
+from rich.text import Text
 from textual.content import Content
 
 from posting.importing.curl import CurlImport
 from textual import messages, on, log, work
-from textual.command import CommandPalette, SimpleCommand
+from textual.command import (
+    CommandListItem,
+    CommandPalette,
+    SimpleProvider,
+)
 from textual.css.query import NoMatches
 from textual.events import Click
 from textual.reactive import Reactive, reactive
@@ -19,12 +24,14 @@ from textual.app import App, ComposeResult, InvalidThemeError
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
+from textual.coordinate import Coordinate
 from textual.markup import escape
 from textual.signal import Signal
 from textual.theme import Theme, BUILTIN_THEMES as TEXTUAL_THEMES
-from textual.widget import Widget
-from textual.widgets import Button, Footer, Input, Label
-from textual.widgets._tabbed_content import ContentTab
+from textual.widget import AwaitMount, Widget
+from textual.widgets.input import Selection
+from textual.widgets import Button, Footer, Input, Label, Tab, Tabs
+from textual.widgets.tabbed_content import ContentTab
 from posting.collection import (
     Collection,
     Cookie,
@@ -34,7 +41,7 @@ from posting.collection import (
     RequestModel,
 )
 
-from posting.commands import PostingProvider
+from posting.commands import PostingProvider, RequestSearchProvider
 from posting.config import SETTINGS, Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
@@ -58,11 +65,14 @@ from posting.widgets.collection.browser import (
     CollectionTree,
 )
 from posting.widgets.datatable import PostingDataTable
+from posting.widgets.key_value import KeyValueInput
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
 
 from posting.widgets.request.query_editor import ParamsTable
+from posting.widgets.request.path_editor import PathParamsTable
+from posting.widgets.request.path_editor import PathParamsEditor
 from posting.widgets.request.request_auth import RequestAuth
 
 from posting.widgets.request.request_body import RequestBodyTextArea
@@ -71,6 +81,12 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
+from posting.urls import (
+    extract_path_param_names,
+    extract_query_pairs,
+    set_query_pairs,
+)
+from urllib.parse import urlparse, urlunparse
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
 from posting.widgets.response.script_output import ScriptOutput
@@ -96,12 +112,6 @@ class AppHeader(Horizontal):
 class AppBody(Vertical):
     """The body of the app."""
 
-    DEFAULT_CSS = """\
-    AppBody {
-        padding: 0 2;
-    }
-    """
-
 
 class MainScreen(Screen[None]):
     AUTO_FOCUS = None
@@ -120,6 +130,13 @@ class MainScreen(Screen[None]):
             "Method",
             tooltip="Focus the method selector.",
             id="focus-method",
+        ),
+        Binding(
+            "ctrl+o",
+            "toggle_jump_mode",
+            description="Jump",
+            tooltip="Activate jump mode to quickly move focus between widgets.",
+            id="jump",
         ),
         Binding(
             "ctrl+l",
@@ -177,6 +194,8 @@ class MainScreen(Screen[None]):
         None, init=False
     )
     """The currently expanded section of the main screen."""
+    _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
+    """True if 'jump mode' is currently active, otherwise False."""
 
     def __init__(
         self,
@@ -190,9 +209,15 @@ class MainScreen(Screen[None]):
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
         self.settings = SETTINGS.get()
+        self.jumper: Jumper | None = None
+        self.posting = cast("Posting", self.app)
 
     def on_mount(self) -> None:
         self.current_layout = self._initial_layout
+
+        # If the header is not visible, the URL Bar is one cell higher.
+        is_header_visible = self.settings.heading.visible
+        self.app.set_class(not is_header_visible, "-header-hidden")
 
         # Set the initial focus based on the settings.
         focus_on_startup = self.settings.focus.on_startup
@@ -208,6 +233,29 @@ class MainScreen(Screen[None]):
         if target is not None:
             self.set_focus(target)
 
+    def on_screen_resume(self) -> None:
+        self.jumper = Jumper(
+            {
+                "method-selector": "1",
+                "url-input": "2",
+                "collection-tree": "tab",
+                "--content-tab-headers-pane": "q",
+                "--content-tab-body-pane": "w",
+                "--content-tab-path-pane": "e",
+                "--content-tab-query-pane": "r",
+                "--content-tab-auth-pane": "t",
+                "--content-tab-info-pane": "y",
+                "--content-tab-scripts-pane": "u",
+                "--content-tab-options-pane": "i",
+                "--content-tab-response-body-pane": "a",
+                "--content-tab-response-headers-pane": "s",
+                "--content-tab-response-cookies-pane": "d",
+                "--content-tab-response-scripts-pane": "f",
+                "--content-tab-response-trace-pane": "g",
+            },
+            screen=self,
+        )
+
     def compose(self) -> ComposeResult:
         yield AppHeader()
         yield UrlBar()
@@ -220,7 +268,9 @@ class MainScreen(Screen[None]):
             yield RequestEditor()
             yield ResponseArea()
 
-        yield Footer(show_command_palette=False)
+        footer = Footer(show_command_palette=False)
+        footer.compact = self.posting.spacing == "compact"
+        yield footer
 
     def get_and_run_script(
         self,
@@ -238,12 +288,12 @@ class MainScreen(Screen[None]):
             write_logs_to_ui: Whether to write logs to the UI.
             *args: Arguments to pass to the script function.
         """
-        script_path = Path(path_to_script)
-        path_name_parts = script_path.name.split(":")
+        path_name_parts = path_to_script.split(":")
         if len(path_name_parts) == 2:
             script_path = Path(path_name_parts[0])
             function_name = path_name_parts[1]
         else:
+            script_path = Path(path_to_script)
             function_name = default_function_name
 
         try:
@@ -306,8 +356,17 @@ class MainScreen(Screen[None]):
             raise
 
     async def send_request(self) -> None:
-        self.url_bar.clear_events()
-        script_output = self.response_script_output
+        try:
+            self.url_bar.clear_events()
+            script_output = self.response_script_output
+        except NoMatches:
+            # The UI is lazily loaded, so the widgets are not guaranteed to be available.
+            # If you load the UI then immediately press enter, this method would be called
+            # but if the widgets are not available, there's nothing we can do.
+            # We no-op, as the widgets are only unavailable for some milliseconds, and
+            # so it's almost certainly just a mistaken double-tap of the enter key.
+            return
+
         script_output.reset()
 
         request_options = self.request_options.to_model()
@@ -389,7 +448,9 @@ class MainScreen(Screen[None]):
                 request = self.build_httpx_request(request_model, client)
 
                 # Prioritise user-defined `User-Agent` header over Posting's default.
-                if "User-Agent" not in request.headers:
+                if "User-Agent" not in request.headers or request.headers.get(
+                    "user-agent", ""
+                ).startswith("python-httpx"):
                     request.headers["User-Agent"] = (
                         f"Posting/{VERSION} (Terminal-based API client)"
                     )
@@ -479,6 +540,8 @@ class MainScreen(Screen[None]):
             self.response_area.content_tabs.focus()
 
         self.response_area.response = event.response
+        self.url_bar.response_status_code = event.response.status_code
+        self.url_bar.response_reason_phrase = event.response.reason_phrase
         self.cookies.update(event.response.cookies)
         self.response_trace.trace_complete()
 
@@ -504,6 +567,102 @@ class MainScreen(Screen[None]):
     ) -> None:
         """Update the autocomplete suggestions when the request cache is updated."""
         self.url_bar.cached_base_urls = sorted(event.cached_base_urls)
+
+    @on(UrlInput.PathParamJumpRequestedFromUrlInput)
+    def on_url_param_jump(
+        self, event: UrlInput.PathParamJumpRequestedFromUrlInput
+    ) -> None:
+        """Focus the Path params table and move cursor to the row for the named param."""
+        name = event.name
+        try:
+            table = self.query_one(PathParamsTable)
+        except NoMatches:
+            log.warning(
+                f"PathParamsTable not found when trying to jump to path param {name}"
+            )
+            return
+
+        table.focus()
+
+        for row_index in range(table.row_count):
+            row = table.get_row_at(row_index)
+            key_cell = row[0]
+            key = key_cell.plain if isinstance(key_cell, Text) else key_cell
+            if str(key) == name:
+                table.move_cursor(row=row_index)
+                # Enter edit mode on the corresponding row in the editor and focus value
+                try:
+                    editor = self.query_one(PathParamsEditor)
+                except NoMatches:
+                    pass
+                else:
+                    try:
+                        row_key, _ = table.coordinate_to_cell_key(
+                            Coordinate(row_index, 0)
+                        )
+                        editor.enter_edit_mode(row_key, focus_value=True)
+                    except Exception:
+                        # If we can't resolve the row key for any reason, ignore gracefully
+                        pass
+                break
+
+    @on(PathParamsTable.PathParamJumpRequestedFromPathParamsTable)
+    def on_path_param_jump(
+        self, event: PathParamsTable.PathParamJumpRequestedFromPathParamsTable
+    ) -> None:
+        """Focus the URL input and select the matching path param (excluding leading colon)."""
+        name = event.name
+        url_input = self.url_input
+        value = url_input.value
+        # Find unescaped ":name" occurrences, then select the name portion only.
+        import re
+
+        pattern = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
+        for match in pattern.finditer(value):
+            if match.group(1) == name:
+                start = match.start(0) + 1  # exclude the leading colon
+                end = start + len(name)
+                self.set_focus(url_input)
+                url_input.selection = Selection(start, end)
+                break
+
+    @on(PathParamsEditor.PathParamRenamed)
+    def on_path_param_renamed(self, event: PathParamsEditor.PathParamRenamed) -> None:
+        """Rename the placeholder token in the URL path when a key is renamed in the editor."""
+        old_name = event.old_name
+        new_name = event.new_name
+        if not old_name or not new_name or old_name == new_name:
+            return
+
+        value = self.url_input.value
+        try:
+            parsed = urlparse(value)
+            path = parsed.path or ""
+        except Exception:
+            # Best-effort replace on the full string
+            self.url_input.value = value.replace(f":{old_name}", f":{new_name}")
+        else:
+            # Replace only unescaped tokens matching the old name
+            import re
+
+            pattern = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
+
+            def repl(m: re.Match[str]) -> str:
+                return f":{new_name}" if m.group(1) == old_name else m.group(0)
+
+            new_path = pattern.sub(repl, path)
+            if new_path != path:
+                self.url_input.value = urlunparse(
+                    (
+                        parsed.scheme,
+                        parsed.netloc,
+                        new_path,
+                        parsed.params,
+                        parsed.query,
+                        parsed.fragment,
+                    )
+                )
+        # Value change will trigger URL change handler to resync the table/highlighter
 
     async def action_send_request(self) -> None:
         """Send the request."""
@@ -646,6 +805,26 @@ class MainScreen(Screen[None]):
         else:
             params_tab.update("Query")
 
+    @on(PostingDataTable.RowsRemoved, selector="PathParamsTable")
+    @on(PostingDataTable.RowsAdded, selector="PathParamsTable")
+    def on_path_params_changed(
+        self, event: PostingDataTable.RowsRemoved | PostingDataTable.RowsAdded
+    ) -> None:
+        """Update the path tab to indicate if there are any path params."""
+        path_tab = self.query_one("#--content-tab-path-pane", ContentTab)
+        if event.data_table.row_count:
+            path_tab.update("Path[cyan b]•[/]")
+        else:
+            path_tab.update("Path")
+
+    @on(PathParamsEditor.PathParamsUpdated)
+    def on_path_param_values_updated(
+        self, event: PathParamsEditor.PathParamsUpdated
+    ) -> None:
+        """Keep URL highlighting in sync when values change via editor."""
+        self.url_input.highlighter.set_path_params(event.params)
+        self.url_input.refresh()
+
     def build_httpx_request(
         self,
         request_model: RequestModel,
@@ -656,6 +835,128 @@ class MainScreen(Screen[None]):
         request.extensions = {"trace": self.log_request_trace_event}
 
         return request
+
+    @on(Input.Changed, selector="UrlInput")
+    def on_url_changed(self, event: Input.Changed) -> None:
+        """When the URL changes, sync path params table rows to match placeholders."""
+        self._sync_path_params_from_url()
+        self._sync_query_params_from_url()
+
+        # Inform the URL highlighter of current path param values (by name) for highlighting.
+        try:
+            table = self.path_params_table
+        except NoMatches:
+            table = None  # type: ignore[assignment]
+        params: dict[str, str] = {}
+        if table:
+            for row_index in range(table.row_count):
+                row = table.get_row_at(row_index)
+                key_cell = row[0]
+                val_cell = row[1]
+                key = key_cell.plain if isinstance(key_cell, Text) else key_cell
+                val = val_cell.plain if isinstance(val_cell, Text) else val_cell
+                params[str(key)] = str(val)
+        self.url_input.highlighter.set_path_params(params)
+        self.url_input.refresh()
+
+    def _sync_path_params_from_url(
+        self, preferred_values: dict[str, str] | None = None
+    ) -> None:
+        """Sync Path tab rows from the URL, preserving values by index.
+
+        If the user renames placeholders, values remain associated with their
+        positional index among placeholders rather than the placeholder name.
+        """
+        url = self.url_input.value
+        names = extract_path_param_names(url)
+
+        # Determine the source of truth for values in index order.
+        values_by_index: list[str] = []
+        try:
+            table = self.path_params_table
+        except NoMatches:
+            table = None  # type: ignore[assignment]
+
+        if preferred_values is not None:
+            # When preferred values are provided (e.g. loading a request),
+            # map by name to ensure values follow their placeholders.
+            for name in names:
+                values_by_index.append(str(preferred_values.get(name, "")))
+        elif table and table.row_count > 0:
+            # Otherwise, when editing the current URL, preserve values by index
+            # from the existing table rows.
+            for row_index in range(table.row_count):
+                row = table.get_row_at(row_index)
+                cell = row[1]
+                val = cell.plain if isinstance(cell, Text) else cell
+                values_by_index.append(str(val))
+
+        # Build new rows, mapping values by index.
+        rows = [
+            (name, values_by_index[i] if i < len(values_by_index) else "")
+            for i, name in enumerate(names)
+        ]
+
+        try:
+            self.path_params_table.replace_all_rows(rows, None)
+        except NoMatches:
+            # Path tab may be lazily mounted; ignore if not present yet.
+            pass
+
+    def _sync_query_params_from_url(self) -> None:
+        """Copy a URL edit into the table without rewriting the user's input."""
+        try:
+            table = self.params_table
+        except NoMatches:
+            return
+
+        url_pairs = extract_query_pairs(self.url_input.value, escape_dollars=True)
+        current = table.to_model()
+        if url_pairs == [(p.name, p.value) for p in current if p.enabled]:
+            # Also preserves disabled rows and their positions after a table edit
+            # or a change to only the URL's path/fragment.
+            return
+
+        url_pair_set = set(url_pairs)
+        disabled = [
+            p for p in current if not p.enabled and (p.name, p.value) not in url_pair_set
+        ]
+        table.replace_all_rows(
+            url_pairs + [(p.name, p.value) for p in disabled],
+            [True] * len(url_pairs) + [False] * len(disabled),
+        )
+
+    def _sync_url_from_query_params(self) -> None:
+        """Write enabled Query-tab rows back into the URL bar query string."""
+        pairs = [
+            (param.name, param.value)
+            for param in self.params_table.to_model()
+            if param.enabled
+        ]
+        current = self.url_input.value
+        # Avoid normalizing percent escapes or a partially typed query when the
+        # views already agree. In particular, URL-driven row updates aren't edits.
+        if extract_query_pairs(current, escape_dollars=True) != pairs:
+            self.url_input.value = set_query_pairs(current, pairs)
+
+    @on(PostingDataTable.RowsAdded, selector="ParamsTable")
+    @on(PostingDataTable.RowsRemoved, selector="ParamsTable")
+    def on_query_params_table_changed(
+        self, event: PostingDataTable.RowsAdded | PostingDataTable.RowsRemoved
+    ) -> None:
+        if event.explicit_by_user:
+            self._sync_url_from_query_params()
+
+    @on(PostingDataTable.RowToggled, selector="ParamsTable")
+    def on_query_param_toggled(self) -> None:
+        self._sync_url_from_query_params()
+
+    @on(KeyValueInput.Change)
+    def on_query_key_value_changed(self, event: KeyValueInput.Change) -> None:
+        # Several editors use KeyValueInput; only the Query tab should rewrite the URL.
+        if event.control.key_input.id != "query-key-input":
+            return
+        self._sync_url_from_query_params()
 
     async def log_request_trace_event(self, event: Event, info: dict[str, Any]) -> None:
         """Log an event to the request trace."""
@@ -686,13 +987,18 @@ class MainScreen(Screen[None]):
                         value=request_body.content_type,
                     )
                 )
+        # The table already represents the visible query, including disabled
+        # rows. Merging it back with the URL would match disabled duplicates to
+        # enabled occurrences a second time.
+        url = set_query_pairs(self.url_input.value.strip(), [])
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
             description=self.request_metadata.description,
             method=self.selected_method,
-            url=self.url_input.value.strip(),
+            url=url,
             params=self.params_table.to_model(),
+            path_params=self.path_params_table.to_model(),
             headers=headers,
             options=request_options,
             auth=self.request_auth.to_model(),
@@ -726,31 +1032,12 @@ class MainScreen(Screen[None]):
 
     def action_open_request_search_palette(self) -> None:
         """Open the request search palette."""
-        collection_tree_nodes = list(self.collection_tree.walk_nodes())
-
-        def load_and_select_request(request: RequestModel) -> None:
-            self.load_request_model(request)
-            for node in collection_tree_nodes:
-                if node.data == request:
-                    self.collection_tree.select_node(node)
-                    break
-
-        collection_path = self.collection.path
-        self.app.search_commands(
-            [
-                SimpleCommand(
-                    name=node.data.name if node.data.path else node.data.name,
-                    callback=lambda request=node.data: load_and_select_request(request),
-                    help_text=(
-                        str(node.data.path.relative_to(collection_path))
-                        if node.data.path
-                        else ""
-                    ),
-                )
-                for node in collection_tree_nodes
-                if isinstance(node.data, RequestModel)
-            ],
-            placeholder="Search for a request…",
+        self.app.push_screen(
+            CommandPalette(
+                providers=[RequestSearchProvider],
+                placeholder="Search for a request…",
+                id="request-search-palette",
+            )
         )
 
     def load_request_model(
@@ -764,6 +1051,10 @@ class MainScreen(Screen[None]):
                 open request. If False, only the request data will be loaded, and
                 the metadata (name, description, etc) will be left as is.
         """
+        # Normalize a copy before either view is updated. A saved URL can carry
+        # query values even when its separate parameter list is empty.
+        request_model = request_model.model_copy(deep=True)
+        request_model.absorb_url_query()
         self.selected_method = request_model.method
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
@@ -771,6 +1062,16 @@ class MainScreen(Screen[None]):
             ((param.name, param.value) for param in request_model.params),
             (param.enabled for param in request_model.params),
         )
+        # Show table params in the URL bar so the two views stay aligned.
+        self._sync_url_from_query_params()
+        # Prefer values from the model, but ensure they align with placeholders in the URL
+        preferred_values = {
+            p.name: p.value for p in getattr(request_model, "path_params", [])
+        }
+        self._sync_path_params_from_url(preferred_values)
+        # Update URL input highlighter with current path param values
+        self.url_input.highlighter.set_path_params(preferred_values)
+        self.url_input.refresh()
         self.headers_table.replace_all_rows(
             ((header.name, header.value) for header in request_model.headers),
             (header.enabled for header in request_model.headers),
@@ -807,9 +1108,76 @@ class MainScreen(Screen[None]):
         self.request_auth.load_auth(request_model.auth)
         self.request_scripts.load_scripts(request_model.scripts)
 
+    def action_toggle_jump_mode(self) -> None:
+        self._jumping = not self._jumping
+
+    def watch__jumping(self, jumping: bool) -> None:
+        if self.jumper is None:
+            return
+
+        focused_before = self.focused
+        if focused_before is not None:
+            self.set_focus(None, scroll_visible=False)
+
+        def handle_jump_target(target: str | Widget | None) -> None:
+            if isinstance(target, str):
+                try:
+                    target_widget = self.screen.query_one(f"#{target}")
+                except NoMatches:
+                    log.warning(
+                        f"Attempted to jump to target #{target}, but it couldn't be found on {self.screen!r}"
+                    )
+                else:
+                    if target_widget.focusable:
+                        self.set_focus(target_widget)
+                    else:
+                        if isinstance(target_widget, Tab):
+                            try:
+                                parent_tabs = target_widget.query_ancestor(Tabs)
+                                if parent_tabs and target_widget.id:
+                                    parent_tabs.active = target_widget.id
+                                    self.set_focus(parent_tabs)
+                            except NoMatches:
+                                log.warning(
+                                    "Programming error - no parent Tabs widget found"
+                                    "when trying to focus from Jump Mode."
+                                )
+                        else:
+                            # We're trying to move to something that isn't focusable,
+                            # and isn't a Tab within a Tabs, so just send a click event.
+                            # It's probably the best we can do.
+                            target_widget.post_message(
+                                Click(
+                                    widget=target_widget,
+                                    x=0,
+                                    y=0,
+                                    delta_x=0,
+                                    delta_y=0,
+                                    button=0,
+                                    shift=False,
+                                    meta=False,
+                                    ctrl=False,
+                                ),
+                            )
+            elif isinstance(target, Widget):
+                self.set_focus(target)
+            else:
+                # If there's no target (i.e. the user pressed ESC to dismiss)
+                # then re-focus the widget that was focused before we opened
+                # the jumper.
+                if focused_before is not None:
+                    self.set_focus(focused_before, scroll_visible=False)
+
+        self.app.clear_notifications()
+        self.app.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+
     @property
     def url_bar(self) -> UrlBar:
         return self.query_one(UrlBar)
+
+    @property
+    def footer(self) -> Footer:
+        return self.query_one(Footer)
 
     @property
     def method_selector(self) -> MethodSelector:
@@ -840,8 +1208,16 @@ class MainScreen(Screen[None]):
         return self.query_one(ParamsTable)
 
     @property
+    def path_params_table(self) -> PathParamsTable:
+        return self.query_one(PathParamsTable)
+
+    @property
     def app_body(self) -> AppBody:
         return self.query_one(AppBody)
+
+    @property
+    def app_header(self) -> AppHeader:
+        return self.query_one(AppHeader)
 
     @property
     def request_options(self) -> RequestOptions:
@@ -891,13 +1267,6 @@ class Posting(App[None], inherit_bindings=False):
             id="commands",
         ),
         Binding(
-            "ctrl+o",
-            "toggle_jump_mode",
-            description="Jump",
-            tooltip="Activate jump mode to quickly move focus between widgets.",
-            id="jump",
-        ),
-        Binding(
             "ctrl+c",
             "app.quit",
             description="Quit",
@@ -914,6 +1283,8 @@ class Posting(App[None], inherit_bindings=False):
         ),
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
+
+    spacing: Reactive[str] = reactive("standard", init=False, always_update=True)
 
     def __init__(
         self,
@@ -957,8 +1328,9 @@ class Posting(App[None], inherit_bindings=False):
         self.animation_level = settings.animation
         """The level of animation to use in the app. This is used by Textual."""
 
-    _jumping: Reactive[bool] = reactive(False, init=False, bindings=True)
-    """True if 'jump mode' is currently active, otherwise False."""
+        self.set_reactive(Posting.spacing, settings.spacing)
+        """The initial spacing of the app is taken from settings, but is a reactive
+        which can be toggled via the command palette."""
 
     def on_ready(self) -> None:
         import time
@@ -966,6 +1338,16 @@ class Posting(App[None], inherit_bindings=False):
 
         message = f"Posting started in {(time.perf_counter_ns() - START_TIME) // 1_000_000} milliseconds."
         log.debug(message)
+
+    def watch_spacing(self, spacing: Literal["standard", "compact"]) -> None:
+        is_compact = spacing == "compact"
+        self.app.set_class(is_compact, "-compact")
+        try:
+            footer = self.screen.query_one(Footer)
+        except NoMatches:
+            pass
+        else:
+            footer.compact = is_compact
 
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
@@ -1032,13 +1414,20 @@ class Posting(App[None], inherit_bindings=False):
 
         from watchfiles import awatch
 
-        async for changes in awatch(self.settings.theme_directory):
+        paths_to_watch = {self.settings.theme_directory}
+        
+        if self.settings.theme_directory.exists():
+            for p in self.settings.theme_directory.iterdir():
+                if p.is_symlink():
+                    paths_to_watch.add(p.resolve().parent)
+
+        async for changes in awatch(*paths_to_watch):
             for _change_type, file_path in changes:
                 if file_path.endswith((".yml", ".yaml")):
                     try:
                         theme = load_user_theme(Path(file_path))
                     except Exception as e:
-                        print(f"Couldn't load theme from {str(file_path)}: {e}.")
+                        log.warning(f"Couldn't load theme from {str(file_path)}: {e}.")
                         continue
                     if theme and theme.name == self.theme:
                         self.register_theme(theme)
@@ -1046,14 +1435,10 @@ class Posting(App[None], inherit_bindings=False):
                         try:
                             self._watch_theme(theme.name)
                         except Exception as e:
-                            # I don't think we want to notify here, as editors often
-                            # use heuristics to determine whether to save a file. This could
-                            # prove jarring if we pop up a notification without the user
-                            # explicitly saving the file in their editor.
-                            print(f"Error refreshing CSS: {e}")
+                            log.warning(f"Error refreshing CSS: {e}")
 
     def on_mount(self) -> None:
-        settings = SETTINGS.get()
+        settings = self.settings
 
         available_themes: dict[str, Theme] = {"galaxy": BUILTIN_THEMES["galaxy"]}
 
@@ -1103,26 +1488,9 @@ class Posting(App[None], inherit_bindings=False):
             )
 
         self.set_keymap(self.settings.keymap)
-        self.jumper = Jumper(
-            {
-                "method-selector": "1",
-                "url-input": "2",
-                "collection-tree": "tab",
-                "--content-tab-headers-pane": "q",
-                "--content-tab-body-pane": "w",
-                "--content-tab-query-pane": "e",
-                "--content-tab-auth-pane": "r",
-                "--content-tab-info-pane": "t",
-                "--content-tab-scripts-pane": "y",
-                "--content-tab-options-pane": "u",
-                "--content-tab-response-body-pane": "a",
-                "--content-tab-response-headers-pane": "s",
-                "--content-tab-response-cookies-pane": "d",
-                "--content-tab-response-scripts-pane": "f",
-                "--content-tab-response-trace-pane": "g",
-            },
-            screen=self.screen,
-        )
+
+        self.spacing = self.settings.spacing
+
         if self.settings.watch_env_files:
             self.watch_environment_files()
 
@@ -1142,6 +1510,14 @@ class Posting(App[None], inherit_bindings=False):
 
     def command_layout(self, layout: Literal["vertical", "horizontal"]) -> None:
         self.main_screen.current_layout = layout
+
+    def command_toggle_spacing(self) -> None:
+        self.spacing = "compact" if self.spacing == "standard" else "standard"
+
+    def action_open_web_docs(self) -> None:
+        import webbrowser
+
+        webbrowser.open("https://posting.sh/guide")
 
     def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
         main_screen = self.main_screen
@@ -1190,7 +1566,7 @@ class Posting(App[None], inherit_bindings=False):
                 import pyperclip
 
                 pyperclip.copy(curl_command)
-            except pyperclip.PyperclipException as exc:
+            except Exception as exc:
                 self.notify(
                     str(exc),
                     title="Clipboard error",
@@ -1204,7 +1580,48 @@ class Posting(App[None], inherit_bindings=False):
                 escape(curl_command),
                 title="Copied to clipboard",
             )
-            self.app.copy_to_clipboard(curl_command)
+            self.copy_to_clipboard(curl_command)
+
+    def command_copy_request_yaml(self) -> None:
+        """Copy the current request (as shown in the UI) to the clipboard in YAML format.
+
+        This builds a `RequestModel` from the current UI state (even if unsaved),
+        and dumps the model to YAML, mirroring what would be saved to disk.
+        """
+        main_screen = self.main_screen
+        request_model = main_screen.build_request_model(
+            main_screen.request_options.to_model()
+        )
+
+        # Serialize to YAML similar to save_to_disk
+        from posting.yaml import dump
+
+        content = request_model.model_dump(exclude_defaults=True, exclude_none=True)
+        yaml_content = dump(
+            content,
+            None,
+            sort_keys=False,
+            allow_unicode=True,
+        )
+
+        if os.getenv("TERM_PROGRAM") == "Apple_Terminal":
+            try:
+                import pyperclip
+
+                pyperclip.copy(yaml_content)
+            except Exception as exc:
+                self.notify(
+                    str(exc),
+                    title="Clipboard error",
+                    severity="error",
+                    timeout=10,
+                )
+            else:
+                self.notify("YAML copied to clipboard", title="Copied to clipboard")
+        else:
+            # Use OSC 52 via Textual's clipboard helper
+            self.notify("YAML copied to clipboard", title="Copied to clipboard")
+            self.copy_to_clipboard(yaml_content)
 
     def action_save_screenshot(
         self,
@@ -1250,41 +1667,28 @@ class Posting(App[None], inherit_bindings=False):
         if not event.option_selected:
             self.theme = self._original_theme
 
-    def action_toggle_jump_mode(self) -> None:
-        self._jumping = not self._jumping
+    def search_commands(
+        self,
+        commands: Sequence[CommandListItem],
+        placeholder: str = "Search for commands…",
+        palette_id: str = "",
+    ) -> AwaitMount:
+        """Show a list of commands in the app.
 
-    def watch__jumping(self, jumping: bool) -> None:
-        focused_before = self.focused
-        if focused_before is not None:
-            self.set_focus(None, scroll_visible=False)
+        Args:
+            commands: A list of SimpleCommand instances.
+            placeholder: Placeholder text for the search field.
+            palette_id: The id of the palette to use.
 
-        def handle_jump_target(target: str | Widget | None) -> None:
-            if isinstance(target, str):
-                try:
-                    target_widget = self.screen.query_one(f"#{target}")
-                except NoMatches:
-                    log.warning(
-                        f"Attempted to jump to target #{target}, but it couldn't be found on {self.screen!r}"
-                    )
-                else:
-                    if target_widget.focusable:
-                        self.set_focus(target_widget)
-                    else:
-                        target_widget.post_message(
-                            Click(target_widget, 0, 0, 0, 0, 0, False, False, False)
-                        )
-
-            elif isinstance(target, Widget):
-                self.set_focus(target)
-            else:
-                # If there's no target (i.e. the user pressed ESC to dismiss)
-                # then re-focus the widget that was focused before we opened
-                # the jumper.
-                if focused_before is not None:
-                    self.set_focus(focused_before, scroll_visible=False)
-
-        self.clear_notifications()
-        self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+        Returns:
+            AwaitMount: An awaitable that resolves when the commands are shown.
+        """
+        palette = CommandPalette(
+            providers=[SimpleProvider(self.screen, commands)],
+            placeholder=placeholder,
+            id=palette_id or None,
+        )
+        return self.push_screen(palette)
 
     async def action_help(self) -> None:
         focused = self.focused

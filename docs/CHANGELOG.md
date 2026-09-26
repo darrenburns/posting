@@ -1,3 +1,139 @@
+## Unreleased
+
+### Fixed
+
+- Query parameters typed in the URL bar are now kept in sync with the Query tab and sent with the request (#272, #362).
+- Fall back to Textual's terminal clipboard when the native clipboard is unavailable.
+
+### Added
+
+- Added a colour-coded HTTP method tag (e.g. `GET`, `POST`, `PUT`, `DELETE`) to each entry in the request search palette (`ctrl+shift+p`, or `/` from the collection tree), matching the styling already used in the collection tree. Previously, requests with the same name in different directories/methods were indistinguishable in the palette.
+
+## 2.10.0 [25th March 2026]
+
+### Added
+
+- Added copy functionality to key-value tables (headers, query params, cookies, etc.) via `c` or `y` key, allowing copying of name, value, or both.
+- Added ability to load environment files at runtime via new command palette `Load environment file`.
+- Added ability to copy the URL using `ctrl+y`.
+
+
+### Fixed
+- Fixed themes not auto-reloading when the theme file is a symlink.
+- Fixed last character being omitted when yanking text in visual mode.
+- Support importing OpenAPI 3.0 specs (previously only 3.1 was supported).
+- Ensure we enforce UTF-8 when raeding files (already enforced for writing).
+- Ensure Vim keybinds work in the method selector dropdown.
+
+
+### Changed
+- `MethodSelector`: uppercase letters can now be used to change the method.
+- `MethodSelector`: Disables Textual's built-in `type_to_search` behavior.
+- `MethodSelector`: Navigation using the underlined letters in the select overlay is now supported. 
+- `PostingSelect`: You can navigate options using j,k,l, space.
+    - k and j move the cursor up and down through options.
+    - l selects the highlighted option. Space now also selects the highlighted option
+
+## 2.9.2 [14th October 2025]
+
+### Fixed
+
+- Fixed path parameters interference across requests.
+
+## 2.9.1 [24th September 2025]
+
+### Fixed
+
+- Fixed unexpectedly high CPU usage via updating textual-autocomplete to 4.0.6.
+
+## 2.9.0 [17th September 2025]
+
+### Added
+
+- Path parameter support (`:param` syntax) [(#295)](https://github.com/darrenburns/posting/pull/295)
+- New built-in themes: `hypernova`, `synthwave`. [(#300)](https://github.com/darrenburns/posting/pull/300)
+- Added `export: copy as YAML` command to the command palette [(#299)](https://github.com/darrenburns/posting/pull/299)
+
+## 2.8.0 [13th September 2025]
+
+### Changed
+
+- Update to Textual 6.1.0 from 3.0.0.
+- Remove notification when creating + opening a new request.
+
+## 2.7.1 [22nd July 2025]
+
+### Fixed
+
+- Pin tree-sitter to <0.25.0 to fix crash due to breaking API change.
+
+## 2.7.0 [19th April 2025]
+
+### Added
+
+- Collections can now be imported from Postman [(#106)](https://github.com/darrenburns/posting/pull/106)
+- `posting.env` files in the current directory will automatically be loaded if no `--env` options are provided [(#249)](https://github.com/darrenburns/posting/pull/249)
+- Generate JSON body with default values after importing OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
+- Use tags to separate sub-collections in OpenAPI specs [(#247)](https://github.com/darrenburns/posting/pull/247)
+- curl import now handles various different data options [(#252)](https://github.com/darrenburns/posting/pull/252)
+- Added `-c` shorthand alias for `--collection` option [(#250)](https://github.com/darrenburns/posting/pull/250)
+- Added `posting sponsors` command, which lists people who have supported Posting via GitHub Sponsors (specific sponsor tiers only). [(#253)](https://github.com/darrenburns/posting/pull/253)
+
+### Changed
+
+- A double-click rather than a single-click is now required to enter edit mode inside data tables (e.g. headers, query params, etc.) [(#256)](https://github.com/darrenburns/posting/pull/256)
+- In the body editor, the `Form data` menu item now shows `(x-www-form-urlencoded)` after the label, to suggest the type of data being sent. [(#259)](https://github.com/darrenburns/posting/pull/259)
+
+### Fixed
+
+- Exported curl command uses `-d` for form data now, rather than `-F`. The result is exported commands with form data will now use `application/x-www-form-urlencoded` instead of `multipart/form-data` (matching Posting's behaviour). [(#252)](https://github.com/darrenburns/posting/pull/252)
+- Fix attempting to add a protocol before applying variables in the URL bar [(#248)](https://github.com/darrenburns/posting/pull/248)
+- Fix script path with custom function [(#254)](https://github.com/darrenburns/posting/pull/254)
+- Fixed Posting's default `User-Agent` header not being used [(#259)](https://github.com/darrenburns/posting/pull/259)
+
+## 2.6.0 [29th March 2025]
+
+### Added
+
+- Added `spacing: <compact|standard>` config to allow for a more compact UI (default: `standard`).
+- Added ability to edit headers, form data, and query params without deleting and recreating them.
+    - Press `enter` or click a row to enter edit mode. The row will be highlighted, and focus will move to the key/name input.
+        Submitted changes will overwrite the existing row rather than adding a new one.
+    - Press `v` to enter edit mode and immediately focus on the value input.
+    - Press `escape` to cancel the edit.
+    - Press `enter` to save the changes and exit edit mode.
+    - The background colour behind the input will update to indicate edit mode is active.
+- Added autocompletion for header values based on the header name.
+    - For example, if the header is `Content-Type`, when typing the value, you'll be able to quickly autocomplete from a list of common content types.
+- Press `/` to open the request search palette while the collection browser is focused.
+    - `ctrl+shift+p` remains available as a global shortcut for this.
+- Added `help: Open web docs` command to the command palette.
+- Basic Vim motions to script output log (`hjkl`).
+- Added response status code label to the URL bar.
+- Contributing guide added to the GitHub repo (`CONTRIBUTING.md`).
+
+### Changed
+
+- Rewrite of the autocompletion system used to autocomplete header names, values, URLs, and variables.
+- Automatically prepend `http://` protocol if no protocol is specified in the URL bar.
+- Debounce jump overlay recomposition - if you resize while the jump overlay is open, it'll wait a short period before recomputing.
+- Jump mode now lives on the main screen, rather than globally. This makes more sense as it's only available on the main screen. The only user-facing impact should be that the position of the keybinding in the footer and keybindings panel may change.
+- Jump mode interaction with Tabs now uses the Tabs API, rather than simulating a Click.
+- Status code label now displayed in the URL bar beside the trace markers.
+- Request description area at the bottom of the collection browser has new design.
+- When there are no response cookies, the cookies section will now display a message to the user.
+- Updated to Textual 3.0.0.
+- Various updates to the https://posting.sh homepage.
+
+### Fixed
+
+- Fixed scrolling in response headers and cookies tabs using keyboard.
+- Fixed crash when immediately pressing enter after loading the UI when the `on_startup` config is set to `url` (this was due to lazy loading of the UI, and attempting to send a request before the UI was fully loaded).
+- Fixed accepting a completion via enter in the header editor also adding the header.
+    - Now, the first enter press will accept the completion, and the second enter press will add the header.
+- Fixed Textual markup not being escaped key value tables.
+- Fixed request description attempting to parse Textual markup [(#243)](https://github.com/darrenburns/posting/pull/243)
+
 ## 2.5.4 [13th March 2025]
 
 ### Fixed

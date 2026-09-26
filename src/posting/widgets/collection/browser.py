@@ -21,6 +21,7 @@ from posting.collection import Collection, RequestModel
 from posting.config import SETTINGS
 from posting.files import get_unique_request_filename
 from posting.help_data import HelpData
+from posting.method_styles import get_method_abbreviation, get_method_style
 from posting.save_request import generate_request_filename
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,
@@ -57,6 +58,7 @@ Sub-collections cannot be deleted from the UI yet.
     BINDING_GROUP_TITLE = "Collection Browser"
 
     BINDINGS = [
+        Binding("slash", "screen.open_request_search_palette", "Search"),
         Binding(
             "d",
             "duplicate_request",
@@ -182,25 +184,13 @@ Sub-collections cannot be deleted from the UI yet.
             if self._cursor_node is not node:
                 node_label.stylize(Style(dim=True, bold=True))
         else:
-            theme_vars = self.app.theme_variables
-            default_styles = {
-                "get": theme_vars.get("text-primary"),
-                "post": theme_vars.get("text-success"),
-                "put": theme_vars.get("text-warning"),
-                "delete": theme_vars.get("text-error"),
-                "options": theme_vars.get("text-muted"),
-                "head": theme_vars.get("text-muted"),
-            }
-
-            method = node.data.method.lower()
-            method_style = theme_vars.get(
-                f"method-{method}",
-                default_styles.get(method),
-            )
+            method_style = get_method_style(self.app.theme_variables, node.data.method)
 
             open_indicator = ">" if node is self.currently_open else " "
             method = (
-                f"{node.data.method[:3]}" if isinstance(node.data, RequestModel) else ""
+                get_method_abbreviation(node.data.method)
+                if isinstance(node.data, RequestModel)
+                else ""
             )
             node_label = Text.assemble(
                 open_indicator,
@@ -388,11 +378,6 @@ Sub-collections cannot be deleted from the UI yet.
             save_path = new_request.path
             assert save_path is not None, "new request must have a path"
             new_request.save_to_disk(save_path)
-            self.notify(
-                title="Request saved",
-                message=f"{save_path.resolve().relative_to(root_path.resolve())}",
-                timeout=3,
-            )
 
             def post_new_request() -> None:
                 self.screen.set_focus(focused_before)
@@ -554,27 +539,11 @@ Sub-collections cannot be deleted from the UI yet.
 
 
 class RequestPreview(VerticalScroll):
-    DEFAULT_CSS = """\
-        RequestPreview {
-            color: $text-muted;
-            background: transparent;
-            dock: bottom;
-            height: auto;
-            max-height: 50%;
-            width: 100%;
-            padding: 0 1;
-            border-top: solid $accent 35%;
-            &.hidden {
-                display: none;
-            }
-        }
-    """
-
     request: Reactive[RequestModel | None] = reactive(None)
 
     def compose(self) -> ComposeResult:
         self.can_focus = False
-        yield Static("", id="description")
+        yield Static("", markup=False, id="description")
 
     def watch_request(self, request: RequestModel | None) -> None:
         self.set_class(request is None or not request.description, "hidden")

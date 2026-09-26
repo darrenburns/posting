@@ -45,7 +45,7 @@ class Jumper:
                 # due to it being hidden in some modes.
                 continue
 
-            widget_offset = Offset(widget_x, widget_y - 1)
+            widget_offset = Offset(widget_x, widget_y)
             if child.id and child.id in ids_to_keys:
                 overlays[widget_offset] = JumpInfo(
                     ids_to_keys[child.id],

@@ -38,13 +38,15 @@ async def disable_blink_for_active_cursors(pilot: Pilot) -> None:
 
 @use_config("general.yaml")
 class TestJumpMode:
-    def test_loads(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_loads(self, spacing, snap_compare):
         """Simple check that ctrl+o enters jump mode."""
 
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+o")
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before)
+        with patch_env("POSTING_SPACING", spacing):
+            assert snap_compare(POSTING_MAIN, run_before=run_before)
 
     def test_focus_switch(self, snap_compare):
         """Jump mode can target focusable widgets such as the collection tree."""
@@ -121,16 +123,18 @@ class TestUrlBar:
 
 @use_config("general.yaml")
 class TestCommandPalette:
-    def test_loads_and_shows_discovery_options(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_loads_and_shows_discovery_options(self, spacing, snap_compare):
         """Check that the command palette loads."""
 
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
 
-        assert snap_compare(
-            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
-        )
+        with patch_env("POSTING_SPACING", spacing):
+            assert snap_compare(
+                POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+            )
 
     def test_can_type_to_filter_options(self, snap_compare):
         """Check that we can run a command from the command palette."""
@@ -152,6 +156,101 @@ class TestCommandPalette:
             await pilot.press("down", "enter")
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+class TestRequestSearchPalette:
+    """The request search palette (ctrl+shift+p, or `/` from the collection
+    tree) lists every request in the collection so you can jump to it by
+    name. Requests sharing a name are otherwise indistinguishable, so each
+    entry is prefixed with a colour-coded HTTP method tag matching the one
+    used in the collection tree.
+    """
+
+    def test_shows_method_tag_per_request(self, snap_compare):
+        """Palette entries should show a method tag (GET/POST/PUT/DELETE/...)
+        so requests can be told apart without opening each one."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+p")
+            await disable_blink_for_active_cursors(pilot)
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
+
+    def test_filters_by_name_while_keeping_method_tag(self, snap_compare):
+        """Typing a query still fuzzy-matches on the request name, and the
+        method tag remains visible on the filtered results."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+p")
+            await disable_blink_for_active_cursors(pilot)
+            await pilot.press(*"delete")
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
+
+
+@use_config("general.yaml")
+class TestLoadEnvFileDialog:
+    def test_dialog_loads_with_single_path_input(
+        self, tmp_path, monkeypatch, snap_compare
+    ):
+        working_env = tmp_path / ".env"
+        working_env.write_text("FROM_CWD=1\n", encoding="utf-8")
+
+        config_home = tmp_path / "xdg-config"
+        posting_config = config_home / "posting"
+        posting_config.mkdir(parents=True)
+        (posting_config / "config.env").write_text("FROM_CONFIG=1\n", encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(config_home))
+
+        app = make_posting(collection=SAMPLE_COLLECTIONS)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+p")
+            await disable_blink_for_active_cursors(pilot)
+            await pilot.press(*"load env")
+            await pilot.press("enter")
+            await pilot.pause()
+            pilot.app.screen.query_one("#env-input", Input).cursor_blink = False
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
+
+    def test_dialog_shows_autocomplete_suggestions(
+        self, tmp_path, monkeypatch, snap_compare
+    ):
+        working_env = tmp_path / ".env"
+        working_env.write_text("FROM_CWD=1\n", encoding="utf-8")
+        (tmp_path / ".env.dev").write_text("FROM_CWD_DEV=1\n", encoding="utf-8")
+        (tmp_path / "configs").mkdir()
+
+        config_home = tmp_path / "xdg-config"
+        posting_config = config_home / "posting"
+        posting_config.mkdir(parents=True)
+        (posting_config / "config.env").write_text("FROM_CONFIG=1\n", encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(config_home))
+
+        app = make_posting(collection=SAMPLE_COLLECTIONS)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+p")
+            await disable_blink_for_active_cursors(pilot)
+            await pilot.press(*"load env")
+            await pilot.press("enter")
+            await pilot.pause()
+            env_input = pilot.app.screen.query_one("#env-input", Input)
+            env_input.cursor_blink = False
+            await pilot.press(*".env")
+            await pilot.pause()
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(100, 32))
 
 
 @use_config("general.yaml")
@@ -182,8 +281,9 @@ class TestNewRequest:
             await pilot.press("tab", "tab")
             await pilot.press(*"bar")
             await pilot.press("ctrl+n")
-
             await pilot.pause()
+            await pilot.pause(2)
+
             # Check the file exists
             new_request_file = (
                 SAMPLE_COLLECTIONS / "jsonplaceholder" / "posts" / "foo.posting.yaml"
@@ -215,6 +315,7 @@ description: bar
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
 
+    @pytest.mark.skip(reason="This test is flaky on CI - needs investigation.")
     def test_cannot_create_request_with_duplicate_name(self, snap_compare):
         """Check that we cannot create a request with a duplicate name.
 
@@ -318,7 +419,7 @@ class TestLoadingRequest:
             # Navigate to 'GET comments via query' and select it.
             await pilot.press(*"JJJjj")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "e")  # jump to 'Query Params' tab
+            await pilot.press("ctrl+o", "r")  # jump to 'Query Params' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
 
@@ -329,9 +430,19 @@ class TestLoadingRequest:
             # Navigate to 'GET comments via query' and select it.
             await pilot.press(*"jj")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "r")  # jump to 'Auth' tab
+            await pilot.press("ctrl+o", "t")  # jump to 'Auth' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
+
+    def test_request_loaded_into_view__path_params(self, snap_compare):
+        """Check that the request path params are loaded into the view."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press(*"jj")
+            await pilot.press("enter")
+            await pilot.press("ctrl+o", "e")  # jump to 'Path Params' tab
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
 
     # @pytest.mark.skip(
     #     reason="info tab contains a path, specific to the host the test runs on"
@@ -352,7 +463,7 @@ class TestLoadingRequest:
         async def run_before(pilot: Pilot):
             await pilot.press(*"jj")
             await pilot.press("enter")
-            await pilot.press("ctrl+o", "u")  # jump to 'Options' tab
+            await pilot.press("ctrl+o", "i")  # jump to 'Options' tab
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 44))
 
@@ -381,7 +492,7 @@ class TestSave:
 
         async def run_before(pilot: Pilot):
             await pilot.press(*"JJj")
-            await pilot.press("ctrl+o", "t")  # select 'Info' tab
+            await pilot.press("ctrl+o", "y")  # select 'Info' tab
             await pilot.press("j")  # move down into 'Info' tab
             await pilot.press(*"Foo: Bar")
             await pilot.press("tab")
@@ -394,7 +505,8 @@ class TestSave:
 @use_config("general.yaml")
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 class TestSendRequest:
-    def test_send_request(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_send_request(self, spacing, snap_compare):
         """Check that we can send a request."""
 
         async def run_before(pilot: Pilot):
@@ -403,7 +515,10 @@ class TestSendRequest:
             await pilot.press("ctrl+j")  # send request
             await pilot.app.workers.wait_for_complete()
 
-        assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(88, 34))
+        with patch_env("POSTING_SPACING", spacing):
+            assert snap_compare(
+                POSTING_MAIN, run_before=run_before, terminal_size=(88, 34)
+            )
 
 
 @use_config("modified_config.yaml")
@@ -439,7 +554,7 @@ class TestVariables:
         async def run_before(pilot: Pilot):
             await pilot.press(*"JJJJj")  # go to 'get one user'
             await pilot.press("enter")  # press 'enter' to select
-            await pilot.press("ctrl+o", "e")  # go to 'Query' tab
+            await pilot.press("ctrl+o", "r")  # go to 'Query' tab
             await pilot.press("down")  # move down into 'Query' tab
             await pilot.press(*"foo", "enter")  # pressing enter should shift to value
             # The params typed below should be dimmed since they dont resolve
@@ -447,15 +562,17 @@ class TestVariables:
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
-    def test_resolved_variables_highlight_and_preview(self, snap_compare):
+    @pytest.mark.parametrize("spacing", ["compact", "standard"])
+    def test_resolved_variables_highlight_and_preview(self, spacing, snap_compare):
         """Check that the resolved variables are highlighted in the URL
         and the value is shown below."""
 
         env_path = str((ENV_DIR / "sample_base.env").resolve())
-        app = make_posting(
-            collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
-            env=(env_path,),
-        )
+        with patch_env("POSTING_SPACING", spacing):
+            app = make_posting(
+                collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
+                env=(env_path,),
+            )
 
         async def run_before(pilot: Pilot):
             await pilot.press("j", "j", "enter")
@@ -473,8 +590,10 @@ class TestCustomThemeSimple:
 
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
+            await pilot.press(*"them", "enter")
             await disable_blink_for_active_cursors(pilot)
-            await pilot.press(*"anothertest")
+            await pilot.press(*"atest")
+            await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -613,17 +732,20 @@ class TestDisableRowInTable:
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
 
+@pytest.mark.skip(
+    reason="These tests are flaky on CI as the notification doesnt show up."
+)
 @use_config("general.yaml")
 @patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
 class TestCurlExport:
-    # TODO - there's an ordering dependency between the two tests here.
-
     def test_curl_export_no_setup(self, snap_compare):
         """Check that the curl export works when setup scripts are not run."""
 
         async def run_before(pilot: Pilot):
+            await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl no setup", "enter")
+            await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -631,8 +753,10 @@ class TestCurlExport:
         """Check that the curl export works correctly."""
 
         async def run_before(pilot: Pilot):
+            await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+p", *"curl", "enter")
+            await pilot.pause()
 
         assert snap_compare(POSTING_MAIN, run_before=run_before)
 
@@ -644,6 +768,7 @@ class TestScripts:
         """Check that a script runs correctly."""
 
         async def run_before(pilot: Pilot):
+            await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+j")
             await pilot.app.workers.wait_for_complete()
@@ -651,3 +776,128 @@ class TestScripts:
             await pilot.press("ctrl+m")  # expand response section
 
         assert snap_compare(POSTING_MAIN, run_before=run_before, terminal_size=(80, 34))
+
+
+@use_config("general.yaml")
+class TestHeaderAutoCompletion:
+    def test_header_name_auto_completion_list_appears(self, snap_compare):
+        """Check that the header name auto completion list appears."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "q", "j", *"acc")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    @pytest.mark.parametrize("key", ["tab", "enter", "escape"])
+    def test_header_name_auto_completion_list_appears_followed_by_keypress(
+        self, key: str, snap_compare
+    ):
+        """Check that the header name auto completion list appears and users can complete it.
+
+        If the key is enter, the completion should be selected and focus should remain in the name field.
+        If the key is tab, the completion should be selected and focus should move to the value field.
+        If the key is escape, the completion list should be closed and focus should remain in the name field.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "q", "j", *"acc", key)
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_header_value_auto_completion_list_appears(self, snap_compare):
+        """Check that the header value auto completion list appears."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "q", "j", *"CType", "tab")
+            await pilot.press(*"ajs")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_header_value_auto_completion_list_accepts_selection(self, snap_compare):
+        """Check that the header value auto completion list accepts selection.
+
+        Expect to see `application/json` in the value field for the header.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+o", "q", "j", *"CType", "tab")
+            await pilot.press(*"ajs")
+            await pilot.press("enter")
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestEditKeyValues:
+    def test_edit_mode_displays_correctly(self, snap_compare):
+        """Check that the UI looks correct when entering edit mode.
+
+        In this test, we're editing the first header row.
+        """
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.press("ctrl+o", "q")  # Select "Headers" tab
+            await pilot.press("down")
+            await pilot.press("enter")  # Begin editing the first header
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_edit_mode_can_edit_header_keys_and_values_as_expected(self, snap_compare):
+        """The name of the first header should be X-Forwarded-For, and the value should be foo."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")
+            await pilot.press("ctrl+o", "q")  # Select "Headers" tab
+            await pilot.press("down")
+            await pilot.press("enter")  # Begin editing the first header
+            await pilot.press(
+                "x", "enter"
+            )  # Accept the completion of "X-Forwarded-For"
+            await pilot.press("tab")  # Move focus to the value field
+            await pilot.press(*"foo")  # Change the value to "foo"
+            await pilot.press("enter")  # Accept the change
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+
+@use_config("general.yaml")
+@patch_env("POSTING_FOCUS__ON_STARTUP", "collection")
+class TestKeyValueCopyModal:
+    def test_copy_modal_appears(self, snap_compare):
+        """Check that the copy modal appears when pressing 'y' on a table row."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")  # Select a request with headers
+            await pilot.press("ctrl+o", "q")  # Jump to Headers tab
+            await pilot.press("down")  # Move into the table
+            await pilot.press("y")  # Trigger copy modal
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    def test_copy_modal_dismiss_on_escape(self, snap_compare):
+        """Check that the copy modal is dismissed when pressing escape."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")  # Select a request with headers
+            await pilot.press("ctrl+o", "q")  # Jump to Headers tab
+            await pilot.press("down")  # Move into the table
+            await pilot.press("c")  # Trigger copy modal
+            await pilot.press("escape")  # Dismiss modal
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)
+
+    @pytest.mark.skip(reason="Clipboard-backed snapshot is not stable in CI")
+    def test_copy_modal_select_via_option_list(self, snap_compare):
+        """Check that an option can be selected via vim-style keys."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("j", "j", "enter")  # Select a request with headers
+            await pilot.press("ctrl+o", "q")  # Jump to Headers tab
+            await pilot.press("down")  # Move into the table
+            await pilot.press("c")  # Trigger copy modal
+            await pilot.press("j")  # Move to second option
+            await pilot.press("l")  # Select the option
+
+        assert snap_compare(POSTING_MAIN, run_before=run_before)

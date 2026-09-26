@@ -528,4 +528,60 @@ BUILTIN_THEMES: dict[str, TextualTheme] = {
             "method-head": "#5C5C5C",  # Gray ink
         },
     ),
+    "hypernova": TextualTheme(
+        name="hypernova",
+        # High-contrast neon theme designed to WOW
+        primary="#00F5D4",  # neon aqua
+        secondary="#7B2FF7",  # vivid purple
+        warning="#FEE440",  # electric yellow
+        error="#F72585",  # hot pink/red
+        success="#80FF72",  # neon green
+        accent="#4CC9F0",  # bright cyan
+        background="#0B0B12",  # near-black with blue tint
+        surface="#121225",  # deep navy surface
+        panel="#1A1A32",  # indigo panel
+        dark=True,
+        variables={
+            "input-cursor-background": "#4CC9F0",
+            "input-selection-background": "#4CC9F0 30%",
+            "footer-background": "transparent",
+            "button-color-foreground": "#0B0B12",
+            # Method colors tuned for consistent neon semantics
+            "method-get": "#00F5D4",
+            "method-post": "#80FF72",
+            "method-put": "#FEE440",
+            "method-delete": "#F72585",
+            "method-patch": "#7B2FF7",
+            "method-options": "#4CC9F0",
+            "method-head": "#F15BB5",
+        },
+    ),
+    "synthwave": TextualTheme(
+        name="synthwave",
+        # Retro 80s synthwave aesthetic with neon grids and sunset vibes
+        primary="#FF006E",  # hot pink
+        secondary="#8338EC",  # electric purple
+        warning="#FFBE0B",  # cyber yellow
+        error="#FB5607",  # neon orange
+        success="#06FFA5",  # mint green
+        accent="#3A86FF",  # electric blue
+        background="#0F0A19",  # deep space purple
+        surface="#1A0F26",  # dark purple surface
+        panel="#251833",  # purple panel
+        dark=True,
+        variables={
+            "input-cursor-background": "#FF006E",
+            "input-selection-background": "#FF006E 25%",
+            "footer-background": "transparent",
+            "button-color-foreground": "#0F0A19",
+            # Method colors with synthwave palette
+            "method-get": "#3A86FF",
+            "method-post": "#06FFA5",
+            "method-put": "#FFBE0B",
+            "method-delete": "#FB5607",
+            "method-patch": "#8338EC",
+            "method-options": "#FF006E",
+            "method-head": "#C77DFF",
+        },
+    ),
 }

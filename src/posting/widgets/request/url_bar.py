@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 from typing import Any
 from rich.text import Text
 from textual import on
@@ -6,13 +7,13 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
-from textual.events import Blur, Paste
+from textual.events import Paste
 from textual.message import Message
+from textual.reactive import Reactive, reactive
 from textual.widgets import Input, Button, Label
 from textual.theme import Theme
 from textual.widgets.input import Selection
-from textual_autocomplete import DropdownItem
-from textual_autocomplete._autocomplete2 import TargetState
+from textual_autocomplete import DropdownItem, TargetState
 from posting.config import SETTINGS
 from posting.help_data import HelpData
 
@@ -30,7 +31,7 @@ from posting.widgets.variable_autocomplete import VariableAutoComplete
 
 
 class CurlMessage(Message):
-    def __init__(self, curl_command):
+    def __init__(self, curl_command: str) -> None:
         super().__init__()
         self.curl_command = curl_command
 
@@ -58,6 +59,8 @@ It's recommended you create a new request before pasting a curl command, to avoi
 
     BINDINGS = [
         Binding("down", "app.focus_next", "Focus next", show=False),
+        Binding("alt+down", "jump_to_path_param", "Jump to Path param", show=False),
+        Binding("ctrl+y", "copy_url", "Copy URL", show=False),
     ]
 
     @dataclass
@@ -70,9 +73,21 @@ It's recommended you create a new request before pasting a curl command, to avoi
         def control(self) -> "UrlInput":
             return self.input
 
+    @dataclass
+    class PathParamJumpRequestedFromUrlInput(Message):
+        name: str
+        input: "UrlInput"
+
+        @property
+        def control(self) -> "UrlInput":
+            return self.input
+
     def on_mount(self):
+        self.select_on_focus = False
         self.highlighter = VariablesAndUrlHighlighter(self)
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
+        # Single-colon params like ":id"; ignore escaped tokens like "::id"
+        self._path_param_pattern = re.compile(r"(?<!:):([A-Za-z_][A-Za-z0-9_]*)")
 
     @on(Input.Changed)
     def on_change(self, event: Input.Changed) -> None:
@@ -106,6 +121,26 @@ It's recommended you create a new request before pasting a curl command, to avoi
         event.prevent_default()
         self.post_message(CurlMessage(event.text))
 
+    def action_jump_to_path_param(self) -> None:
+        """If cursor is on a :param token, emit a jump request for that param name."""
+        value = self.value
+        pos = self.cursor_position
+        for match in self._path_param_pattern.finditer(value):
+            token_start, token_end = match.span(0)
+            if token_start <= pos <= token_end:
+                name = match.group(1)
+                self.post_message(
+                    self.PathParamJumpRequestedFromUrlInput(name=name, input=self)
+                )
+                break
+    
+    def action_copy_url(self) -> None:
+        """Copy the URL to the clipboard."""
+        url = self.value
+        if url:
+            self.app.copy_to_clipboard(url)
+            self.notify(f"Copied URL to clipboard: {url}")
+
 
 class SendRequestButton(Button, can_focus=False):
     """
@@ -125,6 +160,13 @@ class UrlBar(Vertical):
         "not-started-marker",
     }
 
+    response_status_code: Reactive[int | None] = reactive(
+        None, init=False, always_update=True
+    )
+    response_reason_phrase: Reactive[str | None] = reactive(
+        None, init=False, always_update=True
+    )
+
     def __init__(
         self,
         name: str | None = None,
@@ -140,19 +182,43 @@ class UrlBar(Vertical):
         self._display_variable_at_cursor()
         self.url_input.refresh()
 
+    def watch_response_status_code(self, status_code: int | None) -> None:
+        if status_code is None:
+            return
+
+        status_code_label = self.status_code_label
+        status_code_label.remove_class("-success", "-warning", "-error")
+        if status_code < 300:
+            status_code_label.add_class("-success")
+        elif status_code < 400:
+            status_code_label.add_class("-warning")
+        else:
+            status_code_label.add_class("-error")
+
+        status_code_label.update(str(status_code))
+        status_code_label.display = True
+
+    def watch_response_reason_phrase(self, reason_phrase: str | None) -> None:
+        if reason_phrase is None:
+            return
+
+        self.status_code_label.tooltip = reason_phrase
+
     def compose(self) -> ComposeResult:
-        with Horizontal():
+        with Horizontal(id="main-row"):
             yield MethodSelector(id="method-selector")
             yield UrlInput(
                 placeholder="Enter a URL or paste a curl command…",
                 id="url-input",
             )
+            yield Label(id="response-status-code")
             yield Label(id="trace-markers")
             yield SendRequestButton("Send")
 
         variable_value_bar = Label(id="variable-value-bar")
-        if SETTINGS.get().url_bar.show_value_preview:
-            yield variable_value_bar
+        if not SETTINGS.get().url_bar.show_value_preview:
+            variable_value_bar.styles.display = "none"
+        yield variable_value_bar
 
     def on_mount(self) -> None:
         self.auto_complete = VariableAutoComplete(
@@ -205,6 +271,12 @@ class UrlBar(Vertical):
         variable_name = extract_variable_name(variable_at_cursor)
         variable_value = variables.get(variable_name)
         if variable_value:
+            if SETTINGS.get().url_bar.hide_secrets_in_value_preview:
+                if any(
+                    word in variable_name.lower()
+                    for word in ["secret", "key", "password", "token"]
+                ):
+                    variable_value = "(hidden)"
             content = f"{variable_name} = {variable_value}"
             variable_bar.update(content)
         else:
@@ -280,3 +352,8 @@ class UrlBar(Vertical):
     def url_input(self) -> UrlInput:
         """Get the URL input."""
         return self.query_one("#url-input", UrlInput)
+
+    @property
+    def status_code_label(self) -> Label:
+        """Get the status code label."""
+        return self.query_one("#response-status-code", Label)

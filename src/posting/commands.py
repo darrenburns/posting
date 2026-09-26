@@ -1,13 +1,70 @@
 from functools import partial
 from typing import TYPE_CHECKING, cast
 from textual.command import DiscoveryHit, Hit, Hits, Provider
+from textual.content import Content
 from textual.types import IgnoreReturnCallbackType
+from posting.collection import RequestModel
+from posting.method_styles import get_method_label, get_method_style
+from posting.widgets.load_env_file_dialog import show_load_env_file_dialog
 
 if TYPE_CHECKING:
-    from posting.app import Posting
+    from posting.app import MainScreen, Posting
 
 
 CommandType = tuple[str, IgnoreReturnCallbackType, str, bool]
+
+
+class RequestSearchProvider(Provider):
+    """Search visible request labels without including their display styles."""
+
+    async def discover(self) -> Hits:
+        async for hit in self.search(""):
+            yield hit
+
+    async def search(self, query: str) -> Hits:
+        screen = cast("MainScreen", self.screen)
+        matcher = self.matcher(query)
+        for node in screen.collection_tree.walk_nodes():
+            request = node.data
+            if not isinstance(request, RequestModel):
+                continue
+
+            method = get_method_label(request.method, pad=True)
+            label = f"{method} {request.name}"
+            score, offsets = (
+                matcher.fuzzy_search.match(query, label) if query else (0, ())
+            )
+            if query and not score:
+                continue
+
+            # Construct literal content: request names may contain markup characters.
+            display = Content(label)
+            method_style = get_method_style(self.app.theme_variables, request.method)
+            display = display.stylize(
+                f"{method_style} bold" if method_style else "bold", 0, len(method)
+            )
+            for offset in offsets:
+                if not label[offset].isspace():
+                    display = display.stylize(matcher.match_style, offset, offset + 1)
+
+            callback = partial(self._load_request, request)
+            help_text = (
+                str(request.path.relative_to(screen.collection.path))
+                if request.path
+                else ""
+            )
+            if query:
+                yield Hit(score, display, callback, text=label, help=help_text)
+            else:
+                yield DiscoveryHit(display, callback, text=label, help=help_text)
+
+    def _load_request(self, request: RequestModel) -> None:
+        screen = cast("MainScreen", self.screen)
+        screen.load_request_model(request)
+        for node in screen.collection_tree.walk_nodes():
+            if node.data == request:
+                screen.collection_tree.select_node(node)
+                break
 
 
 class PostingProvider(Provider):
@@ -61,6 +118,16 @@ class PostingProvider(Provider):
                         True,
                     ),
                 )
+
+                # Copy current request YAML (reflecting unsaved UI state)
+                commands_to_show.append(
+                    (
+                        "export: copy as YAML",
+                        app.command_copy_request_yaml,
+                        "Copy the current request YAML to the clipboard",
+                        True,
+                    ),
+                )
             # Change the available commands depending on what is currently
             # maximized on the main screen.
             expand_section_callback: IgnoreReturnCallbackType = partial[None](
@@ -111,6 +178,27 @@ class PostingProvider(Provider):
             )
             commands_to_show.append(toggle_collection_browser_command)
 
+            toggle_spacing_callback: IgnoreReturnCallbackType = partial[None](
+                app.command_toggle_spacing
+            )
+            title = (
+                "spacing: Enable compact mode"
+                if app.spacing == "standard"
+                else "spacing: Enable standard mode"
+            )
+            help_text = (
+                "Reduce user interface spacing"
+                if app.spacing == "standard"
+                else "Increase user interface spacing"
+            )
+            toggle_spacing_command: CommandType = (
+                title,
+                toggle_spacing_callback,
+                help_text,
+                True,
+            )
+            commands_to_show.append(toggle_spacing_command)
+
         # Global commands, not specific to the MainScreen.
         if not app.ansi_color:
             commands_to_show.append(
@@ -118,6 +206,15 @@ class PostingProvider(Provider):
                     "theme: Preview theme",
                     app.action_change_theme,
                     "Preview a theme for the current session",
+                    True,
+                ),
+            )
+
+            commands_to_show.append(
+                (
+                    "environment: Load env file",
+                    lambda: show_load_env_file_dialog(app),
+                    "Load environment variables from a .env file",
                     True,
                 ),
             )
@@ -141,6 +238,14 @@ class PostingProvider(Provider):
                 ),
             )
 
+        commands_to_show.append(
+            (
+                "help: Open web docs",
+                app.action_open_web_docs,
+                "Open the web docs in the default browser",
+                True,
+            ),
+        )
         commands_to_show.append(
             (
                 "app: Quit Posting",

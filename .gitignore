@@ -1,6 +1,8 @@
 # python generated files
 __pycache__/
 *.py[oc]
+.coverage
+.coverage.*
 build/
 dist/
 wheels/
@@ -12,6 +14,7 @@ wheels/
 # editor
 .vscode/
 .idea/
+pyrightconfig.json
 
 snapshot_report.html
 *.afdesign

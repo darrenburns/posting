@@ -23,3 +23,16 @@ You can optionally supply an output directory.
 If no output directory is supplied, the default collection directory will be used.
 
 Posting will attempt to build a file structure in the collection that aligns with the URL structure of the imported API.
+
+## Importing from Postman
+
+!!! example "This feature is experimental."
+
+Collections can be imported from Postman.
+
+To import a Postman collection, use the `posting import --type postman path/to/postman_collection.json` command.
+
+You can optionally supply an output directory with the `-o` option.
+If no output directory is supplied, the default collection directory will be used (check where this is using `posting locate collection`).
+
+Variables will also be imported from the Postman collection and placed in a `.env` file inside the collection directory.

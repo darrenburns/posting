@@ -38,6 +38,10 @@ class UrlBarSettings(BaseModel):
     When your cursor is above a variable, the value will be displayed on
     the line below the URL bar."""
 
+    hide_secrets_in_value_preview: bool = Field(default=True)
+    """If enabled, values will be redacted in the value preview when the variable name
+    contains the word `secret` or `key` or `password` or `token`."""
+
 
 class ResponseSettings(BaseModel):
     """Configuration for the response viewer."""
@@ -53,7 +57,7 @@ class FocusSettings(BaseModel):
     """Configuration relating to focus."""
 
     on_startup: Literal["url", "method", "collection"] = Field(default="url")
-    """On startup, move focus to the URL bar, method, or collection browser."""
+    """On startup, move focus to the URL bar, method, collection browser, or path editor."""
 
     on_response: Literal["body", "tabs"] | None = Field(default=None)
     """On receiving a response, move focus to the body or the response section (the tabs).
@@ -61,7 +65,7 @@ class FocusSettings(BaseModel):
     If this value is unset, focus will not shift when a response is received."""
 
     on_request_open: (
-        Literal["headers", "body", "query", "info", "url", "method"] | None
+        Literal["headers", "body", "query", "info", "url", "method", "path"] | None
     ) = Field(default=None)
     """On opening a request using the sidebar collection browser, move focus to the specified target.
 
@@ -207,6 +211,9 @@ class Settings(BaseSettings):
 
     curl_export_extra_args: str = Field(default="")
     """Extra arguments to pass to curl when exporting a request as a curl command."""
+
+    spacing: Literal["standard", "compact"] = Field(default="standard")
+    """The spacing of the app."""
 
     @classmethod
     def settings_customise_sources(
