@@ -81,3 +81,24 @@ def test_body_variable_completion(key, snap_compare):
             assert not completion.display
 
     assert snap_compare(app, run_before=run_before, terminal_size=(120, 40))
+
+
+@use_config("general.yaml")
+def test_description_variable_completion(snap_compare):
+    app = make_posting(collection=SAMPLE_COLLECTIONS, env=())
+
+    async def run_before(pilot):
+        await pilot.pause()
+        VARIABLES.set({"API_HOST": "https://example.com", "API_TOKEN": "example"})
+        app.screen.query_one("RequestEditorTabbedContent", TabbedContent).active = "info-pane"
+        from posting.widgets.variable_text_area import VariableTextArea
+        area = app.screen.query_one("#description-textarea", VariableTextArea)
+        area.focus()
+        await pilot.pause()
+        await pilot.press(*"Use $API")
+        await pilot.pause()
+        assert area.auto_complete.display
+        await pilot.press("tab")
+        assert area.text == "Use $API_HOST"
+        assert area.has_focus
+    assert snap_compare(app, run_before=run_before, terminal_size=(120, 40))
