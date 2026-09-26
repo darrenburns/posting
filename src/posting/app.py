@@ -1,6 +1,7 @@
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
 import os
+import sqlite3
 from pathlib import Path
 import sys
 from typing import Any, Literal, Sequence, cast
@@ -43,6 +44,7 @@ from posting.collection import (
 
 from posting.commands import PostingProvider, RequestSearchProvider
 from posting.config import SETTINGS, Settings
+from posting.history import HistoryStore
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
@@ -64,7 +66,10 @@ from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
+from posting.widgets.collection.history import HistoryBrowser
 from posting.widgets.datatable import PostingDataTable
+from posting.widgets.variables_modal import VariablesModal
+from posting.session_variables import SessionVariables
 from posting.widgets.key_value import KeyValueInput
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
@@ -205,6 +210,7 @@ class MainScreen(Screen[None]):
     ) -> None:
         super().__init__()
         self.collection = collection
+        self.history_store = HistoryStore(collection.path)
         self.cookies: httpx.Cookies = httpx.Cookies()
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
@@ -239,6 +245,9 @@ class MainScreen(Screen[None]):
                 "method-selector": "1",
                 "url-input": "2",
                 "collection-tree": "tab",
+                "history-list": "h",
+                "--content-tab-collections-pane": "3",
+                "--content-tab-history-pane": "4",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-path-pane": "e",
@@ -260,7 +269,9 @@ class MainScreen(Screen[None]):
         yield AppHeader()
         yield UrlBar()
         with AppBody():
-            collection_browser = CollectionBrowser(collection=self.collection)
+            collection_browser = CollectionBrowser(
+                collection=self.collection, history_store=self.history_store
+            )
             collection_browser.display = (
                 self.settings.collection_browser.show_on_startup
             )
@@ -387,6 +398,8 @@ class MainScreen(Screen[None]):
         try:
             # Run setup scripts first
             request_model = self.build_request_model(request_options)
+            # Preserve editor configuration before template resolution or script changes.
+            history_request = request_model.model_copy(deep=True)
             if setup_script := request_model.scripts.setup:
                 try:
                     self.get_and_run_script(
@@ -459,7 +472,7 @@ class MainScreen(Screen[None]):
                     follow_redirects=request_options.follow_redirects,
                 )
 
-                self.post_message(HttpResponseReceived(response))
+                self.post_message(HttpResponseReceived(response, history_request))
 
                 script_context.response = response
                 if on_response := request_model.scripts.on_response:
@@ -539,11 +552,53 @@ class MainScreen(Screen[None]):
         elif focus_on_response == "tabs":
             self.response_area.content_tabs.focus()
 
+        self.response_area.history_timestamp = None
         self.response_area.response = event.response
         self.url_bar.response_status_code = event.response.status_code
         self.url_bar.response_reason_phrase = event.response.reason_phrase
         self.cookies.update(event.response.cookies)
         self.response_trace.trace_complete()
+
+        if self.settings.history.enabled:
+            try:
+                saved = self.history_store.record(event.response, event.request)
+            except (OSError, sqlite3.Error) as error:
+                self.query_one(HistoryBrowser).report_error(error)
+            else:
+                if saved:
+                    self.query_one(HistoryBrowser).refresh_history()
+                else:
+                    self.notify(
+                        "This request and response exceed the 50 MiB history limit.",
+                        title="Exchange not saved to history",
+                        severity="warning",
+                    )
+
+    @on(HistoryBrowser.Selected)
+    def on_history_selected(self, event: HistoryBrowser.Selected) -> None:
+        """Load the saved exchange without sending or executing scripts."""
+        if event.request is not None:
+            self.collection_tree.currently_open = None
+            self.load_request_model(event.request)
+            if (
+                event.request.body is not None
+                and event.request.body.content is not None
+            ):
+                self.request_editor.text_editor.language = {
+                    "application/json": "json",
+                    "text/html": "html",
+                }.get(event.request.body.content_type)
+            self.url_bar.clear_events()
+            self.url_bar.response_status_code = event.response.status_code
+            self.url_bar.response_reason_phrase = event.response.reason_phrase
+        else:
+            self.notify(
+                "This older entry has no saved request configuration. Only the response was loaded.",
+                title="Response-only history",
+            )
+        self.response_area.history_timestamp = event.entry.received_at
+        self.response_area.response = event.response
+        self.response_area.tabbed_content.active = "response-body-pane"
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
@@ -1076,23 +1131,18 @@ class MainScreen(Screen[None]):
             ((header.name, header.value) for header in request_model.headers),
             (header.enabled for header in request_model.headers),
         )
-        if request_model.body:
-            if request_model.body.content:
-                # Set the body content in the text area and ensure the content
-                # switcher is set such that the text area is visible.
-                self.request_body_text_area.text = request_model.body.content
-                self.request_editor.request_body_type_select.value = "text-body-editor"
-                self.request_editor.form_editor.replace_all_rows([])
-            elif request_model.body.form_data:
-                self.request_editor.form_editor.replace_all_rows(
-                    (
-                        (param.name, param.value)
-                        for param in request_model.body.form_data
-                    ),
-                    (param.enabled for param in request_model.body.form_data),
-                )
-                self.request_editor.request_body_type_select.value = "form-body-editor"
-                self.request_body_text_area.text = ""
+        body = request_model.body
+        if body is not None and body.content is not None:
+            self.request_body_text_area.text = body.content
+            self.request_editor.request_body_type_select.value = "text-body-editor"
+            self.request_editor.form_editor.replace_all_rows([])
+        elif body is not None and body.form_data is not None:
+            self.request_editor.form_editor.replace_all_rows(
+                ((param.name, param.value) for param in body.form_data),
+                (param.enabled for param in body.form_data),
+            )
+            self.request_editor.request_body_type_select.value = "form-body-editor"
+            self.request_body_text_area.text = ""
         else:
             self.request_body_text_area.text = ""
             self.request_editor.form_editor.replace_all_rows([])
@@ -1281,6 +1331,13 @@ class Posting(App[None], inherit_bindings=False):
             tooltip="Open the help dialog for the currently focused widget.",
             id="help",
         ),
+        Binding(
+            "ctrl+shift+v",
+            "show_variables",
+            description="Variables",
+            tooltip="Show the variables available to requests.",
+            id="variables",
+        ),
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
 
@@ -1315,7 +1372,8 @@ class Posting(App[None], inherit_bindings=False):
         This means one or more of the loaded environment files (in
         `self.environment_files`) have been modified."""
 
-        self.session_env: dict[str, object] = {}
+        self.variable_state = SessionVariables()
+        self.session_env = self.variable_state.values
         """Users can set the value of variables for the duration of the
         session (until the app is quit). This can be done via the scripting
         interface: pre-request or post-response scripts."""
@@ -1349,6 +1407,16 @@ class Posting(App[None], inherit_bindings=False):
         else:
             footer.compact = is_compact
 
+    def reload_variables(self) -> None:
+        """Rebuild the effective environment and notify its readers."""
+        load_variables(
+            self.environment_files,
+            self.settings.use_host_environment,
+            avoid_cache=True,
+        )
+        update_variables(self.session_env)
+        self.env_changed_signal.publish(None)
+
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
         """Watching files that were passed in as the environment."""
@@ -1356,21 +1424,7 @@ class Posting(App[None], inherit_bindings=False):
         from watchfiles import awatch
 
         async for changes in awatch(*self.environment_files):
-            # Reload the variables from the environment files.
-            load_variables(
-                self.environment_files,
-                self.settings.use_host_environment,
-                avoid_cache=True,
-            )
-            # Overlay the session variables on top of the environment variables.
-            update_variables(self.session_env)
-
-            # Notify the app that the environment has changed,
-            # which will trigger a reload of the variables in the relevant widgets.
-            # Widgets subscribed to this signal can reload as needed.
-            # For example, AutoComplete dropdowns will want to reload their
-            # candidate variables when the environment changes.
-            self.env_changed_signal.publish(None)
+            self.reload_variables()
             self.notify(
                 title="Environment changed",
                 message=f"Reloaded {len(changes)} dotenv files",
@@ -1689,6 +1743,9 @@ class Posting(App[None], inherit_bindings=False):
             id=palette_id or None,
         )
         return self.push_screen(palette)
+
+    def action_show_variables(self) -> None:
+        self.push_screen(VariablesModal())
 
     async def action_help(self) -> None:
         focused = self.focused
