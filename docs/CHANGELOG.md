@@ -2,13 +2,16 @@
 
 ### Fixed
 
+- Keep the correct URL when importing curl commands with cookie, redirect, or proxy flags before the URL (#354).
+
 - Query parameters typed in the URL bar are now kept in sync with the Query tab and sent with the request (#272, #362).
 - Fall back to Textual's terminal clipboard when the native clipboard is unavailable.
 
 ### Added
 
 - A per-request option to send raw and form bodies with literal dollar signs while retaining URL and header variables (#352).
-
+- Switch, clear, and load environments from a command palette submenu without restarting Posting.
+- Variable autocompletion in request body and description text areas, with keyboard navigation and dismissal.
 - Added a colour-coded HTTP method tag (e.g. `GET`, `POST`, `PUT`, `DELETE`) to each entry in the request search palette (`ctrl+shift+p`, or `/` from the collection tree), matching the styling already used in the collection tree. Previously, requests with the same name in different directories/methods were indistinguishable in the palette.
 
 ## 2.10.0 [25th March 2026]

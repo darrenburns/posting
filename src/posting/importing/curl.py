@@ -78,6 +78,19 @@ class CurlImport:
             action="store_true",
             help="Use HTTP Digest Authentication",
         )
+        parser.add_argument(
+            "-b", "--cookie", action="append", help="Send cookies"
+        )
+        parser.add_argument(
+            "-L",
+            "--location",
+            action="store_true",
+            help="Follow redirects",
+        )
+        parser.add_argument("--no-location", action="store_true")
+        parser.add_argument(
+            "-x", "--proxy", help="Use the specified proxy"
+        )
         parser.add_argument("url", nargs="?")
 
         args, extras = parser.parse_known_intermixed_args(tokens)
