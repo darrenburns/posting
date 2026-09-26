@@ -29,6 +29,10 @@ QA collection. No real credentials appear in these screenshots.
   verified its body, response, headers, and disabled substitution option survived.
 - Server logs contained exactly the three explicit sends: POST /items, POST /schema,
   GET /health?q=one&q=two. Loading and restarting did not send requests.
+- Follow-up QA checked variable suggestions in both raw and form bodies: loading
+  the literal request hid suggestions; enabling body substitution restored the
+  dropdown, Enter inserted `$ITEM_ID`, and disabling substitution hid suggestions
+  again. These checks used unsaved edits and sent no additional requests.
 
 The browser intercepted `ctrl+shift+v` as paste, so live Variables QA used its command
 palette entry. Automated app tests exercise the shortcut directly.
@@ -39,17 +43,20 @@ palette entry. Automated app tests exercise the shortcut directly.
 PATH="$PWD/.venv/bin:$PATH" env -u NO_COLOR make test ARGS='-q'
 ```
 
-Result: **315 passed, 4 skipped** (314 parallel, 1 serial), with snapshots
+Result: **317 passed, 4 skipped** (316 parallel, 1 serial), with snapshots
 compared against their committed baselines. The built 2.11.0 wheel also imported
 successfully in an isolated environment, and Twine accepted both distributions.
 
-The suite includes deterministic snapshots and two new cross-feature regression tests:
+The suite includes deterministic snapshots and cross-feature regression tests:
 
 - Editing a session override, switching environments, undoing to the new environment's
   value, and completing a variable introduced by that environment.
 - Recording a literal-body request, changing environments, loading History without
   sending, preserving the option, and explicitly resending with the new URL/header
   variables while the body remains literal.
+- Raw and form variable suggestions follow the substitution option, including
+  toggling it and loading requests. Default suggestions insert expressions that
+  resolve on send, and URL suggestions remain enabled. Both body modes have snapshots.
 
 The incoming environment-dialog tests were updated for the submenu route. The
 request-search test waits for palette mounting, and the literal-body test waits
@@ -70,6 +77,10 @@ from the integrated app.
 ![Deleted open request](deleted-request.png)
 ![Re-saved request](resaved-request.png)
 ![Persisted compact History](compact-history.png)
+![Raw body suggestions disabled](completion-disabled.png)
+![Raw body suggestions enabled](completion-enabled.png)
+![Form body suggestions enabled](form-completion-enabled.png)
+![Form body suggestions disabled](form-completion-disabled.png)
 
 ## Changelog audit
 

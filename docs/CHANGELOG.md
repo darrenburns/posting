@@ -8,7 +8,7 @@
 - A variables screen for inspecting effective values and editing session overrides, with filtering, secret masking, copying, revert, and undo/redo. Open it with `ctrl+shift+v` or the command palette (#376, building on #367).
 - Switch, clear, and load environments from a command palette submenu without restarting Posting. Session overrides are retained (#381).
 - Variable autocompletion in request body and description text areas, with keyboard navigation and dismissal (#380).
-- A per-request **Substitute body variables** option. Disable it to send raw and form bodies with literal dollar signs while retaining URL, header, and authentication substitution (#379; fixes #352).
+- A per-request **Substitute body variables** option, enabled by default. Disable it to send raw and form bodies with literal dollar signs while retaining URL, header, and authentication substitution; body variable suggestions are hidden while disabled (#379; fixes #352).
 - Colour-coded HTTP method tags in the request search palette, matching the request tree (#366).
 
 ### Fixed

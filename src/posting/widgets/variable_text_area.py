@@ -43,7 +43,7 @@ class TextAreaVariableAutoComplete(VariableAutoComplete):
 
     def get_candidates(self, state: TargetState) -> list[DropdownItem]:
         return (
-            [DropdownItem(f"${name}") for name in get_variables()]
+            self.get_variable_candidates(state)
             if self._variable_range(state)
             else []
         )
@@ -101,8 +101,13 @@ class TextAreaVariableAutoComplete(VariableAutoComplete):
 
 class VariableTextArea(PostingTextArea):
     def on_mount(self) -> None:
-        self.auto_complete = TextAreaVariableAutoComplete(self, candidates=[])
+        self.auto_complete = TextAreaVariableAutoComplete(
+            self, candidates=[], variable_candidates=self._get_variable_candidates
+        )
         self.screen.mount(self.auto_complete)
+
+    def _get_variable_candidates(self, state: TargetState) -> list[DropdownItem]:
+        return [DropdownItem(f"${name}") for name in get_variables()]
 
     def on_key(self, event: events.Key) -> None:
         if self.auto_complete.handle_key(event):
