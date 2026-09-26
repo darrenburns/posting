@@ -28,6 +28,7 @@ from posting.collection import (
     ExternalDocs,
     FormItem,
     Header,
+    PathParam,
     QueryParam,
     RequestBody,
     RequestModel,
@@ -379,6 +380,27 @@ class JsonBodyGenerator:
             return obj
 
 
+def path_parameter_aliases(path: str) -> dict[str, str]:
+    """Map OpenAPI names onto Posting's identifier syntax without collisions."""
+    names = list(dict.fromkeys(re.findall(r"\{([^}]+)\}", path)))
+    aliases = {name: name for name in names if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name)}
+    used = set(aliases.values())
+    for name in names:
+        if name in aliases:
+            continue
+        base = re.sub(r"[^A-Za-z0-9_]", "_", name)
+        if not base or base[0].isdigit():
+            base = "param_" + base
+        alias = base
+        suffix = 2
+        while alias in used:
+            alias = f"{base}_{suffix}"
+            suffix += 1
+        aliases[name] = alias
+        used.add(alias)
+    return aliases
+
+
 def import_openapi_spec(spec_path: str | Path) -> Collection:
     console = Console()
     console.print(f"Importing OpenAPI spec from {spec_path!r}.")
@@ -439,11 +461,13 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
             if method not in VALID_HTTP_METHODS:
                 continue
 
+            aliases = path_parameter_aliases(path)
+            colon_path = re.sub(r"\{([^}]+)\}", lambda match: ":" + aliases[match[1]], path)
             request = RequestModel(
                 name=operation.summary or path.strip("/"),
                 description=operation.description or "",
                 method=method,
-                url=f"${{BASE_URL}}{path}",
+                url=f"${{BASE_URL}}{colon_path}",
             )
 
             # Add auth
@@ -453,14 +477,24 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                         request.auth = security_scheme_to_auth(scheme_name, scheme, models.SecurityScheme)
                         break
 
-            parameters = [
-                param
-                for param in (
-                    resolve_parameter_ref(param, openapi, models.Reference)
-                    for param in (operation.parameters or [])
-                )
-                if param is not None
+            # Merge path-item and operation parameters per the OpenAPI spec:
+            # operation-level parameters override path-item parameters with the
+            # same (name, in) combination.
+            raw_params = [
+                *(path_item.parameters or []),
+                *(operation.parameters or []),
             ]
+            seen_params: set[tuple[str, str]] = set()
+            parameters = []
+            for raw in reversed(raw_params):
+                param = resolve_parameter_ref(raw, openapi, models.Reference)
+                if param is None:
+                    continue
+                key = (param.name, param.param_in)
+                if key not in seen_params:
+                    seen_params.add(key)
+                    parameters.append(param)
+            parameters.reverse()
 
             # Add query parameters
             for param in parameters:
@@ -481,6 +515,16 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
                             name=param.name,
                             value="",  # Leave empty as it's just a template
                             enabled=not param.deprecated,
+                        )
+                    )
+
+            # Add path parameters
+            for param in parameters:
+                if param.param_in == "path":
+                    request.path_params.append(
+                        PathParam(
+                            name=aliases.get(param.name, param.name),
+                            value="",
                         )
                     )
 
