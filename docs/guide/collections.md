@@ -72,3 +72,39 @@ posting --collection path/to/collection
 This will recursively find and display requests in the sidebar.
 If you don't supply a directory, Posting will use the default collection directory.
 You can check where the default collection is by running `posting locate collection`.
+## Response history
+
+The **History** tab in the collections sidebar keeps recent responses, newest first.
+Each entry shows the method, status, URL, and local time. Click an entry or select it
+with the arrow keys (or `j`/`k`) and press `Enter` to view its body, headers, and cookies
+in the Response pane. Your current request stays in the editor, and viewing history
+does not send a request or change the session's cookies.
+
+A source line identifies the saved response and its timestamp, including in compact
+mode. Scripts and Trace are unavailable for saved responses because their output is
+not retained. Sending another request returns the Response pane to its normal live view.
+
+Press `Backspace` in the history list to delete an entry. `Ctrl+Backspace` clears the
+current collection's history after confirmation. You can also reach the History tab
+using jump mode (`Ctrl+O`, then `3`).
+
+History is stored in SQLite files under `$XDG_DATA_HOME/posting/history/` (normally
+`~/.local/share/posting/history/`), separate from your collection files. Each collection's
+absolute, resolved path identifies its history, so moving a collection starts a new
+history. Posting retains at most 100 responses and 50 MiB of response data per collection,
+pruning the oldest entries automatically. A response larger than 50 MiB is still displayed
+but is not saved, and Posting shows a notification.
+
+The database contains response bodies, headers (including cookies), method, URL, status,
+and timing. It does not retain request headers or bodies. URLs and responses can contain
+secrets: history is local, unencrypted, and created with owner-only file permissions.
+To stop saving new responses, set this in your configuration:
+
+```yaml
+history:
+  enabled: false
+```
+
+Or set `POSTING_HISTORY__ENABLED=false`. Existing history remains available for viewing
+and deletion. Responses are recorded for all HTTP statuses, including errors such as
+404 and 500; connection failures without a response are not recorded.

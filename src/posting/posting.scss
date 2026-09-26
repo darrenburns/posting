@@ -557,7 +557,7 @@ KeyValueEditor {
 CollectionBrowser {
   height: 1fr;
   dock: left;
-  width: auto;
+  width: 32;
   max-width: 33%;
 
   & Tree {

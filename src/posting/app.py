@@ -1,6 +1,7 @@
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
 import os
+import sqlite3
 from pathlib import Path
 import sys
 from typing import Any, Literal, Sequence, cast
@@ -44,6 +45,7 @@ from posting.collection import (
 
 from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
+from posting.history import HistoryStore
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
@@ -65,6 +67,7 @@ from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
+from posting.widgets.collection.history import HistoryBrowser
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
@@ -201,6 +204,7 @@ class MainScreen(Screen[None]):
     ) -> None:
         super().__init__()
         self.collection = collection
+        self.history_store = HistoryStore(collection.path)
         self.cookies: httpx.Cookies = httpx.Cookies()
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
@@ -235,6 +239,9 @@ class MainScreen(Screen[None]):
                 "method-selector": "1",
                 "url-input": "2",
                 "collection-tree": "tab",
+                "history-list": "h",
+                "--content-tab-history-pane": "3",
+                "--content-tab-collections-pane": "4",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-path-pane": "e",
@@ -256,7 +263,9 @@ class MainScreen(Screen[None]):
         yield AppHeader()
         yield UrlBar()
         with AppBody():
-            collection_browser = CollectionBrowser(collection=self.collection)
+            collection_browser = CollectionBrowser(
+                collection=self.collection, history_store=self.history_store
+            )
             collection_browser.display = (
                 self.settings.collection_browser.show_on_startup
             )
@@ -535,11 +544,34 @@ class MainScreen(Screen[None]):
         elif focus_on_response == "tabs":
             self.response_area.content_tabs.focus()
 
+        self.response_area.history_timestamp = None
         self.response_area.response = event.response
         self.url_bar.response_status_code = event.response.status_code
         self.url_bar.response_reason_phrase = event.response.reason_phrase
         self.cookies.update(event.response.cookies)
         self.response_trace.trace_complete()
+
+        if self.settings.history.enabled:
+            try:
+                saved = self.history_store.record(event.response)
+            except (OSError, sqlite3.Error) as error:
+                self.query_one(HistoryBrowser).report_error(error)
+            else:
+                if saved:
+                    self.query_one(HistoryBrowser).refresh_history()
+                else:
+                    self.notify(
+                        "This response exceeds the 50 MiB history limit.",
+                        title="Response not saved to history",
+                        severity="warning",
+                    )
+
+    @on(HistoryBrowser.Selected)
+    def on_history_selected(self, event: HistoryBrowser.Selected) -> None:
+        """Replay only the response; never send a request or mutate the editor/cookies."""
+        self.response_area.history_timestamp = event.entry.received_at
+        self.response_area.response = event.response
+        self.response_area.tabbed_content.active = "response-body-pane"
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:

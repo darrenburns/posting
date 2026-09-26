@@ -1,5 +1,7 @@
 import json
+from datetime import datetime
 import httpx
+from rich.text import Text
 from textual.lazy import Lazy
 from posting.config import SETTINGS
 
@@ -14,7 +16,7 @@ from posting.widgets.response.response_headers import ResponseHeadersTable
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.reactive import Reactive, reactive
-from textual.widgets import TabPane
+from textual.widgets import Static, TabPane
 from textual.widgets._tabbed_content import ContentTabs
 
 
@@ -27,9 +29,23 @@ class ResponseArea(Vertical):
     The response area.
     """
 
+    DEFAULT_CSS = """
+    ResponseArea #response-history-info {
+        display: none;
+        height: 1;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+        padding: 0 1;
+        color: $text-muted;
+        background: $surface;
+    }
+    """
+
     COMPONENT_CLASSES = {
         "border-title-status",
     }
+
+    history_timestamp: datetime | None = None
 
     response: Reactive[httpx.Response | None] = reactive(None)
 
@@ -40,6 +56,7 @@ class ResponseArea(Vertical):
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
     def compose(self) -> ComposeResult:
+        yield Static(id="response-history-info")
         with ResponseTabbedContent(disabled=self.response is None):
             with TabPane("Body", id="response-body-pane"):
                 text_area = ResponseTextArea(language="json")
@@ -67,12 +84,28 @@ class ResponseArea(Vertical):
         else:
             self.query_one(ResponseTabbedContent).disabled = False
 
+        history_info = self.query_one("#response-history-info", Static)
+        history_info.display = self.history_timestamp is not None
+        if self.history_timestamp is not None:
+            timestamp = self.history_timestamp.astimezone().strftime(
+                "%d %b %Y %H:%M:%S"
+            )
+            origin = f"History · {timestamp} · {response.request.method} {response.request.url}"
+            history_info.update(Text(origin, no_wrap=True, overflow="ellipsis"))
+            history_info.tooltip = origin
+
+        for pane in ("response-scripts-pane", "response-trace-pane"):
+            if self.history_timestamp is None:
+                self.tabbed_content.enable_tab(pane)
+            else:
+                self.tabbed_content.disable_tab(pane)
+
         self.add_class("response-ready")
 
         content_type = response.headers.get("content-type")
-        if content_type:
-            language = content_type_to_language(content_type)
-            self.text_editor.language = language
+        self.text_editor.language = (
+            content_type_to_language(content_type) if content_type else None
+        )
 
         # Update the body text area with the body content.
         response_text_area = self.text_editor.text_area
@@ -112,13 +145,15 @@ class ResponseArea(Vertical):
 
         self.border_title = self._make_border_title(response)
 
+        self.border_subtitle = ""
         settings = SETTINGS.get()
         if settings.response.show_size_and_time:
             self.border_subtitle = f"{human_readable_size(len(response.content))} in {response.elapsed.total_seconds() * 1000:.2f}[dim]ms[/]"
 
     def _make_border_title(self, response: httpx.Response) -> str:
         style = self.get_component_rich_style("border-title-status")
-        return f"Response [{style}] {response.status_code} {response.reason_phrase} [/]"
+        title = "Response · History" if self.history_timestamp else "Response"
+        return f"{title} [{style}] {response.status_code} {response.reason_phrase} [/]"
 
     @property
     def text_editor(self) -> TextEditor:
