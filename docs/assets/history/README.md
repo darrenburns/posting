@@ -8,8 +8,8 @@ Verified on macOS with Python 3.11.7 and Textual 6.1.0.
 PATH="$PWD/.venv/bin:$PATH" env -u NO_COLOR make test ARGS='-q'
 ```
 
-Result: **226 passed, 4 skipped** across the Makefile's parallel and serial phases
-(225 passed / 4 skipped in parallel; 1 passed in serial). `NO_COLOR` was unset so
+Result: **267 passed, 4 skipped** across the Makefile's parallel and serial phases
+(266 passed / 4 skipped in parallel; 1 passed in serial). `NO_COLOR` was unset so
 snapshots use the application's normal theme.
 
 - Nine storage tests cover persistence, byte-for-byte headers (including repeated
@@ -25,15 +25,13 @@ snapshots use the application's normal theme.
 - Existing sidebar snapshots were updated for the tabs and stable sidebar width.
   Standard, compact, narrow, and jump-mode snapshots were rendered and visually inspected.
 
-The “Load” wording update was checked with the focused History suite:
-
-```sh
-PATH="$PWD/.venv/bin:$PATH" env -u NO_COLOR make test-ci ARGS='tests/test_history.py tests/test_history_ui.py -q'
-```
-
-Result: **32 passed, including all 16 History snapshots**. Eight snapshots changed
-for the new labels and legacy-entry notification. Standard, compact, loaded-header,
-and jump-mode screenshots were refreshed through computer use.
+Merged `origin/main` at `3447d8dd` and reran the full suite after integration.
+Seven snapshots were updated for the reordered jump hints and the new sidebar in
+incoming curl-import/request-search tests. The request-search test now waits for
+its palette input to mount before typing, avoiding a race under parallel load.
+Two new History integration cases cover query data stored in either the URL or
+parameter list, duplicate values, disabled rows, variable expressions, reserved
+characters, editing after loading, and keeping the archived record unchanged.
 
 ## Computer-use verification
 
@@ -56,6 +54,12 @@ and saved request options. The server returned HTTP 201 and a JSON response.
 5. Restarted Posting, then loaded both panes from disk using `Ctrl+O`, `4`, `Down`,
    `Enter`.
 6. Repeated loading in compact mode.
+7. After merging `main`, verified `Ctrl+O`, `3`, `Down` targets Collections and
+   `Ctrl+O`, `4`, `Down` targets History. Loaded with `Enter` and revisited the list
+   with `Ctrl+O`, `h`; refreshed the jump-mode screenshot.
+8. Edited the URL with duplicate query values and confirmed both Query rows appeared.
+   Loaded the saved history entry again and verified its original URL and empty Query
+   table replaced the draft values while its response remained visible.
 
 Deletion/confirmation, missing scripts, original variable expressions, in-flight edits,
 and not overwriting previously open collection files are covered by automated tests.

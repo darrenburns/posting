@@ -485,6 +485,62 @@ class TestHistory:
 
         asyncio.run(check())
 
+    @pytest.mark.parametrize("query_in_url", [False, True])
+    def test_history_load_integrates_with_query_sync(self, query_in_url):
+        import asyncio
+
+        from posting.urls import extract_query_pairs
+
+        async def check():
+            app = make_posting(collection=SAMPLE_COLLECTIONS)
+            async with app.run_test() as pilot:
+                await open_history(pilot)
+                screen = app.screen
+                params = [
+                    QueryParam(name="q", value="${TOKEN}"),
+                    QueryParam(name="q", value="${TOKEN}"),
+                    QueryParam(name="disabled", value="kept", enabled=False),
+                ]
+                url = "${BASE_URL}/items"
+                request = RequestModel(
+                    url=url + ("?q=${TOKEN}&q=${TOKEN}" if query_in_url else ""),
+                    params=params[2:] if query_in_url else params,
+                )
+                screen.history_store.record(saved_response(), request)
+                (entry,) = screen.history_store.entries()
+                archived = screen.history_store.load(entry.id).request.model_dump()
+                screen.query_one(HistoryBrowser).refresh_history()
+                screen.url_input.value = "https://draft.example.test/?stale=value"
+                await pilot.pause()
+                screen.query_one(HistoryList).focus()
+                with patch("httpx.AsyncClient.send") as network:
+                    await pilot.press("enter")
+                    await pilot.pause()
+                    network.assert_not_called()
+                assert screen.params_table.to_model() == params
+                assert extract_query_pairs(screen.url_input.value) == [
+                    ("q", "${TOKEN}"), ("q", "${TOKEN}")
+                ]
+                assert screen.response_area.response.content == saved_response().content
+                # Editing one duplicate after loading must not re-enable it or
+                # change the other occurrence when the URL is synchronized.
+                screen.params_table.move_cursor(row=0)
+                screen.params_table.action_toggle_row()
+                await pilot.pause()
+                model = screen.build_request_model(screen.request_options.to_model())
+                assert model.url == url
+                assert [p.enabled for p in model.params] == [False, True, False]
+                model.apply_template({
+                    "BASE_URL": "https://api.example.test",
+                    "TOKEN": "a&b+c=d",
+                })
+                async with httpx.AsyncClient() as client:
+                    outgoing = model.to_httpx(client)
+                    assert outgoing.url.params.multi_items() == [("q", "a&b+c=d")]
+                assert screen.history_store.load(entry.id).request.model_dump() == archived
+
+        asyncio.run(check())
+
     def test_legacy_entry_keeps_editor_and_explains_limitation(self, snap_compare):
         async def run_before(pilot):
             await pilot.pause()
