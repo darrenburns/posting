@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import NamedTuple
 import uuid
 from pydantic import BaseModel, Field
+from rich.errors import StyleSyntaxError
 from rich.style import Style
 from textual.app import InvalidThemeError
 from textual.color import Color
@@ -255,21 +256,33 @@ class Theme(BaseModel):
         """
         variables = theme_variables or {}
 
+        def style_from_variable(value: str) -> Style:
+            try:
+                return Style.parse(value)
+            except StyleSyntaxError:
+                # Textual's builtin ansi-dark/ansi-light themes express every variable using
+                # the `ansi_<name>` convention (e.g. "ansi_green"), which Style.parse doesn't
+                # understand - only Textual's own Color.parse does (#365). This fallback only
+                # ever needs to handle a single color: a value Style.parse rejects but
+                # Color.parse accepts is never a compound style string (Style.parse already
+                # handles those, e.g. "black on red"), just an unrecognised color name.
+                return Style(color=Color.parse(value).rich_color)
+
         # Infer reasonable default syntax styles from the theme variables.
         syntax_styles = {
-            "string": Style.parse(
+            "string": style_from_variable(
                 variables.get("syntax-json-string", variables["text-accent"])
             ),
-            "number": Style.parse(
+            "number": style_from_variable(
                 variables.get("syntax-json-number", variables["text-secondary"])
             ),
-            "boolean": Style.parse(
+            "boolean": style_from_variable(
                 variables.get("syntax-json-boolean", variables["text-success"])
             ),
-            "json.null": Style.parse(
+            "json.null": style_from_variable(
                 variables.get("syntax-json-null", variables["text-warning"])
             ),
-            "json.label": Style.parse(
+            "json.label": style_from_variable(
                 variables.get("syntax-json-key", variables["text-primary"])
             ),
         }
@@ -277,26 +290,30 @@ class Theme(BaseModel):
         return TextAreaTheme(
             name=uuid.uuid4().hex,
             syntax_styles=syntax_styles,
-            gutter_style=Style.parse(variables.get("text-area-gutter"))
+            gutter_style=style_from_variable(variables.get("text-area-gutter"))
             if "text-area-gutter" in variables
             else None,
-            cursor_style=Style.parse(variables.get("text-area-cursor"))
+            cursor_style=style_from_variable(variables.get("text-area-cursor"))
             if "text-area-cursor" in variables
             else None,
-            cursor_line_style=Style.parse(variables.get("text-area-cursor-line"))
+            cursor_line_style=style_from_variable(
+                variables.get("text-area-cursor-line")
+            )
             if "text-area-cursor-line" in variables
             else None,
-            cursor_line_gutter_style=Style.parse(
+            cursor_line_gutter_style=style_from_variable(
                 variables.get("text-area-cursor-line-gutter")
             )
             if "text-area-cursor-line-gutter" in variables
             else None,
-            bracket_matching_style=Style.parse(
+            bracket_matching_style=style_from_variable(
                 variables.get("text-area-matched-bracket")
             )
             if "text-area-matched-bracket" in variables
             else None,
-            selection_style=Style.parse(variables.get("text-area-selection"))
+            selection_style=style_from_variable(
+                variables.get("text-area-selection")
+            )
             if "text-area-selection" in variables
             else None,
         )
