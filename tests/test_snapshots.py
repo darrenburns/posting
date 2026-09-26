@@ -214,8 +214,13 @@ class TestLoadEnvFileDialog:
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
-            await pilot.press(*"load env")
-            await pilot.press("enter")
+            await pilot.press(*"switch environment")
+            await pilot.pause()
+            await pilot.press("down", "enter")
+            await pilot.pause()
+            await pilot.press(*"load another env")
+            await pilot.pause()
+            await pilot.press("down", "enter")
             await pilot.pause()
             pilot.app.screen.query_one("#env-input", Input).cursor_blink = False
 
@@ -242,8 +247,13 @@ class TestLoadEnvFileDialog:
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
-            await pilot.press(*"load env")
-            await pilot.press("enter")
+            await pilot.press(*"switch environment")
+            await pilot.pause()
+            await pilot.press("down", "enter")
+            await pilot.pause()
+            await pilot.press(*"load another env")
+            await pilot.pause()
+            await pilot.press("down", "enter")
             await pilot.pause()
             env_input = pilot.app.screen.query_one("#env-input", Input)
             env_input.cursor_blink = False

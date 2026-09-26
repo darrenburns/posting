@@ -10,6 +10,7 @@
 ### Added
 
 - A per-request option to send raw and form bodies with literal dollar signs while retaining URL and header variables (#352).
+- Added a History tab to the collections sidebar, with locally persisted request configurations and responses, keyboard navigation, and deletion controls. Selecting an entry loads both panes without sending a request or executing scripts.
 - Switch, clear, and load environments from a command palette submenu without restarting Posting.
 - Variable autocompletion in request body and description text areas, with keyboard navigation and dismissal.
 - Added a colour-coded HTTP method tag (e.g. `GET`, `POST`, `PUT`, `DELETE`) to each entry in the request search palette (`ctrl+shift+p`, or `/` from the collection tree), matching the styling already used in the collection tree. Previously, requests with the same name in different directories/methods were indistinguishable in the palette.
