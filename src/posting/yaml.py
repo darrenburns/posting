@@ -2,9 +2,9 @@ from yaml import load, dump
 import yaml
 
 try:
-    from yaml import CLoader as Loader, Dumper as Dumper
+    from yaml import CSafeLoader as Loader, Dumper as Dumper
 except ImportError:
-    from yaml import Loader, Dumper
+    from yaml import SafeLoader as Loader, Dumper as Dumper
 
 
 def str_presenter(dumper: Dumper, data: str) -> yaml.ScalarNode:
