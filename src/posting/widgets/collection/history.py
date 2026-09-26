@@ -31,9 +31,9 @@ Saved requests and responses for this collection, newest first.
 - `Enter` or `l` loads the highlighted request and response, replacing the editor contents.
 - `g`/`G` jumps to the first/last entry.
 - `backspace` deletes the highlighted entry; `ctrl+backspace` clears history after confirmation.
-- `ctrl+o`, then `3` opens the History tab. Press `down` or `j` to enter the list.
+- `ctrl+o`, then `4` opens the History tab. Press `down` or `j` to enter the list.
 - With History visible, `ctrl+o`, then `h` jumps straight to the list.
-- `ctrl+o`, then `4` returns to Collections; `ctrl+h` toggles the whole sidebar.
+- `ctrl+o`, then `3` returns to Collections; `ctrl+h` toggles the whole sidebar.
 Loading does not send a request or run scripts. Press `ctrl+j` to send explicitly.
 """,
     )

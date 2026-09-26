@@ -102,14 +102,14 @@ request returns the Response pane to its normal live view.
 
 If the sidebar is hidden, show it with `Ctrl+H` first.
 
-1. Press `Ctrl+O`, then `3` to activate the **History tab**.
+1. Press `Ctrl+O`, then `4` to activate the **History tab**.
 2. Press `Down` or `j` to move from the tabs into the **history list**.
 3. Use `Up`/`Down` or `k`/`j` to highlight an entry; `g`/`G` selects the first/last.
 4. Press `Enter` or `l` to load that request and response. Focus stays in the list.
 5. Edit the request as needed and press `Ctrl+J` to send it explicitly.
 
 With History already visible, `Ctrl+O`, then `h` jumps directly to the list. The `h`
-target appears only when the list is visible and nonempty. `Ctrl+O`, then `4` activates
+target appears only when the list is visible and nonempty. `Ctrl+O`, then `3` activates
 Collections; `Down` enters its tree (or use `Ctrl+O`, then `Tab` when that tree is visible).
 When the sidebar tabs have focus, `Left`/`Right` or `h`/`l` switches between them. These
 keys are context-specific: `h` in jump mode targets history, while `l` in the list loads

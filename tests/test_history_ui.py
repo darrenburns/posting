@@ -328,13 +328,15 @@ class TestHistory:
             await pilot.press("ctrl+o")
             assert isinstance(pilot.app.screen, JumpOverlay)
             assert "h" not in pilot.app.screen.keys_to_widgets
-            await pilot.press("3", "down")
+            assert pilot.app.screen.keys_to_widgets["3"] == "--content-tab-collections-pane"
+            assert pilot.app.screen.keys_to_widgets["4"] == "--content-tab-history-pane"
+            await pilot.press("4", "down")
             assert (
                 screen.query_one("#sidebar-tabs", TabbedContent).active
                 == "history-pane"
             )
             assert screen.focused is screen.query_one(HistoryList)
-            # Browsing only highlights; Enter restores both panes.
+            # Browsing only highlights; Enter loads both panes.
             screen.url_input.value = "https://draft.example.test"
             await pilot.press("j")
             assert screen.url_input.value == "https://draft.example.test"
@@ -347,9 +349,9 @@ class TestHistory:
             assert screen.query_one(HistoryList).highlighted == 1
             await pilot.press("ctrl+l", "ctrl+o", "h")
             assert screen.focused is screen.query_one(HistoryList)
-            await pilot.press("ctrl+o", "4", "down")
+            await pilot.press("ctrl+o", "3", "down")
             assert screen.focused is screen.collection_tree
-            await pilot.press("ctrl+o", "3", "down", "ctrl+o")
+            await pilot.press("ctrl+o", "4", "down", "ctrl+o")
             assert pilot.app.screen.keys_to_widgets["h"] == "history-list"
 
         with patch_env("POSTING_SPACING", spacing):

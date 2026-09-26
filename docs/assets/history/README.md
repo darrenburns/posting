@@ -48,12 +48,12 @@ and saved request options. The server returned HTTP 201 and a JSON response.
 
 1. Used `Ctrl+O`, `Tab`, `Enter` to load the sample collection request, then `Ctrl+J`
    to send it.
-2. Changed the URL editor and used `Ctrl+O`, `3` to activate History.
+2. Changed the URL editor and used `Ctrl+O`, `4` to activate History.
 3. Pressed `Down`, then `Enter`. The original POST URL, headers, body, options, and
    response were loaded, with focus left in History and no additional HTTP request.
-4. Opened jump mode with History visible and checked its `h` list target and `3` tab
+4. Opened jump mode with History visible and checked its `h` list target and `4` tab
    target. Used jump mode to inspect the loaded request body and response headers.
-5. Restarted Posting, then loaded both panes from disk using `Ctrl+O`, `3`, `Down`,
+5. Restarted Posting, then loaded both panes from disk using `Ctrl+O`, `4`, `Down`,
    `Enter`.
 6. Repeated loading in compact mode.
 
@@ -66,14 +66,14 @@ If the sidebar is hidden, first press `Ctrl+H`.
 
 | Action | Keys |
 | --- | --- |
-| Open History | `Ctrl+O`, then `3` |
+| Open History | `Ctrl+O`, then `4` |
 | Enter the history list from the tabs | `Down` or `j` |
 | Jump straight to a visible, nonempty history list | `Ctrl+O`, then `h` |
 | Highlight an entry without loading | `Up`/`Down` or `k`/`j` |
 | Highlight first/last entry | `g`/`G` |
 | Load request and response, replacing editor contents | `Enter` or `l` |
 | Send the loaded request explicitly | `Ctrl+J` |
-| Return to Collections | `Ctrl+O`, then `4` |
+| Return to Collections | `Ctrl+O`, then `3` |
 | Delete one entry / clear history with confirmation | `Backspace` / `Ctrl+Backspace` |
 | Show contextual History help | `F1` |
 
