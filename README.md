@@ -54,9 +54,9 @@
 | src/posting/widgets/request/path\_editor.py           |      102 |       44 |     57% |31, 49, 53-60, 69-70, 117-136, 140-144, 147-156, 159-165, 178 |
 | src/posting/widgets/request/query\_editor.py          |       33 |        0 |    100% |           |
 | src/posting/widgets/request/request\_auth.py          |      142 |       56 |     61% |52, 96-99, 102, 105, 178-190, 197-220, 230-233, 238-260, 271-274 |
-| src/posting/widgets/request/request\_body.py          |       23 |        0 |    100% |           |
+| src/posting/widgets/request/request\_body.py          |       24 |        0 |    100% |           |
 | src/posting/widgets/request/request\_editor.py        |       78 |        2 |     97% |  101, 114 |
-| src/posting/widgets/request/request\_metadata.py      |       40 |        3 |     92% |     17-19 |
+| src/posting/widgets/request/request\_metadata.py      |       41 |        3 |     93% |     18-20 |
 | src/posting/widgets/request/request\_options.py       |       79 |       16 |     80% |116-121, 126, 133-134, 139-146 |
 | src/posting/widgets/request/request\_scripts.py       |       81 |       32 |     60% |53-71, 81-110, 118, 126, 226-229 |
 | src/posting/widgets/request/url\_bar.py               |      209 |       32 |     85% |74, 83, 120, 126-135, 139-142, 182-183, 187, 193-196, 203, 220, 239-240, 246-247, 262-265, 279, 313-314 |
@@ -69,13 +69,14 @@
 | src/posting/widgets/rich\_log.py                      |       29 |        0 |    100% |           |
 | src/posting/widgets/select.py                         |       45 |       10 |     78% |20-21, 23-24, 26-27, 31-32, 46, 57 |
 | src/posting/widgets/tabbed\_content.py                |       12 |        6 |     50% |14-16, 19-21 |
-| src/posting/widgets/text\_area.py                     |      375 |      172 |     54% |86-88, 134, 172-173, 193-202, 205-228, 231-262, 268, 271-275, 280-285, 287-334, 339-344, 349-360, 462, 467, 470-475, 478, 481, 484, 487, 490, 493, 496, 499, 503-506, 529, 532, 536-550, 554-561, 565-572, 576, 579-584, 589-600, 640, 652, 657-662 |
+| src/posting/widgets/text\_area.py                     |      375 |      163 |     57% |86-88, 134, 172-173, 193-202, 205-228, 231-262, 268, 271-275, 280-285, 287-334, 339-344, 356, 360, 462, 467, 470-475, 478, 481, 484, 487, 490, 493, 496, 499, 503-506, 529, 532, 536-550, 554-561, 565-572, 576, 579-584, 589-600, 640, 652, 657-662 |
 | src/posting/widgets/tree.py                           |       26 |        6 |     77% |     35-40 |
-| src/posting/widgets/variable\_autocomplete.py         |       41 |        7 |     83% | 46, 71-77 |
+| src/posting/widgets/variable\_autocomplete.py         |       41 |        6 |     85% |     71-77 |
 | src/posting/widgets/variable\_input.py                |       25 |        0 |    100% |           |
+| src/posting/widgets/variable\_text\_area.py           |       68 |        1 |     99% |        60 |
 | src/posting/xresources.py                             |       24 |       17 |     29% |     22-45 |
 | src/posting/yaml.py                                   |       14 |        4 |     71% |6-7, 12-15 |
-|                                             **TOTAL** | **5756** | **1290** | **78%** |           |
+|                                             **TOTAL** | **5826** | **1281** | **78%** |           |
 
 
 ## Setup coverage badge
