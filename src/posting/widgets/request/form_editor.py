@@ -7,6 +7,7 @@ from posting.collection import FormItem
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 from posting.widgets.variable_input import VariableInput
+from posting.widgets.file_autocomplete import FormValueInput
 
 
 class FormTable(PostingDataTable):
@@ -45,7 +46,7 @@ class FormEditor(Vertical):
             FormTable(),
             KeyValueInput(
                 VariableInput(placeholder="Key"),
-                VariableInput(placeholder="Value"),
+                FormValueInput(placeholder="Value or @file"),
             ),
             empty_message="There is no form data.",
         )

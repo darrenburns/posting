@@ -831,7 +831,7 @@ class MainScreen(Screen[None]):
         client: httpx.AsyncClient,
     ) -> httpx.Request:
         """Build an httpx request from the UI."""
-        request = request_model.to_httpx(client)
+        request = request_model.to_httpx(client, base_directory=self.collection.path)
         request.extensions = {"trace": self.log_request_trace_event}
 
         return request

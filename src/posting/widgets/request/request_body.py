@@ -23,7 +23,7 @@ class RequestBodyEditor(Vertical):
                 options=[
                     ("None", "no-body-label"),
                     ("Raw (json, text, etc.)", "text-body-editor"),
-                    ("Form data (x-www-form-urlencoded)", "form-body-editor"),
+                    ("Form data (supports @file uploads)", "form-body-editor"),
                 ],
                 id="request-body-type-select",
                 allow_blank=False,

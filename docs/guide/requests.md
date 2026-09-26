@@ -109,3 +109,16 @@ An easy way to share a request with others is to copy it as a cURL command.
 Press ++ctrl+p++ and select `export: copy as curl` to copy the request as a cURL command to your clipboard.
 
 You can also press ++ctrl+p++ and select `export: copy as YAML` to copy the request as YAML. This provides a quick way to share a request with other Posting users, e.g. via Slack.
+
+
+## File uploads
+
+Select **Form data**, then enter a field name and a value beginning with `@`
+to upload a file. For example, `@images/avatar.png` uploads that file relative
+to the collection root. Absolute paths and `~/` paths also work.
+
+Typing `@` opens filesystem completion; Up/Down select an entry and Enter/Tab
+accept it. Directories end in `/` and can be completed further. Type `@@name`
+to send the literal text `@name`. Files may be mixed with ordinary form fields,
+including repeated field names. Posting generates the multipart Content-Type
+and boundary. An unreadable file stops the request with an error.
