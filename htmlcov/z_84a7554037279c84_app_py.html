@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for src/posting/app.py: 73%</title>
+    <title>Coverage for src/posting/app.py: 75%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_6b508a39.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>src/posting/app.py</b>:
-            <span class="pc_cov">73%</span>
+            <span class="pc_cov">75%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">881 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">646<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">235<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">657<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">224<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -864,27 +864,27 @@
     <p class="run"><span class="n"><a id="t782" href="#t782">782</a></span><span class="t">            <span class="key">return</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t783" href="#t783">783</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t784" href="#t784">784</a></span><span class="t">        <span class="com"># In this case, we're saving an existing request to disk.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t785" href="#t785">785</a></span><span class="t">        <span class="nam">request_model</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">build_request_model</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">request_options</span><span class="op">.</span><span class="nam">to_model</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t786" href="#t786">786</a></span><span class="t">        <span class="key">assert</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">request_model</span><span class="op">,</span> <span class="nam">RequestModel</span><span class="op">)</span><span class="op">,</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t787" href="#t787">787</a></span><span class="t">            <span class="str">"currently open node should contain a request model"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t788" href="#t788">788</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t785" href="#t785">785</a></span><span class="t">        <span class="nam">request_model</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">build_request_model</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">request_options</span><span class="op">.</span><span class="nam">to_model</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t786" href="#t786">786</a></span><span class="t">        <span class="key">assert</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">request_model</span><span class="op">,</span> <span class="nam">RequestModel</span><span class="op">)</span><span class="op">,</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t787" href="#t787">787</a></span><span class="t">            <span class="str">"currently open node should contain a request model"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t788" href="#t788">788</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t789" href="#t789">789</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t790" href="#t790">790</a></span><span class="t">        <span class="com"># At this point, either we're reusing the pre-existing home for the request</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t791" href="#t791">791</a></span><span class="t">        <span class="com"># on disk, or the new location on disk which was assigned during the "new request flow"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t792" href="#t792">792</a></span><span class="t">        <span class="nam">save_path</span> <span class="op">=</span> <span class="nam">request_model</span><span class="op">.</span><span class="nam">path</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t793" href="#t793">793</a></span><span class="t">        <span class="key">if</span> <span class="nam">save_path</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t794" href="#t794">794</a></span><span class="t">            <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t795" href="#t795">795</a></span><span class="t">                <span class="nam">path_to_display</span> <span class="op">=</span> <span class="nam">str</span><span class="op">(</span><span class="nam">save_path</span><span class="op">.</span><span class="nam">resolve</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">relative_to</span><span class="op">(</span><span class="nam">Path</span><span class="op">.</span><span class="nam">cwd</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t796" href="#t796">796</a></span><span class="t">            <span class="key">except</span> <span class="nam">ValueError</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t797" href="#t797">797</a></span><span class="t">                <span class="nam">path_to_display</span> <span class="op">=</span> <span class="nam">save_path</span><span class="op">.</span><span class="nam">name</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t792" href="#t792">792</a></span><span class="t">        <span class="nam">save_path</span> <span class="op">=</span> <span class="nam">request_model</span><span class="op">.</span><span class="nam">path</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t793" href="#t793">793</a></span><span class="t">        <span class="key">if</span> <span class="nam">save_path</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t794" href="#t794">794</a></span><span class="t">            <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t795" href="#t795">795</a></span><span class="t">                <span class="nam">path_to_display</span> <span class="op">=</span> <span class="nam">str</span><span class="op">(</span><span class="nam">save_path</span><span class="op">.</span><span class="nam">resolve</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">relative_to</span><span class="op">(</span><span class="nam">Path</span><span class="op">.</span><span class="nam">cwd</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t796" href="#t796">796</a></span><span class="t">            <span class="key">except</span> <span class="nam">ValueError</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t797" href="#t797">797</a></span><span class="t">                <span class="nam">path_to_display</span> <span class="op">=</span> <span class="nam">save_path</span><span class="op">.</span><span class="nam">name</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t798" href="#t798">798</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t799" href="#t799">799</a></span><span class="t">            <span class="nam">request_model</span><span class="op">.</span><span class="nam">save_to_disk</span><span class="op">(</span><span class="nam">save_path</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t800" href="#t800">800</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">collection_browser</span><span class="op">.</span><span class="nam">update_currently_open_node</span><span class="op">(</span><span class="nam">request_model</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t801" href="#t801">801</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">notify</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t802" href="#t802">802</a></span><span class="t">                <span class="nam">title</span><span class="op">=</span><span class="str">"Request saved"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t803" href="#t803">803</a></span><span class="t">                <span class="nam">message</span><span class="op">=</span><span class="nam">path_to_display</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t804" href="#t804">804</a></span><span class="t">                <span class="nam">timeout</span><span class="op">=</span><span class="num">3</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t805" href="#t805">805</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t799" href="#t799">799</a></span><span class="t">            <span class="nam">request_model</span><span class="op">.</span><span class="nam">save_to_disk</span><span class="op">(</span><span class="nam">save_path</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t800" href="#t800">800</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">collection_browser</span><span class="op">.</span><span class="nam">update_currently_open_node</span><span class="op">(</span><span class="nam">request_model</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t801" href="#t801">801</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">notify</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t802" href="#t802">802</a></span><span class="t">                <span class="nam">title</span><span class="op">=</span><span class="str">"Request saved"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t803" href="#t803">803</a></span><span class="t">                <span class="nam">message</span><span class="op">=</span><span class="nam">path_to_display</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t804" href="#t804">804</a></span><span class="t">                <span class="nam">timeout</span><span class="op">=</span><span class="num">3</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t805" href="#t805">805</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t806" href="#t806">806</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t807" href="#t807">807</a></span><span class="t">    <span class="key">async</span> <span class="key">def</span> <span class="nam">action_new_request</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-></span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t808" href="#t808">808</a></span><span class="t">        <span class="str">"""Open the new request flow."""</span>&nbsp;</span><span class="r"></span></p>
