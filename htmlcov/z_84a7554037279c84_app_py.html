@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">846 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">581<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">265<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">586<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">260<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_84a7554037279c84_auth_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.11.0">coverage.py v7.11.0</a>,
-            created at 2026-09-25 22:30 +0000
+            created at 2026-09-26 07:51 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -1094,9 +1094,9 @@
     <p class="run run2"><span class="n"><a id="t1012" href="#t1012">1012</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1013" href="#t1013">1013</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1014" href="#t1014">1014</a></span><span class="t">    <span class="key">def</span> <span class="nam">on_curl_message</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">event</span><span class="op">:</span> <span class="nam">CurlMessage</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1015" href="#t1015">1015</a></span><span class="t">        <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1016" href="#t1016">1016</a></span><span class="t">            <span class="nam">curl_import</span> <span class="op">=</span> <span class="nam">CurlImport</span><span class="op">(</span><span class="nam">event</span><span class="op">.</span><span class="nam">curl_command</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1017" href="#t1017">1017</a></span><span class="t">            <span class="nam">request_model</span> <span class="op">=</span> <span class="nam">curl_import</span><span class="op">.</span><span class="nam">to_request_model</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1015" href="#t1015">1015</a></span><span class="t">        <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1016" href="#t1016">1016</a></span><span class="t">            <span class="nam">curl_import</span> <span class="op">=</span> <span class="nam">CurlImport</span><span class="op">(</span><span class="nam">event</span><span class="op">.</span><span class="nam">curl_command</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1017" href="#t1017">1017</a></span><span class="t">            <span class="nam">request_model</span> <span class="op">=</span> <span class="nam">curl_import</span><span class="op">.</span><span class="nam">to_request_model</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1018" href="#t1018">1018</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1019" href="#t1019">1019</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">notify</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t1020" href="#t1020">1020</a></span><span class="t">                <span class="nam">title</span><span class="op">=</span><span class="str">"Import error"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -1105,12 +1105,12 @@
     <p class="mis mis2 show_mis"><span class="n"><a id="t1023" href="#t1023">1023</a></span><span class="t">                <span class="nam">severity</span><span class="op">=</span><span class="str">"error"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t1024" href="#t1024">1024</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1025" href="#t1025">1025</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1026" href="#t1026">1026</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">load_request_model</span><span class="op">(</span><span class="nam">request_model</span><span class="op">,</span> <span class="nam">overwrite_metadata</span><span class="op">=</span><span class="key">False</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1027" href="#t1027">1027</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">notify</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t1028" href="#t1028">1028</a></span><span class="t">                <span class="nam">title</span><span class="op">=</span><span class="str">"Curl request imported"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t1029" href="#t1029">1029</a></span><span class="t">                <span class="nam">message</span><span class="op">=</span><span class="fst">f"</span><span class="fst">Successfully imported request to </span><span class="op">{</span><span class="nam">curl_import</span><span class="op">.</span><span class="nam">url</span><span class="op">}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t1030" href="#t1030">1030</a></span><span class="t">                <span class="nam">timeout</span><span class="op">=</span><span class="num">3</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t1031" href="#t1031">1031</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1026" href="#t1026">1026</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">load_request_model</span><span class="op">(</span><span class="nam">request_model</span><span class="op">,</span> <span class="nam">overwrite_metadata</span><span class="op">=</span><span class="key">False</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1027" href="#t1027">1027</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">notify</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t1028" href="#t1028">1028</a></span><span class="t">                <span class="nam">title</span><span class="op">=</span><span class="str">"Curl request imported"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t1029" href="#t1029">1029</a></span><span class="t">                <span class="nam">message</span><span class="op">=</span><span class="fst">f"</span><span class="fst">Successfully imported request to </span><span class="op">{</span><span class="nam">curl_import</span><span class="op">.</span><span class="nam">url</span><span class="op">}</span><span class="fst">"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t1030" href="#t1030">1030</a></span><span class="t">                <span class="nam">timeout</span><span class="op">=</span><span class="num">3</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t1031" href="#t1031">1031</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1032" href="#t1032">1032</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1033" href="#t1033">1033</a></span><span class="t">    <span class="key">def</span> <span class="nam">action_open_request_search_palette</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-></span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1034" href="#t1034">1034</a></span><span class="t">        <span class="str">"""Open the request search palette."""</span>&nbsp;</span><span class="r"></span></p>
@@ -1813,7 +1813,7 @@
             <a class="nav" href="z_84a7554037279c84_auth_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.11.0">coverage.py v7.11.0</a>,
-            created at 2026-09-25 22:30 +0000
+            created at 2026-09-26 07:51 +0000
         </p>
     </div>
 </footer>
