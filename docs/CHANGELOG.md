@@ -1,3 +1,14 @@
+## Unreleased
+
+### Fixed
+
+- Query parameters typed in the URL bar are now kept in sync with the Query tab and sent with the request (#272, #362).
+- Fall back to Textual's terminal clipboard when the native clipboard is unavailable.
+
+### Added
+
+- Added a colour-coded HTTP method tag (e.g. `GET`, `POST`, `PUT`, `DELETE`) to each entry in the request search palette (`ctrl+shift+p`, or `/` from the collection tree), matching the styling already used in the collection tree. Previously, requests with the same name in different directories/methods were indistinguishable in the palette.
+
 ## 2.10.0 [25th March 2026]
 
 ### Added

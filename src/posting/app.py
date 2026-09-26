@@ -15,7 +15,6 @@ from textual import messages, on, log, work
 from textual.command import (
     CommandListItem,
     CommandPalette,
-    SimpleCommand,
     SimpleProvider,
 )
 from textual.css.query import NoMatches
@@ -42,7 +41,7 @@ from posting.collection import (
     RequestModel,
 )
 
-from posting.commands import PostingProvider
+from posting.commands import PostingProvider, RequestSearchProvider
 from posting.config import SETTINGS, Settings
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
@@ -66,6 +65,7 @@ from posting.widgets.collection.browser import (
     CollectionTree,
 )
 from posting.widgets.datatable import PostingDataTable
+from posting.widgets.key_value import KeyValueInput
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
@@ -81,7 +81,11 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
-from posting.urls import extract_path_param_names
+from posting.urls import (
+    extract_path_param_names,
+    extract_query_pairs,
+    set_query_pairs,
+)
 from urllib.parse import urlparse, urlunparse
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
@@ -836,6 +840,7 @@ class MainScreen(Screen[None]):
     def on_url_changed(self, event: Input.Changed) -> None:
         """When the URL changes, sync path params table rows to match placeholders."""
         self._sync_path_params_from_url()
+        self._sync_query_params_from_url()
 
         # Inform the URL highlighter of current path param values (by name) for highlighting.
         try:
@@ -898,6 +903,61 @@ class MainScreen(Screen[None]):
             # Path tab may be lazily mounted; ignore if not present yet.
             pass
 
+    def _sync_query_params_from_url(self) -> None:
+        """Copy a URL edit into the table without rewriting the user's input."""
+        try:
+            table = self.params_table
+        except NoMatches:
+            return
+
+        url_pairs = extract_query_pairs(self.url_input.value, escape_dollars=True)
+        current = table.to_model()
+        if url_pairs == [(p.name, p.value) for p in current if p.enabled]:
+            # Also preserves disabled rows and their positions after a table edit
+            # or a change to only the URL's path/fragment.
+            return
+
+        url_pair_set = set(url_pairs)
+        disabled = [
+            p for p in current if not p.enabled and (p.name, p.value) not in url_pair_set
+        ]
+        table.replace_all_rows(
+            url_pairs + [(p.name, p.value) for p in disabled],
+            [True] * len(url_pairs) + [False] * len(disabled),
+        )
+
+    def _sync_url_from_query_params(self) -> None:
+        """Write enabled Query-tab rows back into the URL bar query string."""
+        pairs = [
+            (param.name, param.value)
+            for param in self.params_table.to_model()
+            if param.enabled
+        ]
+        current = self.url_input.value
+        # Avoid normalizing percent escapes or a partially typed query when the
+        # views already agree. In particular, URL-driven row updates aren't edits.
+        if extract_query_pairs(current, escape_dollars=True) != pairs:
+            self.url_input.value = set_query_pairs(current, pairs)
+
+    @on(PostingDataTable.RowsAdded, selector="ParamsTable")
+    @on(PostingDataTable.RowsRemoved, selector="ParamsTable")
+    def on_query_params_table_changed(
+        self, event: PostingDataTable.RowsAdded | PostingDataTable.RowsRemoved
+    ) -> None:
+        if event.explicit_by_user:
+            self._sync_url_from_query_params()
+
+    @on(PostingDataTable.RowToggled, selector="ParamsTable")
+    def on_query_param_toggled(self) -> None:
+        self._sync_url_from_query_params()
+
+    @on(KeyValueInput.Change)
+    def on_query_key_value_changed(self, event: KeyValueInput.Change) -> None:
+        # Several editors use KeyValueInput; only the Query tab should rewrite the URL.
+        if event.control.key_input.id != "query-key-input":
+            return
+        self._sync_url_from_query_params()
+
     async def log_request_trace_event(self, event: Event, info: dict[str, Any]) -> None:
         """Log an event to the request trace."""
         await self.response_trace.log_event(event, info)
@@ -927,12 +987,16 @@ class MainScreen(Screen[None]):
                         value=request_body.content_type,
                     )
                 )
+        # The table already represents the visible query, including disabled
+        # rows. Merging it back with the URL would match disabled duplicates to
+        # enabled occurrences a second time.
+        url = set_query_pairs(self.url_input.value.strip(), [])
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
             description=self.request_metadata.description,
             method=self.selected_method,
-            url=self.url_input.value.strip(),
+            url=url,
             params=self.params_table.to_model(),
             path_params=self.path_params_table.to_model(),
             headers=headers,
@@ -968,32 +1032,12 @@ class MainScreen(Screen[None]):
 
     def action_open_request_search_palette(self) -> None:
         """Open the request search palette."""
-        collection_tree_nodes = list(self.collection_tree.walk_nodes())
-
-        def load_and_select_request(request: RequestModel) -> None:
-            self.load_request_model(request)
-            for node in collection_tree_nodes:
-                if node.data == request:
-                    self.collection_tree.select_node(node)
-                    break
-
-        collection_path = self.collection.path
-        self.app.search_commands(
-            [
-                SimpleCommand(
-                    name=node.data.name if node.data.path else node.data.name,
-                    callback=lambda request=node.data: load_and_select_request(request),
-                    help_text=(
-                        str(node.data.path.relative_to(collection_path))
-                        if node.data.path
-                        else ""
-                    ),
-                )
-                for node in collection_tree_nodes
-                if isinstance(node.data, RequestModel)
-            ],
-            placeholder="Search for a request…",
-            palette_id="request-search-palette",
+        self.app.push_screen(
+            CommandPalette(
+                providers=[RequestSearchProvider],
+                placeholder="Search for a request…",
+                id="request-search-palette",
+            )
         )
 
     def load_request_model(
@@ -1007,6 +1051,10 @@ class MainScreen(Screen[None]):
                 open request. If False, only the request data will be loaded, and
                 the metadata (name, description, etc) will be left as is.
         """
+        # Normalize a copy before either view is updated. A saved URL can carry
+        # query values even when its separate parameter list is empty.
+        request_model = request_model.model_copy(deep=True)
+        request_model.absorb_url_query()
         self.selected_method = request_model.method
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
@@ -1014,6 +1062,8 @@ class MainScreen(Screen[None]):
             ((param.name, param.value) for param in request_model.params),
             (param.enabled for param in request_model.params),
         )
+        # Show table params in the URL bar so the two views stay aligned.
+        self._sync_url_from_query_params()
         # Prefer values from the model, but ensure they align with placeholders in the URL
         preferred_values = {
             p.name: p.value for p in getattr(request_model, "path_params", [])
