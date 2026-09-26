@@ -1,4 +1,4 @@
-from posting.widgets.variables_modal import build_rows, is_sensitive
+from posting.widgets.variables_editor import build_rows, is_sensitive
 
 
 def test_sensitive_names_are_recognised() -> None:
@@ -21,8 +21,7 @@ def test_secrets_are_masked_by_default() -> None:
 def test_masking_does_not_leak_secret_length() -> None:
     short = build_rows({"TOKEN": "abc"}, session_names=set())[0][1]
     long = build_rows({"TOKEN": "a" * 500}, session_names=set())[0][1]
-    assert len(long) <= 12
-    assert len(short) <= 12
+    assert short == long == "•" * 12
 
 
 def test_secrets_shown_when_revealed() -> None:

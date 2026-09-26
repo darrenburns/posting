@@ -1,3 +1,9 @@
+## Unreleased
+
+### Added
+
+- A variables screen using the shared key/value editor, with session overrides, source labels, secret masking, and undo/redo. Open it from the command palette or with `ctrl+shift+v`.
+
 ## 2.10.0 [25th March 2026]
 
 ### Added
