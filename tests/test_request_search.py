@@ -39,6 +39,10 @@ def test_request_search_matches_visible_text(tmp_path, monkeypatch, query, expec
         app = make_posting(collection=tmp_path, env=())
         async with app.run_test() as pilot:
             await pilot.press("ctrl+shift+p")
+            # The palette screen can be pushed before its children mount.
+            async with asyncio.timeout(10):
+                while not app.screen.query(CommandInput):
+                    await pilot.pause()
             search_query = (
                 get_method_style(app.theme_variables, "GET").lstrip("#")
                 if query == "method-color"

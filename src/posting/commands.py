@@ -5,8 +5,8 @@ from textual.content import Content
 from textual.types import IgnoreReturnCallbackType
 from posting.collection import RequestModel
 from posting.method_styles import get_method_label, get_method_style
-from posting.widgets.load_env_file_dialog import show_load_env_file_dialog
 from posting.widgets.variables_modal import VariablesModal
+from posting.environment_commands import show_environment_palette
 
 if TYPE_CHECKING:
     from posting.app import MainScreen, Posting
@@ -213,21 +213,22 @@ class PostingProvider(Provider):
 
             commands_to_show.append(
                 (
-                    "environment: Load env file",
-                    lambda: show_load_env_file_dialog(app),
-                    "Load environment variables from a .env file",
-                    True,
-                ),
-            )
-
-            commands_to_show.append(
-                (
                     "variables: Show variables",
                     lambda: app.push_screen(VariablesModal()),
                     "View the variables available to requests, and where they came from",
                     True,
                 ),
             )
+
+        commands_to_show.append(
+            (
+                "environment: Switch environment",
+                lambda: show_environment_palette(app),
+                "Choose, clear, or load environment files for this session",
+                True,
+            ),
+        )
+
 
         if screen.query("HelpPanel"):
             commands_to_show.append(
