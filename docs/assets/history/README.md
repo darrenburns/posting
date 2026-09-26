@@ -33,6 +33,10 @@ Two new History integration cases cover query data stored in either the URL or
 parameter list, duplicate values, disabled rows, variable expressions, reserved
 characters, editing after loading, and keeping the archived record unchanged.
 
+The tab label is **Requests**, with jump key `3`; **History** keeps `4`.
+All 76 affected snapshots were refreshed for the shorter label, followed by another
+full passing test run. All five screenshots below were recaptured through computer use.
+
 ## Computer-use verification
 
 Ran the real Posting application through `textual serve` and used computer-use keyboard
@@ -54,7 +58,7 @@ and saved request options. The server returned HTTP 201 and a JSON response.
 5. Restarted Posting, then loaded both panes from disk using `Ctrl+O`, `4`, `Down`,
    `Enter`.
 6. Repeated loading in compact mode.
-7. After merging `main`, verified `Ctrl+O`, `3`, `Down` targets Collections and
+7. After merging `main`, verified `Ctrl+O`, `3`, `Down` targets Requests and
    `Ctrl+O`, `4`, `Down` targets History. Loaded with `Enter` and revisited the list
    with `Ctrl+O`, `h`; refreshed the jump-mode screenshot.
 8. Edited the URL with duplicate query values and confirmed both Query rows appeared.
@@ -77,7 +81,7 @@ If the sidebar is hidden, first press `Ctrl+H`.
 | Highlight first/last entry | `g`/`G` |
 | Load request and response, replacing editor contents | `Enter` or `l` |
 | Send the loaded request explicitly | `Ctrl+J` |
-| Return to Collections | `Ctrl+O`, then `3` |
+| Return to Requests | `Ctrl+O`, then `3` |
 | Delete one entry / clear history with confirmation | `Backspace` / `Ctrl+Backspace` |
 | Show contextual History help | `F1` |
 

@@ -110,7 +110,7 @@ If the sidebar is hidden, show it with `Ctrl+H` first.
 
 With History already visible, `Ctrl+O`, then `h` jumps directly to the list. The `h`
 target appears only when the list is visible and nonempty. `Ctrl+O`, then `3` activates
-Collections; `Down` enters its tree (or use `Ctrl+O`, then `Tab` when that tree is visible).
+Requests; `Down` enters its tree (or use `Ctrl+O`, then `Tab` when that tree is visible).
 When the sidebar tabs have focus, `Left`/`Right` or `h`/`l` switches between them. These
 keys are context-specific: `h` in jump mode targets history, while `l` in the list loads
 an entry. `Escape` cancels jump mode and returns focus to where it was.

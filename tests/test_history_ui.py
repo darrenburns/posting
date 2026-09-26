@@ -162,7 +162,7 @@ class TestHistory:
                 "response-trace-pane"
             ).disabled
             assert len(screen.history_store.entries()) == 2
-            # Return to Collections; the request tree is still usable.
+            # Return to Requests; the request tree is still usable.
             await pilot.click("#--content-tab-collections-pane")
             assert (
                 screen.query_one("#sidebar-tabs", TabbedContent).active

@@ -576,7 +576,7 @@ class CollectionBrowser(Vertical):
         collection = self.collection
 
         with PostingTabbedContent(id="sidebar-tabs"):
-            with TabPane("Collections", id="collections-pane"):
+            with TabPane("Requests", id="collections-pane"):
                 yield Static(
                     "[i]Collection is empty.[/]\n\nPress [b]ctrl+s[/b] to save the current request.\n\nPress [b]ctrl+h[/b] to toggle this panel.",
                     id="empty-collection-label",
