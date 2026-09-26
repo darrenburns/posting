@@ -33,7 +33,7 @@ def test_round_trip_survives_restart_and_preserves_response(tmp_path):
     assert store.record(original)
     reopened = HistoryStore(tmp_path / "collection", tmp_path / "history")
     (entry,) = reopened.entries()
-    restored = reopened.load(entry.id)
+    restored = reopened.load(entry.id).response
     assert restored.content == original.content
     assert restored.headers.raw == original.headers.raw
     assert dict(restored.cookies) == {"one": "1", "two": "2"}
@@ -63,7 +63,7 @@ def test_compressed_binary_and_custom_metadata_round_trip(tmp_path):
     original.elapsed = timedelta(seconds=1)
     original.encoding = "latin-1"
     store.record(original)
-    restored = store.load(store.entries()[0].id)
+    restored = store.load(store.entries()[0].id).response
     assert restored.content == body
     assert restored.text == body.decode("latin-1")
     assert restored.http_version == "HTTP/2"
@@ -110,3 +110,65 @@ def test_corrupt_database_is_not_overwritten(tmp_path):
     with pytest.raises(sqlite3.DatabaseError):
         store.record(response())
     assert store.path.read_bytes() == b"not a sqlite database"
+
+
+def test_request_snapshot_round_trip_is_detached_and_immutable(tmp_path):
+    from posting.collection import (
+        Auth,
+        Cookie,
+        Header,
+        Options,
+        RequestBody,
+        RequestModel,
+        Scripts,
+    )
+
+    store = HistoryStore(tmp_path, tmp_path / "history")
+    request = RequestModel(
+        method="POST",
+        url="${BASE_URL}/items",
+        path=tmp_path / "saved.posting.yaml",
+        body=RequestBody(content='{"token":"$TOKEN"}'),
+        headers=[Header(name="X-Token", value="$TOKEN", enabled=False)],
+        auth=Auth.basic_auth("user", "password"),
+        options=Options(timeout=17),
+        scripts=Scripts(on_request="deleted.py:function"),
+        cookies=[Cookie(name="session", value="live")],
+    )
+    expected = request.model_dump()
+    assert store.record(response(), request)
+    request.headers[0].value = "changed"
+    request.body.content = "changed"
+    (entry,) = store.entries()
+    assert entry.has_request
+    restored = store.load(entry.id).request
+    assert restored.model_dump() == expected
+    assert restored.path is None
+    assert restored.cookies == []
+
+
+def test_response_only_database_migrates_without_losing_entries(tmp_path):
+    from posting.collection import RequestModel
+
+    store = HistoryStore(tmp_path, tmp_path / "history")
+    store.record(response())
+    # Recreate the schema shipped in the response-only version of this feature.
+    with sqlite3.connect(store.path) as connection:
+        connection.execute("ALTER TABLE responses DROP COLUMN request_json")
+    reopened = HistoryStore(tmp_path, tmp_path / "history")
+    (entry,) = reopened.entries()
+    assert not entry.has_request
+    assert reopened.load(entry.id).request is None
+    assert reopened.load(entry.id).response.content == response().content
+    assert reopened.record(response(), RequestModel(url="https://example.test/items"))
+    assert [entry.has_request for entry in reopened.entries()] == [True, False]
+
+
+def test_request_configuration_counts_toward_byte_budget(tmp_path):
+    from posting.collection import RequestBody, RequestModel
+
+    store = HistoryStore(tmp_path, tmp_path / "history", max_bytes=1000)
+    assert not store.record(
+        response(), RequestModel(body=RequestBody(content="x" * 1000))
+    )
+    assert store.entries() == []

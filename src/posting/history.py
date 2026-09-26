@@ -10,6 +10,7 @@ from pathlib import Path
 
 import httpx
 
+from posting.collection import RequestModel
 from posting.locations import data_directory
 
 
@@ -20,6 +21,14 @@ class HistoryEntry:
     method: str
     url: str
     status_code: int
+    has_request: bool
+
+
+@dataclass(frozen=True)
+class HistoryRecord:
+    response: httpx.Response
+    request: RequestModel | None
+    """None for entries saved before request snapshots were introduced."""
 
 
 class HistoryStore:
@@ -27,7 +36,7 @@ class HistoryStore:
 
     Connections are short-lived so separate Posting processes can share history.
     Bodies are stored as decoded bytes (never decoded a second time on replay).
-    Request headers and bodies are deliberately not retained.
+    Request configuration is captured before variables and scripts are applied.
     """
 
     def __init__(
@@ -65,16 +74,34 @@ class HistoryStore:
                     encoding TEXT,
                     http_version TEXT NOT NULL,
                     reason_phrase TEXT NOT NULL,
-                    size INTEGER NOT NULL
+                    size INTEGER NOT NULL,
+                    request_json TEXT
                 )"""
             )
+            if "request_json" not in {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(responses)")
+            }:
+                # Recheck under a write lock in case another instance also migrates.
+                with connection:
+                    connection.execute("BEGIN IMMEDIATE")
+                    columns = {
+                        row["name"]
+                        for row in connection.execute("PRAGMA table_info(responses)")
+                    }
+                    if "request_json" not in columns:
+                        connection.execute(
+                            "ALTER TABLE responses ADD COLUMN request_json TEXT"
+                        )
         except Exception:
             connection.close()
             raise
         return connection
 
-    def record(self, response: httpx.Response) -> bool:
-        """Save a complete response. Return False if it exceeds the byte budget."""
+    def record(
+        self, response: httpx.Response, request: RequestModel | None = None
+    ) -> bool:
+        """Save an exchange. Return False if it exceeds the byte budget."""
         headers = json.dumps(
             [
                 (name.decode("latin-1"), value.decode("latin-1"))
@@ -83,15 +110,21 @@ class HistoryStore:
             ensure_ascii=True,
         )
         url = str(response.request.url)
-        size = len(response.content) + len(headers) + len(url.encode())
+        request_json = request.model_dump_json() if request is not None else None
+        size = (
+            len(response.content)
+            + len(headers)
+            + len(url.encode())
+            + (len(request_json.encode()) if request_json else 0)
+        )
         if size > self.max_bytes:
             return False
         with closing(self._connect()) as connection, connection:
             connection.execute(
                 """INSERT INTO responses
                 (received_at, method, url, status_code, headers, body, elapsed,
-                 encoding, http_version, reason_phrase, size)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                 encoding, http_version, reason_phrase, size, request_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     datetime.now(timezone.utc).isoformat(),
                     response.request.method,
@@ -104,6 +137,7 @@ class HistoryStore:
                     response.http_version,
                     response.reason_phrase,
                     size,
+                    request_json,
                 ),
             )
             # Keep the newest contiguous set within both retention limits.
@@ -132,13 +166,14 @@ class HistoryStore:
                     row["method"],
                     row["url"],
                     row["status_code"],
+                    bool(row["has_request"]),
                 )
                 for row in connection.execute(
-                    "SELECT id, received_at, method, url, status_code FROM responses ORDER BY id DESC"
+                    "SELECT id, received_at, method, url, status_code, request_json IS NOT NULL AS has_request FROM responses ORDER BY id DESC"
                 )
             ]
 
-    def load(self, entry_id: int) -> httpx.Response | None:
+    def load(self, entry_id: int) -> HistoryRecord | None:
         if not self.path.exists():
             return None
         with closing(self._connect()) as connection:
@@ -161,7 +196,12 @@ class HistoryStore:
         response.headers = httpx.Headers(json.loads(row["headers"]), encoding="latin-1")
         response.encoding = row["encoding"]
         response.elapsed = timedelta(seconds=row["elapsed"])
-        return response
+        request = (
+            RequestModel.model_validate_json(row["request_json"])
+            if row["request_json"] is not None
+            else None
+        )
+        return HistoryRecord(response, request)
 
     def delete(self, entry_id: int) -> None:
         if self.path.exists():

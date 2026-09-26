@@ -14,18 +14,36 @@ from textual.message import Message
 from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
 
+from posting.collection import RequestModel
 from posting.config import SETTINGS
+from posting.help_data import HelpData
 from posting.history import HistoryEntry, HistoryStore
 from posting.widgets.confirmation import ConfirmationModal
 
 
 class HistoryList(OptionList):
+    BINDING_GROUP_TITLE = "History"
+    help = HelpData(
+        title="History",
+        description="""\
+Saved requests and responses for this collection, newest first.
+- `up`/`down` or `k`/`j` moves the cursor without changing the editor.
+- `Enter` or `l` restores the highlighted request and response, replacing the editor contents.
+- `g`/`G` jumps to the first/last entry.
+- `backspace` deletes the highlighted entry; `ctrl+backspace` clears history after confirmation.
+- `ctrl+o`, then `3` opens the History tab. Press `down` or `j` to enter the list.
+- With History visible, `ctrl+o`, then `h` jumps straight to the list.
+- `ctrl+o`, then `4` returns to Collections; `ctrl+h` toggles the whole sidebar.
+Restoring does not send a request or run scripts. Press `ctrl+j` to send explicitly.
+""",
+    )
     BINDINGS = [
+        Binding("enter", "select", "Restore"),
         Binding("j", "cursor_down", "Down", show=False),
         Binding("k", "cursor_up", "Up", show=False),
         Binding("g", "first", "First", show=False),
         Binding("G", "last", "Last", show=False),
-        Binding("l", "select", "View response", show=False),
+        Binding("l", "select", "Restore", show=False),
         Binding("backspace", "delete_entry", "Delete"),
         Binding("ctrl+backspace", "clear_history", "Clear history"),
     ]
@@ -73,6 +91,7 @@ class HistoryBrowser(Vertical):
     class Selected(Message):
         entry: HistoryEntry
         response: httpx.Response
+        request: RequestModel | None
 
     def __init__(self, store: HistoryStore) -> None:
         super().__init__()
@@ -146,24 +165,25 @@ class HistoryBrowser(Vertical):
             entry = self.entries[index]
             timestamp = entry.received_at.astimezone().strftime("%d %b %Y · %H:%M:%S")
             detail.tooltip = f"{entry.method} {entry.url}"
-            detail.update(
-                f"{entry.method} {entry.url}\n{timestamp}\nEnter to view response"
+            action = (
+                "Enter to restore" if entry.has_request else "Enter to view response"
             )
+            detail.update(f"{entry.method} {entry.url}\n{timestamp}\n{action}")
 
     @on(OptionList.OptionSelected)
     def select_response(self, event: OptionList.OptionSelected) -> None:
         event.stop()
         entry = self.entries[event.option_index]
         try:
-            response = self.store.load(entry.id)
+            record = self.store.load(entry.id)
         except (OSError, sqlite3.Error, ValueError, httpx.HTTPError) as error:
             self.report_error(error)
             return
-        if response is None:
+        if record is None:
             self.refresh_history()
             self.notify("This response is no longer in history.")
             return
-        self.post_message(self.Selected(entry, response))
+        self.post_message(self.Selected(entry, record.response, record.request))
 
     def delete_selected(self) -> None:
         index = self.query_one(HistoryList).highlighted
