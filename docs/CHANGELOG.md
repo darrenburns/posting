@@ -2,6 +2,8 @@
 
 ### Fixed
 
+- Keep the correct URL when importing curl commands with cookie, redirect, or proxy flags before the URL (#354).
+
 - Query parameters typed in the URL bar are now kept in sync with the Query tab and sent with the request (#272, #362).
 - Fall back to Textual's terminal clipboard when the native clipboard is unavailable.
 
