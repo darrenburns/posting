@@ -160,6 +160,41 @@ class TestCommandPalette:
 
 
 @use_config("general.yaml")
+class TestRequestSearchPalette:
+    """The request search palette (ctrl+shift+p, or `/` from the collection
+    tree) lists every request in the collection so you can jump to it by
+    name. Requests sharing a name are otherwise indistinguishable, so each
+    entry is prefixed with a colour-coded HTTP method tag matching the one
+    used in the collection tree.
+    """
+
+    def test_shows_method_tag_per_request(self, snap_compare):
+        """Palette entries should show a method tag (GET/POST/PUT/DELETE/...)
+        so requests can be told apart without opening each one."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+p")
+            await disable_blink_for_active_cursors(pilot)
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
+
+    def test_filters_by_name_while_keeping_method_tag(self, snap_compare):
+        """Typing a query still fuzzy-matches on the request name, and the
+        method tag remains visible on the filtered results."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+p")
+            await disable_blink_for_active_cursors(pilot)
+            await pilot.press(*"delete")
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
+
+
+@use_config("general.yaml")
 class TestLoadEnvFileDialog:
     def test_dialog_loads_with_single_path_input(
         self, tmp_path, monkeypatch, snap_compare
