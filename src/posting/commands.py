@@ -219,6 +219,16 @@ class PostingProvider(Provider):
                 ),
             )
 
+            if app.environment_files:
+                commands_to_show.append(
+                    (
+                        "environment: Edit env file",
+                        app.command_edit_env_files,
+                        "Open the loaded env file(s) in the external editor",
+                        True,
+                    ),
+                )
+
         if screen.query("HelpPanel"):
             commands_to_show.append(
                 (
