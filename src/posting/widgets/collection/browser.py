@@ -637,6 +637,16 @@ class CollectionBrowser(Vertical):
         """Update the request tree node with the new request model."""
         currently_open = self.collection_tree.currently_open
         if currently_open is not None and isinstance(currently_open.data, RequestModel):
+            parent = currently_open.parent
+            if parent is not None and currently_open not in parent.children:
+                # Deleting an open request leaves its editor intact. Saving it
+                # recreates the file, so restore its node in the original folder.
+                restored = self.collection_tree.add_request(request_model, parent)
+                if restored is None:
+                    return
+                self.collection_tree.currently_open = restored
+                currently_open = restored
+                parent.expand()
             currently_open.data = request_model
             currently_open.set_label(request_model.name or "")
             self.collection_tree.cache_request(request_model)
