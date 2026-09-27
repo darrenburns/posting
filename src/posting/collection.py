@@ -13,6 +13,7 @@ from posting.auth import HttpxBearerTokenAuth
 from posting.tuple_to_multidict import tuples_to_dict
 from posting.variables import SubstitutionError
 from posting.version import VERSION
+import yaml
 from posting.yaml import dump, load, Loader
 from posting.urls import ensure_protocol, merge_url_query_into_params, substitute_path_params
 
@@ -579,5 +580,5 @@ def load_request_from_yaml(file_path: str) -> RequestModel:
         RequestModel: The request model loaded from the YAML file.
     """
     with open(file_path, "r", encoding="utf-8") as file:
-        data = load(file, Loader=Loader)
+        data = yaml.safe_load(file)
         return RequestModel(**data, path=Path(file_path))
