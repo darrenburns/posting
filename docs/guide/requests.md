@@ -61,6 +61,192 @@ Requests are stored on your file system as simple YAML files, suffixed with `.po
 
 A directory can be loaded into Posting using the `--collection` option, and all `.posting.yaml` files in that directory will be displayed in the sidebar.
 
+## GraphQL
+
+Posting has a dedicated editor for GraphQL queries and mutations.
+
+In the `Body` tab, change the body type to `GraphQL`, and you'll be given three fields:
+
+- **Operation** - the name of the operation to run. Only required if your query contains more than one named operation. It's sent as `operationName`.
+- **Query** - your query or mutation, written as plain, *unescaped* text - exactly as you'd write it in any other GraphQL editor.
+- **Variables (JSON)** - the variables that accompany the query, written as a JSON object.
+
+When the request is sent, Posting wraps these up into the JSON payload that GraphQL servers expect, escaping the query for you:
+
+```json
+{"query": "query GetUser($id: ID!) {\n  user(id: $id) {\n    name\n  }\n}", "variables": {"id": "1"}, "operationName": "GetUser"}
+```
+
+The `content-type` header is set to `application/json` automatically (unless you've set it yourself), and selecting the GraphQL body type switches the method to `POST`, which is how GraphQL is sent. Loading a saved request never changes the method it was saved with, so a `GET` GraphQL request stays a `GET`.
+
+If the variables field doesn't contain a valid JSON object, Posting will tell you rather than sending the request.
+
+The query is syntax highlighted as you type - keywords, types, fields, arguments, variables, enum values, strings and comments each get their own colour from your theme.
+
+### GraphQL in the request file
+
+GraphQL requests are stored in the request file under `body.graphql`, so the query stays readable and diffable:
+
+```yaml
+name: Get user
+method: POST
+url: https://example.com/graphql
+body:
+  graphql:
+    query: |-
+      query GetUser($id: ID!) {
+        user(id: $id) {
+          name
+        }
+      }
+    variables: '{"id": "1"}'
+    operation_name: GetUser
+```
+
+### Choosing the operation
+
+A document can define more than one operation:
+
+```graphql
+query Articles {
+  articles { items { id } }
+}
+
+query Podcasts {
+  podcasts { items { id } }
+}
+```
+
+A server can't guess which of them to run, so when you send a request like this Posting asks:
+
+```
+╭ Send which operation? ───────────────────────╮
+│ This query defines more than one operation,  │
+│ so the request must say which one to run.    │
+│                                              │
+│  query Articles                              │
+│  query Podcasts                              │
+╰──────────────────────────────────────────────╯
+```
+
+Picking one writes it into the `Operation` field, so it's sent as `operationName`, saved with the request, and you're only asked once. Change it there (or clear it to be asked again) whenever you want to run the other one. Dismiss the prompt with ++escape++ and the request isn't sent.
+
+Requests with a single operation are sent without any of this - the server can work out what to run.
+
+### Fetching the schema
+
+Press ++f5++ while the GraphQL editor has focus (or run `graphql: Fetch schema` from the command palette) and Posting will send an introspection query to the endpoint in the URL bar.
+
+The introspection request reuses the URL, headers, auth and options of the open request, so endpoints behind authentication work exactly like sending the request itself does.
+
+The label at the right of the `Operation` row tells you whether a schema is available for the current endpoint - it shows `no schema` until you fetch one, then the number of types in the schema.
+
+Schemas are cached per endpoint URL, both in memory and inside Posting's data directory (run `posting locate data` to find it), so autocompletion keeps working when you restart Posting. Press ++f5++ again whenever the API changes to fetch a fresh copy.
+
+### Autocompletion
+
+With a schema fetched, the `Query` field suggests what can appear at the cursor as you type:
+
+- fields of the type you're selecting from, including inside nested selection sets, aliases, inline fragments (`... on User`) and fragment definitions
+- argument names for a field, and the values of enum arguments
+- the fields of input objects, including nested ones
+- the variables declared by the operation, after you type `$`
+- type names after `... on`
+
+| Key | Action |
+| --- | --- |
+| ++ctrl+space++ | Ask for suggestions at the cursor |
+| ++up++ / ++down++ | Move through the suggestions |
+| ++enter++ / ++tab++ | Insert the highlighted suggestion |
+| ++escape++ | Dismiss the suggestions |
+
+### Browsing the schema
+
+Press ++f2++ (or run `graphql: Browse schema` from the command palette) to open the schema browser.
+
+The left pane is a tree of everything the endpoint supports:
+
+- the root fields of `query`, `mutation` and `subscription`
+- every type in the schema, under `types`
+
+Expand a field to walk into the type it returns, and keep going as deep as you like. The right pane describes whatever the cursor is on - its type, description, arguments and their defaults, enum values, input fields, or the concrete types of a union.
+
+| Key | Action |
+| --- | --- |
+| ++enter++ | Insert the field into the query editor |
+| ++space++ | Expand or collapse the entry |
+| ++slash++ | Filter fields and types |
+| ++escape++ | Close the browser |
+
+Vim-style navigation works too: ++j++ and ++k++ move, ++l++ selects, ++h++ jumps to the parent, and ++g++/++shift+g++ go to the top and bottom.
+
+#### Searching the schema
+
+The filter searches the whole schema, not just what's on screen. Typing into it groups the results:
+
+- the root fields of each operation whose name matches
+- under `fields`, the matching fields of *any* type, qualified with the type that owns them (`User.posts`, `Post.title`)
+- under `types`, the matching type names
+
+Fields also match on their qualified name, so `user.na` finds `User.name`. Matches on the start of a name come first, and if a search matches a very large number of fields, only the first 200 are listed - narrow the filter to see the rest.
+
+#### Inserting from the browser
+
+Pressing ++enter++ on a field writes it into the `Query` field:
+
+- A **root field**, with an empty query, becomes a complete operation. Required arguments become variables, and the leaf fields of the return type are selected for you:
+
+    ```graphql
+    query GetUser($id: ID!) {
+      user(id: $id) {
+        id
+        name
+      }
+    }
+    ```
+
+    The `Variables (JSON)` field is filled with a template (`{"id": null}`) when it's empty, ready for you to fill in.
+
+- A **root field, with a query already written**, is appended as a second operation. Since a document with more than one operation has to say which one to run, Posting sets `Operation` to the new one.
+
+- **Any other field** - or a root field while your cursor is inside a selection set - is inserted at the cursor as a selection, indented to match. If it needs a variable that the operation doesn't declare yet, Posting tells you which one to add.
+
+Generated selections include every field of a type - both the fields which can be selected on their own, and objects expanded into selection sets of their own, up to four levels deep. So a field like this comes out whole:
+
+```graphql
+getStuff {
+  object1 {
+    field1
+    field2
+    listOfObjects {
+      items {
+        itemField1
+      }
+    }
+  }
+}
+```
+
+Deprecated fields are left out, and a type is never expanded inside itself. Required arguments become variables wherever they appear, including on nested fields - so a paginated list keeps its `first:` argument, and the variable is declared for you. Types with nothing left to select get `__typename`, which is also what you get for a union - use `... on SomeType` to select from it.
+
+Very wide types are capped at 150 fields per selection, so picking a field can't paste thousands of lines - Posting tells you when it has left fields out.
+
+### Variables inside GraphQL queries
+
+GraphQL uses `$name` for its *own* variables, which would otherwise clash with [Posting's variables](./environments.md).
+
+Inside the **Query** field, only the braced form - `${name}` - refers to a Posting variable. A bare `$name` is left exactly as you typed it, so queries can use GraphQL variables freely:
+
+```graphql
+query GetUser($id: ID!) {
+  user(id: $id) {
+    ${extra_field}
+  }
+}
+```
+
+The **Variables** and **Operation** fields behave like every other field in Posting - both `$name` and `${name}` are substituted there.
+
 ## Path parameters
 
 Path parameters let you insert placeholders directly in the URL path using `:name` syntax. For example:

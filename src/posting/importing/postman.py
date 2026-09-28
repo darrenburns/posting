@@ -13,6 +13,7 @@ from posting.collection import (
     APIInfo,
     Collection,
     FormItem,
+    GraphQLBody,
     Header,
     QueryParam,
     RequestBody,
@@ -39,11 +40,18 @@ class RequestOptions(BaseModel):
     raw: RawRequestOptions
 
 
+class GraphQLRequestBody(BaseModel):
+    query: str | None = None
+    variables: str | None = None
+    operationName: str | None = None
+
+
 class Body(BaseModel):
     mode: str
     options: RequestOptions | None = None
     raw: str | None = None
     formdata: list[Variable] | None = None
+    graphql: GraphQLRequestBody | None = None
 
 
 class Url(BaseModel):
@@ -154,7 +162,18 @@ def format_request(name: str, request: PostmanRequest) -> RequestModel:
                 )
             )
 
-    if request.body is not None and request.body.raw is not None:
+    if request.body is not None and request.body.mode == "graphql":
+        graphql = request.body.graphql
+        if graphql is not None:
+            posting_request.body = RequestBody(
+                graphql=GraphQLBody(
+                    query=sanitize_str(graphql.query or ""),
+                    variables=sanitize_str(graphql.variables or ""),
+                    operation_name=sanitize_str(graphql.operationName or ""),
+                ),
+                content_type="application/json",
+            )
+    elif request.body is not None and request.body.raw is not None:
         if (
             request.body.mode == "raw"
             and request.body.options is not None
