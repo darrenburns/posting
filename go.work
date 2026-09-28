@@ -1,0 +1,6 @@
+go 1.25.5
+
+use .
+
+// Jump mode is on Terma's worktree-jump-mode branch until it lands on main.
+replace github.com/darrenburns/terma => /Users/darrenburns/code/terma/.claude/worktrees/jump-mode
