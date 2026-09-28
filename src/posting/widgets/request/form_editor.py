@@ -3,10 +3,20 @@ from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
+from textual_autocomplete import DropdownItem, TargetState
 from posting.collection import FormItem
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.key_value import KeyValueEditor, KeyValueInput
 from posting.widgets.variable_input import VariableInput
+from posting.widgets.request.request_options import RequestOptions
+
+
+class FormVariableInput(VariableInput):
+    def _get_variable_candidates(self, state: TargetState) -> list[DropdownItem]:
+        options = self.screen.query(RequestOptions)
+        if options and not options.first().options.substitute_body_variables:
+            return []
+        return super()._get_variable_candidates(state)
 
 
 class FormTable(PostingDataTable):
@@ -44,8 +54,8 @@ class FormEditor(Vertical):
         yield KeyValueEditor(
             FormTable(),
             KeyValueInput(
-                VariableInput(placeholder="Key"),
-                VariableInput(placeholder="Value"),
+                FormVariableInput(placeholder="Key"),
+                FormVariableInput(placeholder="Value"),
             ),
             empty_message="There is no form data.",
         )

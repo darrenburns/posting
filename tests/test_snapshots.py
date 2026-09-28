@@ -6,6 +6,7 @@ import pytest
 from textual.pilot import Pilot
 from textual.widgets import Input
 from posting.__main__ import make_posting
+from posting.scripts import Posting as ScriptAPI
 
 TEST_DIR = Path(__file__).parent
 CONFIG_DIR = TEST_DIR / "sample-configs"
@@ -159,6 +160,41 @@ class TestCommandPalette:
 
 
 @use_config("general.yaml")
+class TestRequestSearchPalette:
+    """The request search palette (ctrl+shift+p, or `/` from the collection
+    tree) lists every request in the collection so you can jump to it by
+    name. Requests sharing a name are otherwise indistinguishable, so each
+    entry is prefixed with a colour-coded HTTP method tag matching the one
+    used in the collection tree.
+    """
+
+    def test_shows_method_tag_per_request(self, snap_compare):
+        """Palette entries should show a method tag (GET/POST/PUT/DELETE/...)
+        so requests can be told apart without opening each one."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+p")
+            await disable_blink_for_active_cursors(pilot)
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
+
+    def test_filters_by_name_while_keeping_method_tag(self, snap_compare):
+        """Typing a query still fuzzy-matches on the request name, and the
+        method tag remains visible on the filtered results."""
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+p")
+            await disable_blink_for_active_cursors(pilot)
+            await pilot.press(*"delete")
+
+        assert snap_compare(
+            POSTING_MAIN, run_before=run_before, terminal_size=(120, 34)
+        )
+
+
+@use_config("general.yaml")
 class TestLoadEnvFileDialog:
     def test_dialog_loads_with_single_path_input(
         self, tmp_path, monkeypatch, snap_compare
@@ -179,8 +215,13 @@ class TestLoadEnvFileDialog:
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
-            await pilot.press(*"load env")
-            await pilot.press("enter")
+            await pilot.press(*"switch environment")
+            await pilot.pause()
+            await pilot.press("down", "enter")
+            await pilot.pause()
+            await pilot.press(*"load another env")
+            await pilot.pause()
+            await pilot.press("down", "enter")
             await pilot.pause()
             pilot.app.screen.query_one("#env-input", Input).cursor_blink = False
 
@@ -207,8 +248,13 @@ class TestLoadEnvFileDialog:
         async def run_before(pilot: Pilot):
             await pilot.press("ctrl+p")
             await disable_blink_for_active_cursors(pilot)
-            await pilot.press(*"load env")
-            await pilot.press("enter")
+            await pilot.press(*"switch environment")
+            await pilot.pause()
+            await pilot.press("down", "enter")
+            await pilot.pause()
+            await pilot.press(*"load another env")
+            await pilot.pause()
+            await pilot.press("down", "enter")
             await pilot.pause()
             env_input = pilot.app.screen.query_one("#env-input", Input)
             env_input.cursor_blink = False
@@ -544,6 +590,73 @@ class TestVariables:
             await pilot.press("ctrl+l", "right")
 
         assert snap_compare(app, run_before=run_before)
+
+
+@use_config("general.yaml")
+class TestVariablesEditor:
+    def make_app(self, tmp_path, *, empty=False):
+        env_file = tmp_path / "variables.env"
+        env_file.write_text(
+            ""
+            if empty
+            else "API_HOST=https://api.example.test\nITEM_ID=101\nTOKEN=sample-secret\n"
+        )
+        app = make_posting(
+            collection=SAMPLE_COLLECTIONS / "jsonplaceholder" / "todos",
+            env=(str(env_file),),
+        )
+        if not empty:
+            ScriptAPI(app).set_variable("COUNT", 42)
+            ScriptAPI(app).set_variable("ITEM_ID", "202")
+        return app
+
+    def test_populated_screen(self, snap_compare, tmp_path):
+        """Show source labels, a masked secret, and the shared add inputs."""
+        app = self.make_app(tmp_path)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+v")
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(110, 34))
+
+    def test_filtered_inline_edit(self, snap_compare, tmp_path):
+        """Filter to a variable and edit its value with the name locked."""
+        app = self.make_app(tmp_path)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+v", "slash", *"ITEM_ID", "escape", "v")
+            await pilot.press("home", "ctrl+k", *"303")
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(110, 34))
+
+    def test_secret_stays_masked_while_editing(self, snap_compare, tmp_path):
+        """Mask the table cell and the value input while editing a secret."""
+        app = self.make_app(tmp_path)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+v", "slash", *"TOKEN", "escape", "v")
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(110, 34))
+
+    def test_empty_screen(self, snap_compare, tmp_path):
+        """Keep the add inputs accessible when no variables are loaded."""
+        app = self.make_app(tmp_path, empty=True)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+v")
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(110, 34))
+
+    def test_first_variable_added(self, snap_compare, tmp_path):
+        """Saving the first variable replaces the empty state with a session row."""
+        app = self.make_app(tmp_path, empty=True)
+
+        async def run_before(pilot: Pilot):
+            await pilot.press("ctrl+shift+v", *"ITEM_ID", "tab", *"101", "enter")
+            assert app.session_env["ITEM_ID"] == "101"
+            app.clear_notifications()
+
+        assert snap_compare(app, run_before=run_before, terminal_size=(110, 34))
 
 
 @use_config("custom_theme.yaml")

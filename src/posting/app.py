@@ -2,6 +2,7 @@ import inspect
 import json
 from contextlib import redirect_stdout, redirect_stderr
 import os
+import sqlite3
 from pathlib import Path
 import sys
 from typing import Any, Literal, Sequence, cast
@@ -16,7 +17,6 @@ from textual import messages, on, log, work
 from textual.command import (
     CommandListItem,
     CommandPalette,
-    SimpleCommand,
     SimpleProvider,
 )
 from textual.css.query import NoMatches
@@ -43,8 +43,9 @@ from posting.collection import (
     RequestModel,
 )
 
-from posting.commands import PostingProvider
+from posting.commands import PostingProvider, RequestSearchProvider
 from posting.config import SETTINGS, Settings
+from posting.history import HistoryStore
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
@@ -66,7 +67,11 @@ from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
 )
+from posting.widgets.collection.history import HistoryBrowser
 from posting.widgets.datatable import PostingDataTable
+from posting.widgets.variables_modal import VariablesModal
+from posting.session_variables import SessionVariables
+from posting.widgets.key_value import KeyValueInput
 from posting.widgets.request.header_editor import HeadersTable
 from posting.messages import HttpResponseReceived
 from posting.widgets.request.method_selection import MethodSelector
@@ -89,7 +94,11 @@ from posting.widgets.request.request_metadata import RequestMetadata
 from posting.widgets.request.request_options import RequestOptions
 from posting.widgets.request.request_scripts import RequestScripts
 from posting.widgets.request.url_bar import CurlMessage, UrlInput, UrlBar
-from posting.urls import extract_path_param_names
+from posting.urls import (
+    extract_path_param_names,
+    extract_query_pairs,
+    set_query_pairs,
+)
 from urllib.parse import urlparse, urlunparse
 from posting.widgets.response.response_area import ResponseArea
 from posting.widgets.response.response_trace import Event, ResponseTrace
@@ -209,6 +218,7 @@ class MainScreen(Screen[None]):
     ) -> None:
         super().__init__()
         self.collection = collection
+        self.history_store = HistoryStore(collection.path)
         self.cookies: httpx.Cookies = httpx.Cookies()
         self._initial_layout: PostingLayout = layout
         self.environment_files = environment_files
@@ -243,6 +253,9 @@ class MainScreen(Screen[None]):
                 "method-selector": "1",
                 "url-input": "2",
                 "collection-tree": "tab",
+                "history-list": "h",
+                "--content-tab-collections-pane": "3",
+                "--content-tab-history-pane": "4",
                 "--content-tab-headers-pane": "q",
                 "--content-tab-body-pane": "w",
                 "--content-tab-path-pane": "e",
@@ -264,7 +277,9 @@ class MainScreen(Screen[None]):
         yield AppHeader()
         yield UrlBar()
         with AppBody():
-            collection_browser = CollectionBrowser(collection=self.collection)
+            collection_browser = CollectionBrowser(
+                collection=self.collection, history_store=self.history_store
+            )
             collection_browser.display = (
                 self.settings.collection_browser.show_on_startup
             )
@@ -394,6 +409,8 @@ class MainScreen(Screen[None]):
         try:
             # Run setup scripts first
             request_model = self.build_request_model(request_options)
+            # Preserve editor configuration before template resolution or script changes.
+            history_request = request_model.model_copy(deep=True)
             if setup_script := request_model.scripts.setup:
                 try:
                     self.get_and_run_script(
@@ -466,7 +483,7 @@ class MainScreen(Screen[None]):
                     follow_redirects=request_options.follow_redirects,
                 )
 
-                self.post_message(HttpResponseReceived(response))
+                self.post_message(HttpResponseReceived(response, history_request))
 
                 script_context.response = response
                 if on_response := request_model.scripts.on_response:
@@ -546,11 +563,53 @@ class MainScreen(Screen[None]):
         elif focus_on_response == "tabs":
             self.response_area.content_tabs.focus()
 
+        self.response_area.history_timestamp = None
         self.response_area.response = event.response
         self.url_bar.response_status_code = event.response.status_code
         self.url_bar.response_reason_phrase = event.response.reason_phrase
         self.cookies.update(event.response.cookies)
         self.response_trace.trace_complete()
+
+        if self.settings.history.enabled:
+            try:
+                saved = self.history_store.record(event.response, event.request)
+            except (OSError, sqlite3.Error) as error:
+                self.query_one(HistoryBrowser).report_error(error)
+            else:
+                if saved:
+                    self.query_one(HistoryBrowser).refresh_history()
+                else:
+                    self.notify(
+                        "This request and response exceed the 50 MiB history limit.",
+                        title="Exchange not saved to history",
+                        severity="warning",
+                    )
+
+    @on(HistoryBrowser.Selected)
+    def on_history_selected(self, event: HistoryBrowser.Selected) -> None:
+        """Load the saved exchange without sending or executing scripts."""
+        if event.request is not None:
+            self.collection_tree.currently_open = None
+            self.load_request_model(event.request)
+            if (
+                event.request.body is not None
+                and event.request.body.content is not None
+            ):
+                self.request_editor.text_editor.language = {
+                    "application/json": "json",
+                    "text/html": "html",
+                }.get(event.request.body.content_type)
+            self.url_bar.clear_events()
+            self.url_bar.response_status_code = event.response.status_code
+            self.url_bar.response_reason_phrase = event.response.reason_phrase
+        else:
+            self.notify(
+                "This older entry has no saved request configuration. Only the response was loaded.",
+                title="Response-only history",
+            )
+        self.response_area.history_timestamp = event.entry.received_at
+        self.response_area.response = event.response
+        self.response_area.tabbed_content.active = "response-body-pane"
 
     @on(CollectionTree.RequestSelected)
     def on_request_selected(self, event: CollectionTree.RequestSelected) -> None:
@@ -1032,6 +1091,7 @@ class MainScreen(Screen[None]):
     def on_url_changed(self, event: Input.Changed) -> None:
         """When the URL changes, sync path params table rows to match placeholders."""
         self._sync_path_params_from_url()
+        self._sync_query_params_from_url()
 
         # Inform the URL highlighter of current path param values (by name) for highlighting.
         try:
@@ -1094,6 +1154,61 @@ class MainScreen(Screen[None]):
             # Path tab may be lazily mounted; ignore if not present yet.
             pass
 
+    def _sync_query_params_from_url(self) -> None:
+        """Copy a URL edit into the table without rewriting the user's input."""
+        try:
+            table = self.params_table
+        except NoMatches:
+            return
+
+        url_pairs = extract_query_pairs(self.url_input.value, escape_dollars=True)
+        current = table.to_model()
+        if url_pairs == [(p.name, p.value) for p in current if p.enabled]:
+            # Also preserves disabled rows and their positions after a table edit
+            # or a change to only the URL's path/fragment.
+            return
+
+        url_pair_set = set(url_pairs)
+        disabled = [
+            p for p in current if not p.enabled and (p.name, p.value) not in url_pair_set
+        ]
+        table.replace_all_rows(
+            url_pairs + [(p.name, p.value) for p in disabled],
+            [True] * len(url_pairs) + [False] * len(disabled),
+        )
+
+    def _sync_url_from_query_params(self) -> None:
+        """Write enabled Query-tab rows back into the URL bar query string."""
+        pairs = [
+            (param.name, param.value)
+            for param in self.params_table.to_model()
+            if param.enabled
+        ]
+        current = self.url_input.value
+        # Avoid normalizing percent escapes or a partially typed query when the
+        # views already agree. In particular, URL-driven row updates aren't edits.
+        if extract_query_pairs(current, escape_dollars=True) != pairs:
+            self.url_input.value = set_query_pairs(current, pairs)
+
+    @on(PostingDataTable.RowsAdded, selector="ParamsTable")
+    @on(PostingDataTable.RowsRemoved, selector="ParamsTable")
+    def on_query_params_table_changed(
+        self, event: PostingDataTable.RowsAdded | PostingDataTable.RowsRemoved
+    ) -> None:
+        if event.explicit_by_user:
+            self._sync_url_from_query_params()
+
+    @on(PostingDataTable.RowToggled, selector="ParamsTable")
+    def on_query_param_toggled(self) -> None:
+        self._sync_url_from_query_params()
+
+    @on(KeyValueInput.Change)
+    def on_query_key_value_changed(self, event: KeyValueInput.Change) -> None:
+        # Several editors use KeyValueInput; only the Query tab should rewrite the URL.
+        if event.control.key_input.id != "query-key-input":
+            return
+        self._sync_url_from_query_params()
+
     async def log_request_trace_event(self, event: Event, info: dict[str, Any]) -> None:
         """Log an event to the request trace."""
         await self.response_trace.log_event(event, info)
@@ -1123,12 +1238,16 @@ class MainScreen(Screen[None]):
                         value=request_body.content_type,
                     )
                 )
+        # The table already represents the visible query, including disabled
+        # rows. Merging it back with the URL would match disabled duplicates to
+        # enabled occurrences a second time.
+        url = set_query_pairs(self.url_input.value.strip(), [])
         return RequestModel(
             name=self.request_metadata.request_name,
             path=open_request.path if open_request else None,
             description=self.request_metadata.description,
             method=self.selected_method,
-            url=self.url_input.value.strip(),
+            url=url,
             params=self.params_table.to_model(),
             path_params=self.path_params_table.to_model(),
             headers=headers,
@@ -1164,32 +1283,12 @@ class MainScreen(Screen[None]):
 
     def action_open_request_search_palette(self) -> None:
         """Open the request search palette."""
-        collection_tree_nodes = list(self.collection_tree.walk_nodes())
-
-        def load_and_select_request(request: RequestModel) -> None:
-            self.load_request_model(request)
-            for node in collection_tree_nodes:
-                if node.data == request:
-                    self.collection_tree.select_node(node)
-                    break
-
-        collection_path = self.collection.path
-        self.app.search_commands(
-            [
-                SimpleCommand(
-                    name=node.data.name if node.data.path else node.data.name,
-                    callback=lambda request=node.data: load_and_select_request(request),
-                    help_text=(
-                        str(node.data.path.relative_to(collection_path))
-                        if node.data.path
-                        else ""
-                    ),
-                )
-                for node in collection_tree_nodes
-                if isinstance(node.data, RequestModel)
-            ],
-            placeholder="Search for a request…",
-            palette_id="request-search-palette",
+        self.app.push_screen(
+            CommandPalette(
+                providers=[RequestSearchProvider],
+                placeholder="Search for a request…",
+                id="request-search-palette",
+            )
         )
 
     def load_request_model(
@@ -1203,6 +1302,10 @@ class MainScreen(Screen[None]):
                 open request. If False, only the request data will be loaded, and
                 the metadata (name, description, etc) will be left as is.
         """
+        # Normalize a copy before either view is updated. A saved URL can carry
+        # query values even when its separate parameter list is empty.
+        request_model = request_model.model_copy(deep=True)
+        request_model.absorb_url_query()
         self.selected_method = request_model.method
         self.method_selector.value = request_model.method
         self.url_input.value = str(request_model.url)
@@ -1210,6 +1313,8 @@ class MainScreen(Screen[None]):
             ((param.name, param.value) for param in request_model.params),
             (param.enabled for param in request_model.params),
         )
+        # Show table params in the URL bar so the two views stay aligned.
+        self._sync_url_from_query_params()
         # Prefer values from the model, but ensure they align with placeholders in the URL
         preferred_values = {
             p.name: p.value for p in getattr(request_model, "path_params", [])
@@ -1223,14 +1328,19 @@ class MainScreen(Screen[None]):
             (header.enabled for header in request_model.headers),
         )
         body = request_model.body
-        if body is not None and body.content:
+        if body is not None and body.graphql is not None:
+            body_type = "graphql-body-editor"
+            self.request_editor.graphql_editor.load_body(body.graphql)
+            self.request_body_text_area.text = ""
+            self.request_editor.form_editor.replace_all_rows([])
+        elif body is not None and body.content is not None:
             # Set the body content in the text area, and below, ensure the
             # content switcher is set such that the text area is visible.
             body_type = "text-body-editor"
             self.request_body_text_area.text = body.content
             self.request_editor.form_editor.replace_all_rows([])
             self.request_editor.graphql_editor.load_body(None)
-        elif body is not None and body.form_data:
+        elif body is not None and body.form_data is not None:
             body_type = "form-body-editor"
             self.request_editor.form_editor.replace_all_rows(
                 ((param.name, param.value) for param in body.form_data),
@@ -1238,11 +1348,6 @@ class MainScreen(Screen[None]):
             )
             self.request_body_text_area.text = ""
             self.request_editor.graphql_editor.load_body(None)
-        elif body is not None and body.graphql:
-            body_type = "graphql-body-editor"
-            self.request_editor.graphql_editor.load_body(body.graphql)
-            self.request_body_text_area.text = ""
-            self.request_editor.form_editor.replace_all_rows([])
         else:
             body_type = "no-body-label"
             self.request_body_text_area.text = ""
@@ -1450,6 +1555,13 @@ class Posting(App[None], inherit_bindings=False):
             tooltip="Open the help dialog for the currently focused widget.",
             id="help",
         ),
+        Binding(
+            "ctrl+shift+v",
+            "show_variables",
+            description="Variables",
+            tooltip="Show the variables available to requests.",
+            id="variables",
+        ),
         Binding("f8", "save_screenshot", "Save screenshot.", show=False),
     ]
 
@@ -1484,7 +1596,8 @@ class Posting(App[None], inherit_bindings=False):
         This means one or more of the loaded environment files (in
         `self.environment_files`) have been modified."""
 
-        self.session_env: dict[str, object] = {}
+        self.variable_state = SessionVariables()
+        self.session_env = self.variable_state.values
         """Users can set the value of variables for the duration of the
         session (until the app is quit). This can be done via the scripting
         interface: pre-request or post-response scripts."""
@@ -1518,6 +1631,16 @@ class Posting(App[None], inherit_bindings=False):
         else:
             footer.compact = is_compact
 
+    def reload_variables(self) -> None:
+        """Rebuild the effective environment and notify its readers."""
+        load_variables(
+            self.environment_files,
+            self.settings.use_host_environment,
+            avoid_cache=True,
+        )
+        update_variables(self.session_env)
+        self.env_changed_signal.publish(None)
+
     @work(exclusive=True, group="environment-watcher")
     async def watch_environment_files(self) -> None:
         """Watching files that were passed in as the environment."""
@@ -1525,21 +1648,7 @@ class Posting(App[None], inherit_bindings=False):
         from watchfiles import awatch
 
         async for changes in awatch(*self.environment_files):
-            # Reload the variables from the environment files.
-            load_variables(
-                self.environment_files,
-                self.settings.use_host_environment,
-                avoid_cache=True,
-            )
-            # Overlay the session variables on top of the environment variables.
-            update_variables(self.session_env)
-
-            # Notify the app that the environment has changed,
-            # which will trigger a reload of the variables in the relevant widgets.
-            # Widgets subscribed to this signal can reload as needed.
-            # For example, AutoComplete dropdowns will want to reload their
-            # candidate variables when the environment changes.
-            self.env_changed_signal.publish(None)
+            self.reload_variables()
             self.notify(
                 title="Environment changed",
                 message=f"Reloaded {len(changes)} dotenv files",
@@ -1858,6 +1967,9 @@ class Posting(App[None], inherit_bindings=False):
             id=palette_id or None,
         )
         return self.push_screen(palette)
+
+    def action_show_variables(self) -> None:
+        self.push_screen(VariablesModal())
 
     async def action_help(self) -> None:
         focused = self.focused

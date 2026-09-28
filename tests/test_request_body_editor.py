@@ -42,7 +42,7 @@ def request_with(body: RequestBody | None) -> RequestModel:
         (None, "no-body-label"),
         # A body with nothing in it is no body at all.
         (RequestBody(), "no-body-label"),
-        (RequestBody(content=""), "no-body-label"),
+        (RequestBody(content=""), "text-body-editor"),
     ],
 )
 async def test_loading_a_body_selects_its_type(

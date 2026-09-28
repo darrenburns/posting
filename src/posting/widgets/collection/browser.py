@@ -14,13 +14,17 @@ from textual.containers import Vertical, VerticalScroll
 from textual.geometry import Region
 from textual.message import Message
 from textual.reactive import Reactive, reactive
-from textual.widgets import Static, Tree
+from textual.widgets import Static, Tree, TabPane
 from textual.widgets.tree import TreeNode
 
 from posting.collection import Collection, RequestModel
 from posting.config import SETTINGS
+from posting.history import HistoryStore
+from posting.widgets.collection.history import HistoryBrowser
+from posting.widgets.tabbed_content import PostingTabbedContent
 from posting.files import get_unique_request_filename
 from posting.help_data import HelpData
+from posting.method_styles import get_method_abbreviation, get_method_style
 from posting.save_request import generate_request_filename
 from posting.widgets.collection.new_request_modal import (
     NewRequestData,
@@ -183,25 +187,13 @@ Sub-collections cannot be deleted from the UI yet.
             if self._cursor_node is not node:
                 node_label.stylize(Style(dim=True, bold=True))
         else:
-            theme_vars = self.app.theme_variables
-            default_styles = {
-                "get": theme_vars.get("text-primary"),
-                "post": theme_vars.get("text-success"),
-                "put": theme_vars.get("text-warning"),
-                "delete": theme_vars.get("text-error"),
-                "options": theme_vars.get("text-muted"),
-                "head": theme_vars.get("text-muted"),
-            }
-
-            method = node.data.method.lower()
-            method_style = theme_vars.get(
-                f"method-{method}",
-                default_styles.get(method),
-            )
+            method_style = get_method_style(self.app.theme_variables, node.data.method)
 
             open_indicator = ">" if node is self.currently_open else " "
             method = (
-                f"{node.data.method[:3]}" if isinstance(node.data, RequestModel) else ""
+                get_method_abbreviation(node.data.method)
+                if isinstance(node.data, RequestModel)
+                else ""
             )
             node_label = Text.assemble(
                 open_indicator,
@@ -567,6 +559,7 @@ class CollectionBrowser(Vertical):
     def __init__(
         self,
         collection: Collection | None = None,
+        history_store: HistoryStore | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -574,6 +567,7 @@ class CollectionBrowser(Vertical):
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.collection = collection
+        self.history_store = history_store or HistoryStore(collection.path)
 
     def compose(self) -> ComposeResult:
         self.styles.dock = SETTINGS.get().collection_browser.position
@@ -581,42 +575,46 @@ class CollectionBrowser(Vertical):
         self.add_class("section")
         collection = self.collection
 
-        yield Static(
-            "[i]Collection is empty.[/]\n\nPress [b]ctrl+s[/b] to save the current request.\n\nPress [b]ctrl+h[/b] to toggle this panel.",
-            id="empty-collection-label",
-        )
-
-        tree = CollectionTree(
-            label=collection.name,
-            data=collection,
-            id="collection-tree",
-        )
-        tree.guide_depth = 1
-        tree.show_root = False
-        tree.show_guides = False
-        self.border_subtitle = collection.name
-
-        def add_collection_to_tree(
-            parent_node: TreeNode[CollectionNode], collection: Collection
-        ) -> None:
-            # Add the requests (leaf nodes)
-            for request in collection.requests:
-                tree.add_request(request, parent_node)
-
-            # Add the subcollections (child nodes)
-            for child_collection in collection.children:
-                child_node = parent_node.add(
-                    child_collection.name, data=child_collection
+        with PostingTabbedContent(id="sidebar-tabs"):
+            with TabPane("Requests", id="collections-pane"):
+                yield Static(
+                    "[i]Collection is empty.[/]\n\nPress [b]ctrl+s[/b] to save the current request.\n\nPress [b]ctrl+h[/b] to toggle this panel.",
+                    id="empty-collection-label",
                 )
-                add_collection_to_tree(child_node, child_collection)
 
-        # Start building the tree from the root node
-        add_collection_to_tree(tree.root, collection)
+                tree = CollectionTree(
+                    label=collection.name,
+                    data=collection,
+                    id="collection-tree",
+                )
+                tree.guide_depth = 1
+                tree.show_root = False
+                tree.show_guides = False
+                self.border_subtitle = collection.name
 
-        tree.root.expand_all()
-        tree.cursor_line = 0
-        yield tree
-        yield RequestPreview()
+                def add_collection_to_tree(
+                    parent_node: TreeNode[CollectionNode], collection: Collection
+                ) -> None:
+                    # Add the requests (leaf nodes)
+                    for request in collection.requests:
+                        tree.add_request(request, parent_node)
+
+                    # Add the subcollections (child nodes)
+                    for child_collection in collection.children:
+                        child_node = parent_node.add(
+                            child_collection.name, data=child_collection
+                        )
+                        add_collection_to_tree(child_node, child_collection)
+
+                # Start building the tree from the root node
+                add_collection_to_tree(tree.root, collection)
+
+                tree.root.expand_all()
+                tree.cursor_line = 0
+                yield tree
+                yield RequestPreview()
+            with TabPane("History", id="history-pane"):
+                yield HistoryBrowser(self.history_store)
 
     @on(CollectionTree.RequestAdded)
     def on_request_added(self, event: CollectionTree.RequestAdded) -> None:
@@ -648,6 +646,16 @@ class CollectionBrowser(Vertical):
         """Update the request tree node with the new request model."""
         currently_open = self.collection_tree.currently_open
         if currently_open is not None and isinstance(currently_open.data, RequestModel):
+            parent = currently_open.parent
+            if parent is not None and currently_open not in parent.children:
+                # Deleting an open request leaves its editor intact. Saving it
+                # recreates the file, so restore its node in the original folder.
+                restored = self.collection_tree.add_request(request_model, parent)
+                if restored is None:
+                    return
+                self.collection_tree.currently_open = restored
+                currently_open = restored
+                parent.expand()
             currently_open.data = request_model
             currently_open.set_label(request_model.name or "")
             self.collection_tree.cache_request(request_model)
