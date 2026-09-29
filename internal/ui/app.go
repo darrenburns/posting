@@ -218,7 +218,9 @@ func New(cfg Config) *App {
 	a.jump = t.NewJumpState()
 	a.palette = t.NewCommandPaletteState("Commands", nil)
 	a.requestSearch = t.NewCommandPaletteState("Go to request", nil)
-	a.tabSearch = t.NewCommandPaletteState("Open tabs", nil)
+	// No title: the tab search opens straight onto its input, without a
+	// breadcrumb row above it.
+	a.tabSearch = t.NewCommandPaletteState("", nil)
 	a.methodMenu = t.NewMenuState(a.methodMenuItems())
 	a.logoMenu = t.NewMenuState(a.logoMenuItems())
 	a.save = newSaveForm()
