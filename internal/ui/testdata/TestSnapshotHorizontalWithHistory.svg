@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1108" height="722" viewBox="0 0 1108 722">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&amp;display=swap');
-    text { font-family: Fira Code, Menlo, Monaco, Consolas, monospace; font-size: 14px; dominant-baseline: text-before-edge; }
+    text { font-family: Fira Code, Menlo, Monaco, Consolas, monospace; font-size: 14px; dominant-baseline: central; }
+    rect { shape-rendering: crispEdges; }
     .bold { font-weight: bold; }
     .italic { font-style: italic; }
     .underline { text-decoration: underline; }
@@ -138,11 +139,11 @@
   <rect x="1074.8" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="24.8" y="8.0" class="bold" fill="#9A96BE">sample-api</text>
-  <text x="310.4" y="8.0" fill="#45407A">│</text>
-  <text x="923.6" y="8.0" fill="#FAAFD5">◆</text>
-  <text x="940.4" y="8.0" class="bold" fill="#FAAFD5">local</text>
-  <text x="1007.6" y="8.0" fill="#9A96BE">user@host</text>
+  <text x="24.8" y="17.8" class="bold" fill="#9A96BE">sample-api</text>
+  <path d="M 314.6000 8.0000 L 314.6000 27.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="923.6" y="17.8" fill="#FAAFD5">◆</text>
+  <text x="940.4" y="17.8" class="bold" fill="#FAAFD5">local</text>
+  <text x="1007.6" y="17.8" fill="#9A96BE">user@host</text>
   <rect x="8.0" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -273,12 +274,12 @@
   <rect x="1074.8" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="27.6" fill="#45407A">│</text>
-  <text x="335.6" y="27.6" class="bold" fill="#DDA8FB">GET</text>
-  <text x="369.2" y="27.6" class="bold" fill="#F5F5F6">List</text>
-  <text x="411.2" y="27.6" class="bold" fill="#F5F5F6">users</text>
-  <text x="470.0" y="27.6" fill="#9A96BE">✕</text>
-  <text x="495.2" y="27.6" fill="#9A96BE">+</text>
+  <path d="M 314.6000 27.6000 L 314.6000 47.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="335.6" y="37.4" class="bold" fill="#DDA8FB">GET</text>
+  <text x="369.2" y="37.4" class="bold" fill="#F5F5F6">List</text>
+  <text x="411.2" y="37.4" class="bold" fill="#F5F5F6">users</text>
+  <text x="470.0" y="37.4" fill="#9A96BE">✕</text>
+  <text x="495.2" y="37.4" fill="#9A96BE">+</text>
   <rect x="8.0" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -409,10 +410,10 @@
   <rect x="1074.8" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="47.2" fill="#9A96BE">Requests</text>
-  <text x="117.2" y="47.2" class="bold underline" fill="#F5F5F6">History</text>
-  <text x="184.4" y="47.2" fill="#FAAFD5">3</text>
-  <text x="310.4" y="47.2" fill="#45407A">│</text>
+  <text x="33.2" y="57.0" fill="#9A96BE">Requests</text>
+  <text x="117.2" y="57.0" class="bold underline" fill="#F5F5F6">History</text>
+  <text x="184.4" y="57.0" fill="#FAAFD5">3</text>
+  <path d="M 314.6000 47.2000 L 314.6000 66.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -542,30 +543,30 @@
   <rect x="1074.8" y="66.8" width="8.4" height="19.6" fill="#C45AFF"/>
   <rect x="1083.2" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="66.8" fill="#45407A">│</text>
-  <text x="335.6" y="66.8" class="bold" fill="#DDA8FB">GET</text>
-  <text x="394.4" y="66.8" fill="#9A96BE">▾</text>
+  <path d="M 314.6000 66.8000 L 314.6000 86.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="335.6" y="76.6" class="bold" fill="#DDA8FB">GET</text>
+  <text x="394.4" y="76.6" fill="#9A96BE">▾</text>
   <rect x="419.60" y="66.80" width="2.10" height="19.60" fill="#1E1E3F"/>
-  <text x="428.0" y="66.8" fill="#7BF8C8">${BASE_URL}</text>
-  <text x="520.4" y="66.8" fill="#9A96BE">/</text>
-  <text x="528.8" y="66.8" fill="#F5F5F6">users</text>
-  <text x="570.8" y="66.8" fill="#9A96BE">?</text>
-  <text x="579.2" y="66.8" fill="#F5F5F6">page</text>
-  <text x="612.8" y="66.8" fill="#9A96BE">=</text>
-  <text x="621.2" y="66.8" fill="#F5F5F6">1</text>
-  <text x="629.6" y="66.8" fill="#9A96BE">&amp;</text>
-  <text x="638.0" y="66.8" fill="#F5F5F6">per_page</text>
-  <text x="705.2" y="66.8" fill="#9A96BE">=</text>
-  <text x="713.6" y="66.8" fill="#F5F5F6">20</text>
+  <text x="428.0" y="76.6" fill="#7BF8C8">${BASE_URL}</text>
+  <text x="520.4" y="76.6" fill="#9A96BE">/</text>
+  <text x="528.8" y="76.6" fill="#F5F5F6">users</text>
+  <text x="570.8" y="76.6" fill="#9A96BE">?</text>
+  <text x="579.2" y="76.6" fill="#F5F5F6">page</text>
+  <text x="612.8" y="76.6" fill="#9A96BE">=</text>
+  <text x="621.2" y="76.6" fill="#F5F5F6">1</text>
+  <text x="629.6" y="76.6" fill="#9A96BE">&amp;</text>
+  <text x="638.0" y="76.6" fill="#F5F5F6">per_page</text>
+  <text x="705.2" y="76.6" fill="#9A96BE">=</text>
+  <text x="713.6" y="76.6" fill="#F5F5F6">20</text>
   <rect x="730.4" y="66.8" width="8.4" height="19.6" fill="#F5F5F6"/>
-  <text x="730.4" y="66.8" fill="#1E1E3F"> </text>
-  <text x="923.6" y="66.8" class="bold" fill="#7BF8C8">200</text>
-  <text x="965.6" y="66.8" fill="#00FA9A">■</text>
-  <text x="974.0" y="66.8" fill="#45407A">■</text>
-  <text x="982.4" y="66.8" fill="#00FA9A">■■■■■</text>
-  <text x="1032.8" y="66.8" fill="#A94FDD">[</text>
-  <text x="1041.2" y="66.8" fill="#0F0F1F">Send</text>
-  <text x="1074.8" y="66.8" fill="#A94FDD">]</text>
+  <text x="730.4" y="76.6" fill="#1E1E3F"> </text>
+  <text x="923.6" y="76.6" class="bold" fill="#7BF8C8">200</text>
+  <text x="965.6" y="76.6" fill="#00FA9A">■</text>
+  <text x="974.0" y="76.6" fill="#45407A">■</text>
+  <text x="982.4" y="76.6" fill="#00FA9A">■■■■■</text>
+  <text x="1032.8" y="76.6" fill="#A94FDD">[</text>
+  <text x="1041.2" y="76.6" fill="#0F0F1F">Send</text>
+  <text x="1074.8" y="76.6" fill="#A94FDD">]</text>
   <rect x="8.0" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="86.4" width="8.4" height="19.6" fill="#1E1E3F"/>
@@ -696,15 +697,15 @@
   <rect x="1074.8" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="86.4" class="bold" fill="#DDA8FB">GET</text>
-  <text x="66.8" y="86.4" class="bold" fill="#7BF8C8">200</text>
-  <text x="100.4" y="86.4" fill="#9A96BE">·</text>
-  <text x="117.2" y="86.4" fill="#9A96BE">28</text>
-  <text x="142.4" y="86.4" fill="#9A96BE">Sep</text>
-  <text x="176.0" y="86.4" fill="#9A96BE">14:30:00</text>
-  <text x="310.4" y="86.4" fill="#45407A">│</text>
-  <text x="428.0" y="86.4" fill="#9A96BE">→</text>
-  <text x="444.8" y="86.4" class="italic" fill="#9A96BE">http://localhost:8000/users?page=1&amp;per_page=20</text>
+  <text x="33.2" y="96.2" class="bold" fill="#DDA8FB">GET</text>
+  <text x="66.8" y="96.2" class="bold" fill="#7BF8C8">200</text>
+  <text x="100.4" y="96.2" fill="#9A96BE">·</text>
+  <text x="117.2" y="96.2" fill="#9A96BE">28</text>
+  <text x="142.4" y="96.2" fill="#9A96BE">Sep</text>
+  <text x="176.0" y="96.2" fill="#9A96BE">14:30:00</text>
+  <path d="M 314.6000 86.4000 L 314.6000 106.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="428.0" y="96.2" fill="#9A96BE">→</text>
+  <text x="444.8" y="96.2" class="italic" fill="#9A96BE">http://localhost:8000/users?page=1&amp;per_page=20</text>
   <rect x="8.0" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="106.0" width="8.4" height="19.6" fill="#1E1E3F"/>
@@ -835,18 +836,18 @@
   <rect x="1074.8" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="106.0" fill="#9A96BE">localhost:8000/users?page=1&amp;per</text>
-  <text x="310.4" y="106.0" fill="#45407A">│</text>
-  <text x="327.2" y="106.0" class="bold" fill="#9A96BE">Request</text>
-  <text x="696.8" y="106.0" fill="#45407A">│</text>
-  <text x="713.6" y="106.0" class="bold" fill="#9A96BE">Response</text>
-  <text x="797.6" y="106.0" class="bold" fill="#7BF8C8">200</text>
-  <text x="831.2" y="106.0" class="bold" fill="#7BF8C8">OK</text>
-  <text x="948.8" y="106.0" fill="#F5F5F6">77</text>
-  <text x="974.0" y="106.0" fill="#F5F5F6">B</text>
-  <text x="990.8" y="106.0" fill="#9A96BE">in</text>
-  <text x="1016.0" y="106.0" fill="#F5F5F6">42.00</text>
-  <text x="1066.4" y="106.0" fill="#F5F5F6">ms</text>
+  <text x="33.2" y="115.8" fill="#9A96BE">localhost:8000/users?page=1&amp;per</text>
+  <path d="M 314.6000 106.0000 L 314.6000 125.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="327.2" y="115.8" class="bold" fill="#9A96BE">Request</text>
+  <path d="M 701.0000 106.0000 L 701.0000 125.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="713.6" y="115.8" class="bold" fill="#9A96BE">Response</text>
+  <text x="797.6" y="115.8" class="bold" fill="#7BF8C8">200</text>
+  <text x="831.2" y="115.8" class="bold" fill="#7BF8C8">OK</text>
+  <text x="948.8" y="115.8" fill="#F5F5F6">77</text>
+  <text x="974.0" y="115.8" fill="#F5F5F6">B</text>
+  <text x="990.8" y="115.8" fill="#9A96BE">in</text>
+  <text x="1016.0" y="115.8" fill="#F5F5F6">42.00</text>
+  <text x="1066.4" y="115.8" fill="#F5F5F6">ms</text>
   <rect x="8.0" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -977,29 +978,29 @@
   <rect x="1074.8" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="125.6" class="bold" fill="#7BF8C8">POST</text>
-  <text x="75.2" y="125.6" class="bold" fill="#7BF8C8">200</text>
-  <text x="108.8" y="125.6" fill="#9A96BE">·</text>
-  <text x="125.6" y="125.6" fill="#9A96BE">28</text>
-  <text x="150.8" y="125.6" fill="#9A96BE">Sep</text>
-  <text x="184.4" y="125.6" fill="#9A96BE">14:29:00</text>
-  <text x="310.4" y="125.6" fill="#45407A">│</text>
-  <text x="327.2" y="125.6" class="bold underline" fill="#F5F5F6">Headers</text>
-  <text x="394.4" y="125.6" fill="#FAAFD5">1</text>
-  <text x="419.6" y="125.6" fill="#9A96BE">Body</text>
-  <text x="470.0" y="125.6" fill="#9A96BE">Path</text>
-  <text x="520.4" y="125.6" fill="#9A96BE">Query</text>
-  <text x="570.8" y="125.6" fill="#9A96BE">2</text>
-  <text x="596.0" y="125.6" fill="#9A96BE">Auth</text>
-  <text x="646.4" y="125.6" fill="#9A96BE">Inf</text>
-  <text x="680.0" y="125.6" class="bold" fill="#FAAFD5">›</text>
-  <text x="696.8" y="125.6" fill="#45407A">│</text>
-  <text x="722.0" y="125.6" class="bold" fill="#0F0F1F">HISTORY</text>
-  <text x="797.6" y="125.6" fill="#9A96BE">sent</text>
-  <text x="839.6" y="125.6" fill="#9A96BE">28</text>
-  <text x="864.8" y="125.6" fill="#9A96BE">Sep</text>
-  <text x="898.4" y="125.6" fill="#9A96BE">2026</text>
-  <text x="940.4" y="125.6" fill="#9A96BE">14:30:00</text>
+  <text x="33.2" y="135.4" class="bold" fill="#7BF8C8">POST</text>
+  <text x="75.2" y="135.4" class="bold" fill="#7BF8C8">200</text>
+  <text x="108.8" y="135.4" fill="#9A96BE">·</text>
+  <text x="125.6" y="135.4" fill="#9A96BE">28</text>
+  <text x="150.8" y="135.4" fill="#9A96BE">Sep</text>
+  <text x="184.4" y="135.4" fill="#9A96BE">14:29:00</text>
+  <path d="M 314.6000 125.6000 L 314.6000 145.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="327.2" y="135.4" class="bold underline" fill="#F5F5F6">Headers</text>
+  <text x="394.4" y="135.4" fill="#FAAFD5">1</text>
+  <text x="419.6" y="135.4" fill="#9A96BE">Body</text>
+  <text x="470.0" y="135.4" fill="#9A96BE">Path</text>
+  <text x="520.4" y="135.4" fill="#9A96BE">Query</text>
+  <text x="570.8" y="135.4" fill="#9A96BE">2</text>
+  <text x="596.0" y="135.4" fill="#9A96BE">Auth</text>
+  <text x="646.4" y="135.4" fill="#9A96BE">Inf</text>
+  <text x="680.0" y="135.4" class="bold" fill="#FAAFD5">›</text>
+  <path d="M 701.0000 125.6000 L 701.0000 145.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="135.4" class="bold" fill="#0F0F1F">HISTORY</text>
+  <text x="797.6" y="135.4" fill="#9A96BE">sent</text>
+  <text x="839.6" y="135.4" fill="#9A96BE">28</text>
+  <text x="864.8" y="135.4" fill="#9A96BE">Sep</text>
+  <text x="898.4" y="135.4" fill="#9A96BE">2026</text>
+  <text x="940.4" y="135.4" fill="#9A96BE">14:30:00</text>
   <rect x="8.0" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1130,9 +1131,9 @@
   <rect x="1074.8" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="145.2" fill="#9A96BE">localhost:8000/users?page=1&amp;per</text>
-  <text x="310.4" y="145.2" fill="#45407A">│</text>
-  <text x="696.8" y="145.2" fill="#45407A">│</text>
+  <text x="33.2" y="155.0" fill="#9A96BE">localhost:8000/users?page=1&amp;per</text>
+  <path d="M 314.6000 145.2000 L 314.6000 164.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 145.2000 L 701.0000 164.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1263,26 +1264,26 @@
   <rect x="1074.8" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="164.8" class="bold" fill="#DDA8FB">GET</text>
-  <text x="66.8" y="164.8" class="bold" fill="#FA9D7B">404</text>
-  <text x="100.4" y="164.8" fill="#9A96BE">·</text>
-  <text x="117.2" y="164.8" fill="#9A96BE">28</text>
-  <text x="142.4" y="164.8" fill="#9A96BE">Sep</text>
-  <text x="176.0" y="164.8" fill="#9A96BE">14:28:00</text>
-  <text x="310.4" y="164.8" fill="#45407A">│</text>
-  <text x="335.6" y="164.8" fill="#00FA9A">☑</text>
+  <text x="33.2" y="174.6" class="bold" fill="#DDA8FB">GET</text>
+  <text x="66.8" y="174.6" class="bold" fill="#FA9D7B">404</text>
+  <text x="100.4" y="174.6" fill="#9A96BE">·</text>
+  <text x="117.2" y="174.6" fill="#9A96BE">28</text>
+  <text x="142.4" y="174.6" fill="#9A96BE">Sep</text>
+  <text x="176.0" y="174.6" fill="#9A96BE">14:28:00</text>
+  <path d="M 314.6000 164.8000 L 314.6000 184.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="335.6" y="174.6" fill="#00FA9A">☑</text>
   <rect x="360.80" y="164.80" width="2.10" height="19.60" fill="#1E1E3F"/>
-  <text x="369.2" y="164.8" fill="#F5F5F6">Accept</text>
+  <text x="369.2" y="174.6" fill="#F5F5F6">Accept</text>
   <rect x="461.60" y="164.80" width="2.10" height="19.60" fill="#1E1E3F"/>
-  <text x="470.0" y="164.8" fill="#F5F5F6">application/json</text>
-  <text x="680.0" y="164.8" fill="#9A96BE">✕</text>
-  <text x="696.8" y="164.8" fill="#45407A">│</text>
-  <text x="713.6" y="164.8" fill="#9A96BE">Body</text>
-  <text x="764.0" y="164.8" fill="#9A96BE">Headers</text>
-  <text x="831.2" y="164.8" fill="#9A96BE">2</text>
-  <text x="856.4" y="164.8" fill="#9A96BE">Cookies</text>
-  <text x="923.6" y="164.8" fill="#9A96BE">1</text>
-  <text x="948.8" y="164.8" class="bold underline" fill="#F5F5F6">Trace</text>
+  <text x="470.0" y="174.6" fill="#F5F5F6">application/json</text>
+  <text x="680.0" y="174.6" fill="#9A96BE">✕</text>
+  <path d="M 701.0000 164.8000 L 701.0000 184.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="713.6" y="174.6" fill="#9A96BE">Body</text>
+  <text x="764.0" y="174.6" fill="#9A96BE">Headers</text>
+  <text x="831.2" y="174.6" fill="#9A96BE">2</text>
+  <text x="856.4" y="174.6" fill="#9A96BE">Cookies</text>
+  <text x="923.6" y="174.6" fill="#9A96BE">1</text>
+  <text x="948.8" y="174.6" class="bold underline" fill="#F5F5F6">Trace</text>
   <rect x="8.0" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1413,16 +1414,16 @@
   <rect x="1074.8" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="184.4" fill="#9A96BE">localhost:8000/users?page=1&amp;per</text>
-  <text x="310.4" y="184.4" fill="#45407A">│</text>
-  <text x="335.6" y="184.4" fill="#706B91">+</text>
+  <text x="33.2" y="194.2" fill="#9A96BE">localhost:8000/users?page=1&amp;per</text>
+  <path d="M 314.6000 184.4000 L 314.6000 204.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="335.6" y="194.2" fill="#706B91">+</text>
   <rect x="360.80" y="184.40" width="2.10" height="19.60" fill="#1E1E3F"/>
-  <text x="369.2" y="184.4" fill="#9A96BE">Add</text>
-  <text x="402.8" y="184.4" fill="#9A96BE">a</text>
-  <text x="419.6" y="184.4" fill="#9A96BE">hea</text>
+  <text x="369.2" y="194.2" fill="#9A96BE">Add</text>
+  <text x="402.8" y="194.2" fill="#9A96BE">a</text>
+  <text x="419.6" y="194.2" fill="#9A96BE">hea</text>
   <rect x="461.60" y="184.40" width="2.10" height="19.60" fill="#1E1E3F"/>
-  <text x="470.0" y="184.4" fill="#9A96BE">Value</text>
-  <text x="696.8" y="184.4" fill="#45407A">│</text>
+  <text x="470.0" y="194.2" fill="#9A96BE">Value</text>
+  <path d="M 701.0000 184.4000 L 701.0000 204.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1553,12 +1554,18 @@
   <rect x="1074.8" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="204.0" fill="#45407A">│</text>
-  <text x="696.8" y="204.0" fill="#45407A">│</text>
-  <text x="722.0" y="204.0" fill="#F5F5F6">connect</text>
-  <text x="898.4" y="204.0" fill="#9A96BE">8.00</text>
-  <text x="940.4" y="204.0" fill="#9A96BE">ms</text>
-  <text x="974.0" y="204.0" fill="#00FA9A">━━━━━━━</text>
+  <path d="M 314.6000 204.0000 L 314.6000 223.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 204.0000 L 701.0000 223.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="213.8" fill="#F5F5F6">connect</text>
+  <text x="898.4" y="213.8" fill="#9A96BE">8.00</text>
+  <text x="940.4" y="213.8" fill="#9A96BE">ms</text>
+  <path d="M 974.0000 213.8000 L 982.4000 213.8000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
+  <path d="M 982.4000 213.8000 L 990.8000 213.8000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
+  <path d="M 990.8000 213.8000 L 999.2000 213.8000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
+  <path d="M 999.2000 213.8000 L 1007.6000 213.8000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
+  <path d="M 1007.6000 213.8000 L 1016.0000 213.8000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
+  <path d="M 1016.0000 213.8000 L 1024.4000 213.8000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
+  <path d="M 1024.4000 213.8000 L 1032.8000 213.8000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
   <rect x="8.0" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1689,11 +1696,11 @@
   <rect x="1074.8" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="223.6" fill="#45407A">│</text>
-  <text x="696.8" y="223.6" fill="#45407A">│</text>
-  <text x="722.0" y="223.6" fill="#F5F5F6">tls</text>
-  <text x="755.6" y="223.6" fill="#F5F5F6">handshake</text>
-  <text x="898.4" y="223.6" fill="#9A96BE">skipped</text>
+  <path d="M 314.6000 223.6000 L 314.6000 243.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 223.6000 L 701.0000 243.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="233.4" fill="#F5F5F6">tls</text>
+  <text x="755.6" y="233.4" fill="#F5F5F6">handshake</text>
+  <text x="898.4" y="233.4" fill="#9A96BE">skipped</text>
   <rect x="8.0" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1824,13 +1831,13 @@
   <rect x="1074.8" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="243.2" fill="#45407A">│</text>
-  <text x="696.8" y="243.2" fill="#45407A">│</text>
-  <text x="722.0" y="243.2" fill="#F5F5F6">send</text>
-  <text x="764.0" y="243.2" fill="#F5F5F6">headers</text>
-  <text x="898.4" y="243.2" fill="#9A96BE">2.00</text>
-  <text x="940.4" y="243.2" fill="#9A96BE">ms</text>
-  <text x="1032.8" y="243.2" fill="#00FA9A">━</text>
+  <path d="M 314.6000 243.2000 L 314.6000 262.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 243.2000 L 701.0000 262.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="253.0" fill="#F5F5F6">send</text>
+  <text x="764.0" y="253.0" fill="#F5F5F6">headers</text>
+  <text x="898.4" y="253.0" fill="#9A96BE">2.00</text>
+  <text x="940.4" y="253.0" fill="#9A96BE">ms</text>
+  <path d="M 1032.8000 253.0000 L 1041.2000 253.0000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
   <rect x="8.0" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1961,13 +1968,13 @@
   <rect x="1074.8" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="262.8" fill="#45407A">│</text>
-  <text x="696.8" y="262.8" fill="#45407A">│</text>
-  <text x="722.0" y="262.8" fill="#F5F5F6">send</text>
-  <text x="764.0" y="262.8" fill="#F5F5F6">body</text>
-  <text x="898.4" y="262.8" fill="#9A96BE">1.00</text>
-  <text x="940.4" y="262.8" fill="#9A96BE">ms</text>
-  <text x="1049.6" y="262.8" fill="#00FA9A">━</text>
+  <path d="M 314.6000 262.8000 L 314.6000 282.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 262.8000 L 701.0000 282.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="272.6" fill="#F5F5F6">send</text>
+  <text x="764.0" y="272.6" fill="#F5F5F6">body</text>
+  <text x="898.4" y="272.6" fill="#9A96BE">1.00</text>
+  <text x="940.4" y="272.6" fill="#9A96BE">ms</text>
+  <path d="M 1049.6000 272.6000 L 1058.0000 272.6000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
   <rect x="8.0" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2098,13 +2105,15 @@
   <rect x="1074.8" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="282.4" fill="#45407A">│</text>
-  <text x="696.8" y="282.4" fill="#45407A">│</text>
-  <text x="722.0" y="282.4" fill="#F5F5F6">receive</text>
-  <text x="789.2" y="282.4" fill="#F5F5F6">headers</text>
-  <text x="890.0" y="282.4" fill="#9A96BE">24.00</text>
-  <text x="940.4" y="282.4" fill="#9A96BE">ms</text>
-  <text x="1058.0" y="282.4" fill="#00FA9A">━━━</text>
+  <path d="M 314.6000 282.4000 L 314.6000 302.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 282.4000 L 701.0000 302.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="292.2" fill="#F5F5F6">receive</text>
+  <text x="789.2" y="292.2" fill="#F5F5F6">headers</text>
+  <text x="890.0" y="292.2" fill="#9A96BE">24.00</text>
+  <text x="940.4" y="292.2" fill="#9A96BE">ms</text>
+  <path d="M 1058.0000 292.2000 L 1066.4000 292.2000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
+  <path d="M 1066.4000 292.2000 L 1074.8000 292.2000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
+  <path d="M 1074.8000 292.2000 L 1083.2000 292.2000" fill="none" stroke="#00FA9A" stroke-width="2.1000" shape-rendering="crispEdges"/>
   <rect x="8.0" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2235,12 +2244,12 @@
   <rect x="1074.8" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="302.0" fill="#45407A">│</text>
-  <text x="696.8" y="302.0" fill="#45407A">│</text>
-  <text x="722.0" y="302.0" fill="#F5F5F6">receive</text>
-  <text x="789.2" y="302.0" fill="#F5F5F6">body</text>
-  <text x="898.4" y="302.0" fill="#9A96BE">6.00</text>
-  <text x="940.4" y="302.0" fill="#9A96BE">ms</text>
+  <path d="M 314.6000 302.0000 L 314.6000 321.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 302.0000 L 701.0000 321.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="311.8" fill="#F5F5F6">receive</text>
+  <text x="789.2" y="311.8" fill="#F5F5F6">body</text>
+  <text x="898.4" y="311.8" fill="#9A96BE">6.00</text>
+  <text x="940.4" y="311.8" fill="#9A96BE">ms</text>
   <rect x="8.0" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2371,12 +2380,12 @@
   <rect x="1074.8" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="321.6" fill="#45407A">│</text>
-  <text x="696.8" y="321.6" fill="#45407A">│</text>
-  <text x="722.0" y="321.6" fill="#F5F5F6">response</text>
-  <text x="797.6" y="321.6" fill="#F5F5F6">closed</text>
-  <text x="898.4" y="321.6" fill="#9A96BE">1.00</text>
-  <text x="940.4" y="321.6" fill="#9A96BE">ms</text>
+  <path d="M 314.6000 321.6000 L 314.6000 341.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 321.6000 L 701.0000 341.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="331.4" fill="#F5F5F6">response</text>
+  <text x="797.6" y="331.4" fill="#F5F5F6">closed</text>
+  <text x="898.4" y="331.4" fill="#9A96BE">1.00</text>
+  <text x="940.4" y="331.4" fill="#9A96BE">ms</text>
   <rect x="8.0" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2507,11 +2516,11 @@
   <rect x="1074.8" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="341.2" fill="#45407A">│</text>
-  <text x="696.8" y="341.2" fill="#45407A">│</text>
-  <text x="722.0" y="341.2" class="bold" fill="#F5F5F6">total</text>
-  <text x="890.0" y="341.2" class="bold" fill="#F5F5F6">42.00</text>
-  <text x="940.4" y="341.2" class="bold" fill="#F5F5F6">ms</text>
+  <path d="M 314.6000 341.2000 L 314.6000 360.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 341.2000 L 701.0000 360.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="722.0" y="351.0" class="bold" fill="#F5F5F6">total</text>
+  <text x="890.0" y="351.0" class="bold" fill="#F5F5F6">42.00</text>
+  <text x="940.4" y="351.0" class="bold" fill="#F5F5F6">ms</text>
   <rect x="8.0" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2642,8 +2651,8 @@
   <rect x="1074.8" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="360.8" fill="#45407A">│</text>
-  <text x="696.8" y="360.8" fill="#45407A">│</text>
+  <path d="M 314.6000 360.8000 L 314.6000 380.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 360.8000 L 701.0000 380.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2774,8 +2783,8 @@
   <rect x="1074.8" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="380.4" fill="#45407A">│</text>
-  <text x="696.8" y="380.4" fill="#45407A">│</text>
+  <path d="M 314.6000 380.4000 L 314.6000 400.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 380.4000 L 701.0000 400.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2906,8 +2915,8 @@
   <rect x="1074.8" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="400.0" fill="#45407A">│</text>
-  <text x="696.8" y="400.0" fill="#45407A">│</text>
+  <path d="M 314.6000 400.0000 L 314.6000 419.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 400.0000 L 701.0000 419.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3038,8 +3047,8 @@
   <rect x="1074.8" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="419.6" fill="#45407A">│</text>
-  <text x="696.8" y="419.6" fill="#45407A">│</text>
+  <path d="M 314.6000 419.6000 L 314.6000 439.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 419.6000 L 701.0000 439.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3170,8 +3179,8 @@
   <rect x="1074.8" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="439.2" fill="#45407A">│</text>
-  <text x="696.8" y="439.2" fill="#45407A">│</text>
+  <path d="M 314.6000 439.2000 L 314.6000 458.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 439.2000 L 701.0000 458.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3302,8 +3311,8 @@
   <rect x="1074.8" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="458.8" fill="#45407A">│</text>
-  <text x="696.8" y="458.8" fill="#45407A">│</text>
+  <path d="M 314.6000 458.8000 L 314.6000 478.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 458.8000 L 701.0000 478.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3434,8 +3443,8 @@
   <rect x="1074.8" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="478.4" fill="#45407A">│</text>
-  <text x="696.8" y="478.4" fill="#45407A">│</text>
+  <path d="M 314.6000 478.4000 L 314.6000 498.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 478.4000 L 701.0000 498.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3566,8 +3575,8 @@
   <rect x="1074.8" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="498.0" fill="#45407A">│</text>
-  <text x="696.8" y="498.0" fill="#45407A">│</text>
+  <path d="M 314.6000 498.0000 L 314.6000 517.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 498.0000 L 701.0000 517.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3698,8 +3707,8 @@
   <rect x="1074.8" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="517.6" fill="#45407A">│</text>
-  <text x="696.8" y="517.6" fill="#45407A">│</text>
+  <path d="M 314.6000 517.6000 L 314.6000 537.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 517.6000 L 701.0000 537.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3830,8 +3839,8 @@
   <rect x="1074.8" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="537.2" fill="#45407A">│</text>
-  <text x="696.8" y="537.2" fill="#45407A">│</text>
+  <path d="M 314.6000 537.2000 L 314.6000 556.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 537.2000 L 701.0000 556.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3962,8 +3971,8 @@
   <rect x="1074.8" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="556.8" fill="#45407A">│</text>
-  <text x="696.8" y="556.8" fill="#45407A">│</text>
+  <path d="M 314.6000 556.8000 L 314.6000 576.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 556.8000 L 701.0000 576.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4094,8 +4103,8 @@
   <rect x="1074.8" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="576.4" fill="#45407A">│</text>
-  <text x="696.8" y="576.4" fill="#45407A">│</text>
+  <path d="M 314.6000 576.4000 L 314.6000 596.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 576.4000 L 701.0000 596.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4226,8 +4235,8 @@
   <rect x="1074.8" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="596.0" fill="#45407A">│</text>
-  <text x="696.8" y="596.0" fill="#45407A">│</text>
+  <path d="M 314.6000 596.0000 L 314.6000 615.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 596.0000 L 701.0000 615.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4358,8 +4367,8 @@
   <rect x="1074.8" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="615.6" fill="#45407A">│</text>
-  <text x="696.8" y="615.6" fill="#45407A">│</text>
+  <path d="M 314.6000 615.6000 L 314.6000 635.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 615.6000 L 701.0000 635.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4490,8 +4499,8 @@
   <rect x="1074.8" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="635.2" fill="#45407A">│</text>
-  <text x="696.8" y="635.2" fill="#45407A">│</text>
+  <path d="M 314.6000 635.2000 L 314.6000 654.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 635.2000 L 701.0000 654.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4622,8 +4631,8 @@
   <rect x="1074.8" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="654.8" fill="#45407A">│</text>
-  <text x="696.8" y="654.8" fill="#45407A">│</text>
+  <path d="M 314.6000 654.8000 L 314.6000 674.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 654.8000 L 701.0000 674.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4754,8 +4763,8 @@
   <rect x="1074.8" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="310.4" y="674.4" fill="#45407A">│</text>
-  <text x="696.8" y="674.4" fill="#45407A">│</text>
+  <path d="M 314.6000 674.4000 L 314.6000 694.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 701.0000 674.4000 L 701.0000 694.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4886,34 +4895,34 @@
   <rect x="1074.8" y="694.0" width="8.4" height="19.6" fill="#27213E"/>
   <rect x="1083.2" y="694.0" width="8.4" height="19.6" fill="#282341"/>
   <rect x="1091.6" y="694.0" width="8.4" height="19.6" fill="#2A2443"/>
-  <text x="310.4" y="694.0" fill="#45407A">│</text>
-  <text x="335.6" y="694.0" fill="#FF69B4">^O</text>
-  <text x="360.8" y="694.0" fill="#9A96BE">Jump</text>
-  <text x="402.8" y="694.0" fill="#FF69B4">^J</text>
-  <text x="428.0" y="694.0" fill="#9A96BE">Send</text>
-  <text x="470.0" y="694.0" fill="#FF69B4">^S</text>
-  <text x="495.2" y="694.0" fill="#9A96BE">Save</text>
-  <text x="537.2" y="694.0" fill="#FF69B4">^N</text>
-  <text x="562.4" y="694.0" fill="#9A96BE">New</text>
-  <text x="596.0" y="694.0" fill="#9A96BE">tab</text>
-  <text x="629.6" y="694.0" fill="#FF69B4">^P</text>
-  <text x="654.8" y="694.0" fill="#9A96BE">Commands</text>
-  <text x="730.4" y="694.0" fill="#FF69B4">F1</text>
-  <text x="755.6" y="694.0" fill="#9A96BE">Help</text>
-  <text x="940.4" y="694.0" fill="#706B91">P</text>
-  <text x="948.8" y="694.0" fill="#706B91">o</text>
-  <text x="957.2" y="694.0" fill="#706B91">s</text>
-  <text x="965.6" y="694.0" fill="#706B91">t</text>
-  <text x="974.0" y="694.0" fill="#706B91">i</text>
-  <text x="982.4" y="694.0" fill="#706B91">n</text>
-  <text x="990.8" y="694.0" fill="#706B91">g</text>
-  <text x="1007.6" y="694.0" fill="#706B91">3</text>
-  <text x="1016.0" y="694.0" fill="#706B91">.</text>
-  <text x="1024.4" y="694.0" fill="#706B91">0</text>
-  <text x="1032.8" y="694.0" fill="#706B91">.</text>
-  <text x="1041.2" y="694.0" fill="#706B91">0</text>
-  <text x="1049.6" y="694.0" fill="#706B91">-</text>
-  <text x="1058.0" y="694.0" fill="#706B91">d</text>
-  <text x="1066.4" y="694.0" fill="#706B91">e</text>
-  <text x="1074.8" y="694.0" fill="#706B91">v</text>
+  <path d="M 314.6000 694.0000 L 314.6000 713.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="335.6" y="703.8" fill="#FF69B4">^O</text>
+  <text x="360.8" y="703.8" fill="#9A96BE">Jump</text>
+  <text x="402.8" y="703.8" fill="#FF69B4">^J</text>
+  <text x="428.0" y="703.8" fill="#9A96BE">Send</text>
+  <text x="470.0" y="703.8" fill="#FF69B4">^S</text>
+  <text x="495.2" y="703.8" fill="#9A96BE">Save</text>
+  <text x="537.2" y="703.8" fill="#FF69B4">^N</text>
+  <text x="562.4" y="703.8" fill="#9A96BE">New</text>
+  <text x="596.0" y="703.8" fill="#9A96BE">tab</text>
+  <text x="629.6" y="703.8" fill="#FF69B4">^P</text>
+  <text x="654.8" y="703.8" fill="#9A96BE">Commands</text>
+  <text x="730.4" y="703.8" fill="#FF69B4">F1</text>
+  <text x="755.6" y="703.8" fill="#9A96BE">Help</text>
+  <text x="940.4" y="703.8" fill="#706B91">P</text>
+  <text x="948.8" y="703.8" fill="#706B91">o</text>
+  <text x="957.2" y="703.8" fill="#706B91">s</text>
+  <text x="965.6" y="703.8" fill="#706B91">t</text>
+  <text x="974.0" y="703.8" fill="#706B91">i</text>
+  <text x="982.4" y="703.8" fill="#706B91">n</text>
+  <text x="990.8" y="703.8" fill="#706B91">g</text>
+  <text x="1007.6" y="703.8" fill="#706B91">3</text>
+  <text x="1016.0" y="703.8" fill="#706B91">.</text>
+  <text x="1024.4" y="703.8" fill="#706B91">0</text>
+  <text x="1032.8" y="703.8" fill="#706B91">.</text>
+  <text x="1041.2" y="703.8" fill="#706B91">0</text>
+  <text x="1049.6" y="703.8" fill="#706B91">-</text>
+  <text x="1058.0" y="703.8" fill="#706B91">d</text>
+  <text x="1066.4" y="703.8" fill="#706B91">e</text>
+  <text x="1074.8" y="703.8" fill="#706B91">v</text>
 </svg>
