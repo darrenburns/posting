@@ -188,7 +188,7 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 		if icon == "" {
 			suffix = "/"
 		}
-		return t.Text{Spans: []t.Span{{Text: icon + i.Folder.Name + suffix, Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: true}}}, Style: t.Style{Width: t.Flex(1)}}
+		return t.Text{Spans: []t.Span{{Text: icon + i.Folder.Name + suffix, Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: true}}}, Style: t.Style{Width: t.Flex(1), BackgroundColor: bg}}
 	}
 	// The method lines up with folder names at the same depth. The request
 	// in the visible tab is bold; others open in tabs get a dot after them.
@@ -215,7 +215,7 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 			{Text: r.DisplayName(), Style: nameStyle},
 			{Text: mark, Style: markStyle},
 		},
-		Style: t.Style{Width: t.Flex(1)},
+		Style: t.Style{Width: t.Flex(1), BackgroundColor: bg},
 	}
 }
 
