@@ -11,6 +11,7 @@ import (
 
 	"github.com/darrenburns/posting/internal/client"
 	"github.com/darrenburns/posting/internal/collection"
+	"github.com/darrenburns/posting/internal/env"
 	"github.com/darrenburns/posting/internal/paths"
 	"github.com/darrenburns/posting/internal/ui"
 )
@@ -104,6 +105,18 @@ func appConfig(opts options) (ui.Config, error) {
 	if info, err := os.Stat(dir); err != nil || !info.IsDir() {
 		return ui.Config{}, fmt.Errorf("collection %s is not a directory", dir)
 	}
+	envFiles, err := environmentFiles(opts.envFiles)
+	if err != nil {
+		return ui.Config{}, err
+	}
+	envDirs := []string{dir, paths.ConfigDir()}
+	if cwd, err := os.Getwd(); err == nil {
+		envDirs = append([]string{cwd}, envDirs...)
+	}
+	for _, file := range envFiles {
+		envDirs = append(envDirs, filepath.Dir(file))
+	}
+
 	store := collection.Dir{Root: dir}
 	root, problems := store.Load()
 	var messages []string
@@ -111,13 +124,38 @@ func appConfig(opts options) (ui.Config, error) {
 		messages = append(messages, "Couldn't load "+p.Error())
 	}
 	return ui.Config{
-		Version:         version,
-		Sender:          client.NewHTTP("posting/"+version, client.TLSSettings{}),
-		Collection:      root,
-		Store:           store,
-		Theme:           os.Getenv("POSTING_THEME"),
-		StartupMessages: messages,
+		Version:          version,
+		Sender:           client.NewHTTP("posting/"+version, client.TLSSettings{}),
+		Collection:       root,
+		Store:            store,
+		Environments:     env.Source{Dirs: envDirs},
+		Environment:      envFiles,
+		WatchEnvironment: true,
+		Theme:            os.Getenv("POSTING_THEME"),
+		StartupMessages:  messages,
 	}, nil
+}
+
+// environmentFiles resolves the --env files. Without any, posting.env in the
+// working directory is used if it exists, as in Posting 2.
+func environmentFiles(given []string) ([]string, error) {
+	if len(given) == 0 {
+		if info, err := os.Stat("posting.env"); err == nil && !info.IsDir() {
+			given = []string{"posting.env"}
+		}
+	}
+	files := make([]string, 0, len(given))
+	for _, file := range given {
+		abs, err := filepath.Abs(file)
+		if err != nil {
+			return nil, err
+		}
+		if info, err := os.Stat(abs); err != nil || info.IsDir() {
+			return nil, fmt.Errorf("environment file %s does not exist", file)
+		}
+		files = append(files, abs)
+	}
+	return files, nil
 }
 
 func locate(args []string, stdout, stderr io.Writer) int {
