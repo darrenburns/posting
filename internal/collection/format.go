@@ -36,9 +36,9 @@ type requestFile struct {
 }
 
 type bodyFile struct {
-	Content     *string  `yaml:"content,omitempty"`
-	FormData    []kvFile `yaml:"form_data,omitempty"`
-	ContentType string   `yaml:"content_type,omitempty"`
+	Content     *string   `yaml:"content,omitempty"`
+	FormData    *[]kvFile `yaml:"form_data,omitempty"`
+	ContentType string    `yaml:"content_type,omitempty"`
 }
 
 type authFile struct {
@@ -114,7 +114,7 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 	if b := in.Body; b != nil {
 		switch {
 		case b.FormData != nil:
-			req.Body = model.Body{Type: model.BodyForm, Form: kvsFromFile(b.FormData), ContentType: orDefault(b.ContentType, "application/x-www-form-urlencoded")}
+			req.Body = model.Body{Type: model.BodyForm, Form: kvsFromFile(*b.FormData), ContentType: orDefault(b.ContentType, "application/x-www-form-urlencoded")}
 		case b.Content != nil:
 			req.Body = model.Body{Type: model.BodyRaw, Raw: *b.Content, ContentType: orDefault(b.ContentType, contentTypeFromHeaders(req.Headers))}
 		}
@@ -167,12 +167,12 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 	// table. Files keep them only in the table, as Posting 2 writes them, so
 	// they aren't listed twice.
 	if len(req.Query) > 0 {
-		if base, _, ok := strings.Cut(req.URL, "?"); ok {
-			fragment := ""
-			if _, f, hasFragment := strings.Cut(req.URL, "#"); hasFragment {
-				fragment = "#" + f
-			}
-			out.URL = base + fragment
+		// A question mark inside a fragment is not a query delimiter.
+		base, fragment, hasFragment := strings.Cut(req.URL, "#")
+		base, _, _ = strings.Cut(base, "?")
+		out.URL = base
+		if hasFragment {
+			out.URL += "#" + fragment
 		}
 	}
 	if req.Method != model.MethodGet && req.Method != "" {
@@ -190,7 +190,7 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 		if form == nil {
 			form = []kvFile{}
 		}
-		out.Body = &bodyFile{FormData: form, ContentType: "application/x-www-form-urlencoded"}
+		out.Body = &bodyFile{FormData: &form, ContentType: "application/x-www-form-urlencoded"}
 	}
 	switch req.Auth.Type {
 	case model.AuthBasic:

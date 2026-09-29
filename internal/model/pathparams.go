@@ -7,9 +7,6 @@ import (
 
 // ResolvePathParams replaces ":name" path segments with their values.
 func ResolvePathParams(rawURL string, params []KeyValue) string {
-	if len(params) == 0 {
-		return rawURL
-	}
 	values := map[string]string{}
 	for _, p := range params {
 		values[p.Name] = p.Value

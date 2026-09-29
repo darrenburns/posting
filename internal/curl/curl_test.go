@@ -1,7 +1,9 @@
 package curl
 
 import (
+	"net/url"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/darrenburns/posting/internal/collection"
@@ -231,10 +233,10 @@ func TestRoundTripEdgeCases(t *testing.T) {
 			t.Fatalf("%s: %v\n%s", name, err, command)
 		}
 		want := wire(original)
-		if name == "xml" {
+		if name == "xml" || name == "json" {
 			// A raw body without a Content-Type header gains one, so curl
 			// (and the import) know what it is.
-			want.Headers = append(want.Headers, model.KeyValue{Name: "Content-Type", Value: "application/xml", Enabled: true})
+			want.Headers = append(want.Headers, model.KeyValue{Name: "Content-Type", Value: original.Body.ContentType, Enabled: true})
 		}
 		if got := wire(back); !reflect.DeepEqual(got, want) {
 			t.Errorf("%s changed in a round trip:\n%s\nbefore: %+v\nafter:  %+v", name, command, want, got)
@@ -249,13 +251,83 @@ func TestFormat(t *testing.T) {
 	req.Headers = []model.KeyValue{{Name: "X-Off", Value: "no", Enabled: false}, {Name: "Accept", Value: "*/*", Enabled: true}}
 	req.Body = model.Body{Type: model.BodyRaw, Raw: `{"name": "it's"}`, ContentType: "application/json"}
 	got := Format(req, FormatOptions{})
-	want := `curl https://api.test/users -H 'Accept: */*' --data-raw '{"name": "it'\''s"}' -L`
+	want := `curl https://api.test/users -H 'Accept: */*' -H 'Content-Type: application/json' --data-raw '{"name": "it'\''s"}' -L`
 	if got != want {
 		t.Errorf("single line:\n got %s\nwant %s", got, want)
 	}
 	got = Format(req, FormatOptions{Multiline: true, ExtraArgs: "-v"})
-	want = "curl -v https://api.test/users \\\n  -H 'Accept: */*' \\\n  --data-raw '{\"name\": \"it'\\''s\"}' \\\n  -L"
+	want = "curl -v https://api.test/users \\\n  -H 'Accept: */*' \\\n  -H 'Content-Type: application/json' \\\n  --data-raw '{\"name\": \"it'\\''s\"}' \\\n  -L"
 	if got != want {
 		t.Errorf("multi-line:\n got %s\nwant %s", got, want)
+	}
+}
+
+func TestFormatJSONIncludesContentType(t *testing.T) {
+	req := model.NewRequest()
+	req.Method = model.MethodPost
+	req.URL = "https://example.com"
+	req.Body = model.Body{Type: model.BodyRaw, Raw: `{"ok":true}`, ContentType: "application/json"}
+	command := Format(req, FormatOptions{})
+	if !strings.Contains(command, "Content-Type: application/json") {
+		t.Fatalf("JSON export omits its wire content type: %s", command)
+	}
+}
+
+func TestFormatQueryEscapesBeforeFragment(t *testing.T) {
+	for _, tc := range []struct{ name, raw, want string }{
+		{"escaping", "https://example.com/path", "https://example.com/path?a%26b=one+%2B+two%26three"},
+		{"fragment", "https://example.com/path#section", "https://example.com/path?a%26b=one+%2B+two%26three#section"},
+		{"question_in_fragment", "https://example.com/path#section?details", "https://example.com/path?a%26b=one+%2B+two%26three#section?details"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := model.NewRequest()
+			req.URL = tc.raw
+			req.Query = []model.KeyValue{{Name: "a&b", Value: "one + two&three", Enabled: true}}
+			if got := targetURL(req); got != tc.want {
+				t.Fatalf("target URL = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestFormatQueryPreservesVariables(t *testing.T) {
+	req := model.NewRequest()
+	req.URL = "https://example.com"
+	req.Query = []model.KeyValue{{Name: "q", Value: "${SEARCH} & more", Enabled: true}}
+	want := "https://example.com?q=${SEARCH}+%26+more"
+	if got := targetURL(req); got != want {
+		t.Fatalf("target URL = %q, want %q", got, want)
+	}
+}
+
+func TestFormatQueryUsesPostingVariableSyntax(t *testing.T) {
+	for _, tc := range []struct{ value, encoded string }{
+		{"${a&b}", "%24%7Ba%26b%7D"},
+		{"${a#b}", "%24%7Ba%23b%7D"},
+		{"${}", "%24%7B%7D"},
+		{"$${SEARCH}", "%24%24%7BSEARCH%7D"},
+		{"${SEARCH} & more", "${SEARCH}+%26+more"},
+		{"$SEARCH & more", "$SEARCH+%26+more"},
+	} {
+		t.Run(tc.value, func(t *testing.T) {
+			req := model.NewRequest()
+			req.URL = "https://api.test/search"
+			req.Query = []model.KeyValue{{Name: "q", Value: tc.value, Enabled: true}}
+			command := Format(req, FormatOptions{})
+			words, err := Split(command)
+			if err != nil {
+				t.Fatal(err)
+			}
+			target, err := url.Parse(words[1])
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := target.Query(); len(got) != 1 || got.Get("q") != tc.value {
+				t.Fatalf("query value corrupted: got %v, command=%s", got, command)
+			}
+			if target.Fragment != "" || target.RawQuery != "q="+tc.encoded {
+				t.Fatalf("query escaping = %q, want %q", target.String(), req.URL+"?q="+tc.encoded)
+			}
+		})
 	}
 }

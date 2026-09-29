@@ -98,6 +98,8 @@ type Session struct {
 	spinner               *t.SpinnerState
 	generation            uint64
 	cancel                context.CancelFunc
+	// dispatch schedules exchange updates on the UI goroutine.
+	dispatch func(func())
 
 	// prettifyJSON indents JSON response bodies.
 	prettifyJSON bool
@@ -157,6 +159,7 @@ func newSession(id int, req model.Request) *Session {
 		responseCookies:       t.NewTableState[model.Cookie](nil),
 		responseCookiesScroll: t.NewScrollState(),
 		spinner:               t.NewSpinnerState(t.SpinnerDots),
+		dispatch:              t.Dispatch,
 	}
 	s.urlVars, s.usernameVars, s.passwordVars = newCompletion(), newCompletion(), newCompletion()
 	s.tokenVars, s.proxyVars, s.bodyVars = newCompletion(), newCompletion(), newCompletion()
@@ -224,7 +227,12 @@ func (s *Session) Load(req model.Request) {
 	s.url.SetText(req.URL)
 	s.headers.Load(req.Headers)
 	s.query.Load(req.Query)
-	if !strings.Contains(req.URL, "?") && len(req.Query) > 0 {
+	base, _, _ := strings.Cut(req.URL, "#")
+	_, query, _ := strings.Cut(base, "?")
+	// An empty URL query falls back to saved rows, as model.Resolve does.
+	if query != "" {
+		s.syncQueryFromURL()
+	} else if len(req.Query) > 0 {
 		s.writeQueryToURL()
 	}
 	s.pathParams.Load(req.PathParams)
@@ -339,14 +347,12 @@ func encodeQueryPart(s string) string {
 }
 
 func (s *Session) syncQueryFromURL() {
-	raw := s.url.GetText()
+	// A question mark inside the fragment is not a query delimiter.
+	raw, _, _ := strings.Cut(s.url.GetText(), "#")
 	q := strings.IndexByte(raw, '?')
 	var parsed []model.KeyValue
 	if q >= 0 {
 		query := raw[q+1:]
-		if i := strings.IndexByte(query, '#'); i >= 0 {
-			query = query[:i]
-		}
 		for _, part := range strings.Split(query, "&") {
 			if part == "" {
 				continue
@@ -419,7 +425,7 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, onDone
 		Request:   req,
 		Variables: variables,
 		OnTrace: func(event model.TraceEvent) {
-			t.Dispatch(func() {
+			s.dispatch(func() {
 				if generation == s.generation {
 					s.trace.Set(mergeTrace(s.trace.Peek(), event))
 				}
@@ -428,7 +434,7 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, onDone
 	}
 	go func() {
 		resp, err := sender.Send(ctx, call)
-		t.Dispatch(func() {
+		s.dispatch(func() {
 			if generation != s.generation {
 				return
 			}

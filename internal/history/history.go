@@ -99,16 +99,26 @@ func (s *Store) Save(entries []model.HistoryEntry) error {
 }
 
 // Trim keeps the newest entries that fit within MaxEntries and MaxBytes.
+// An exchange that cannot fit on its own is skipped without evicting history.
 func Trim(entries []model.HistoryEntry) []model.HistoryEntry {
 	total := 0
-	for i, e := range entries {
+	var kept []model.HistoryEntry
+	for _, e := range entries {
+		if len(kept) >= MaxEntries {
+			break
+		}
+		size := len(e.Request.Body.Raw)
 		if e.Response != nil {
-			total += len(e.Response.Body)
+			size += len(e.Response.Body)
 		}
-		total += len(e.Request.Body.Raw)
-		if i >= MaxEntries || total > MaxBytes {
-			return entries[:i]
+		if size > MaxBytes {
+			continue
 		}
+		if total+size > MaxBytes {
+			break
+		}
+		total += size
+		kept = append(kept, e)
 	}
-	return entries
+	return kept
 }
