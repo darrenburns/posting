@@ -71,7 +71,9 @@ func Format(req model.Request, opts FormatOptions) string {
 	case model.BodyForm:
 		for _, f := range req.Body.Form {
 			if f.Enabled && f.Name != "" {
-				parts = append(parts, "--data-urlencode", Quote(f.Name+"="+f.Value))
+				// curl encodes only the value of name=content; the name must
+				// already be escaped or its delimiters change the form fields.
+				parts = append(parts, "--data-urlencode", Quote(escapeQueryPart(f.Name)+"="+f.Value))
 			}
 		}
 	}
