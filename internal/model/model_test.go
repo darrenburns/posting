@@ -48,24 +48,6 @@ func TestResolvePathParams(t *testing.T) {
 	}
 }
 
-func TestCurl(t *testing.T) {
-	req := NewRequest()
-	req.Method = MethodPost
-	req.URL = "${BASE}/users/:id"
-	req.PathParams = []KeyValue{{Name: "id", Value: "42", Enabled: true}}
-	req.Headers = []KeyValue{
-		{Name: "Content-Type", Value: "application/json", Enabled: true},
-		{Name: "X-Off", Value: "no", Enabled: false},
-	}
-	req.Auth = Auth{Type: AuthBearer, Token: "${TOKEN}"}
-	req.Body = Body{Type: BodyRaw, Raw: `{"name": "it's"}`}
-	got := Curl(req, lookup(map[string]string{"BASE": "https://api.test", "TOKEN": "abc"}))
-	want := `curl -X POST https://api.test/users/42 -H 'Content-Type: application/json' -H 'Authorization: Bearer abc' --data-raw '{"name": "it'\''s"}' -L`
-	if got != want {
-		t.Fatalf("Curl =\n%s\nwant\n%s", got, want)
-	}
-}
-
 func TestSortCollection(t *testing.T) {
 	c := &Collection{Requests: []Request{
 		{Name: "b", Method: MethodDelete},

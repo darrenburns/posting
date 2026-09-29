@@ -7,6 +7,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
+	"github.com/darrenburns/posting/internal/curl"
 	"github.com/darrenburns/posting/internal/model"
 )
 
@@ -129,11 +130,11 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 							t.TextInput{
 								ID:          urlInputID,
 								State:       s.url,
-								Placeholder: "Enter a URL…",
+								Placeholder: "Enter a URL or paste a curl command…",
 								Highlighter: urlHighlighter(theme, resolve),
 								Style:       inputStyle(theme, false),
 								OnChange:    func(string) { s.urlEdited() },
-								OnSubmit:    func(string) { a.send() },
+								OnSubmit:    a.submitURL,
 								ExtraKeybinds: []t.Keybind{
 									{Key: "down", Name: "Request", Action: func() { t.RequestFocus(requestTabsID) }, Hidden: true},
 									{Key: "ctrl+y", Name: "Copy URL", Action: func() {
@@ -309,6 +310,15 @@ func (p urlPreview) Build(ctx t.BuildContext) t.Widget {
 	values := p.app.variableValues()
 	style := t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(12, 0)}
 
+	if curl.IsCommand(text) {
+		hint := "Press [b]enter[/] to import this curl command"
+		if strings.HasSuffix(strings.TrimRight(text, " "), "\\") {
+			hint = "Press [b]enter[/] to continue the command on the next line"
+		}
+		preview := t.ParseMarkupToText("[$AccentText]↵[/] [$TextMuted]"+hint+"[/]", theme)
+		preview.Style = style
+		return preview
+	}
 	refs := model.FindVariables(text)
 	if len(refs) == 0 || !p.app.settings.URLBar.ShowValuePreview {
 		return t.Text{Content: "", Style: style}

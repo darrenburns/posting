@@ -106,6 +106,7 @@ type App struct {
 	confirm            t.AnySignal[confirmation]
 	save               *saveForm
 	variables          *variablesForm
+	curlDialog         *curlForm
 	toast              t.AnySignal[toast]
 	toastSeq           int
 }
@@ -173,6 +174,7 @@ func New(cfg Config) *App {
 	a.methodMenu = t.NewMenuState(a.methodMenuItems())
 	a.save = newSaveForm()
 	a.variables = newVariablesForm()
+	a.curlDialog = newCurlForm()
 	a.openSession(model.NewRequest())
 
 	messages := append([]string(nil), cfg.StartupMessages...)
@@ -555,17 +557,6 @@ func (a *App) toggleLayout() {
 
 func (a *App) toggleSidebar() {
 	a.sidebarVisible.Set(!a.sidebarVisible.Peek())
-}
-
-func (a *App) copyAsCurl() {
-	s := a.current()
-	if s == nil {
-		return
-	}
-	lookup := a.variableValuesPeek()
-	command := model.Curl(s.Snapshot(), func(name string) (string, bool) { v, ok := lookup[name]; return v, ok })
-	t.SetClipboard('c', command)
-	a.notify("Copied curl command to clipboard", toastSuccess)
 }
 
 func (a *App) focusRequestTab(key string) {
