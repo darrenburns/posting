@@ -198,6 +198,9 @@ type input struct {
 	Suggestions *t.AutocompleteState
 	// DisableFocus takes the input out of the focus order.
 	DisableFocus bool
+	// Completion, when set, completes ${VARIABLES} from Choices.
+	Completion *completion
+	Choices    variableChoices
 }
 
 func (i input) GetContentDimensions() (t.Dimension, t.Dimension) {
@@ -230,6 +233,9 @@ func (i input) Build(ctx t.BuildContext) t.Widget {
 		OnSubmit:      i.OnSubmit,
 		ExtraKeybinds: i.Keybinds,
 		DisableFocus:  i.DisableFocus,
+	}
+	if i.Completion != nil {
+		field = i.Completion.wrap(theme, field, i.Choices, t.Flex(1))
 	}
 	if i.Suggestions != nil {
 		field = t.Autocomplete{

@@ -44,6 +44,7 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 	resolve := p.app.resolver()
 	theme := ctx.Theme()
 	variables := variableHighlighter(theme, resolve)
+	choices := p.app.variableChoices()
 	gap := p.app.gap()
 	return section{
 		Prefix: "req-",
@@ -64,12 +65,14 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 							KeyPlaceholder:   "Add a header…",
 							ValuePlaceholder: "Value",
 							ValueHighlighter: variables,
+							Choices:          choices,
 						},
 						"body": bodyEditor{app: p.app, session: s},
 						"path": kvEditorView{
 							Editor:           s.pathParams,
 							ValuePlaceholder: "Value",
 							ValueHighlighter: variables,
+							Choices:          choices,
 							Empty: emptyState{
 								Title: "No path parameters",
 								Lines: []string{"Add [b]:name[/] segments to the URL to create them", "e.g. https://example.com/users/[b $Info]:id[/]"},
@@ -80,10 +83,11 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 							KeyPlaceholder:   "Add a parameter…",
 							ValuePlaceholder: "Value",
 							ValueHighlighter: variables,
+							Choices:          choices,
 						},
-						"auth":    authEditor{session: s, variables: variables, gap: gap},
+						"auth":    authEditor{session: s, variables: variables, choices: choices, gap: gap},
 						"info":    infoEditor{session: s, gap: gap},
-						"options": optionsEditor{session: s, variables: variables, gap: gap},
+						"options": optionsEditor{session: s, variables: variables, choices: choices, gap: gap},
 					},
 				},
 			},
@@ -132,7 +136,7 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 			Selected: contentType,
 			OnChange: func(value string) { s.contentType.Set(value); s.touch() },
 		})
-		content = t.TextArea{
+		var area t.Widget = t.TextArea{
 			ID:          "req-body-text",
 			State:       s.body,
 			ScrollState: s.bodyScroll,
@@ -141,12 +145,22 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 			Style:       t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
 			OnChange:    func(string) { s.touch() },
 		}
+		// Variables are only worth completing when they'll be substituted.
+		if s.substitute.Checked.Get() {
+			area = s.bodyVars.wrap(theme, area, b.app.variableChoices(), t.Flex(1))
+		}
+		content = area
 	case model.BodyForm:
 		content = kvEditorView{
 			Editor:           s.form,
 			KeyPlaceholder:   "Add a field…",
 			ValuePlaceholder: "Value",
 			ValueHighlighter: variableHighlighter(theme, b.app.resolver()),
+		}
+		if s.substitute.Checked.Get() {
+			form := content.(kvEditorView)
+			form.Choices = b.app.variableChoices()
+			content = form
 		}
 	default:
 		content = emptyState{Title: "No request body", Lines: []string{"Choose [b]Raw[/] for JSON, XML or text, or [b]Form[/] for URL-encoded fields"}}
@@ -188,6 +202,7 @@ type authEditor struct {
 	fillParent
 	session   *Session
 	variables t.Highlighter
+	choices   variableChoices
 	gap       int
 }
 
@@ -215,8 +230,8 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 	switch authType {
 	case model.AuthBasic, model.AuthDigest:
 		rows = append(rows,
-			field(formRow(ctx, "Username", "", input{ID: "req-auth-username", State: s.username, Placeholder: "Enter a username", Highlighter: e.variables, OnChange: touch}), "req-auth-username"),
-			field(formRow(ctx, "Password", "", input{ID: "req-auth-password", State: s.password, Placeholder: "Enter a password", Highlighter: e.variables, OnChange: touch}), "req-auth-password"),
+			field(formRow(ctx, "Username", "", input{ID: "req-auth-username", State: s.username, Placeholder: "Enter a username", Highlighter: e.variables, OnChange: touch, Completion: s.usernameVars, Choices: e.choices}), "req-auth-username"),
+			field(formRow(ctx, "Password", "", input{ID: "req-auth-password", State: s.password, Placeholder: "Enter a password", Highlighter: e.variables, OnChange: touch, Completion: s.passwordVars, Choices: e.choices}), "req-auth-password"),
 		)
 	case model.AuthBearer:
 		hint := ""
@@ -224,7 +239,7 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 			hint = "required"
 		}
 		rows = append(rows,
-			field(formRow(ctx, "Token", hint, input{ID: "req-auth-token", State: s.token, Placeholder: "Enter a token, e.g. ${API_TOKEN}", Highlighter: e.variables, OnChange: touch}), "req-auth-token"),
+			field(formRow(ctx, "Token", hint, input{ID: "req-auth-token", State: s.token, Placeholder: "Enter a token, e.g. ${API_TOKEN}", Highlighter: e.variables, OnChange: touch, Completion: s.tokenVars, Choices: e.choices}), "req-auth-token"),
 		)
 	default:
 		rows = append(rows, field(emptyState{Title: "No authentication", Lines: []string{"This request is sent without credentials"}}))
@@ -306,6 +321,7 @@ type optionsEditor struct {
 	fillParent
 	session   *Session
 	variables t.Highlighter
+	choices   variableChoices
 	gap       int
 }
 
@@ -337,7 +353,7 @@ func (e optionsEditor) Build(ctx t.BuildContext) t.Widget {
 			field(check("req-opt-verify", s.verifySSL, "Verify SSL certificates", "Reject servers with invalid certificates"), "req-opt-verify"),
 			field(check("req-opt-cookies", s.cookies, "Attach cookies", "Send cookies stored from earlier responses"), "req-opt-cookies"),
 			field(check("req-opt-substitute", s.substitute, "Substitute body variables", "Replace ${VAR} references in the body"), "req-opt-substitute"),
-			field(gap(formRow(ctx, "Proxy URL", "", input{ID: "req-opt-proxy", State: s.proxy, Placeholder: "http://proxy.example.com:8080", Highlighter: e.variables, OnChange: touch})), "req-opt-proxy"),
+			field(gap(formRow(ctx, "Proxy URL", "", input{ID: "req-opt-proxy", State: s.proxy, Placeholder: "http://proxy.example.com:8080", Highlighter: e.variables, OnChange: touch, Completion: s.proxyVars, Choices: e.choices})), "req-opt-proxy"),
 			field(gap(formRow(ctx, "Timeout", "", input{ID: "req-opt-timeout", State: s.timeout, Placeholder: "seconds", Width: t.Cells(12), OnChange: touch})), "req-opt-timeout"),
 		},
 	}

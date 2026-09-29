@@ -62,6 +62,9 @@ type Session struct {
 	proxy      *t.TextInputState
 	timeout    *t.TextInputState
 
+	// Variable completion for the fields that aren't key/value rows.
+	urlVars, usernameVars, passwordVars, tokenVars, proxyVars, bodyVars *completion
+
 	// title mirrors the name/URL for the tab strip.
 	title t.Signal[string]
 	// dirty is true when the request differs from what was last loaded/saved.
@@ -149,6 +152,8 @@ func newSession(id int, req model.Request) *Session {
 		responseCookies:    t.NewTableState[model.Cookie](nil),
 		spinner:            t.NewSpinnerState(t.SpinnerDots),
 	}
+	s.urlVars, s.usernameVars, s.passwordVars = newCompletion(), newCompletion(), newCompletion()
+	s.tokenVars, s.proxyVars, s.bodyVars = newCompletion(), newCompletion(), newCompletion()
 	s.responseBody.ReadOnly.Set(true)
 	s.query.onChange = s.queryEdited
 	s.headers.onChange = s.touch

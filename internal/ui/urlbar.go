@@ -127,7 +127,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 						Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)},
 						Children: []t.Widget{
 							t.Text{Content: "▎", Style: t.Style{ForegroundColor: barColor, BackgroundColor: theme.Surface}},
-							t.TextInput{
+							s.urlVars.wrap(theme, t.TextInput{
 								ID:          urlInputID,
 								State:       s.url,
 								Placeholder: "Enter a URL or paste a curl command…",
@@ -142,7 +142,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 										a.notify("Copied URL", toastSuccess)
 									}, Hidden: true},
 								},
-							},
+							}, a.variableChoices(), t.Flex(1)),
 						},
 					},
 					statusChip{session: s},
