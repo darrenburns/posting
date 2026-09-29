@@ -130,14 +130,11 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 	if req.Options.AttachCookies {
 		httpClient.Jar = h.jar
 	}
-	if !req.Options.FollowRedirects {
-		httpClient.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	}
 
 	body, contentType := encodeBody(req.Body)
 	tracer := newTracer(call.OnTrace, target.Scheme == "https")
 	started := time.Now()
-	build := func(authorization string) (*http.Request, error) {
+	build := func() (*http.Request, error) {
 		r, err := http.NewRequestWithContext(httptrace.WithClientTrace(ctx, tracer.clientTrace()), string(req.Method), req.URL, bytes.NewReader(body))
 		if err != nil {
 			return nil, err
@@ -167,27 +164,57 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 		case model.AuthBearer:
 			r.Header.Set("Authorization", "Bearer "+req.Auth.Token)
 		}
-		if authorization != "" {
-			r.Header.Set("Authorization", authorization)
-		}
 		return r, nil
 	}
 
-	httpReq, err := build("")
+	httpReq, err := build()
 	if err != nil {
 		return nil, err
 	}
+	// Remember explicit cookies before Client.Do adds the jar's cookies. A
+	// Digest retry must let the jar attach its current cookies only once,
+	// including any cookies set by the challenge or a redirect.
+	explicitCookies := append([]string(nil), httpReq.Header.Values("Cookie")...)
+	digestAllowed := true
+	httpClient.CheckRedirect = func(r *http.Request, via []*http.Request) error {
+		if !req.Options.FollowRedirects {
+			return http.ErrUseLastResponse
+		}
+		if len(via) >= 10 {
+			return errors.New("stopped after 10 redirects")
+		}
+		explicitCookies = append([]string(nil), r.Header.Values("Cookie")...)
+		// A challenge at another host must not acquire the original host's
+		// credentials, nor should a downgrade from HTTPS expose them.
+		if !strings.EqualFold(r.URL.Hostname(), target.Hostname()) || (target.Scheme == "https" && r.URL.Scheme != "https") {
+			digestAllowed = false
+		}
+		return nil
+	}
 	tracer.start(model.TraceConnect)
 	resp, err := httpClient.Do(httpReq)
-	if err == nil && req.Auth.Type == model.AuthDigest && resp.StatusCode == http.StatusUnauthorized {
+	if err == nil && digestAllowed && req.Auth.Type == model.AuthDigest && resp.StatusCode == http.StatusUnauthorized {
 		if challenge, ok := parseDigestChallenge(resp.Header.Values("WWW-Authenticate")); ok {
 			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxBodyBytes))
 			resp.Body.Close()
-			authorization, authErr := challenge.authorize(string(req.Method), resp.Request.URL, req.Auth.Username, req.Auth.Password, body)
+			authorization, authErr := challenge.authorize(resp.Request.Method, resp.Request.URL, req.Auth.Username, req.Auth.Password, body)
 			if authErr != nil {
 				return nil, authErr
 			}
-			httpReq, err = build(authorization)
+			// Retry the request that was challenged. Rebuilding the original
+			// request would repeat redirecting POSTs and sign the wrong method
+			// after a 301/302/303 changes it to GET.
+			httpReq = resp.Request.Clone(resp.Request.Context())
+			if httpReq.Body != nil && httpReq.Body != http.NoBody {
+				httpReq.Body, err = httpReq.GetBody()
+			}
+			httpReq.Header.Set("Authorization", authorization)
+			if httpClient.Jar != nil {
+				httpReq.Header.Del("Cookie")
+				for _, cookie := range explicitCookies {
+					httpReq.Header.Add("Cookie", cookie)
+				}
+			}
 			if err == nil {
 				resp, err = httpClient.Do(httpReq)
 			}
