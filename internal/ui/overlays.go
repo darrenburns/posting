@@ -438,13 +438,16 @@ func (a *App) submitSave() {
 	if s == nil {
 		return
 	}
+	req := s.Snapshot()
+	req.Name, req.Description, req.File = name, f.description.GetText(), path
+	if !a.storeRequest(req) {
+		return
+	}
 	s.syncing = true
 	s.name.SetText(name)
-	s.description.SetText(f.description.GetText())
+	s.description.SetText(req.Description)
 	s.file.Set(path)
 	s.syncing = false
-	req := s.Snapshot()
-	a.storeRequest(req)
 	s.title.Set(req.DisplayName())
 	s.dirty.Set(false)
 	a.closeOverlay()
