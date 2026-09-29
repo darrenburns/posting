@@ -295,3 +295,17 @@ func isBlank(state *t.TextInputState) bool {
 func textOf(state *t.TextInputState) string {
 	return strings.Join(state.Content.Get(), "")
 }
+
+// scrollingArea puts a text area (or a completion wrapping one) in a
+// Scrollable that shares the area's ScrollState. That is how Terma text
+// areas scroll: the view follows the cursor, a scrollbar shows where you
+// are, and the mouse wheel works. The area itself should have no height so
+// it grows with its text; clicking the space below the text focuses it.
+func scrollingArea(id string, scroll *t.ScrollState, background t.Color, area t.Widget) t.Widget {
+	return t.Scrollable{
+		State: scroll,
+		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: background},
+		Child: area,
+		Click: func(t.MouseEvent) { t.RequestFocus(id) },
+	}
+}

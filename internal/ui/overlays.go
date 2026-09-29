@@ -355,22 +355,24 @@ func (h helpOverlay) Build(ctx t.BuildContext) t.Widget {
 // Save
 
 type saveForm struct {
-	name        *t.TextInputState
-	file        *t.TextInputState
-	folder      *t.TextInputState
-	description *t.TextAreaState
-	err         t.Signal[string]
-	scroll      *formScroll
+	name              *t.TextInputState
+	file              *t.TextInputState
+	folder            *t.TextInputState
+	description       *t.TextAreaState
+	descriptionScroll *t.ScrollState
+	err               t.Signal[string]
+	scroll            *formScroll
 }
 
 func newSaveForm() *saveForm {
 	return &saveForm{
-		name:        t.NewTextInputState(""),
-		file:        t.NewTextInputState(""),
-		folder:      t.NewTextInputState(""),
-		description: t.NewTextAreaState(""),
-		err:         t.NewSignal(""),
-		scroll:      newFormScroll(),
+		name:              t.NewTextInputState(""),
+		file:              t.NewTextInputState(""),
+		folder:            t.NewTextInputState(""),
+		description:       t.NewTextAreaState(""),
+		descriptionScroll: t.NewScrollState(),
+		err:               t.NewSignal(""),
+		scroll:            newFormScroll(),
 	}
 }
 
@@ -460,7 +462,7 @@ func (o saveOverlay) Build(ctx t.BuildContext) t.Widget {
 		field(formRow(ctx, "Folder", "", input{ID: "save-folder", State: f.folder, Placeholder: "collection root", OnSubmit: submit}), "save-folder"),
 		field(t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(4)}, Children: []t.Widget{
 			formLabel([]t.Span{{Text: "Description", Style: t.SpanStyle{Foreground: theme.Text, Bold: true}}}),
-			t.TextArea{ID: "save-description", State: f.description, Placeholder: "optional", Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)}},
+			scrollingArea("save-description", f.descriptionScroll, theme.Surface, t.TextArea{ID: "save-description", State: f.description, ScrollState: f.descriptionScroll, Placeholder: "optional", Style: t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)}}),
 		}}, "save-description"),
 	}
 	if errText := f.err.Get(); errText != "" {

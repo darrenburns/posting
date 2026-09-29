@@ -163,17 +163,17 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
-			t.TextArea{
+			scrollingArea("resp-body", s.responseBodyScroll, theme.Background, t.TextArea{
 				ID:          "resp-body",
 				State:       s.responseBody,
 				ScrollState: s.responseBodyScroll,
 				Highlighter: b.app.bodyHighlighter(theme, languageFor(contentType), false),
-				Style:       t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
+				Style:       t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
 				ExtraKeybinds: []t.Keybind{
 					{Key: "w", Name: "Toggle wrap", Action: toggleWrap},
 					{Key: "y", Name: "Copy body", Action: copyBody},
 				},
-			},
+			}),
 			t.Row{
 				Style:   t.Style{Width: t.Flex(1), Height: t.Cells(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
 				Spacing: 2,

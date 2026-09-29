@@ -185,7 +185,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 		ScrollState: f.scroll,
 		Placeholder: "curl https://example.com -H 'Accept: application/json'",
 		Highlighter: a.bodyHighlighter(theme, "bash", false),
-		Style:       t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+		Style:       t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
 	}
 	f.text.ReadOnly.Set(!importing)
 	return modal{
@@ -198,7 +198,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 			Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 			Spacing: 1,
 			Children: []t.Widget{
-				curlKeys{app: a, importing: importing, child: area},
+				curlKeys{app: a, importing: importing, child: scrollingArea("curl-text", f.scroll, theme.Surface, area)},
 				message,
 				t.Row{Spacing: 2, Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: append([]t.Widget{toggle, t.Spacer{}}, buttons...)},
 			},
