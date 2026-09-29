@@ -87,6 +87,8 @@ type App struct {
 
 	// runExternal runs the editor or pager; tests replace it.
 	runExternal func(*exec.Cmd) error
+	// after runs fn on the UI goroutine once d has passed; tests replace it.
+	after func(d time.Duration, fn func())
 
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
@@ -95,6 +97,7 @@ type App struct {
 	// search the tree is filtered by (see tree_search.go).
 	treeSearch *t.TextInputState
 	treeFilter *t.FilterState
+	summary    summaryState
 
 	history       t.AnySignal[[]model.HistoryEntry]
 	historyList   *t.ListState[model.HistoryEntry]
@@ -177,6 +180,7 @@ func New(cfg Config) *App {
 		icons:          iconsFor(cfg.NerdFonts),
 		openURL:        cfg.OpenURL,
 		runExternal:    t.RunExternal,
+		after:          dispatchAfter,
 		watcher:        cfg.Reload,
 		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
@@ -186,6 +190,7 @@ func New(cfg Config) *App {
 		treeScroll:     t.NewScrollState(),
 		treeSearch:     t.NewTextInputState(""),
 		treeFilter:     t.NewFilterState(),
+		summary:        newSummaryState(),
 		history:        t.NewAnySignal[[]model.HistoryEntry](nil),
 		historyList:    t.NewListState[model.HistoryEntry](nil),
 		historyScroll:  t.NewScrollState(),
@@ -998,6 +1003,11 @@ func (a *App) notify(message string, kind toastKind) {
 			}
 		})
 	})
+}
+
+// dispatchAfter runs fn on the UI goroutine once d has passed.
+func dispatchAfter(d time.Duration, fn func()) {
+	time.AfterFunc(d, func() { t.Dispatch(fn) })
 }
 
 func splitFile(file string) (folder, name string) {
