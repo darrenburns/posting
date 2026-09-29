@@ -8,6 +8,7 @@ package ui
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"os/user"
 	"sort"
@@ -17,19 +18,25 @@ import (
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/client"
+	"github.com/darrenburns/posting/internal/collection"
 	"github.com/darrenburns/posting/internal/model"
 )
 
 // Config is everything the UI needs from the outside world.
 type Config struct {
-	Version      string
-	Sender       client.Sender
-	Collection   *model.Collection
+	Version    string
+	Sender     client.Sender
+	Collection *model.Collection
+	// Store saves and deletes requests. Nil keeps changes in memory only.
+	Store        collection.Store
 	Environments []model.Environment
 	// Theme is a Terma theme name. Empty uses galaxy.
 	Theme string
 	// UserHost is shown in the header. Empty uses the current user and host.
 	UserHost string
+	// StartupMessages are problems found while loading, shown once the app
+	// starts.
+	StartupMessages []string
 }
 
 // layoutMode arranges the request and response panels.
@@ -44,6 +51,7 @@ const (
 type App struct {
 	version string
 	sender  client.Sender
+	store   collection.Store
 	host    string
 
 	collection t.AnySignal[*model.Collection]
@@ -94,6 +102,9 @@ func New(cfg Config) *App {
 	if cfg.Sender == nil {
 		cfg.Sender = client.Fake{}
 	}
+	if cfg.Store == nil {
+		cfg.Store = collection.Memory{}
+	}
 	if cfg.Collection == nil {
 		cfg.Collection = &model.Collection{Name: "collection"}
 	}
@@ -103,6 +114,7 @@ func New(cfg Config) *App {
 	a := &App{
 		version:        cfg.Version,
 		sender:         cfg.Sender,
+		store:          cfg.Store,
 		host:           cfg.UserHost,
 		collection:     t.NewAnySignal(cfg.Collection),
 		treeScroll:     t.NewScrollState(),
@@ -145,6 +157,13 @@ func New(cfg Config) *App {
 	}
 	t.SetTheme(theme)
 	t.RequestFocus(urlInputID)
+	if n := len(cfg.StartupMessages); n > 0 {
+		message := cfg.StartupMessages[0]
+		if n > 1 {
+			message += fmt.Sprintf(" (and %d more)", n-1)
+		}
+		a.notify(message, toastError)
+	}
 	return a
 }
 
@@ -159,7 +178,9 @@ func userHost() string {
 		name = u.Username
 	}
 	host, _ := os.Hostname()
-	host, _, _ = strings.Cut(host, ".")
+	if net.ParseIP(host) == nil {
+		host, _, _ = strings.Cut(host, ".")
+	}
 	if host == "" {
 		return name
 	}
@@ -386,16 +407,24 @@ func (a *App) saveRequest() {
 		return
 	}
 	req := s.Snapshot()
-	a.storeRequest(req)
+	if !a.storeRequest(req) {
+		return
+	}
 	s.dirty.Set(false)
 	a.notify("Saved "+req.File, toastSuccess)
 }
 
-// storeRequest upserts req into the in-memory collection by its File.
-func (a *App) storeRequest(req model.Request) {
+// storeRequest writes req to the collection on disk and upserts it into the
+// in-memory collection by its File. It reports whether the save worked; a
+// failure has already been shown to the user.
+func (a *App) storeRequest(req model.Request) bool {
+	if err := a.store.Save(req); err != nil {
+		a.notify("Couldn't save "+req.File+": "+err.Error(), toastError)
+		return false
+	}
 	root := a.collection.Peek()
 	folderPath, _ := splitFile(req.File)
-	folder := ensureFolder(root, folderPath)
+	folder := collection.EnsureFolder(root, folderPath)
 	replaced := false
 	for i := range folder.Requests {
 		if folder.Requests[i].File == req.File {
@@ -408,9 +437,14 @@ func (a *App) storeRequest(req model.Request) {
 	}
 	root.Sort()
 	a.refreshTree()
+	return true
 }
 
 func (a *App) deleteRequest(file string) {
+	if err := a.store.Delete(file); err != nil {
+		a.notify("Couldn't delete "+file+": "+err.Error(), toastError)
+		return
+	}
 	root := a.collection.Peek()
 	folderPath, _ := splitFile(file)
 	folder := findFolder(root, folderPath)
@@ -739,7 +773,11 @@ func (a *App) notify(message string, kind toastKind) {
 	a.toastSeq++
 	seq := a.toastSeq
 	a.toast.Set(toast{message: message, kind: kind, seq: seq})
-	time.AfterFunc(3*time.Second, func() {
+	duration := 3 * time.Second
+	if kind == toastError {
+		duration = 6 * time.Second
+	}
+	time.AfterFunc(duration, func() {
 		t.Dispatch(func() {
 			if a.toast.Peek().seq == seq {
 				a.toast.Set(toast{})
@@ -769,33 +807,6 @@ func findFolder(root *model.Collection, path string) *model.Collection {
 		}
 		if next == nil {
 			return nil
-		}
-		folder = next
-	}
-	return folder
-}
-
-func ensureFolder(root *model.Collection, path string) *model.Collection {
-	if path == "" {
-		return root
-	}
-	folder := root
-	built := ""
-	for _, part := range strings.Split(path, "/") {
-		if built == "" {
-			built = part
-		} else {
-			built += "/" + part
-		}
-		var next *model.Collection
-		for _, child := range folder.Children {
-			if child.Name == part {
-				next = child
-			}
-		}
-		if next == nil {
-			next = &model.Collection{Name: part, Path: built}
-			folder.Children = append(folder.Children, next)
 		}
 		folder = next
 	}

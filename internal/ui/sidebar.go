@@ -352,7 +352,9 @@ func (a *App) duplicateAtCursor() {
 		candidate = fmt.Sprintf("%s-copy-%d.posting.yaml", base, n)
 	}
 	dup.File = candidate
-	a.storeRequest(dup)
+	if !a.storeRequest(dup) {
+		return
+	}
 	a.openRequest(dup)
 	a.notify("Duplicated as "+dup.File, toastSuccess)
 }
