@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	sidebarTabsID = "side-tabs"
-	treeID        = "side-tree"
-	historyID     = "side-history"
+	sidebarSplitID = "sidebar-split"
+	sidebarTabsID  = "side-tabs"
+	treeID         = "side-tree"
+	historyID      = "side-history"
 )
 
 // treeItem is a node in the collection tree: either a folder or a request.
@@ -59,31 +60,34 @@ func (a *App) cursorFolder() string {
 // sidebar is the collection browser.
 type sidebar struct{ app *App }
 
-func (sb sidebar) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Auto, t.Flex(1) }
+func (sb sidebar) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), t.Flex(1) }
 
+// Build lays the sidebar straight onto the app background, with no card
+// around it; the split pane's divider separates it from the workspace.
 func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 	a := sb.app
 	historyCount := len(a.history.Get())
-	return section{
-		Prefix: "side-",
-		Title:  a.collection.Get().Name,
-		Width:  t.Cells(38),
-		Height: t.Flex(1),
-		Child: t.Column{
-			Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-			Spacing: a.gap(),
-			Children: []t.Widget{
-				tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Tabs: []tabItem{
-					{Key: "requests", Label: "Requests"},
-					{Key: "history", Label: "History", Badge: countBadge(historyCount)},
-				}},
-				t.Switcher{
-					Active: a.sidebarTab.Get(),
-					Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-					Children: map[string]t.Widget{
-						"requests": collectionView{app: a},
-						"history":  historyView{app: a},
-					},
+	title := "[b $TextMuted]" + escapeMarkup(a.collection.Get().Name) + "[/]"
+	if focusWithin(ctx, "side-") {
+		title = "[b $Text]" + escapeMarkup(a.collection.Get().Name) + "[/]"
+	}
+	heading := t.ParseMarkupToText(title, ctx.Theme())
+	heading.Style.Width = t.Flex(1)
+	return t.Column{
+		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Left: 2, Right: 1}},
+		Spacing: a.gap(),
+		Children: []t.Widget{
+			heading,
+			tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Tabs: []tabItem{
+				{Key: "requests", Label: "Requests"},
+				{Key: "history", Label: "History", Badge: countBadge(historyCount)},
+			}},
+			t.Switcher{
+				Active: a.sidebarTab.Get(),
+				Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+				Children: map[string]t.Widget{
+					"requests": collectionView{app: a},
+					"history":  historyView{app: a},
 				},
 			},
 		},

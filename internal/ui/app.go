@@ -65,6 +65,7 @@ type App struct {
 
 	sidebarVisible t.Signal[bool]
 	sidebarTab     t.Signal[string]
+	sidebarSplit   *t.SplitPaneState
 	layout         t.Signal[layoutMode]
 	expanded       t.Signal[string] // "", "request" or "response"
 	// compact drops the blank rows between parts of the layout when the
@@ -114,6 +115,7 @@ func New(cfg Config) *App {
 		active:         t.NewSignal(0),
 		sidebarVisible: t.NewSignal(true),
 		sidebarTab:     t.NewSignal("requests"),
+		sidebarSplit:   t.NewSplitPaneState(0.28),
 		layout:         t.NewSignal(layoutVertical),
 		expanded:       t.NewSignal(""),
 		compact:        t.NewSignal(false),
@@ -503,33 +505,38 @@ func (a *App) Keybinds() []t.Keybind {
 
 func (a *App) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
-	body := []t.Widget{}
-	if a.sidebarVisible.Get() {
-		body = append(body, sidebar{app: a})
+	var main t.Widget = t.Dock{
+		Style:  t.Style{BackgroundColor: theme.Background},
+		Top:    []t.Widget{header{app: a}},
+		Bottom: []t.Widget{footer{app: a}},
+		Body: t.Stack{
+			Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+			Children: []t.Widget{
+				heightProbe{app: a},
+				t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}, Children: []t.Widget{workspace{app: a}}},
+			},
+		},
 	}
-	body = append(body, workspace{app: a})
+	// The sidebar runs the full height of the app, beside the header and
+	// footer rather than between them.
+	if a.sidebarVisible.Get() {
+		main = t.SplitPane{
+			ID:           sidebarSplitID,
+			State:        a.sidebarSplit,
+			First:        sidebar{app: a},
+			Second:       main,
+			MinPaneSize:  24,
+			DisableFocus: true,
+		}
+	}
 
 	return t.Jumper{
 		State:   a.jump,
 		Targets: a.jumpTargets(),
 		Dynamic: true,
-		Child: t.Dock{
-			Style:  t.Style{BackgroundColor: theme.Background},
-			Top:    []t.Widget{header{app: a}},
-			Bottom: []t.Widget{footer{app: a}},
-			Body: t.Column{
-				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-				Children: []t.Widget{
-					t.Stack{
-						Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-						Children: []t.Widget{
-							heightProbe{app: a},
-							t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}, Spacing: 1, Children: body},
-						},
-					},
-					overlays{app: a},
-				},
-			},
+		Child: t.Column{
+			Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Background},
+			Children: []t.Widget{main, overlays{app: a}},
 		},
 	}
 }

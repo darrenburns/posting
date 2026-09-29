@@ -138,8 +138,10 @@
   <rect x="1074.8" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="24.8" y="8.0" fill="#545460">Posting</text>
-  <text x="92.0" y="8.0" fill="#39384F">3.0.0-dev</text>
+  <text x="24.8" y="8.0" fill="#39384F">sample-api</text>
+  <text x="310.4" y="8.0" fill="#1F1E3A">│</text>
+  <text x="335.6" y="8.0" fill="#545460">Posting</text>
+  <text x="402.8" y="8.0" fill="#39384F">3.0.0-dev</text>
   <text x="923.6" y="8.0" fill="#563F56">◆</text>
   <text x="940.4" y="8.0" fill="#563F56">local</text>
   <text x="1007.6" y="8.0" fill="#39384F">user@host</text>
@@ -273,9 +275,6 @@
   <rect x="1074.8" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="27.6" fill="#1F1E3A">╭</text>
-  <text x="41.6" y="27.6" fill="#39384F">sample-api</text>
-  <text x="142.4" y="27.6" fill="#1F1E3A">────────</text>
   <text x="209.6" y="27.6" fill="#C45AFF">╭</text>
   <text x="234.8" y="27.6" class="bold" fill="#F5F5F6">Keyboard</text>
   <text x="310.4" y="27.6" class="bold" fill="#F5F5F6">shortcuts</text>
@@ -410,9 +409,8 @@
   <rect x="1074.8" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="47.2" fill="#1F1E3A">│</text>
-  <text x="41.6" y="47.2" fill="#545460">Requests</text>
-  <text x="125.6" y="47.2" fill="#39384F">History</text>
+  <text x="33.2" y="47.2" fill="#545460">Requests</text>
+  <text x="117.2" y="47.2" fill="#39384F">History</text>
   <text x="209.6" y="47.2" fill="#C45AFF">│</text>
   <text x="890.0" y="47.2" fill="#C45AFF">│</text>
   <rect x="8.0" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -545,7 +543,6 @@
   <rect x="1074.8" y="66.8" width="8.4" height="19.6" fill="#331E4C"/>
   <rect x="1083.2" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="66.8" fill="#1F1E3A">│</text>
   <text x="209.6" y="66.8" fill="#C45AFF">│</text>
   <text x="234.8" y="66.8" class="bold" fill="#FAAFD5">Global</text>
   <text x="890.0" y="66.8" fill="#C45AFF">│</text>
@@ -556,12 +553,12 @@
   <rect x="16.4" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="33.2" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="41.6" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="41.6" y="86.4" width="8.4" height="19.6" fill="#121225"/>
   <rect x="50.0" y="86.4" width="8.4" height="19.6" fill="#121225"/>
   <rect x="58.4" y="86.4" width="8.4" height="19.6" fill="#121225"/>
   <rect x="66.8" y="86.4" width="8.4" height="19.6" fill="#121225"/>
   <rect x="75.2" y="86.4" width="8.4" height="19.6" fill="#121225"/>
-  <rect x="83.6" y="86.4" width="8.4" height="19.6" fill="#121225"/>
+  <rect x="83.6" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="92.0" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="100.4" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="108.8" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -682,9 +679,8 @@
   <rect x="1074.8" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="86.4" fill="#1F1E3A">│</text>
-  <text x="33.2" y="86.4" fill="#545460">▼</text>
-  <text x="50.0" y="86.4" fill="#3B3A53">auth/</text>
+  <text x="24.8" y="86.4" fill="#545460">▼</text>
+  <text x="41.6" y="86.4" fill="#3B3A53">auth/</text>
   <text x="209.6" y="86.4" fill="#C45AFF">│</text>
   <text x="234.8" y="86.4" class="bold" fill="#F5F5F6">ctrl+j</text>
   <text x="419.6" y="86.4" fill="#9A96BE">Send</text>
@@ -824,10 +820,9 @@
   <rect x="1074.8" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="106.0" fill="#1F1E3A">│</text>
-  <text x="66.8" y="106.0" fill="#4D3D61">GET</text>
-  <text x="100.4" y="106.0" fill="#545460">Current</text>
-  <text x="167.6" y="106.0" fill="#545460">user</text>
+  <text x="58.4" y="106.0" fill="#4D3D61">GET</text>
+  <text x="92.0" y="106.0" fill="#545460">Current</text>
+  <text x="159.2" y="106.0" fill="#545460">user</text>
   <text x="209.6" y="106.0" fill="#C45AFF">│</text>
   <text x="234.8" y="106.0" class="bold" fill="#F5F5F6">esc</text>
   <text x="419.6" y="106.0" fill="#9A96BE">Cancel</text>
@@ -966,9 +961,8 @@
   <rect x="1074.8" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="125.6" fill="#1F1E3A">│</text>
-  <text x="66.8" y="125.6" fill="#2F5552">POS</text>
-  <text x="100.4" y="125.6" fill="#545460">Login</text>
+  <text x="58.4" y="125.6" fill="#2F5552">POS</text>
+  <text x="92.0" y="125.6" fill="#545460">Login</text>
   <text x="209.6" y="125.6" fill="#C45AFF">│</text>
   <text x="234.8" y="125.6" class="bold" fill="#F5F5F6">ctrl+o</text>
   <text x="419.6" y="125.6" fill="#9A96BE">Jump</text>
@@ -1111,9 +1105,8 @@
   <rect x="1074.8" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="145.2" fill="#1F1E3A">│</text>
-  <text x="33.2" y="145.2" fill="#545460">▼</text>
-  <text x="50.0" y="145.2" fill="#39384F">users/</text>
+  <text x="24.8" y="145.2" fill="#545460">▼</text>
+  <text x="41.6" y="145.2" fill="#39384F">users/</text>
   <text x="209.6" y="145.2" fill="#C45AFF">│</text>
   <text x="234.8" y="145.2" class="bold" fill="#F5F5F6">ctrl+p</text>
   <text x="419.6" y="145.2" fill="#9A96BE">Command</text>
@@ -1250,10 +1243,9 @@
   <rect x="1074.8" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="164.8" fill="#1F1E3A">│</text>
-  <text x="66.8" y="164.8" fill="#4D3D61">GET</text>
-  <text x="100.4" y="164.8" fill="#545460">Get</text>
-  <text x="134.0" y="164.8" fill="#545460">user</text>
+  <text x="58.4" y="164.8" fill="#4D3D61">GET</text>
+  <text x="92.0" y="164.8" fill="#545460">Get</text>
+  <text x="125.6" y="164.8" fill="#545460">user</text>
   <text x="209.6" y="164.8" fill="#C45AFF">│</text>
   <text x="234.8" y="164.8" class="bold" fill="#F5F5F6">ctrl+g</text>
   <text x="419.6" y="164.8" fill="#9A96BE">Go</text>
@@ -1395,10 +1387,9 @@
   <rect x="1074.8" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="184.4" fill="#1F1E3A">│</text>
-  <text x="66.8" y="184.4" fill="#4D3D61">GET</text>
-  <text x="100.4" y="184.4" fill="#545460">List</text>
-  <text x="142.4" y="184.4" fill="#545460">users</text>
+  <text x="58.4" y="184.4" fill="#4D3D61">GET</text>
+  <text x="92.0" y="184.4" fill="#545460">List</text>
+  <text x="134.0" y="184.4" fill="#545460">users</text>
   <text x="209.6" y="184.4" fill="#C45AFF">│</text>
   <text x="234.8" y="184.4" class="bold" fill="#F5F5F6">ctrl+s</text>
   <text x="419.6" y="184.4" fill="#9A96BE">Save</text>
@@ -1539,10 +1530,9 @@
   <rect x="1074.8" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="204.0" fill="#1F1E3A">│</text>
-  <text x="66.8" y="204.0" fill="#2F5552">POS</text>
-  <text x="100.4" y="204.0" fill="#545460">Create</text>
-  <text x="159.2" y="204.0" fill="#545460">user</text>
+  <text x="58.4" y="204.0" fill="#2F5552">POS</text>
+  <text x="92.0" y="204.0" fill="#545460">Create</text>
+  <text x="150.8" y="204.0" fill="#545460">user</text>
   <text x="209.6" y="204.0" fill="#C45AFF">│</text>
   <text x="234.8" y="204.0" class="bold" fill="#F5F5F6">ctrl+n</text>
   <text x="419.6" y="204.0" fill="#9A96BE">Open</text>
@@ -1682,10 +1672,9 @@
   <rect x="1074.8" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="223.6" fill="#1F1E3A">│</text>
-  <text x="66.8" y="223.6" fill="#48435D">PAT</text>
-  <text x="100.4" y="223.6" fill="#545460">Update</text>
-  <text x="159.2" y="223.6" fill="#545460">user</text>
+  <text x="58.4" y="223.6" fill="#48435D">PAT</text>
+  <text x="92.0" y="223.6" fill="#545460">Update</text>
+  <text x="150.8" y="223.6" fill="#545460">user</text>
   <text x="209.6" y="223.6" fill="#C45AFF">│</text>
   <text x="234.8" y="223.6" class="bold" fill="#F5F5F6">alt+w</text>
   <text x="419.6" y="223.6" fill="#9A96BE">Close</text>
@@ -1824,10 +1813,9 @@
   <rect x="1074.8" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="243.2" fill="#1F1E3A">│</text>
-  <text x="66.8" y="243.2" fill="#563A3B">DEL</text>
-  <text x="100.4" y="243.2" fill="#545460">Delete</text>
-  <text x="159.2" y="243.2" fill="#545460">user</text>
+  <text x="58.4" y="243.2" fill="#563A3B">DEL</text>
+  <text x="92.0" y="243.2" fill="#545460">Delete</text>
+  <text x="150.8" y="243.2" fill="#545460">user</text>
   <text x="209.6" y="243.2" fill="#C45AFF">│</text>
   <text x="234.8" y="243.2" class="bold" fill="#F5F5F6">alt+←</text>
   <text x="285.2" y="243.2" class="bold" fill="#F5F5F6">/</text>
@@ -1967,10 +1955,9 @@
   <rect x="1074.8" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="262.8" fill="#1F1E3A">│</text>
-  <text x="50.0" y="262.8" fill="#4D3D61">GET</text>
-  <text x="83.6" y="262.8" fill="#545460">Health</text>
-  <text x="142.4" y="262.8" fill="#545460">check</text>
+  <text x="41.6" y="262.8" fill="#4D3D61">GET</text>
+  <text x="75.2" y="262.8" fill="#545460">Health</text>
+  <text x="134.0" y="262.8" fill="#545460">check</text>
   <text x="209.6" y="262.8" fill="#C45AFF">│</text>
   <text x="234.8" y="262.8" class="bold" fill="#F5F5F6">ctrl+l</text>
   <text x="419.6" y="262.8" fill="#9A96BE">Focus</text>
@@ -2109,10 +2096,9 @@
   <rect x="1074.8" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="282.4" fill="#1F1E3A">│</text>
-  <text x="50.0" y="282.4" fill="#39384F">OPT</text>
-  <text x="83.6" y="282.4" fill="#545460">CORS</text>
-  <text x="125.6" y="282.4" fill="#545460">preflight</text>
+  <text x="41.6" y="282.4" fill="#39384F">OPT</text>
+  <text x="75.2" y="282.4" fill="#545460">CORS</text>
+  <text x="117.2" y="282.4" fill="#545460">preflight</text>
   <text x="209.6" y="282.4" fill="#C45AFF">│</text>
   <text x="234.8" y="282.4" class="bold" fill="#F5F5F6">ctrl+t</text>
   <text x="419.6" y="282.4" fill="#9A96BE">Choose</text>
@@ -2251,7 +2237,6 @@
   <rect x="1074.8" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="302.0" fill="#1F1E3A">│</text>
   <text x="209.6" y="302.0" fill="#C45AFF">│</text>
   <text x="234.8" y="302.0" class="bold" fill="#F5F5F6">ctrl+h</text>
   <text x="419.6" y="302.0" fill="#9A96BE">Show</text>
@@ -2391,7 +2376,6 @@
   <rect x="1074.8" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="321.6" fill="#1F1E3A">│</text>
   <text x="209.6" y="321.6" fill="#C45AFF">│</text>
   <text x="234.8" y="321.6" class="bold" fill="#F5F5F6">alt+z</text>
   <text x="419.6" y="321.6" fill="#9A96BE">Expand</text>
@@ -2530,7 +2514,6 @@
   <rect x="1074.8" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="341.2" fill="#1F1E3A">│</text>
   <text x="209.6" y="341.2" fill="#C45AFF">│</text>
   <text x="234.8" y="341.2" class="bold" fill="#F5F5F6">ctrl+shift+v</text>
   <text x="419.6" y="341.2" fill="#9A96BE">Variables</text>
@@ -2666,7 +2649,6 @@
   <rect x="1074.8" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="360.8" fill="#1F1E3A">│</text>
   <text x="209.6" y="360.8" fill="#C45AFF">│</text>
   <text x="234.8" y="360.8" class="bold" fill="#F5F5F6">f1</text>
   <text x="419.6" y="360.8" fill="#9A96BE">This</text>
@@ -2803,7 +2785,6 @@
   <rect x="1074.8" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="380.4" fill="#1F1E3A">│</text>
   <text x="209.6" y="380.4" fill="#C45AFF">│</text>
   <text x="234.8" y="380.4" class="bold" fill="#F5F5F6">ctrl+c</text>
   <text x="419.6" y="380.4" fill="#9A96BE">Quit</text>
@@ -2939,7 +2920,6 @@
   <rect x="1074.8" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="400.0" fill="#1F1E3A">│</text>
   <text x="209.6" y="400.0" fill="#C45AFF">│</text>
   <text x="890.0" y="400.0" fill="#C45AFF">│</text>
   <text x="898.4" y="400.0" fill="#1F1E3A">──────────────────────╮</text>
@@ -3073,7 +3053,6 @@
   <rect x="1074.8" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="419.6" fill="#1F1E3A">│</text>
   <text x="209.6" y="419.6" fill="#C45AFF">│</text>
   <text x="234.8" y="419.6" class="bold" fill="#FAAFD5">Jump</text>
   <text x="276.8" y="419.6" class="bold" fill="#FAAFD5">mode</text>
@@ -3210,7 +3189,6 @@
   <rect x="1074.8" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="439.2" fill="#1F1E3A">│</text>
   <text x="209.6" y="439.2" fill="#C45AFF">│</text>
   <text x="234.8" y="439.2" class="bold" fill="#F5F5F6">1</text>
   <text x="251.6" y="439.2" class="bold" fill="#F5F5F6">/</text>
@@ -3352,7 +3330,6 @@
   <rect x="1074.8" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="458.8" fill="#1F1E3A">│</text>
   <text x="209.6" y="458.8" fill="#C45AFF">│</text>
   <text x="234.8" y="458.8" class="bold" fill="#F5F5F6">3</text>
   <text x="251.6" y="458.8" class="bold" fill="#F5F5F6">/</text>
@@ -3492,7 +3469,6 @@
   <rect x="1074.8" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="478.4" fill="#1F1E3A">│</text>
   <text x="209.6" y="478.4" fill="#C45AFF">│</text>
   <text x="234.8" y="478.4" class="bold" fill="#F5F5F6">q</text>
   <text x="251.6" y="478.4" class="bold" fill="#F5F5F6">w</text>
@@ -3639,7 +3615,6 @@
   <rect x="1074.8" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="498.0" fill="#1F1E3A">│</text>
   <text x="209.6" y="498.0" fill="#C45AFF">│</text>
   <text x="234.8" y="498.0" class="bold" fill="#F5F5F6">a</text>
   <text x="251.6" y="498.0" class="bold" fill="#F5F5F6">s</text>
@@ -3783,7 +3758,6 @@
   <rect x="1074.8" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="517.6" fill="#1F1E3A">│</text>
   <text x="209.6" y="517.6" fill="#C45AFF">│</text>
   <text x="234.8" y="517.6" class="bold" fill="#F5F5F6">other</text>
   <text x="285.2" y="517.6" class="bold" fill="#F5F5F6">labels</text>
@@ -3926,7 +3900,6 @@
   <rect x="1074.8" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="537.2" fill="#1F1E3A">│</text>
   <text x="209.6" y="537.2" fill="#C45AFF">│</text>
   <text x="234.8" y="537.2" class="bold" fill="#F5F5F6">esc</text>
   <text x="419.6" y="537.2" fill="#9A96BE">Leave</text>
@@ -4064,7 +4037,6 @@
   <rect x="1074.8" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="556.8" fill="#1F1E3A">│</text>
   <text x="209.6" y="556.8" fill="#C45AFF">│</text>
   <text x="890.0" y="556.8" fill="#C45AFF">│</text>
   <text x="1083.2" y="556.8" fill="#1F1E3A">│</text>
@@ -4198,7 +4170,6 @@
   <rect x="1074.8" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="576.4" fill="#1F1E3A">│</text>
   <text x="209.6" y="576.4" fill="#C45AFF">│</text>
   <text x="234.8" y="576.4" class="bold" fill="#FAAFD5">Method</text>
   <text x="293.6" y="576.4" class="bold" fill="#FAAFD5">selector</text>
@@ -4334,7 +4305,6 @@
   <rect x="1074.8" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="596.0" fill="#1F1E3A">│</text>
   <text x="209.6" y="596.0" fill="#C45AFF">│</text>
   <text x="234.8" y="596.0" class="bold" fill="#F5F5F6">g</text>
   <text x="251.6" y="596.0" class="bold" fill="#F5F5F6">p</text>
@@ -4482,7 +4452,6 @@
   <rect x="1074.8" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="615.6" fill="#1F1E3A">│</text>
   <text x="209.6" y="615.6" fill="#C45AFF">│</text>
   <text x="234.8" y="615.6" class="bold" fill="#F5F5F6">enter</text>
   <text x="419.6" y="615.6" fill="#9A96BE">Open</text>
@@ -4621,7 +4590,6 @@
   <rect x="1074.8" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="635.2" fill="#1F1E3A">│</text>
   <text x="209.6" y="635.2" fill="#C45AFF">│</text>
   <text x="890.0" y="635.2" fill="#C45AFF">│</text>
   <text x="1083.2" y="635.2" fill="#1F1E3A">│</text>
@@ -4755,7 +4723,6 @@
   <rect x="1074.8" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="654.8" fill="#1F1E3A">│</text>
   <text x="209.6" y="654.8" fill="#C45AFF">│</text>
   <text x="890.0" y="654.8" fill="#C45AFF">│</text>
   <text x="1083.2" y="654.8" fill="#1F1E3A">│</text>
@@ -4889,7 +4856,6 @@
   <rect x="1074.8" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="16.4" y="674.4" fill="#1F1E3A">╰──────────────────────</text>
   <text x="209.6" y="674.4" fill="#C45AFF">╰────────────────────────────────────────────────────────────────</text>
   <text x="772.4" y="674.4" fill="#9A96BE">esc</text>
   <text x="806.0" y="674.4" fill="#9A96BE">to</text>
@@ -5026,15 +4992,16 @@
   <rect x="1074.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="24.8" y="694.0" fill="#572A4C">^J</text>
-  <text x="50.0" y="694.0" fill="#39384F">Send</text>
-  <text x="92.0" y="694.0" fill="#572A4C">^S</text>
-  <text x="117.2" y="694.0" fill="#39384F">Save</text>
-  <text x="159.2" y="694.0" fill="#572A4C">^N</text>
-  <text x="184.4" y="694.0" fill="#39384F">New</text>
-  <text x="218.0" y="694.0" fill="#39384F">tab</text>
-  <text x="251.6" y="694.0" fill="#572A4C">^P</text>
-  <text x="276.8" y="694.0" fill="#39384F">Commands</text>
-  <text x="352.4" y="694.0" fill="#572A4C">F1</text>
-  <text x="377.6" y="694.0" fill="#39384F">Help</text>
+  <text x="310.4" y="694.0" fill="#1F1E3A">│</text>
+  <text x="335.6" y="694.0" fill="#572A4C">^J</text>
+  <text x="360.8" y="694.0" fill="#39384F">Send</text>
+  <text x="402.8" y="694.0" fill="#572A4C">^S</text>
+  <text x="428.0" y="694.0" fill="#39384F">Save</text>
+  <text x="470.0" y="694.0" fill="#572A4C">^N</text>
+  <text x="495.2" y="694.0" fill="#39384F">New</text>
+  <text x="528.8" y="694.0" fill="#39384F">tab</text>
+  <text x="562.4" y="694.0" fill="#572A4C">^P</text>
+  <text x="587.6" y="694.0" fill="#39384F">Commands</text>
+  <text x="663.2" y="694.0" fill="#572A4C">F1</text>
+  <text x="688.4" y="694.0" fill="#39384F">Help</text>
 </svg>
