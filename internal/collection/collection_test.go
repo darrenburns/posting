@@ -215,3 +215,41 @@ func TestEmptyFormRoundTrip(t *testing.T) {
 		t.Fatalf("empty form changed type to %q after save/reload; YAML: %s", back.Body.Type, data)
 	}
 }
+
+func TestDirSavePreservesFragmentWithDisabledQuery(t *testing.T) {
+	for _, rawURL := range []string{
+		"https://api.test/search#results?view=compact",
+		"${BASE_URL}/search#results?view=compact",
+		"https://api.test/search#?view=compact",
+		"https://api.test/search#",
+		"https://api.test/search#results",
+		"https://api.test/search",
+	} {
+		t.Run(rawURL, func(t *testing.T) {
+			dir := Dir{Root: t.TempDir()}
+			req := model.NewRequest()
+			req.File = "search.posting.yaml"
+			// Disabling the last enabled query row in the editor leaves the
+			// URL without a query but retains the disabled row in the table.
+			req.URL = rawURL
+			req.Query = []model.KeyValue{{Name: "q", Value: "saved", Enabled: false}}
+			for save := 1; save <= 2; save++ {
+				if err := dir.Save(req); err != nil {
+					t.Fatal(err)
+				}
+				root, problems := dir.Load()
+				if len(problems) != 0 || len(root.Requests) != 1 {
+					t.Fatalf("saved request could not be loaded: %+v, %v", root, problems)
+				}
+				got := root.Requests[0]
+				if got.URL != rawURL {
+					t.Fatalf("save %d changed URL: got %q, want %q", save, got.URL, rawURL)
+				}
+				if !reflect.DeepEqual(got.Query, req.Query) {
+					t.Fatalf("save %d changed disabled query rows: got %+v, want %+v", save, got.Query, req.Query)
+				}
+				req = got
+			}
+		})
+	}
+}
