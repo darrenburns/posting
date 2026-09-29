@@ -273,19 +273,18 @@
   <rect x="1091.6" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="8.0" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="24.8" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="33.2" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="41.6" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="50.0" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="58.4" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="66.8" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="75.2" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="83.6" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="92.0" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
-  <rect x="100.4" y="47.2" width="8.4" height="19.6" fill="#45407A"/>
+  <rect x="24.8" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="33.2" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="41.6" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="50.0" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="58.4" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="66.8" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="75.2" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="83.6" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="92.0" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
+  <rect x="100.4" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="108.8" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="117.2" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
-  <rect x="125.6" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="134.0" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="142.4" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="150.8" y="47.2" width="8.4" height="19.6" fill="#1E1E3F"/>
@@ -404,7 +403,9 @@
   <text x="33.2" y="47.2" class="bold" fill="#DDA8FB">GET</text>
   <text x="92.0" y="47.2" fill="#9A96BE">▾</text>
   <rect x="117.20" y="47.20" width="2.10" height="19.60" fill="#1E1E3F"/>
-  <text x="125.6" y="47.2" fill="#9A96BE">Enter</text>
+  <rect x="125.6" y="47.2" width="8.4" height="19.6" fill="#F5F5F6"/>
+  <text x="125.6" y="47.2" fill="#1E1E3F">E</text>
+  <text x="134.0" y="47.2" fill="#9A96BE">nter</text>
   <text x="176.0" y="47.2" fill="#9A96BE">a</text>
   <text x="192.8" y="47.2" fill="#9A96BE">URL</text>
   <text x="226.4" y="47.2" fill="#9A96BE">or</text>
@@ -4731,22 +4732,19 @@
   <rect x="1074.8" y="694.0" width="8.4" height="19.6" fill="#27213E"/>
   <rect x="1083.2" y="694.0" width="8.4" height="19.6" fill="#282341"/>
   <rect x="1091.6" y="694.0" width="8.4" height="19.6" fill="#2A2443"/>
-  <text x="33.2" y="694.0" fill="#FF69B4">Enter</text>
-  <text x="83.6" y="694.0" fill="#9A96BE">Choose</text>
-  <text x="142.4" y="694.0" fill="#9A96BE">method</text>
-  <text x="201.2" y="694.0" fill="#FF69B4">^O</text>
-  <text x="226.4" y="694.0" fill="#9A96BE">Jump</text>
-  <text x="268.4" y="694.0" fill="#FF69B4">^J</text>
-  <text x="293.6" y="694.0" fill="#9A96BE">Send</text>
-  <text x="335.6" y="694.0" fill="#FF69B4">^S</text>
-  <text x="360.8" y="694.0" fill="#9A96BE">Save</text>
-  <text x="402.8" y="694.0" fill="#FF69B4">^N</text>
-  <text x="428.0" y="694.0" fill="#9A96BE">New</text>
-  <text x="461.6" y="694.0" fill="#9A96BE">tab</text>
-  <text x="495.2" y="694.0" fill="#FF69B4">^P</text>
-  <text x="520.4" y="694.0" fill="#9A96BE">Commands</text>
-  <text x="596.0" y="694.0" fill="#FF69B4">F1</text>
-  <text x="621.2" y="694.0" fill="#9A96BE">Help</text>
+  <text x="33.2" y="694.0" fill="#FF69B4">^O</text>
+  <text x="58.4" y="694.0" fill="#9A96BE">Jump</text>
+  <text x="100.4" y="694.0" fill="#FF69B4">^J</text>
+  <text x="125.6" y="694.0" fill="#9A96BE">Send</text>
+  <text x="167.6" y="694.0" fill="#FF69B4">^S</text>
+  <text x="192.8" y="694.0" fill="#9A96BE">Save</text>
+  <text x="234.8" y="694.0" fill="#FF69B4">^N</text>
+  <text x="260.0" y="694.0" fill="#9A96BE">New</text>
+  <text x="293.6" y="694.0" fill="#9A96BE">tab</text>
+  <text x="327.2" y="694.0" fill="#FF69B4">^P</text>
+  <text x="352.4" y="694.0" fill="#9A96BE">Commands</text>
+  <text x="428.0" y="694.0" fill="#FF69B4">F1</text>
+  <text x="453.2" y="694.0" fill="#9A96BE">Help</text>
   <text x="940.4" y="694.0" fill="#706B91">P</text>
   <text x="948.8" y="694.0" fill="#706B91">o</text>
   <text x="957.2" y="694.0" fill="#706B91">s</text>
