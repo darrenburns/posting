@@ -203,11 +203,16 @@ func Parse(command string) (model.Request, error) {
 	joined := strings.Join(data, "&")
 	switch {
 	case getMode && len(data) > 0:
-		// -G sends the data as the query string.
-		if strings.Contains(rawURL, "?") {
-			rawURL += "&" + joined
+		// -G sends the data as the query string, before any fragment.
+		base, fragment, hasFragment := strings.Cut(rawURL, "#")
+		if strings.Contains(base, "?") {
+			base += "&" + joined
 		} else {
-			rawURL += "?" + joined
+			base += "?" + joined
+		}
+		rawURL = base
+		if hasFragment {
+			rawURL += "#" + fragment
 		}
 	case len(form) > 0:
 		req.Body = model.Body{Type: model.BodyForm, Form: form, ContentType: "application/x-www-form-urlencoded"}
