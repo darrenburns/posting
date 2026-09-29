@@ -125,12 +125,12 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 				"body":    responseBody{app: r.app, session: s, response: resp},
 				"headers": responseHeaders{session: s},
 				"cookies": responseCookies{session: s},
-				"scripts": responseScripts{response: resp},
+				"scripts": responseScripts{session: s, response: resp, gap: r.app.gap()},
 				"trace":   responseTrace{session: s},
 			},
 		},
 	)
-	return t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)}, Spacing: 1, Children: children}
+	return t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)}, Spacing: r.app.gap(), Children: children}
 }
 
 // responseBody is a read-only, highlighted view of the body.
@@ -275,7 +275,9 @@ func tableHeader(theme t.ThemeData, label string) t.Widget {
 // responseScripts shows the outcome and output of each script hook.
 type responseScripts struct {
 	fillParent
+	session  *Session
 	response *model.Response
+	gap      int
 }
 
 func (r responseScripts) Build(ctx t.BuildContext) t.Widget {
@@ -303,16 +305,22 @@ func (r responseScripts) Build(ctx t.BuildContext) t.Widget {
 	if len(lines) > 0 {
 		output = t.Column{Style: t.Style{Padding: inset}, Children: lines}
 	}
-	return t.Column{
-		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: 1,
-		Children: []t.Widget{
-			t.Row{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: []t.Widget{
-				status("Setup", results.Setup),
-				status("Pre-request", results.OnRequest),
-				status("Post-response", results.OnResponse),
-			}},
-			output,
+	return t.Scrollable{
+		ID:        "resp-scripts-scroll",
+		State:     r.session.responseScriptsScroll,
+		Focusable: true,
+		Style:     t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		Child: t.Column{
+			Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+			Spacing: r.gap,
+			Children: []t.Widget{
+				t.Row{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: []t.Widget{
+					status("Setup", results.Setup),
+					status("Pre-request", results.OnRequest),
+					status("Post-response", results.OnResponse),
+				}},
+				output,
+			},
 		},
 	}
 }
@@ -365,7 +373,13 @@ func (r responseTrace) Build(ctx t.BuildContext) t.Widget {
 		{Text: padRight("total", 18), Style: t.SpanStyle{Foreground: theme.Text, Bold: true}},
 		{Text: padLeft(model.FormatDuration(total), 10), Style: t.SpanStyle{Foreground: theme.Text, Bold: true}},
 	}})
-	return t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset}, Children: rows}
+	return t.Scrollable{
+		ID:        "resp-trace-scroll",
+		State:     r.session.traceScroll,
+		Focusable: true,
+		Style:     t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		Child:     t.Column{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: rows},
+	}
 }
 
 // formatBody pretty-prints JSON bodies and returns others unchanged.

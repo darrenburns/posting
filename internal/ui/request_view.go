@@ -45,6 +45,7 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 	resolve := p.app.resolver()
 	theme := ctx.Theme()
 	variables := variableHighlighter(theme, resolve)
+	gap := p.app.gap()
 	return section{
 		Prefix: "req-",
 		Title:  "Request",
@@ -52,7 +53,7 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 		Height: t.Flex(1),
 		Child: t.Column{
 			Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-			Spacing: 1,
+			Spacing: gap,
 			Children: []t.Widget{
 				s.requestTabs(),
 				t.Switcher{
@@ -81,10 +82,10 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 							ValuePlaceholder: "Value",
 							ValueHighlighter: variables,
 						},
-						"auth":    authEditor{session: s, variables: variables},
-						"info":    infoEditor{session: s},
-						"scripts": scriptsEditor{session: s},
-						"options": optionsEditor{session: s, variables: variables},
+						"auth":    authEditor{session: s, variables: variables, gap: gap},
+						"info":    infoEditor{session: s, gap: gap},
+						"scripts": scriptsEditor{session: s, gap: gap},
+						"options": optionsEditor{session: s, variables: variables, gap: gap},
 					},
 				},
 			},
@@ -154,7 +155,7 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 	}
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: 1,
+		Spacing: b.app.gap(),
 		Children: []t.Widget{
 			t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: controls},
 			content,
@@ -189,6 +190,7 @@ type authEditor struct {
 	fillParent
 	session   *Session
 	variables t.Highlighter
+	gap       int
 }
 
 func (e authEditor) Build(ctx t.BuildContext) t.Widget {
@@ -196,8 +198,8 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 	s := e.session
 	authType := s.authType.Get()
 	touch := func(string) { s.touch() }
-	children := []t.Widget{
-		t.Column{Children: []t.Widget{
+	rows := []formField{
+		field(t.Column{Children: []t.Widget{
 			segmented{
 				ID: "req-auth-type",
 				Options: []choice{
@@ -209,27 +211,27 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 				Selected: string(authType),
 				OnChange: func(value string) { s.authType.Set(model.AuthType(value)); s.touch() },
 			},
-			t.Text{Content: "The Authorization header is generated when the request is sent.", Style: t.Style{ForegroundColor: theme.TextMuted, Margin: t.EdgeInsetsTRBL(1, 0, 0, 0), Padding: inset}},
-		}},
+			t.Text{Content: "The Authorization header is generated when the request is sent.", Style: t.Style{ForegroundColor: theme.TextMuted, Margin: t.EdgeInsetsTRBL(e.gap, 0, 0, 0), Padding: inset}},
+		}}, "req-auth-type"),
 	}
 	switch authType {
 	case model.AuthBasic, model.AuthDigest:
-		children = append(children,
-			formRow(ctx, "Username", "", input{ID: "req-auth-username", State: s.username, Placeholder: "Enter a username", Highlighter: e.variables, OnChange: touch}),
-			formRow(ctx, "Password", "", input{ID: "req-auth-password", State: s.password, Placeholder: "Enter a password", Highlighter: e.variables, OnChange: touch}),
+		rows = append(rows,
+			field(formRow(ctx, "Username", "", input{ID: "req-auth-username", State: s.username, Placeholder: "Enter a username", Highlighter: e.variables, OnChange: touch}), "req-auth-username"),
+			field(formRow(ctx, "Password", "", input{ID: "req-auth-password", State: s.password, Placeholder: "Enter a password", Highlighter: e.variables, OnChange: touch}), "req-auth-password"),
 		)
 	case model.AuthBearer:
 		hint := ""
 		if isBlank(s.token) {
 			hint = "required"
 		}
-		children = append(children,
-			formRow(ctx, "Token", hint, input{ID: "req-auth-token", State: s.token, Placeholder: "Enter a token, e.g. ${API_TOKEN}", Highlighter: e.variables, OnChange: touch}),
+		rows = append(rows,
+			field(formRow(ctx, "Token", hint, input{ID: "req-auth-token", State: s.token, Placeholder: "Enter a token, e.g. ${API_TOKEN}", Highlighter: e.variables, OnChange: touch}), "req-auth-token"),
 		)
 	default:
-		children = append(children, emptyState{Title: "No authentication", Lines: []string{"This request is sent without credentials"}})
+		rows = append(rows, field(emptyState{Title: "No authentication", Lines: []string{"This request is sent without credentials"}}))
 	}
-	return t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)}, Spacing: 1, Children: children}
+	return scrollForm{State: s.authScroll, Spacing: e.gap, Rows: rows}
 }
 
 // formLabelWidth fits the longest form label ("Post-response") with room to
@@ -261,6 +263,7 @@ func formRow(ctx t.BuildContext, label, hint string, field t.Widget) t.Widget {
 type infoEditor struct {
 	fillParent
 	session *Session
+	gap     int
 }
 
 func (e infoEditor) Build(ctx t.BuildContext) t.Widget {
@@ -271,11 +274,18 @@ func (e infoEditor) Build(ctx t.BuildContext) t.Widget {
 	if file == "" {
 		fileText = t.Text{Content: "Not saved yet — press ctrl+s to save it to the collection", Style: t.Style{ForegroundColor: theme.TextMuted, Italic: true}}
 	}
+	// The description comes last: it takes whatever height is left and
+	// scrolls itself, so a short panel squeezes it rather than hiding the
+	// fields after it.
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: 1,
+		Spacing: e.gap,
 		Children: []t.Widget{
 			formRow(ctx, "Name", "", input{ID: "req-info-name", State: s.name, Placeholder: "Enter a name…", OnChange: func(string) { s.touch() }}),
+			t.Row{Children: []t.Widget{
+				formLabel([]t.Span{{Text: "File", Style: t.SpanStyle{Foreground: theme.Text, Bold: true}}}),
+				fileText,
+			}},
 			t.Row{
 				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 				Children: []t.Widget{
@@ -289,10 +299,6 @@ func (e infoEditor) Build(ctx t.BuildContext) t.Widget {
 					},
 				},
 			},
-			t.Row{Children: []t.Widget{
-				formLabel([]t.Span{{Text: "File", Style: t.SpanStyle{Foreground: theme.Text, Bold: true}}}),
-				fileText,
-			}},
 		},
 	}
 }
@@ -301,20 +307,21 @@ func (e infoEditor) Build(ctx t.BuildContext) t.Widget {
 type scriptsEditor struct {
 	fillParent
 	session *Session
+	gap     int
 }
 
 func (e scriptsEditor) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	s := e.session
 	touch := func(string) { s.touch() }
-	return t.Column{
-		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: 1,
-		Children: []t.Widget{
-			t.Text{Content: "Scripts are collection-relative paths, optionally with a function: scripts/auth.py:sign", Style: t.Style{ForegroundColor: theme.TextMuted, Padding: inset}},
-			formRow(ctx, "Setup", "", input{ID: "req-script-setup", State: s.setup, Placeholder: "Runs once before the request is built", OnChange: touch}),
-			formRow(ctx, "Pre-request", "", input{ID: "req-script-pre", State: s.onRequest, Placeholder: "Can modify the request before it is sent", OnChange: touch}),
-			formRow(ctx, "Post-response", "", input{ID: "req-script-post", State: s.onResponse, Placeholder: "Runs after the response arrives", OnChange: touch}),
+	return scrollForm{
+		State:   s.scriptsScroll,
+		Spacing: e.gap,
+		Rows: []formField{
+			field(t.Text{Content: "Scripts are collection-relative paths, optionally with a function: scripts/auth.py:sign", Style: t.Style{ForegroundColor: theme.TextMuted, Padding: inset}}),
+			field(formRow(ctx, "Setup", "", input{ID: "req-script-setup", State: s.setup, Placeholder: "Runs once before the request is built", OnChange: touch}), "req-script-setup"),
+			field(formRow(ctx, "Pre-request", "", input{ID: "req-script-pre", State: s.onRequest, Placeholder: "Can modify the request before it is sent", OnChange: touch}), "req-script-pre"),
+			field(formRow(ctx, "Post-response", "", input{ID: "req-script-post", State: s.onResponse, Placeholder: "Runs after the response arrives", OnChange: touch}), "req-script-post"),
 		},
 	}
 }
@@ -324,6 +331,7 @@ type optionsEditor struct {
 	fillParent
 	session   *Session
 	variables t.Highlighter
+	gap       int
 }
 
 func (e optionsEditor) Build(ctx t.BuildContext) t.Widget {
@@ -342,18 +350,20 @@ func (e optionsEditor) Build(ctx t.BuildContext) t.Widget {
 		}}
 	}
 	touch := func(string) { s.touch() }
-	return t.Column{
-		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: 1,
-		Children: []t.Widget{
-			t.Column{Children: []t.Widget{
-				check("req-opt-follow", s.follow, "Follow redirects", "Follow 3xx responses to their destination"),
-				check("req-opt-verify", s.verifySSL, "Verify SSL certificates", "Reject servers with invalid certificates"),
-				check("req-opt-cookies", s.cookies, "Attach cookies", "Send cookies stored from earlier responses"),
-				check("req-opt-substitute", s.substitute, "Substitute body variables", "Replace ${VAR} references in the body"),
-			}},
-			formRow(ctx, "Proxy URL", "", input{ID: "req-opt-proxy", State: s.proxy, Placeholder: "http://proxy.example.com:8080", Highlighter: e.variables, OnChange: touch}),
-			formRow(ctx, "Timeout", "", input{ID: "req-opt-timeout", State: s.timeout, Placeholder: "seconds", Width: t.Cells(12), OnChange: touch}),
+	// Each checkbox is its own row so tabbing through them scrolls one
+	// line at a time; the fields below keep a gap above them.
+	gap := func(w t.Widget) t.Widget {
+		return t.Column{Style: t.Style{Width: t.Flex(1), Margin: t.EdgeInsetsTRBL(e.gap, 0, 0, 0)}, Children: []t.Widget{w}}
+	}
+	return scrollForm{
+		State: s.optionsScroll,
+		Rows: []formField{
+			field(check("req-opt-follow", s.follow, "Follow redirects", "Follow 3xx responses to their destination"), "req-opt-follow"),
+			field(check("req-opt-verify", s.verifySSL, "Verify SSL certificates", "Reject servers with invalid certificates"), "req-opt-verify"),
+			field(check("req-opt-cookies", s.cookies, "Attach cookies", "Send cookies stored from earlier responses"), "req-opt-cookies"),
+			field(check("req-opt-substitute", s.substitute, "Substitute body variables", "Replace ${VAR} references in the body"), "req-opt-substitute"),
+			field(gap(formRow(ctx, "Proxy URL", "", input{ID: "req-opt-proxy", State: s.proxy, Placeholder: "http://proxy.example.com:8080", Highlighter: e.variables, OnChange: touch})), "req-opt-proxy"),
+			field(gap(formRow(ctx, "Timeout", "", input{ID: "req-opt-timeout", State: s.timeout, Placeholder: "seconds", Width: t.Cells(12), OnChange: touch})), "req-opt-timeout"),
 		},
 	}
 }

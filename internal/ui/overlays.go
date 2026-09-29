@@ -377,6 +377,7 @@ type saveForm struct {
 	folder      *t.TextInputState
 	description *t.TextAreaState
 	err         t.Signal[string]
+	scroll      *formScroll
 }
 
 func newSaveForm() *saveForm {
@@ -386,6 +387,7 @@ func newSaveForm() *saveForm {
 		folder:      t.NewTextInputState(""),
 		description: t.NewTextAreaState(""),
 		err:         t.NewSignal(""),
+		scroll:      newFormScroll(),
 	}
 }
 
@@ -463,33 +465,33 @@ func (o saveOverlay) Build(ctx t.BuildContext) t.Widget {
 	if filePlaceholder == "" {
 		filePlaceholder = "derived from the name"
 	}
-	errText := f.err.Get()
+	rows := []formField{
+		field(formRow(ctx, "Name", "", input{ID: "save-name", State: f.name, Placeholder: "e.g. List users", OnSubmit: submit}), "save-name"),
+		field(formRow(ctx, "File name", "", t.Row{Style: t.Style{Width: t.Flex(1)}, Children: []t.Widget{
+			input{ID: "save-file", State: f.file, Placeholder: filePlaceholder, OnSubmit: submit},
+			t.Text{Content: ".posting.yaml", Style: t.Style{ForegroundColor: theme.TextMuted}},
+		}}), "save-file"),
+		field(formRow(ctx, "Folder", "", input{ID: "save-folder", State: f.folder, Placeholder: "collection root", OnSubmit: submit}), "save-folder"),
+		field(t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(4)}, Children: []t.Widget{
+			formLabel([]t.Span{{Text: "Description", Style: t.SpanStyle{Foreground: theme.Text, Bold: true}}}),
+			t.TextArea{ID: "save-description", State: f.description, Placeholder: "optional", Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)}},
+		}}, "save-description"),
+	}
+	if errText := f.err.Get(); errText != "" {
+		rows = append(rows, field(t.Text{Content: errText, Style: t.Style{ForegroundColor: theme.ErrorText}}))
+	}
+	// The buttons scroll with the fields: pinning them would need a fixed
+	// height, and the dialog should otherwise be as tall as its content.
+	rows = append(rows, field(t.Row{Spacing: 2, MainAlign: t.MainAxisEnd, Style: t.Style{Width: t.Flex(1)}, Children: []t.Widget{
+		t.Button{ID: "save-cancel", Label: "Cancel", OnPress: a.closeOverlay, Click: func(t.MouseEvent) { a.closeOverlay() }},
+		t.Button{ID: "save-submit", Label: "Save", Variant: t.ButtonSuccess, OnPress: a.submitSave, Click: func(t.MouseEvent) { a.submitSave() }},
+	}}, "save-cancel", "save-submit"))
 	return modal{
 		Visible:   o.visible,
 		Title:     "Save request",
 		Width:     t.Cells(72),
 		OnDismiss: a.closeOverlay,
-		Child: t.Column{
-			Style:   t.Style{Width: t.Flex(1)},
-			Spacing: 1,
-			Children: []t.Widget{
-				formRow(ctx, "Name", "", input{ID: "save-name", State: f.name, Placeholder: "e.g. List users", OnSubmit: submit}),
-				formRow(ctx, "File name", "", t.Row{Style: t.Style{Width: t.Flex(1)}, Children: []t.Widget{
-					input{ID: "save-file", State: f.file, Placeholder: filePlaceholder, OnSubmit: submit},
-					t.Text{Content: ".posting.yaml", Style: t.Style{ForegroundColor: theme.TextMuted}},
-				}}),
-				formRow(ctx, "Folder", "", input{ID: "save-folder", State: f.folder, Placeholder: "collection root", OnSubmit: submit}),
-				t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(4)}, Children: []t.Widget{
-					formLabel([]t.Span{{Text: "Description", Style: t.SpanStyle{Foreground: theme.Text, Bold: true}}}),
-					t.TextArea{ID: "save-description", State: f.description, Placeholder: "optional", Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)}},
-				}},
-				t.ShowWhen(errText != "", t.Text{Content: errText, Style: t.Style{ForegroundColor: theme.ErrorText}}),
-				t.Row{Spacing: 2, MainAlign: t.MainAxisEnd, Style: t.Style{Width: t.Flex(1)}, Children: []t.Widget{
-					t.Button{ID: "save-cancel", Label: "Cancel", OnPress: a.closeOverlay, Click: func(t.MouseEvent) { a.closeOverlay() }},
-					t.Button{ID: "save-submit", Label: "Save", Variant: t.ButtonSuccess, OnPress: a.submitSave, Click: func(t.MouseEvent) { a.submitSave() }},
-				}},
-			},
-		},
+		Child:     scrollForm{State: f.scroll, Spacing: 1, Rows: rows, Fit: true},
 	}
 }
 
