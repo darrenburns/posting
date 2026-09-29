@@ -7,6 +7,19 @@
   --font-display: "Martian Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-body: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-grid: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Small headings, buttons and eyebrows. */
+  --font-label: var(--font-display);
+  --display-weight: 700;
+  --display-weight-2: 650;
+  --display-vars: "wdth" 87.5;
+  --display-tracking: -0.035em;
+  --display-leading: 1.08;
+  --display-scale: 1;
+  --display-style: normal;
+  --label-weight: 600;
+  --label-tracking: -0.01em;
+  /* Advance width of one --font-grid cell, in em. */
+  --grid-adv: 0.6;
   --page: 62rem;
   --gutter: clamp(0.8rem, 3vw, 1.6rem);
   --radius: 0.5rem;
@@ -154,7 +167,7 @@ nav.md-tabs .md-tabs__link {
 }
 
 .eyebrow {
-  font-family: var(--font-display);
+  font-family: var(--font-label);
   font-size: 0.6rem;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -228,11 +241,12 @@ kbd.k {
 }
 
 #p3-home h1 {
-  font-size: clamp(1.75rem, 1.1rem + 2.8vw, 3rem);
-  font-weight: 700;
-  font-variation-settings: "wdth" 87.5;
-  line-height: 1.08;
-  letter-spacing: -0.035em;
+  font-size: calc(clamp(1.75rem, 1.1rem + 2.8vw, 3rem) * var(--display-scale));
+  font-weight: var(--display-weight);
+  font-style: var(--display-style);
+  font-variation-settings: var(--display-vars);
+  line-height: var(--display-leading);
+  letter-spacing: var(--display-tracking);
 }
 
 h1 .caret {
@@ -329,7 +343,7 @@ h1 .caret {
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
-  font-family: var(--font-display);
+  font-family: var(--font-label);
   font-size: 0.64rem;
   font-weight: 600;
   text-decoration: none;
@@ -412,7 +426,7 @@ h1 .caret {
 .tui-grid {
   /* 130 columns of a 0.6em-wide monospace cell fill the container. */
   font-family: var(--font-grid);
-  font-size: calc(100cqi / (var(--cols) * 0.6));
+  font-size: calc(100cqi / (var(--cols) * var(--grid-adv)));
   font-variant-ligatures: none;
   line-height: 1.25;
   padding-block: 0.3em;
@@ -575,11 +589,12 @@ h1 .caret {
 }
 
 #p3-home h2 {
-  font-size: clamp(1.25rem, 0.95rem + 1.3vw, 1.85rem);
-  font-weight: 650;
-  font-variation-settings: "wdth" 87.5;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
+  font-size: calc(clamp(1.25rem, 0.95rem + 1.3vw, 1.85rem) * var(--display-scale));
+  font-weight: var(--display-weight-2);
+  font-style: var(--display-style);
+  font-variation-settings: var(--display-vars);
+  line-height: calc(var(--display-leading) + 0.07);
+  letter-spacing: calc(var(--display-tracking) + 0.005em);
 }
 
 .section-head p {
@@ -643,10 +658,10 @@ h1 .caret {
 }
 
 .tour-tabs .t {
-  font-family: var(--font-display);
+  font-family: var(--font-label);
   font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
 }
 
 .tour-tabs .desc {
@@ -731,9 +746,11 @@ h1 .caret {
   display: flex;
   align-items: baseline;
   gap: 0.6em;
+  font-family: var(--font-label);
   font-size: 0.72rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  font-weight: var(--label-weight);
+  font-style: normal;
+  letter-spacing: var(--label-tracking);
 }
 
 .feature h3::before {
