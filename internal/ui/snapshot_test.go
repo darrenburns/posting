@@ -15,7 +15,8 @@ func testApp() *App {
 	return New(Config{
 		Version:      "3.0.0-dev",
 		Collection:   model.SampleCollection(),
-		Environments: model.SampleEnvironments(),
+		Environments: StaticEnvironments(model.SampleEnvironments()),
+		Environment:  []string{"local.env"},
 		UserHost:     "user@host",
 	})
 }

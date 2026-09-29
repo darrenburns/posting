@@ -115,34 +115,6 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 	return items
 }
 
-func (a *App) environmentItems() []t.CommandPaletteItem {
-	items := make([]t.CommandPaletteItem, 0, len(a.environments)+1)
-	active := a.activeEnv.Peek()
-	for i, env := range a.environments {
-		index := i
-		items = append(items, t.CommandPaletteItem{
-			Label:       env.Name,
-			Hint:        strings.Join(env.Files, " + "),
-			Description: pluralize(len(env.Variables), "variable"),
-			Current:     i == active,
-			Action:      a.run(func() { a.switchEnvironment(index) }),
-		})
-	}
-	items = append(items, t.CommandPaletteItem{
-		Label:   "No environment",
-		Hint:    "session variables only",
-		Current: active < 0,
-		Action:  a.run(func() { a.switchEnvironment(-1) }),
-	})
-	return items
-}
-
-func (a *App) openEnvironmentPicker() {
-	a.palette.SetItems(a.paletteItems())
-	a.palette.Open()
-	a.palette.PushLevel("Environments", a.environmentItems())
-}
-
 func (a *App) themeItems() []t.CommandPaletteItem {
 	current := t.CurrentThemeName()
 	if a.themeBeforePreview != "" {
@@ -559,24 +531,6 @@ func (a *App) refreshVariableRows() {
 		}
 	}
 	a.variables.table.SetRows(append(rows, model.Variable{}))
-}
-
-func (a *App) variableList() []model.Variable {
-	byName := map[string]model.Variable{}
-	if env := a.activeEnv.Peek(); env >= 0 && env < len(a.environments) {
-		for _, v := range a.environments[env].Variables {
-			byName[v.Name] = v
-		}
-	}
-	for name, value := range a.sessionVars.Peek() {
-		byName[name] = model.Variable{Name: name, Value: value, Source: "session"}
-	}
-	out := make([]model.Variable, 0, len(byName))
-	for _, v := range byName {
-		out = append(out, v)
-	}
-	sortVariables(out)
-	return out
 }
 
 var identifier = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)

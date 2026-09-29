@@ -11,7 +11,6 @@ import (
 	"net"
 	"os"
 	"os/user"
-	"sort"
 	"strings"
 	"time"
 
@@ -28,8 +27,15 @@ type Config struct {
 	Sender     client.Sender
 	Collection *model.Collection
 	// Store saves and deletes requests. Nil keeps changes in memory only.
-	Store        collection.Store
-	Environments []model.Environment
+	Store collection.Store
+	// Environments finds and loads environment files.
+	Environments EnvironmentSource
+	// Environment is the files of the environment active at startup.
+	Environment []string
+	// HostVariables are available to every request, below the environment.
+	HostVariables []model.Variable
+	// WatchEnvironment reloads the active environment when its files change.
+	WatchEnvironment bool
 	// Theme is a Terma theme name. Empty uses galaxy.
 	Theme string
 	// UserHost is shown in the header. Empty uses the current user and host.
@@ -63,9 +69,8 @@ type App struct {
 	historyScroll *t.ScrollState
 	nextHistoryID int64
 
-	environments []model.Environment
-	activeEnv    t.Signal[int] // index into environments, -1 for none
-	sessionVars  t.AnySignal[map[string]string]
+	env         *environments
+	sessionVars t.AnySignal[map[string]string]
 
 	sessions      t.AnySignal[[]*Session]
 	active        t.Signal[int] // Session.id of the visible session
@@ -102,6 +107,9 @@ func New(cfg Config) *App {
 	if cfg.Sender == nil {
 		cfg.Sender = client.Fake{}
 	}
+	if cfg.Environments == nil {
+		cfg.Environments = StaticEnvironments(nil)
+	}
 	if cfg.Store == nil {
 		cfg.Store = collection.Memory{}
 	}
@@ -121,8 +129,7 @@ func New(cfg Config) *App {
 		history:        t.NewAnySignal[[]model.HistoryEntry](nil),
 		historyList:    t.NewListState[model.HistoryEntry](nil),
 		historyScroll:  t.NewScrollState(),
-		environments:   cfg.Environments,
-		activeEnv:      t.NewSignal(-1),
+		env:            &environments{source: cfg.Environments, active: t.NewAnySignal(model.Environment{}), host: cfg.HostVariables},
 		sessionVars:    t.NewAnySignal(map[string]string{}),
 		sessions:       t.NewAnySignal[[]*Session](nil),
 		active:         t.NewSignal(0),
@@ -139,9 +146,6 @@ func New(cfg Config) *App {
 		confirm:        t.NewAnySignal(confirmation{}),
 		toast:          t.NewAnySignal(toast{}),
 	}
-	if len(cfg.Environments) > 0 {
-		a.activeEnv.Set(0)
-	}
 	a.tree = t.NewTreeState(buildTree(cfg.Collection))
 	a.jump = t.NewJumpState()
 	a.palette = t.NewCommandPaletteState("Commands", nil)
@@ -157,6 +161,12 @@ func New(cfg Config) *App {
 	}
 	t.SetTheme(theme)
 	t.RequestFocus(urlInputID)
+	if len(cfg.Environment) > 0 {
+		a.activateEnvironment(cfg.Environment)
+	}
+	if cfg.WatchEnvironment {
+		a.watchEnvironment(time.Second)
+	}
 	if n := len(cfg.StartupMessages); n > 0 {
 		message := cfg.StartupMessages[0]
 		if n > 1 {
@@ -280,50 +290,6 @@ func (a *App) cycleSession(delta int) {
 }
 
 // ---------------------------------------------------------------------------
-// Variables and environments
-
-// variableValues merges the active environment with session overrides.
-// Reading it in Build subscribes to both.
-func (a *App) variableValues() map[string]string {
-	values := map[string]string{}
-	if env := a.activeEnv.Get(); env >= 0 && env < len(a.environments) {
-		for _, v := range a.environments[env].Variables {
-			values[v.Name] = v.Value
-		}
-	}
-	for name, value := range a.sessionVars.Get() {
-		values[name] = value
-	}
-	return values
-}
-
-func sortVariables(vars []model.Variable) {
-	sort.Slice(vars, func(i, j int) bool { return vars[i].Name < vars[j].Name })
-}
-
-func (a *App) resolver() func(string) bool {
-	values := a.variableValues()
-	return func(name string) bool { _, ok := values[name]; return ok }
-}
-
-func (a *App) envName() string {
-	env := a.activeEnv.Get()
-	if env < 0 || env >= len(a.environments) {
-		return ""
-	}
-	return a.environments[env].Name
-}
-
-func (a *App) switchEnvironment(index int) {
-	a.activeEnv.Set(index)
-	if index < 0 {
-		a.notify("Environment cleared", toastInfo)
-		return
-	}
-	a.notify("Switched to "+a.environments[index].Name, toastInfo)
-}
-
-// ---------------------------------------------------------------------------
 // Actions
 
 func (a *App) send() {
@@ -346,20 +312,6 @@ func (a *App) send() {
 		a.history.Set(history)
 		a.historyList.SetItems(history)
 	})
-}
-
-// variableValuesPeek is variableValues without subscribing (for actions).
-func (a *App) variableValuesPeek() map[string]string {
-	values := map[string]string{}
-	if env := a.activeEnv.Peek(); env >= 0 && env < len(a.environments) {
-		for _, v := range a.environments[env].Variables {
-			values[v.Name] = v.Value
-		}
-	}
-	for name, value := range a.sessionVars.Peek() {
-		values[name] = value
-	}
-	return values
 }
 
 func (a *App) cancelSend() {
