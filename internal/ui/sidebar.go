@@ -140,6 +140,8 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 					NodeID:         func(i treeItem) string { return i.key() },
 					HasChildren:    func(i treeItem) bool { return i.Folder != nil },
 					ShowGuideLines: t.BoolPtr(false),
+					// As in Posting 2, a click opens a request or folder.
+					ActivateOnClick: true,
 					OnSelect: func(i treeItem, _ []treeItem) {
 						if i.Request != nil {
 							a.openRequest(*i.Request)
@@ -264,6 +266,8 @@ func (h historyView) Build(ctx t.BuildContext) t.Widget {
 			State:       a.historyList,
 			ScrollState: a.historyScroll,
 			OnSelect:    a.openHistory,
+			// Clicks open entries, like requests in the collection.
+			ActivateOnClick: true,
 			RenderItem: func(entry model.HistoryEntry, active, selected bool) t.Widget {
 				return renderHistoryItem(theme, entry, active, focused)
 			},

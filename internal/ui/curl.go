@@ -50,10 +50,34 @@ func (a *App) importCurl(command string) bool {
 	return true
 }
 
+// pasteURL imports a curl command pasted into the URL bar, newlines and all,
+// instead of inserting it. Other pastes are inserted as usual.
+func (a *App) pasteURL(text string) bool {
+	if !curl.IsCommand(text) {
+		return false
+	}
+	a.importCurl(text)
+	return true
+}
+
+// importCurlFromClipboard imports the curl command on the clipboard. The
+// terminal may not answer, so nothing waits on it.
+func (a *App) importCurlFromClipboard() {
+	t.ReadClipboard(t.SystemClipboard, func(text string) {
+		if !curl.IsCommand(text) {
+			a.notify("The clipboard doesn't hold a curl command", toastWarning)
+			return
+		}
+		if a.importCurl(text) {
+			t.RequestFocus(urlInputID)
+		}
+	})
+}
+
 // submitURL sends the request, or imports the URL bar's contents when a curl
-// command has been pasted or typed there. A command ending in a backslash
-// continues on the next line, as in a shell, so a multi-line command pasted
-// line by line is imported once it is complete.
+// command has been typed there. A command ending in a backslash continues on
+// the next line, as in a shell, so a multi-line command that arrives line by
+// line (from a terminal without bracketed paste) is imported once complete.
 func (a *App) submitURL(text string) {
 	s := a.current()
 	if s == nil || !curl.IsCommand(text) {
@@ -204,7 +228,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 			Children: []t.Widget{
 				curlKeys{app: a, importing: importing, child: scrollingArea("curl-text", f.scroll, theme.Surface, area)},
 				message,
-				t.Row{Spacing: 2, Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: append([]t.Widget{toggle, t.Spacer{}}, buttons...)},
+				t.Row{Spacing: 2, Style: t.Style{Width: t.Flex(1)}, Children: append([]t.Widget{toggle, t.Spacer{}}, buttons...)},
 			},
 		},
 	}

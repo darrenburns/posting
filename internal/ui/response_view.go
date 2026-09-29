@@ -178,10 +178,10 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 				ScrollState: s.responseBodyScroll,
 				Highlighter: b.app.bodyHighlighter(theme, languageFor(contentType), false),
 				Style:       t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
-				ExtraKeybinds: []t.Keybind{
+				ExtraKeybinds: append([]t.Keybind{
 					{Key: "w", Name: "Toggle wrap", Action: toggleWrap},
 					{Key: "y", Name: "Copy body", Action: copyBody},
-				},
+				}, b.app.externalKeybinds(s.responseBody, languageFor(contentType), nil)...),
 			}),
 			t.Row{
 				Style:   t.Style{Width: t.Flex(1), Height: t.Cells(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},

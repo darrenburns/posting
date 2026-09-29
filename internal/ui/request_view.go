@@ -171,13 +171,14 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 			OnChange: func(value string) { s.contentType.Set(value); s.touch() },
 		})
 		var area t.Widget = t.TextArea{
-			ID:          "req-body-text",
-			State:       s.body,
-			ScrollState: s.bodyScroll,
-			Placeholder: "Request body…",
-			Highlighter: b.app.bodyHighlighter(theme, languageFor(contentType), s.substitute.Checked.Get()),
-			Style:       t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
-			OnChange:    func(string) { s.touch() },
+			ID:            "req-body-text",
+			State:         s.body,
+			ScrollState:   s.bodyScroll,
+			Placeholder:   "Request body…",
+			Highlighter:   b.app.bodyHighlighter(theme, languageFor(contentType), s.substitute.Checked.Get()),
+			Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+			OnChange:      func(string) { s.touch() },
+			ExtraKeybinds: b.app.externalKeybinds(s.body, languageFor(contentType), s.touch),
 		}
 		// Variables are only worth completing when they'll be substituted.
 		if s.substitute.Checked.Get() {

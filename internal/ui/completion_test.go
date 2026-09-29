@@ -26,3 +26,14 @@ func TestVariableChoices(tt *testing.T) {
 		tt.Fatal("switching environment should change the choices")
 	}
 }
+
+func TestDollarCompletesVariablesMidURL(tt *testing.T) {
+	app := testApp()
+	s := app.current()
+	s.url.SetText("https://api.test/users/")
+	s.url.CursorEnd()
+	pasteInto(tt, app, urlInputID, "$")
+	if !s.urlVars.state.Visible.Peek() {
+		tt.Fatal("typing $ after a / should offer the variables")
+	}
+}
