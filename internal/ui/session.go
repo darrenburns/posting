@@ -35,23 +35,24 @@ type Session struct {
 	id int
 
 	// Request editing state.
-	method      t.Signal[model.Method]
-	url         *t.TextInputState
-	headers     *kvEditor
-	query       *kvEditor
-	pathParams  *kvEditor
-	form        *kvEditor
-	bodyType    t.Signal[model.BodyType]
-	contentType t.Signal[string]
-	body        *t.TextAreaState
-	bodyScroll  *t.ScrollState
-	authType    t.Signal[model.AuthType]
-	username    *t.TextInputState
-	password    *t.TextInputState
-	token       *t.TextInputState
-	name        *t.TextInputState
-	description *t.TextAreaState
-	file        t.Signal[string]
+	method            t.Signal[model.Method]
+	url               *t.TextInputState
+	headers           *kvEditor
+	query             *kvEditor
+	pathParams        *kvEditor
+	form              *kvEditor
+	bodyType          t.Signal[model.BodyType]
+	contentType       t.Signal[string]
+	body              *t.TextAreaState
+	bodyScroll        *t.ScrollState
+	descriptionScroll *t.ScrollState
+	authType          t.Signal[model.AuthType]
+	username          *t.TextInputState
+	password          *t.TextInputState
+	token             *t.TextInputState
+	name              *t.TextInputState
+	description       *t.TextAreaState
+	file              t.Signal[string]
 	// scripts aren't edited in Posting 3, but are kept so saving a
 	// Posting 2 request doesn't drop them.
 	scripts    model.Scripts
@@ -105,34 +106,35 @@ type Session struct {
 
 func newSession(id int, req model.Request) *Session {
 	s := &Session{
-		id:          id,
-		method:      t.NewSignal(model.MethodGet),
-		url:         t.NewTextInputState(""),
-		headers:     newKVEditor(fmt.Sprintf("req-headers-%d", id), false, headerSuggestions()),
-		query:       newKVEditor(fmt.Sprintf("req-query-%d", id), false, nil),
-		pathParams:  newKVEditor(fmt.Sprintf("req-path-%d", id), true, nil),
-		form:        newKVEditor(fmt.Sprintf("req-form-%d", id), false, nil),
-		bodyType:    t.NewSignal(model.BodyNone),
-		contentType: t.NewSignal("application/json"),
-		body:        t.NewTextAreaState(""),
-		bodyScroll:  t.NewScrollState(),
-		authType:    t.NewSignal(model.AuthNone),
-		username:    t.NewTextInputState(""),
-		password:    t.NewTextInputState(""),
-		token:       t.NewTextInputState(""),
-		name:        t.NewTextInputState(""),
-		description: t.NewTextAreaState(""),
-		file:        t.NewSignal(""),
-		follow:      t.NewCheckboxState(true),
-		verifySSL:   t.NewCheckboxState(true),
-		cookies:     t.NewCheckboxState(true),
-		substitute:  t.NewCheckboxState(true),
-		proxy:       t.NewTextInputState(""),
-		timeout:     t.NewTextInputState("5.0"),
-		title:       t.NewSignal("Untitled"),
-		dirty:       t.NewSignal(false),
-		requestTab:  t.NewSignal("headers"),
-		responseTab: t.NewSignal("body"),
+		id:                id,
+		method:            t.NewSignal(model.MethodGet),
+		url:               t.NewTextInputState(""),
+		headers:           newKVEditor(fmt.Sprintf("req-headers-%d", id), false, headerSuggestions()),
+		query:             newKVEditor(fmt.Sprintf("req-query-%d", id), false, nil),
+		pathParams:        newKVEditor(fmt.Sprintf("req-path-%d", id), true, nil),
+		form:              newKVEditor(fmt.Sprintf("req-form-%d", id), false, nil),
+		bodyType:          t.NewSignal(model.BodyNone),
+		contentType:       t.NewSignal("application/json"),
+		body:              t.NewTextAreaState(""),
+		bodyScroll:        t.NewScrollState(),
+		descriptionScroll: t.NewScrollState(),
+		authType:          t.NewSignal(model.AuthNone),
+		username:          t.NewTextInputState(""),
+		password:          t.NewTextInputState(""),
+		token:             t.NewTextInputState(""),
+		name:              t.NewTextInputState(""),
+		description:       t.NewTextAreaState(""),
+		file:              t.NewSignal(""),
+		follow:            t.NewCheckboxState(true),
+		verifySSL:         t.NewCheckboxState(true),
+		cookies:           t.NewCheckboxState(true),
+		substitute:        t.NewCheckboxState(true),
+		proxy:             t.NewTextInputState(""),
+		timeout:           t.NewTextInputState("5.0"),
+		title:             t.NewSignal("Untitled"),
+		dirty:             t.NewSignal(false),
+		requestTab:        t.NewSignal("headers"),
+		responseTab:       t.NewSignal("body"),
 
 		requestTabView:  newTabView(),
 		responseTabView: newTabView(),
@@ -250,8 +252,12 @@ func (s *Session) Load(req model.Request) {
 	s.timeout.SetText(strconv.FormatFloat(req.Options.TimeoutSeconds, 'f', -1, 64))
 	s.title.Set(req.DisplayName())
 	s.dirty.Set(false)
-	// Show a newly loaded URL from its start.
+	// Show a newly loaded request from its start.
 	s.url.CursorIndex.Set(0)
+	s.body.CursorIndex.Set(0)
+	s.description.CursorIndex.Set(0)
+	s.bodyScroll.SetOffset(0)
+	s.descriptionScroll.SetOffset(0)
 }
 
 // touch marks the session as edited and refreshes its title.
@@ -463,6 +469,7 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 	s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
 	s.responseBody.CursorIndex.Set(0)
 	s.responseBodyScroll.SetOffset(0)
+	s.responseBody.SelectionAnchor.Set(-1)
 	s.responseHeaders.SetRows(resp.Headers)
 	s.responseCookies.SetRows(resp.Cookies)
 }

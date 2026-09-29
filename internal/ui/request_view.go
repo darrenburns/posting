@@ -142,14 +142,14 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 			ScrollState: s.bodyScroll,
 			Placeholder: "Request body…",
 			Highlighter: b.app.bodyHighlighter(theme, languageFor(contentType), s.substitute.Checked.Get()),
-			Style:       t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+			Style:       t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
 			OnChange:    func(string) { s.touch() },
 		}
 		// Variables are only worth completing when they'll be substituted.
 		if s.substitute.Checked.Get() {
 			area = s.bodyVars.wrap(theme, area, b.app.variableChoices(), t.Flex(1))
 		}
-		content = area
+		content = scrollingArea("req-body-text", s.bodyScroll, theme.Surface, area)
 	case model.BodyForm:
 		content = kvEditorView{
 			Editor:           s.form,
@@ -303,13 +303,14 @@ func (e infoEditor) Build(ctx t.BuildContext) t.Widget {
 				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 				Children: []t.Widget{
 					formLabel([]t.Span{{Text: "Description", Style: t.SpanStyle{Foreground: theme.Text, Bold: true}}}),
-					t.TextArea{
+					scrollingArea("req-info-description", s.descriptionScroll, theme.Surface, t.TextArea{
 						ID:          "req-info-description",
 						State:       s.description,
+						ScrollState: s.descriptionScroll,
 						Placeholder: "Describe what this request does…",
-						Style:       t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+						Style:       t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
 						OnChange:    func(string) { s.touch() },
-					},
+					}),
 				},
 			},
 		},
