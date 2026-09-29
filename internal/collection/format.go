@@ -167,12 +167,12 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 	// table. Files keep them only in the table, as Posting 2 writes them, so
 	// they aren't listed twice.
 	if len(req.Query) > 0 {
-		if base, _, ok := strings.Cut(req.URL, "?"); ok {
-			fragment := ""
-			if _, f, hasFragment := strings.Cut(req.URL, "#"); hasFragment {
-				fragment = "#" + f
-			}
-			out.URL = base + fragment
+		// A question mark inside a fragment is not a query delimiter.
+		base, fragment, hasFragment := strings.Cut(req.URL, "#")
+		base, _, _ = strings.Cut(base, "?")
+		out.URL = base
+		if hasFragment {
+			out.URL += "#" + fragment
 		}
 	}
 	if req.Method != model.MethodGet && req.Method != "" {
