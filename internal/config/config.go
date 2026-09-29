@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -210,7 +211,7 @@ func environmentNode(environ []string) *yaml.Node {
 				key := &yaml.Node{Kind: yaml.ScalarNode, Value: part}
 				child = &yaml.Node{Kind: yaml.MappingNode}
 				if i == len(e.path)-1 {
-					child = &yaml.Node{Kind: yaml.ScalarNode, Value: envScalar(e.value)}
+					child = &yaml.Node{Kind: yaml.ScalarNode, Value: envScalar(e.path, e.value)}
 				}
 				node.Content = append(node.Content, key, child)
 			}
@@ -221,8 +222,34 @@ func environmentNode(environ []string) *yaml.Node {
 }
 
 // envScalar accepts the spellings of booleans pydantic accepts in
-// environment variables, which YAML alone doesn't read as booleans.
-func envScalar(value string) string {
+// environment variables, which YAML alone doesn't read as booleans. String
+// settings must retain their exact values, even when they look like booleans.
+func envScalar(path []string, value string) string {
+	setting := reflect.TypeOf(Settings{})
+	for _, part := range path {
+		if setting.Kind() != reflect.Struct {
+			return value
+		}
+		var fieldType reflect.Type
+		for i := 0; i < setting.NumField(); i++ {
+			field := setting.Field(i)
+			if strings.Split(field.Tag.Get("yaml"), ",")[0] == part {
+				fieldType = field.Type
+				break
+			}
+		}
+		if fieldType == nil {
+			return value
+		}
+		setting = fieldType
+	}
+	if setting.Kind() == reflect.Pointer {
+		setting = setting.Elem()
+	}
+	if setting.Kind() != reflect.Bool {
+		return value
+	}
+
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "1", "yes", "on", "true":
 		return "true"

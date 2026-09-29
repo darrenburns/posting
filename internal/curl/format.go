@@ -1,7 +1,7 @@
 package curl
 
 import (
-	"encoding/json"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -19,7 +19,7 @@ type FormatOptions struct {
 
 // Format writes req as a curl command. Pass a resolved request (see
 // model.Resolve) for a command that runs as-is; an unresolved one keeps its
-// ${VARIABLES}, which a shell will expand from its own environment.
+// $VARIABLE and ${VARIABLE} references intact for later substitution.
 //
 // Only what goes on the wire is written: the request's name, description,
 // disabled rows and Posting-only options have no curl equivalent.
@@ -48,9 +48,7 @@ func Format(req model.Request, opts FormatOptions) string {
 	// A raw body needs its type spelled out unless the headers already do,
 	// or curl (and Parse) would take it for a form.
 	if req.Body.Type == model.BodyRaw && hasBody && headerValue(headers, "Content-Type") == "" {
-		if !(req.Body.ContentType == "application/json" && json.Valid([]byte(req.Body.Raw))) {
-			headers = append(headers, model.KeyValue{Name: "Content-Type", Value: orDefault(req.Body.ContentType, "text/plain"), Enabled: true})
-		}
+		headers = append(headers, model.KeyValue{Name: "Content-Type", Value: orDefault(req.Body.ContentType, "text/plain"), Enabled: true})
 	}
 	for _, h := range headers {
 		parts = append(parts, "-H", Quote(h.Name+": "+h.Value))
@@ -73,7 +71,9 @@ func Format(req model.Request, opts FormatOptions) string {
 	case model.BodyForm:
 		for _, f := range req.Body.Form {
 			if f.Enabled && f.Name != "" {
-				parts = append(parts, "--data-urlencode", Quote(f.Name+"="+f.Value))
+				// curl encodes only the value of name=content; the name must
+				// already be escaped or its delimiters change the form fields.
+				parts = append(parts, "--data-urlencode", Quote(escapeQueryPart(f.Name)+"="+f.Value))
 			}
 		}
 	}
@@ -114,19 +114,24 @@ func Format(req model.Request, opts FormatOptions) string {
 // targetURL is the URL with the enabled query parameters, for requests
 // whose query lives only in their parameter list.
 func targetURL(req model.Request) string {
-	if strings.Contains(req.URL, "?") {
+	base, fragment, hasFragment := strings.Cut(req.URL, "#")
+	if strings.Contains(base, "?") {
 		return req.URL
 	}
 	var pairs []string
 	for _, kv := range req.Query {
 		if kv.Enabled {
-			pairs = append(pairs, kv.Name+"="+kv.Value)
+			pairs = append(pairs, escapeQueryPart(kv.Name)+"="+escapeQueryPart(kv.Value))
 		}
 	}
 	if len(pairs) == 0 {
 		return req.URL
 	}
-	return req.URL + "?" + strings.Join(pairs, "&")
+	target := base + "?" + strings.Join(pairs, "&")
+	if hasFragment {
+		target += "#" + fragment
+	}
+	return target
 }
 
 func anyEnabled(kvs []model.KeyValue) bool {
@@ -136,4 +141,17 @@ func anyEnabled(kvs []model.KeyValue) bool {
 		}
 	}
 	return false
+}
+
+// Keep unresolved Posting references intact while escaping literal query text.
+func escapeQueryPart(value string) string {
+	var out strings.Builder
+	end := 0
+	for _, ref := range model.FindVariables(value) {
+		out.WriteString(url.QueryEscape(value[end:ref.Start]))
+		out.WriteString(value[ref.Start:ref.End])
+		end = ref.End
+	}
+	out.WriteString(url.QueryEscape(value[end:]))
+	return out.String()
 }

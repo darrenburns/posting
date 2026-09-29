@@ -106,3 +106,28 @@ func TestUseNerdFonts(t *testing.T) {
 		t.Error("nerd_fonts: true should turn them on anywhere")
 	}
 }
+
+func TestLoadPreservesBooleanLookingStrings(t *testing.T) {
+	t.Setenv("POSTING_CONFIG_FILE", filepath.Join(t.TempDir(), "missing.yaml"))
+	for _, value := range []string{"1", "0", "yes", "no", "on", "off", "TRUE", "FALSE"} {
+		t.Run(value, func(t *testing.T) {
+			t.Setenv("POSTING_SSL__PASSWORD", value)
+			t.Setenv("POSTING_HEADING__HOSTNAME", value)
+			t.Setenv("POSTING_HEADING__SHOW_HOST", value)
+			s, warnings := Load()
+			if len(warnings) != 0 {
+				t.Fatalf("warnings: %v", warnings)
+			}
+			if s.SSL.Password != value {
+				t.Errorf("password = %q, want %q", s.SSL.Password, value)
+			}
+			if s.Heading.Hostname != value {
+				t.Errorf("hostname = %q, want %q", s.Heading.Hostname, value)
+			}
+			wantBool := value == "1" || value == "yes" || value == "on" || value == "TRUE"
+			if s.Heading.ShowHost != wantBool {
+				t.Errorf("show_host = %v, want %v", s.Heading.ShowHost, wantBool)
+			}
+		})
+	}
+}
