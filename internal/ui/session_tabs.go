@@ -3,12 +3,13 @@ package ui
 import (
 	"unicode/utf8"
 
+	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 )
 
 const (
-	sessionTabsWheelID = "session-tabs-wheel"
-	tabSearchID        = "tab-search"
+	sessionTabsID = "session-tabs"
+	tabSearchID   = "tab-search"
 )
 
 // The fixed parts of the strip of open requests, in cells.
@@ -27,26 +28,32 @@ type sessionTabsView struct {
 	// revealed is the session last scrolled into view. When the active
 	// session differs, the strip scrolls to it.
 	revealed int
-	// x, y and width are where the strip was last painted. Layout doesn't
+	// width is the strip's width when it was last painted. Layout doesn't
 	// tell widgets their size while they build, so a probe records it.
-	x, y, width int
+	width int
 	// changed rebuilds the strip after it scrolls or is resized.
 	changed t.Signal[int]
-	// wheel receives mouse wheel events over a strip that overflows.
-	wheel *t.ScrollState
 }
 
 func newSessionTabsView() *sessionTabsView {
-	v := &sessionTabsView{changed: t.NewSignal(0), wheel: t.NewScrollState()}
-	// Terma only sends the wheel to scrollables, and only while they can
-	// scroll, so the strip is wrapped in one (see sessionTabs.Build). Every
-	// direction moves it a tab at a time; returning true keeps the
-	// scrollable's own offset where it is.
-	v.wheel.OnScrollUp = func(int) bool { v.scroll(-1); return true }
-	v.wheel.OnScrollLeft = func(int) bool { v.scroll(-1); return true }
-	v.wheel.OnScrollDown = func(int) bool { v.scroll(1); return true }
-	v.wheel.OnScrollRight = func(int) bool { v.scroll(1); return true }
-	return v
+	return &sessionTabsView{changed: t.NewSignal(0)}
+}
+
+// wheel scrolls a strip that overflows a tab at a time, whichever way the
+// wheel turns. A strip that shows every tab leaves the wheel be.
+func (v *sessionTabsView) wheel(e t.MouseEvent) bool {
+	if v.maxFirst == 0 {
+		return false
+	}
+	switch e.Button {
+	case uv.MouseWheelUp, uv.MouseWheelLeft:
+		v.scroll(-1)
+	case uv.MouseWheelDown, uv.MouseWheelRight:
+		v.scroll(1)
+	default:
+		return false
+	}
+	return true
 }
 
 // scroll moves the strip by delta tabs, leaving the active tab where it is.
@@ -119,6 +126,12 @@ type sessionTabs struct {
 	app *App
 }
 
+// WidgetID names the strip, for the tab search to drop down from.
+func (st sessionTabs) WidgetID() string { return sessionTabsID }
+
+// OnMouseWheel scrolls the strip when the wheel turns anywhere over it.
+func (st sessionTabs) OnMouseWheel(e t.MouseEvent) bool { return st.app.sessionView.wheel(e) }
+
 func (st sessionTabs) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	a := st.app
@@ -168,8 +181,6 @@ func (st sessionTabs) Build(ctx t.BuildContext) t.Widget {
 		return st.probed(t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: children})
 	}
 
-	// The scrollable the tabs sit in keeps a column for its scrollbar.
-	fit.room--
 	view.maxFirst = fit.maxFirst()
 	view.first = min(view.first, view.maxFirst)
 	if view.revealed != active {
@@ -189,24 +200,7 @@ func (st sessionTabs) Build(ctx t.BuildContext) t.Widget {
 		used += w
 	}
 	// Tabs past the right edge are clipped; the › mark says there are more.
-	tabs := t.Scrollable{
-		ID:                  sessionTabsWheelID,
-		State:               view.wheel,
-		DisableFocus:        true,
-		Style:               t.Style{Width: t.Flex(1), Height: t.Cells(1)},
-		ScrollbarThumbColor: theme.Background,
-		ScrollbarTrackColor: theme.Background,
-		// The blank second row lets the scrollable scroll vertically, so the
-		// wheel reaches it; the scrollable is one row tall and never moves.
-		Child: t.Column{
-			Style: t.Style{Width: t.Flex(1)},
-			Children: []t.Widget{
-				t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: shown},
-				t.Text{Content: " "},
-			},
-		},
-	}
-	children := []t.Widget{tabs}
+	children := []t.Widget{t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: shown}}
 	if used > fit.room {
 		children = append(children, overflowMarkText(theme, " ›", func() { view.scroll(1) }))
 	}
@@ -225,8 +219,8 @@ func (st sessionTabs) probed(row t.Widget) t.Widget {
 	}
 }
 
-// sessionTabsProbe fills the strip and records where it is painted, so the
-// strip knows how many tabs fit and the tab search can drop down from it.
+// sessionTabsProbe fills the strip and records its width, so the strip knows
+// how many tabs fit.
 type sessionTabsProbe struct{ view *sessionTabsView }
 
 func (p sessionTabsProbe) GetContentDimensions() (t.Dimension, t.Dimension) {
@@ -235,12 +229,11 @@ func (p sessionTabsProbe) GetContentDimensions() (t.Dimension, t.Dimension) {
 
 func (p sessionTabsProbe) Build(t.BuildContext) t.Widget { return p }
 
-// Render records the strip's position. A change of width rebuilds the strip
+// Render records the strip's width. A change of width rebuilds the strip
 // in the next frame, since this one has already been built for the old one,
 // scrolled to keep the active tab in view.
 func (p sessionTabsProbe) Render(ctx *t.RenderContext) {
 	v := p.view
-	v.x, v.y = ctx.X, ctx.Y
 	if ctx.Width != v.width {
 		v.width = ctx.Width
 		t.Dispatch(v.revealActive)
@@ -351,13 +344,12 @@ func (a *App) showSession(id int) {
 // tabSearchPalette is the command palette, dropped down from the right end of
 // the strip of open tabs rather than floating over the middle of the screen.
 func (a *App) tabSearchPalette(theme t.ThemeData) t.Widget {
-	view := a.sessionView
 	return t.CommandPalette{
 		ID:          tabSearchID,
 		State:       a.tabSearch,
 		Placeholder: "Search open tabs…",
-		Position:    t.FloatPositionAbsolute,
-		Offset:      t.Offset{X: max(view.x+view.width-tabSearchWidth, 0), Y: view.y + 1},
+		AnchorID:    sessionTabsID,
+		Anchor:      t.AnchorBottomRight,
 		Style:       t.Style{Width: t.Cells(tabSearchWidth)},
 		RenderItem: func(item t.CommandPaletteItem, active bool, match t.MatchResult) t.Widget {
 			s, _ := item.Data.(*Session)
