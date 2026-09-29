@@ -15,6 +15,7 @@ import (
 	"github.com/darrenburns/posting/internal/env"
 	"github.com/darrenburns/posting/internal/model"
 	"github.com/darrenburns/posting/internal/paths"
+	"github.com/darrenburns/posting/internal/themes"
 	"github.com/darrenburns/posting/internal/ui"
 )
 
@@ -125,6 +126,14 @@ func appConfig(opts options) (ui.Config, error) {
 	for _, p := range problems {
 		messages = append(messages, "Couldn't load "+p.Error())
 	}
+	var userThemes []themes.Theme
+	if settings.LoadUserThemes {
+		var themeProblems []error
+		userThemes, themeProblems = themes.LoadDir(settings.ThemeDirectory)
+		for _, problem := range themeProblems {
+			messages = append(messages, "Couldn't load theme "+problem.Error())
+		}
+	}
 	var host []model.Variable
 	if settings.UseHostEnvironment {
 		host = env.Host()
@@ -141,6 +150,7 @@ func appConfig(opts options) (ui.Config, error) {
 		Version:          version,
 		Settings:         &settings,
 		HostVariables:    host,
+		UserThemes:       userThemes,
 		Sender:           client.NewHTTP("posting/"+version, tlsSettings),
 		Collection:       root,
 		Store:            store,
