@@ -422,15 +422,19 @@ func (a *App) send() {
 		a.nextHistoryID++
 		entry := historyEntry(a.nextHistoryID, req, resp)
 		a.setHistory(append([]model.HistoryEntry{entry}, a.history.Peek()...))
+		// A response in a background tab must not interrupt the request the
+		// user is working on. Switching back before it arrives still applies
+		// the configured response focus behavior.
+		if a.current() != s {
+			return
+		}
 		switch a.settings.Focus.OnResponse {
 		case "body":
-			if s := a.current(); s != nil {
-				s.responseTab.Set("body")
-				if len(resp.Body) > 0 {
-					t.RequestFocus("resp-body")
-				} else {
-					t.RequestFocus(responseTabsID)
-				}
+			s.responseTab.Set("body")
+			if len(resp.Body) > 0 {
+				t.RequestFocus("resp-body")
+			} else {
+				t.RequestFocus(responseTabsID)
 			}
 		case "tabs":
 			t.RequestFocus(responseTabsID)
