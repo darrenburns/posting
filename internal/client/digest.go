@@ -57,14 +57,16 @@ func parseAuthParams(s string) map[string]string {
 		s = s[eq+1:]
 		var value string
 		if strings.HasPrefix(s, `"`) {
+			var decoded strings.Builder
 			end := 1
 			for end < len(s) && s[end] != '"' {
-				if s[end] == '\\' {
+				if s[end] == '\\' && end+1 < len(s) {
 					end++
 				}
+				decoded.WriteByte(s[end])
 				end++
 			}
-			value = strings.ReplaceAll(s[1:min(end, len(s))], `\"`, `"`)
+			value = decoded.String()
 			s = s[min(end+1, len(s)):]
 		} else {
 			end := strings.IndexByte(s, ',')
@@ -136,4 +138,7 @@ func (c digestChallenge) authorize(method string, u *url.URL, username, password
 	return "Digest " + strings.Join(parts, ", "), nil
 }
 
-func quoteEscape(s string) string { return strings.ReplaceAll(s, `"`, `\"`) }
+func quoteEscape(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	return strings.ReplaceAll(s, `"`, `\"`)
+}
