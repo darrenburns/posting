@@ -134,26 +134,19 @@ func summaryBubble(ctx t.BuildContext, a *App, r model.Request, leftOfTree bool,
 	}
 }
 
-// treeRow is the line of the tree row at path, counting the rows of expanded
-// folders above it.
+// treeRow is the line of the tree row at path, counting the rows shown above
+// it: those of expanded folders or, while searching, the results.
 func (a *App) treeRow(path []int) (int, bool) {
-	_ = a.tree.Collapsed.Get()
-	row := 0
-	var walk func(nodes []t.TreeNode[treeItem], prefix []int) bool
-	walk = func(nodes []t.TreeNode[treeItem], prefix []int) bool {
-		for i, node := range nodes {
-			p := append(slices.Clip(prefix), i)
-			if slices.Equal(p, path) {
-				return true
-			}
-			row++
-			if len(node.Children) > 0 && !a.tree.IsCollapsed(p) && walk(node.Children, p) {
-				return true
-			}
+	// visibleTreePaths only peeks, so subscribe to what decides the rows.
+	a.tree.Nodes.Get()
+	a.tree.Collapsed.Get()
+	a.treeFilter.Query.Get()
+	for row, p := range a.visibleTreePaths() {
+		if slices.Equal(p, path) {
+			return row, true
 		}
-		return false
 	}
-	return row, len(path) > 0 && walk(a.tree.Nodes.Get(), nil)
+	return 0, false
 }
 
 // wrapWords breaks text into lines of at most width runes at spaces, keeping

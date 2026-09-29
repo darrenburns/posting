@@ -91,6 +91,10 @@ type App struct {
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
 	treeScroll *t.ScrollState
+	// treeSearch is the search box above the tree, and treeFilter the
+	// search the tree is filtered by (see tree_search.go).
+	treeSearch *t.TextInputState
+	treeFilter *t.FilterState
 
 	history       t.AnySignal[[]model.HistoryEntry]
 	historyList   *t.ListState[model.HistoryEntry]
@@ -118,7 +122,6 @@ type App struct {
 
 	jump               *t.JumpState
 	palette            *t.CommandPaletteState
-	requestSearch      *t.CommandPaletteState
 	tabSearch          *t.CommandPaletteState
 	themeBeforePreview string
 	helpScroll         *t.ScrollState
@@ -181,6 +184,8 @@ func New(cfg Config) *App {
 		host:           host,
 		collection:     t.NewAnySignal(cfg.Collection),
 		treeScroll:     t.NewScrollState(),
+		treeSearch:     t.NewTextInputState(""),
+		treeFilter:     t.NewFilterState(),
 		history:        t.NewAnySignal[[]model.HistoryEntry](nil),
 		historyList:    t.NewListState[model.HistoryEntry](nil),
 		historyScroll:  t.NewScrollState(),
@@ -218,7 +223,6 @@ func New(cfg Config) *App {
 	}
 	a.jump = t.NewJumpState()
 	a.palette = t.NewCommandPaletteState("Commands", nil)
-	a.requestSearch = t.NewCommandPaletteState("Go to request", nil)
 	// No title: the tab search opens straight onto its input, without a
 	// breadcrumb row above it.
 	a.tabSearch = t.NewCommandPaletteState("", nil)
@@ -762,6 +766,16 @@ func (a *App) jumpTargets() []t.JumpTarget {
 		}
 	})...)
 	return targets
+}
+
+// focusBelowSidebarTabs moves down from the sidebar's tabs: to the search box
+// above the request tree, or the history list.
+func (a *App) focusBelowSidebarTabs() {
+	if a.sidebarTab.Peek() == "requests" && len(a.tree.Nodes.Peek()) > 0 {
+		t.RequestFocus(treeSearchID)
+		return
+	}
+	a.focusSidebarList()
 }
 
 // focusSidebarList focuses the list in the visible sidebar tab.
