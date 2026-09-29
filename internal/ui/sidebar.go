@@ -94,7 +94,8 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 	}
 }
 
-// collectionView is the request tree plus a preview of the highlighted request.
+// collectionView is the request tree, with a summary of the highlighted
+// request floating beside it (see requestSummary).
 type collectionView struct {
 	fillParent
 	app *App
@@ -127,9 +128,12 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 	if s := a.session(); s != nil {
 		activeFile = s.file.Get()
 	}
-	return t.Column{
+	// The tree fills the panel on its own: the summary of the request under
+	// the cursor floats beside it, so the tree never resizes as it moves.
+	return t.Stack{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
+			treeViewportProbe{app: a},
 			t.Scrollable{
 				State: a.treeScroll,
 				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
@@ -149,13 +153,14 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 							a.tree.Toggle(a.tree.CursorPath.Peek())
 						}
 					},
+					OnCursorChange: func(treeItem) { a.summary.hidden.Set(false) },
 					RenderNode: func(i treeItem, node t.TreeNodeContext) t.Widget {
 						return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile)
 					},
 					Style: t.Style{Width: t.Flex(1)},
 				},
 			},
-			requestPreview{app: a},
+			requestSummary{app: a},
 		},
 	}
 }
@@ -212,29 +217,6 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 			{Text: mark, Style: markStyle},
 		},
 		Style: t.Style{Width: t.Flex(1)},
-	}
-}
-
-// requestPreview shows the description of the request under the tree cursor.
-type requestPreview struct {
-	fillWidth
-	app *App
-}
-
-func (p requestPreview) Build(ctx t.BuildContext) t.Widget {
-	theme := ctx.Theme()
-	_ = p.app.tree.CursorPath.Get()
-	item, ok := p.app.tree.CursorNode()
-	if !ok || item.Request == nil || strings.TrimSpace(item.Request.Description) == "" {
-		return t.EmptyWidget{}
-	}
-	r := item.Request
-	return t.Column{
-		Style: t.Style{Width: t.Flex(1), MaxHeight: t.Cells(8)},
-		Children: []t.Widget{
-			t.Text{Content: strings.Repeat("─", 60), Style: t.Style{ForegroundColor: theme.Border, Width: t.Flex(1)}},
-			t.Text{Content: r.Description, Wrap: t.WrapSoft, Style: t.Style{ForegroundColor: theme.TextMuted, Width: t.Flex(1)}},
-		},
 	}
 }
 
