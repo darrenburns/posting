@@ -73,3 +73,29 @@ func TestIsSensitiveName(t *testing.T) {
 		}
 	}
 }
+
+func TestResolveUnescapesLiteralPathWithoutParameters(t *testing.T) {
+	for raw, want := range map[string]string{
+		"https://example.com/users/::id": "https://example.com/users/:id",
+		"http://[::1]/users/::id":        "http://[::1]/users/:id",
+		"example.com/users/::id":         "http://example.com/users/:id",
+	} {
+		t.Run(raw, func(t *testing.T) {
+			req := NewRequest()
+			req.URL = raw
+			if names := PathParamNames(raw); len(names) != 0 {
+				t.Fatalf("escaped path has parameter names: %v", names)
+			}
+			resolved, err := Resolve(req, MapLookup(nil))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if resolved.URL != want {
+				t.Errorf("URL = %q, want %q", resolved.URL, want)
+			}
+			if req.URL != raw {
+				t.Errorf("original URL changed: %q", req.URL)
+			}
+		})
+	}
+}
