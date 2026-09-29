@@ -762,14 +762,34 @@ func (f footer) Build(ctx t.BuildContext) t.Widget {
 		text.Style.Width = t.Flex(1)
 		hints = text
 	}
+	padding := t.EdgeInsetsXY(2, 0)
+	if f.app.settings.Heading.ShowVersion {
+		// The logo's glow runs to the right edge and pads the logo itself.
+		padding.Right = 0
+	}
 	return t.Row{
-		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(2, 0), BackgroundColor: theme.Background},
+		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: padding, BackgroundColor: theme.Background},
 		Children: []t.Widget{
 			// The hints take the space the version leaves, and leave out
 			// those that don't fit.
 			hints,
-			t.ShowWhen(f.app.settings.Heading.ShowVersion, t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled, Padding: t.EdgeInsets{Left: 2}}}),
+			t.ShowWhen(f.app.settings.Heading.ShowVersion, logoGlow(theme, t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled}})),
 		},
+	}
+}
+
+// logoGlow sits the footer logo on a faint wash of the theme's secondary
+// colour that fades in from the right edge.
+func logoGlow(theme t.ThemeData, logo t.Widget) t.Widget {
+	bg := theme.Background
+	tint := bg.Blend(theme.Secondary, 0.18)
+	return t.Row{
+		Style: t.Style{
+			Height:          t.Cells(1),
+			Padding:         t.EdgeInsets{Left: 4, Right: 2},
+			BackgroundColor: t.NewGradient(bg, bg.Blend(tint, 0.3), tint).WithAngle(90),
+		},
+		Children: []t.Widget{logo},
 	}
 }
 
