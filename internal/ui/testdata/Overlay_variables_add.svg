@@ -4810,26 +4810,26 @@
   <rect x="906.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="915.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="923.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="932.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="940.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="948.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="957.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="965.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="974.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="982.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="990.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="999.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1007.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1016.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1024.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1032.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1041.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1049.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1058.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1066.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1074.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1083.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1091.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="932.0" y="694.0" width="8.4" height="19.6" fill="#0F0F20"/>
+  <rect x="940.4" y="694.0" width="8.4" height="19.6" fill="#100F20"/>
+  <rect x="948.8" y="694.0" width="8.4" height="19.6" fill="#101020"/>
+  <rect x="957.2" y="694.0" width="8.4" height="19.6" fill="#101020"/>
+  <rect x="965.6" y="694.0" width="8.4" height="19.6" fill="#101020"/>
+  <rect x="974.0" y="694.0" width="8.4" height="19.6" fill="#101021"/>
+  <rect x="982.4" y="694.0" width="8.4" height="19.6" fill="#101021"/>
+  <rect x="990.8" y="694.0" width="8.4" height="19.6" fill="#101021"/>
+  <rect x="999.2" y="694.0" width="8.4" height="19.6" fill="#111021"/>
+  <rect x="1007.6" y="694.0" width="8.4" height="19.6" fill="#111022"/>
+  <rect x="1016.0" y="694.0" width="8.4" height="19.6" fill="#111122"/>
+  <rect x="1024.4" y="694.0" width="8.4" height="19.6" fill="#121123"/>
+  <rect x="1032.8" y="694.0" width="8.4" height="19.6" fill="#121123"/>
+  <rect x="1041.2" y="694.0" width="8.4" height="19.6" fill="#121223"/>
+  <rect x="1049.6" y="694.0" width="8.4" height="19.6" fill="#131224"/>
+  <rect x="1058.0" y="694.0" width="8.4" height="19.6" fill="#131224"/>
+  <rect x="1066.4" y="694.0" width="8.4" height="19.6" fill="#131225"/>
+  <rect x="1074.8" y="694.0" width="8.4" height="19.6" fill="#141325"/>
+  <rect x="1083.2" y="694.0" width="8.4" height="19.6" fill="#141326"/>
+  <rect x="1091.6" y="694.0" width="8.4" height="19.6" fill="#141326"/>
   <text x="310.4" y="694.0" fill="#1F1E3A">│</text>
   <text x="335.6" y="694.0" fill="#572A4C">Enter</text>
   <text x="386.0" y="694.0" fill="#39384F">Save</text>
@@ -4846,6 +4846,14 @@
   <text x="772.4" y="694.0" fill="#39384F">Commands</text>
   <text x="848.0" y="694.0" fill="#572A4C">F1</text>
   <text x="873.2" y="694.0" fill="#39384F">Help</text>
-  <text x="940.4" y="694.0" fill="#2C2B41">Posting</text>
-  <text x="1007.6" y="694.0" fill="#2C2B41">3.0.0-dev</text>
+  <text x="940.4" y="694.0" fill="#2D2B42">P</text>
+  <text x="948.8" y="694.0" fill="#2D2B42">ost</text>
+  <text x="974.0" y="694.0" fill="#2D2B43">ing</text>
+  <text x="1007.6" y="694.0" fill="#2E2B43">3</text>
+  <text x="1016.0" y="694.0" fill="#2E2C43">.</text>
+  <text x="1024.4" y="694.0" fill="#2E2C44">0.</text>
+  <text x="1041.2" y="694.0" fill="#2E2D44">0</text>
+  <text x="1049.6" y="694.0" fill="#2F2D45">-d</text>
+  <text x="1066.4" y="694.0" fill="#2F2D45">e</text>
+  <text x="1074.8" y="694.0" fill="#302D45">v</text>
 </svg>
