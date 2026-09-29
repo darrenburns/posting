@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/darrenburns/posting/internal/client"
@@ -152,6 +154,8 @@ func appConfig(opts options) (ui.Config, error) {
 	}
 	return ui.Config{
 		Watch:            watch,
+		Reload:           store,
+		OpenURL:          openURL,
 		Version:          version,
 		Settings:         &settings,
 		HostVariables:    host,
@@ -186,6 +190,20 @@ func environmentFiles(given []string) ([]string, error) {
 		files = append(files, abs)
 	}
 	return files, nil
+}
+
+// openURL opens a page in the default browser.
+func openURL(url string) error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", url)
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+	default:
+		cmd = exec.Command("xdg-open", url)
+	}
+	return cmd.Start()
 }
 
 func locate(args []string, stdout, stderr io.Writer) int {

@@ -340,23 +340,9 @@ func (a *App) clearHistory() {
 }
 
 func (a *App) duplicateAtCursor() {
-	item, ok := a.tree.CursorNode()
-	if !ok || item.Request == nil {
-		return
+	if item, ok := a.tree.CursorNode(); ok && item.Request != nil {
+		a.duplicateRequest(*item.Request)
 	}
-	dup := item.Request.Clone()
-	dup.Name = strings.TrimSpace(dup.Name + " (copy)")
-	base := strings.TrimSuffix(dup.File, ".posting.yaml")
-	candidate := base + "-copy.posting.yaml"
-	for n := 2; a.fileExists(candidate); n++ {
-		candidate = fmt.Sprintf("%s-copy-%d.posting.yaml", base, n)
-	}
-	dup.File = candidate
-	if !a.storeRequest(dup) {
-		return
-	}
-	a.openRequest(dup)
-	a.notify("Duplicated as "+dup.File, toastSuccess)
 }
 
 func (a *App) fileExists(file string) bool {
@@ -370,16 +356,7 @@ func (a *App) fileExists(file string) bool {
 }
 
 func (a *App) confirmDeleteAtCursor() {
-	item, ok := a.tree.CursorNode()
-	if !ok || item.Request == nil {
-		return
+	if item, ok := a.tree.CursorNode(); ok && item.Request != nil {
+		a.confirmDelete(*item.Request)
 	}
-	file := item.Request.File
-	a.askConfirm(confirmation{
-		title:   "Delete request?",
-		message: "[b]" + escapeMarkup(item.Request.DisplayName()) + "[/] will be removed from the collection.\n[$TextMuted]" + escapeMarkup(file) + "[/]",
-		confirm: "Delete",
-		danger:  true,
-		onYes:   func() { a.deleteRequest(file) },
-	})
 }

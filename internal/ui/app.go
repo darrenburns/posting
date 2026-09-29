@@ -32,6 +32,10 @@ type Config struct {
 	Store collection.Store
 	// Watch, when set, is polled for changes to the collection on disk.
 	Watch CollectionWatcher
+	// Reload, when set, rereads the collection on request.
+	Reload CollectionWatcher
+	// OpenURL opens a web page in the user's browser.
+	OpenURL func(url string) error
 	// Environments finds and loads environment files.
 	Environments EnvironmentSource
 	// Environment is the files of the environment active at startup.
@@ -63,6 +67,10 @@ const (
 type App struct {
 	version    string
 	settings   config.Settings
+	spacing    t.Signal[string]
+	openURL    func(string) error
+	watcher    CollectionWatcher
+	envFile    *envFileForm
 	userThemes []string
 	sender     client.Sender
 	store      collection.Store
@@ -142,6 +150,10 @@ func New(cfg Config) *App {
 	a := &App{
 		version:        cfg.Version,
 		settings:       settings,
+		spacing:        t.NewSignal(settings.Spacing),
+		openURL:        cfg.OpenURL,
+		watcher:        cfg.Reload,
+		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
 		store:          cfg.Store,
 		host:           cfg.UserHost,
@@ -695,7 +707,7 @@ func (p heightProbe) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
 // gap is the number of blank rows between parts of the layout: one, or none
 // in compact mode.
 func (a *App) gap() int {
-	if a.settings.Spacing == "compact" || a.compact.Get() {
+	if a.spacing.Get() == "compact" || a.compact.Get() {
 		return 0
 	}
 	return 1

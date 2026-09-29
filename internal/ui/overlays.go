@@ -47,6 +47,7 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 		variablesOverlay{app: a, visible: overlay == "variables"},
 		confirmOverlay{app: a, visible: overlay == "confirm"},
 		curlOverlay{app: a, visible: overlay == "curl"},
+		envFileOverlay{app: a, visible: overlay == "envfile"},
 		toastOverlay{app: a},
 	}}
 }
@@ -95,15 +96,47 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			a.palette.SetNextFocusIDOnClose("vars-table")
 			a.run(a.openVariables)()
 		}},
+		{Label: "Load environment file…", Description: "Use a .env file from anywhere", Action: func() {
+			a.palette.SetNextFocusIDOnClose("envfile-path")
+			a.run(a.openEnvFileDialog)()
+		}},
+		{Divider: "Request"},
+		{Label: "Duplicate request", Description: "Save a copy beside this request", Action: a.run(func() {
+			if s := a.current(); s != nil {
+				a.duplicateRequest(s.Snapshot())
+			}
+		})},
+		{Label: "Delete request", Description: "Remove this request's file from the collection", Action: a.run(func() {
+			if s := a.current(); s != nil {
+				a.confirmDelete(s.Snapshot())
+			}
+		})},
+		{Label: "Copy response body", Action: a.run(a.copyResponseBody)},
+		{Label: "Reload collection", Description: "Read the collection from disk again", Action: a.run(a.reloadCollection)},
 		{Divider: "Import and export"},
-		{Label: "Import curl command…", Description: "Paste a curl command to load it into this tab", Action: a.run(a.openCurlImport)},
-		{Label: "Export as curl", Description: "Copy the request as a curl command", Action: a.run(a.copyAsCurl)},
+		{Label: "Import curl command…", Description: "Paste a curl command to load it into this tab", Action: func() {
+			a.palette.SetNextFocusIDOnClose("curl-text")
+			a.run(a.openCurlImport)()
+		}},
+		{Label: "Export as curl", Description: "Copy the request as a curl command", Action: func() {
+			a.palette.SetNextFocusIDOnClose("curl-text")
+			a.run(a.copyAsCurl)()
+		}},
+		{Label: "Export as YAML", Description: "Copy the request as a Posting request file", Action: func() {
+			a.palette.SetNextFocusIDOnClose("curl-text")
+			a.run(a.exportYAML)()
+		}},
 		{Divider: "View"},
 		{Label: layoutLabel, Action: a.run(a.toggleLayout)},
 		{Label: sidebarLabel, Hint: a.keyHint("toggle-collection"), Action: a.run(a.toggleSidebar)},
 		{Label: "View: expand request", Action: a.run(func() { a.expanded.Set("request") })},
 		{Label: "View: expand response", Action: a.run(func() { a.expanded.Set("response") })},
 	}
+	spacingLabel := "View: compact spacing"
+	if a.spacing.Peek() == "compact" {
+		spacingLabel = "View: standard spacing"
+	}
+	items = append(items, t.CommandPaletteItem{Label: spacingLabel, Action: a.run(a.toggleSpacing)})
 	if a.expanded.Peek() != "" {
 		items = append(items, t.CommandPaletteItem{Label: "View: restore panels", Hint: "alt+z", Action: a.run(func() { a.expanded.Set("") })})
 	}
@@ -112,6 +145,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		t.CommandPaletteItem{Divider: "App"},
 		t.CommandPaletteItem{Label: "Clear history", Action: a.run(a.clearHistory)},
 		t.CommandPaletteItem{Label: "Keyboard shortcuts", Hint: a.keyHint("help"), Action: a.run(func() { a.overlay.Set("help") })},
+		t.CommandPaletteItem{Label: "Open documentation", Description: docsURL, Action: a.run(a.openDocs)},
 		t.CommandPaletteItem{Label: "Quit Posting", Hint: "ctrl+c", Action: t.Quit},
 	)
 	return items
