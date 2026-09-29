@@ -46,7 +46,7 @@ func TestLoadPosting2Collection(t *testing.T) {
 	if echo.Options.TimeoutSeconds != 0.2 || !echo.Options.FollowRedirects {
 		t.Errorf("options = %+v", echo.Options)
 	}
-	wantQuery := []model.KeyValue{{"key1", "value1", true}, {"another-key", "another-value", true}, {"number", "123", true}}
+	wantQuery := []model.KeyValue{{Name: "key1", Value: "value1", Enabled: true}, {Name: "another-key", Value: "another-value", Enabled: true}, {Name: "number", Value: "123", Enabled: true}}
 	if !reflect.DeepEqual(echo.Query, wantQuery) {
 		t.Errorf("query = %+v", echo.Query)
 	}

@@ -93,6 +93,9 @@ type Session struct {
 	generation         uint64
 	cancel             context.CancelFunc
 
+	// prettifyJSON indents JSON response bodies.
+	prettifyJSON bool
+
 	// syncing suppresses URL<->query feedback loops.
 	syncing bool
 }
@@ -450,7 +453,7 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 		return
 	}
 	s.trace.Set(resp.Trace)
-	s.responseBody.SetText(formatBody(resp))
+	s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
 	s.responseBody.CursorIndex.Set(0)
 	s.responseBodyScroll.SetOffset(0)
 	s.responseHeaders.SetRows(resp.Headers)

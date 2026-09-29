@@ -11,7 +11,9 @@ import (
 
 	"github.com/darrenburns/posting/internal/client"
 	"github.com/darrenburns/posting/internal/collection"
+	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/env"
+	"github.com/darrenburns/posting/internal/model"
 	"github.com/darrenburns/posting/internal/paths"
 	"github.com/darrenburns/posting/internal/ui"
 )
@@ -91,6 +93,7 @@ Options:
 
 // appConfig loads everything the UI needs from disk.
 func appConfig(opts options) (ui.Config, error) {
+	settings, messages := config.Load()
 	dir := opts.collection
 	if dir == "" {
 		dir = paths.DefaultCollectionDir()
@@ -119,19 +122,31 @@ func appConfig(opts options) (ui.Config, error) {
 
 	store := collection.Dir{Root: dir}
 	root, problems := store.Load()
-	var messages []string
 	for _, p := range problems {
 		messages = append(messages, "Couldn't load "+p.Error())
 	}
+	var host []model.Variable
+	if settings.UseHostEnvironment {
+		host = env.Host()
+	}
+	if settings.SSL.Password != "" {
+		messages = append(messages, "ssl.password isn't supported yet: use an unencrypted key file")
+	}
+	tlsSettings := client.TLSSettings{
+		CABundle: settings.SSL.CABundle,
+		CertFile: settings.SSL.CertificatePath,
+		KeyFile:  settings.SSL.KeyFile,
+	}
 	return ui.Config{
 		Version:          version,
-		Sender:           client.NewHTTP("posting/"+version, client.TLSSettings{}),
+		Settings:         &settings,
+		HostVariables:    host,
+		Sender:           client.NewHTTP("posting/"+version, tlsSettings),
 		Collection:       root,
 		Store:            store,
 		Environments:     env.Source{Dirs: envDirs},
 		Environment:      envFiles,
-		WatchEnvironment: true,
-		Theme:            os.Getenv("POSTING_THEME"),
+		WatchEnvironment: settings.WatchEnvFiles,
 		StartupMessages:  messages,
 	}, nil
 }

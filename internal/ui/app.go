@@ -18,6 +18,7 @@ import (
 
 	"github.com/darrenburns/posting/internal/client"
 	"github.com/darrenburns/posting/internal/collection"
+	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/model"
 )
 
@@ -36,8 +37,8 @@ type Config struct {
 	HostVariables []model.Variable
 	// WatchEnvironment reloads the active environment when its files change.
 	WatchEnvironment bool
-	// Theme is a Terma theme name. Empty uses galaxy.
-	Theme string
+	// Settings is the user's configuration. Nil uses the defaults.
+	Settings *config.Settings
 	// UserHost is shown in the header. Empty uses the current user and host.
 	UserHost string
 	// StartupMessages are problems found while loading, shown once the app
@@ -55,10 +56,11 @@ const (
 
 // App is the root widget.
 type App struct {
-	version string
-	sender  client.Sender
-	store   collection.Store
-	host    string
+	version  string
+	settings config.Settings
+	sender   client.Sender
+	store    collection.Store
+	host     string
 
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
@@ -116,11 +118,23 @@ func New(cfg Config) *App {
 	if cfg.Collection == nil {
 		cfg.Collection = &model.Collection{Name: "collection"}
 	}
+	settings := config.Defaults()
+	if cfg.Settings != nil {
+		settings = *cfg.Settings
+	}
+	if settings.Heading.Hostname != "" {
+		cfg.UserHost = settings.Heading.Hostname
+	}
 	if cfg.UserHost == "" {
 		cfg.UserHost = userHost()
 	}
+	sidebarRatio := 0.28
+	if settings.CollectionBrowser.Position == "right" {
+		sidebarRatio = 1 - sidebarRatio
+	}
 	a := &App{
 		version:        cfg.Version,
+		settings:       settings,
 		sender:         cfg.Sender,
 		store:          cfg.Store,
 		host:           cfg.UserHost,
@@ -133,11 +147,11 @@ func New(cfg Config) *App {
 		sessionVars:    t.NewAnySignal(map[string]string{}),
 		sessions:       t.NewAnySignal[[]*Session](nil),
 		active:         t.NewSignal(0),
-		sidebarVisible: t.NewSignal(true),
+		sidebarVisible: t.NewSignal(settings.CollectionBrowser.ShowOnStartup),
 		sidebarTab:     t.NewSignal("requests"),
-		sidebarSplit:   t.NewSplitPaneState(0.28),
+		sidebarSplit:   t.NewSplitPaneState(sidebarRatio),
 		panelSplit:     t.NewSplitPaneState(0.5),
-		layout:         t.NewSignal(layoutVertical),
+		layout:         t.NewSignal(layoutMode(settings.Layout)),
 		expanded:       t.NewSignal(""),
 		compact:        t.NewSignal(false),
 		helpScroll:     t.NewScrollState(),
@@ -155,20 +169,33 @@ func New(cfg Config) *App {
 	a.variables = newVariablesForm()
 	a.openSession(model.NewRequest())
 
-	theme := cfg.Theme
-	if theme == "" {
+	messages := append([]string(nil), cfg.StartupMessages...)
+	theme := themeAlias(settings.Theme)
+	if _, ok := t.GetTheme(theme); !ok {
+		messages = append(messages, fmt.Sprintf("Unknown theme %q; using galaxy", settings.Theme))
 		theme = t.ThemeNameGalaxy
 	}
 	t.SetTheme(theme)
-	t.RequestFocus(urlInputID)
+	switch settings.Focus.OnStartup {
+	case "method":
+		t.RequestFocus(methodSelectorID)
+	case "collection":
+		if a.sidebarVisible.Peek() {
+			t.RequestFocus(treeID)
+		} else {
+			t.RequestFocus(urlInputID)
+		}
+	default:
+		t.RequestFocus(urlInputID)
+	}
 	if len(cfg.Environment) > 0 {
 		a.activateEnvironment(cfg.Environment)
 	}
 	if cfg.WatchEnvironment {
 		a.watchEnvironment(time.Second)
 	}
-	if n := len(cfg.StartupMessages); n > 0 {
-		message := cfg.StartupMessages[0]
+	if n := len(messages); n > 0 {
+		message := messages[0]
 		if n > 1 {
 			message += fmt.Sprintf(" (and %d more)", n-1)
 		}
@@ -180,6 +207,21 @@ func New(cfg Config) *App {
 // Run starts the UI and blocks until it exits.
 func Run(cfg Config) error {
 	return t.Run(New(cfg))
+}
+
+// themeAlias maps Posting 2 theme names to their Terma equivalents.
+func themeAlias(name string) string {
+	switch name {
+	case "":
+		return t.ThemeNameGalaxy
+	case "catppuccin-mocha", "catppuccin-macchiato", "catppuccin-frappe":
+		return t.ThemeNameCatppuccin
+	case "textual-dark", "posting":
+		return t.ThemeNameGalaxy
+	case "textual-light":
+		return t.ThemeNameCatppuccinLatte
+	}
+	return name
 }
 
 func userHost() string {
@@ -225,6 +267,7 @@ func (a *App) current() *Session {
 func (a *App) openSession(req model.Request) *Session {
 	a.nextSessionID++
 	s := newSession(a.nextSessionID, req)
+	s.prettifyJSON = a.settings.Response.PrettifyJSON
 	a.sessions.Set(append(append([]*Session(nil), a.sessions.Peek()...), s))
 	a.active.Set(s.id)
 	return s
@@ -241,9 +284,53 @@ func (a *App) openRequest(req model.Request) {
 	}
 	if s := a.current(); s != nil && s.isPristine() {
 		s.Load(req)
+	} else {
+		a.openSession(req)
+	}
+	a.focusOpenedRequest()
+}
+
+// focusOpenedRequest moves focus as the focus.on_request_open setting asks,
+// into the first field of a request tab, or to the URL or method.
+func (a *App) focusOpenedRequest() {
+	s := a.current()
+	target := a.settings.Focus.OnRequestOpen
+	if s == nil || target == "" {
 		return
 	}
-	a.openSession(req)
+	switch target {
+	case "url":
+		t.RequestFocus(urlInputID)
+		return
+	case "method":
+		t.RequestFocus(methodSelectorID)
+		return
+	}
+	s.requestTab.Set(target)
+	focus := requestTabsID
+	switch target {
+	case "headers":
+		focus = s.headers.FirstInputID()
+	case "query":
+		focus = s.query.FirstInputID()
+	case "path":
+		focus = s.pathParams.FirstInputID()
+	case "info":
+		focus = "req-info-name"
+	case "body":
+		switch s.bodyType.Peek() {
+		case model.BodyRaw:
+			focus = "req-body-text"
+		case model.BodyForm:
+			focus = s.form.FirstInputID()
+		default:
+			focus = "req-body-type"
+		}
+	}
+	if focus == "" {
+		focus = requestTabsID
+	}
+	t.RequestFocus(focus)
 }
 
 func (s *Session) isPristine() bool {
@@ -311,6 +398,19 @@ func (a *App) send() {
 		}
 		a.history.Set(history)
 		a.historyList.SetItems(history)
+		switch a.settings.Focus.OnResponse {
+		case "body":
+			if s := a.current(); s != nil {
+				s.responseTab.Set("body")
+				if len(resp.Body) > 0 {
+					t.RequestFocus("resp-body")
+				} else {
+					t.RequestFocus(responseTabsID)
+				}
+			}
+		case "tabs":
+			t.RequestFocus(responseTabsID)
+		}
 	})
 }
 
@@ -468,34 +568,22 @@ func (a *App) focusRequestTab(key string) {
 // ---------------------------------------------------------------------------
 // Root widget
 
-// Keybinds are the global shortcuts. Widgets see keys first, so text inputs
-// keep their editing keys and these only fire when nothing else claims them.
-func (a *App) Keybinds() []t.Keybind {
-	return []t.Keybind{
-		{Key: "ctrl+j", Name: "Send", Action: a.send},
-		{Key: "alt+enter", Name: "Send", Action: a.send, Hidden: true},
-		{Key: "escape", Name: "Cancel", Action: a.cancelSend, Hidden: true},
-		{Key: "ctrl+t", Name: "Method", Action: a.openMethodMenu, Hidden: true},
-		{Key: "ctrl+l", Name: "Focus URL", Action: func() { t.RequestFocus(urlInputID) }, Hidden: true},
-		{Key: "ctrl+s", Name: "Save", Action: a.saveRequest},
-		{Key: "ctrl+n", Name: "New tab", Action: a.newTab},
-		{Key: "alt+w", Name: "Close tab", Action: func() { a.closeSession(a.active.Peek()) }, Hidden: true},
-		{Key: "alt+right", Name: "Next tab", Action: func() { a.cycleSession(1) }, Hidden: true},
-		{Key: "alt+left", Name: "Prev tab", Action: func() { a.cycleSession(-1) }, Hidden: true},
-		{Key: "ctrl+h", Name: "Sidebar", Action: a.toggleSidebar, Hidden: true},
-		{Key: "alt+z", Name: "Expand", Action: func() { a.toggleExpand("request") }, Hidden: true},
-		{Key: "ctrl+g", Name: "Go to request", Action: a.openRequestSearch, Hidden: true},
-		{Key: "ctrl+shift+v", Name: "Variables", Action: a.openVariables, Hidden: true},
-		{Key: "ctrl+p", Name: "Commands", Action: a.openPalette},
-		{Key: "f1", Name: "Help", Action: func() { a.overlay.Set("help") }},
-	}
-}
-
 func (a *App) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
+	// Without the collection on the left, the workspace needs the margin
+	// the split pane's divider would otherwise give it.
+	sidebarLeft := a.sidebarVisible.Get() && a.settings.CollectionBrowser.Position != "right"
+	margin := t.EdgeInsets{Left: 1}
+	if sidebarLeft {
+		margin = t.EdgeInsets{}
+	}
+	var top []t.Widget
+	if a.settings.Heading.Visible {
+		top = []t.Widget{header{app: a}}
+	}
 	var main t.Widget = t.Dock{
-		Style:  t.Style{BackgroundColor: theme.Background},
-		Top:    []t.Widget{header{app: a}},
+		Style:  t.Style{BackgroundColor: theme.Background, Padding: margin},
+		Top:    top,
 		Bottom: []t.Widget{footer{app: a}},
 		Body: t.Stack{
 			Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
@@ -508,7 +596,7 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 	// The sidebar runs the full height of the app, beside the header and
 	// footer rather than between them.
 	if a.sidebarVisible.Get() {
-		main = t.SplitPane{
+		split := t.SplitPane{
 			ID:           sidebarSplitID,
 			State:        a.sidebarSplit,
 			First:        sidebar{app: a},
@@ -516,9 +604,14 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 			MinPaneSize:  24,
 			DisableFocus: true,
 		}
+		if a.settings.CollectionBrowser.Position == "right" {
+			split.First, split.Second = split.Second, split.First
+		}
+		main = split
 	}
 
 	return t.Jumper{
+		Key:     a.jumpKey(),
 		State:   a.jump,
 		Targets: a.jumpTargets(),
 		Dynamic: true,
@@ -601,7 +694,7 @@ func (p heightProbe) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
 // gap is the number of blank rows between parts of the layout: one, or none
 // in compact mode.
 func (a *App) gap() int {
-	if a.compact.Get() {
+	if a.settings.Spacing == "compact" || a.compact.Get() {
 		return 0
 	}
 	return 1
@@ -628,7 +721,7 @@ func (f footer) Build(ctx t.BuildContext) t.Widget {
 		Children: []t.Widget{
 			hints,
 			t.Spacer{},
-			t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled}},
+			t.ShowWhen(f.app.settings.Heading.ShowVersion, t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled}}),
 		},
 	}
 }
@@ -660,7 +753,7 @@ func (h header) Build(ctx t.BuildContext) t.Widget {
 				},
 				Click: func(t.MouseEvent) { a.openEnvironmentPicker() },
 			},
-			t.Text{Content: "   " + a.host, Style: t.Style{ForegroundColor: theme.TextMuted}},
+			t.ShowWhen(a.settings.Heading.ShowHost, t.Text{Content: "   " + a.host, Style: t.Style{ForegroundColor: theme.TextMuted}}),
 		},
 	}
 }

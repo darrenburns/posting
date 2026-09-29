@@ -37,7 +37,9 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	if resp != nil {
 		fg, bg := statusColors(theme, resp.StatusCode)
 		title = fmt.Sprintf(" [b %s on %s] %d %s [/]", fg.Hex(), bg.Hex(), resp.StatusCode, resp.Reason)
-		subtitle = fmt.Sprintf("[$Text]%s[/] [$TextMuted]in[/] [$Text]%s[/]", model.FormatBytes(resp.Size()), model.FormatDuration(resp.Elapsed))
+		if p.app.settings.Response.ShowSizeAndTime {
+			subtitle = fmt.Sprintf("[$Text]%s[/] [$TextMuted]in[/] [$Text]%s[/]", model.FormatBytes(resp.Size()), model.FormatDuration(resp.Elapsed))
+		}
 	}
 
 	var content t.Widget
@@ -329,8 +331,8 @@ func (r responseTrace) Build(ctx t.BuildContext) t.Widget {
 }
 
 // formatBody pretty-prints JSON bodies and returns others unchanged.
-func formatBody(resp *model.Response) string {
-	if strings.Contains(resp.ContentType(), "json") {
+func formatBody(resp *model.Response, prettify bool) string {
+	if prettify && strings.Contains(resp.ContentType(), "json") {
 		var out bytes.Buffer
 		if err := json.Indent(&out, resp.Body, "", "  "); err == nil {
 			return out.String()
