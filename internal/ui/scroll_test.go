@@ -21,12 +21,9 @@ type screen struct {
 
 func newScreen(app *App, width, height int) *screen {
 	s := &screen{app: app, focus: t.NewFocusManager(), focused: t.NewAnySignal[t.Focusable](nil)}
+	// One frame is enough: work the frame dispatches, such as the switch
+	// to compact spacing on a short screen, settles before it returns.
 	s.renderer = t.NewRenderer(uv.NewBuffer(width, height), width, height, s.focus, s.focused, t.NewAnySignal[t.Widget](nil))
-	s.render()
-	// The first frame measures the screen and dispatches the switch to
-	// compact spacing. A running app renders again after dispatched work;
-	// outside one, Dispatch runs immediately, mid-frame, so force that frame.
-	s.renderer.Resize(width, height)
 	s.render()
 	return s
 }

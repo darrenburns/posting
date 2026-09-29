@@ -111,23 +111,11 @@ func TestLogoBrightensUnderPointer(tt *testing.T) {
 	}
 }
 
-// focusing renders child with the widget id focused. The snapshot renderer
-// only applies focus requested while rendering, as an open menu's is once
-// the app renders.
-type focusing struct {
-	child t.Widget
-	id    string
-}
-
-func (f focusing) Build(t.BuildContext) t.Widget {
-	t.RequestFocus(f.id)
-	return f.child
-}
-
 func TestSnapshotLogoMenu(tt *testing.T) {
 	app := testApp()
+	// Opening the menu requests focus for it, which the snapshot applies.
 	app.openLogoMenu("")
-	t.AssertSnapshotNamed(tt, "LogoMenu", focusing{app, logoMenuID}, snapW, snapH, "Links menu open above the Posting logo at the end of the footer")
+	t.AssertSnapshotNamed(tt, "LogoMenu", app, snapW, snapH, "Links menu open above the Posting logo at the end of the footer")
 
 	nerd := New(Config{
 		Version:      "3.0.0-dev",
@@ -137,5 +125,5 @@ func TestSnapshotLogoMenu(tt *testing.T) {
 		NerdFonts:    true,
 	})
 	nerd.openLogoMenu("")
-	t.AssertSnapshotNamed(tt, "LogoMenu_nerd", focusing{nerd, logoMenuID}, snapW, snapH, "Links menu with Nerd Font icons")
+	t.AssertSnapshotNamed(tt, "LogoMenu_nerd", nerd, snapW, snapH, "Links menu with Nerd Font icons")
 }
