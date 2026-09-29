@@ -15,6 +15,7 @@ import (
 	"github.com/darrenburns/posting/internal/collection"
 	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/env"
+	"github.com/darrenburns/posting/internal/history"
 	"github.com/darrenburns/posting/internal/model"
 	"github.com/darrenburns/posting/internal/paths"
 	"github.com/darrenburns/posting/internal/themes"
@@ -148,6 +149,10 @@ func appConfig(opts options) (ui.Config, error) {
 		CertFile: settings.SSL.CertificatePath,
 		KeyFile:  settings.SSL.KeyFile,
 	}
+	var historyStore ui.HistoryStore
+	if settings.History.Enabled {
+		historyStore = history.ForCollection(paths.HistoryDir(), dir)
+	}
 	var watch ui.CollectionWatcher
 	if settings.WatchCollectionFiles {
 		watch = store
@@ -155,6 +160,7 @@ func appConfig(opts options) (ui.Config, error) {
 	return ui.Config{
 		Watch:            watch,
 		Reload:           store,
+		History:          historyStore,
 		OpenURL:          openURL,
 		Version:          version,
 		Settings:         &settings,
