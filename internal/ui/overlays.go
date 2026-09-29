@@ -29,7 +29,7 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 			Placeholder:    "Type a command…",
 			Position:       t.FloatPositionTopCenter,
 			Offset:         t.Offset{Y: 3},
-			OnCursorChange: a.previewTheme,
+			OnCursorChange: a.themePreviewHook(),
 			OnDismiss:      a.restoreTheme,
 		},
 		t.CommandPalette{
@@ -80,15 +80,15 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		sidebarLabel = "View: show collection"
 	}
 	items := []t.CommandPaletteItem{
-		{Label: "Send request", Hint: "ctrl+j", Action: a.run(a.send)},
-		{Label: "New request tab", Hint: "ctrl+n", Action: a.run(a.newTab)},
-		{Label: "Save request", Hint: "ctrl+s", Action: a.run(a.saveRequest)},
-		{Label: "Close request tab", Hint: "alt+w", Action: a.run(func() { a.closeSession(a.active.Peek()) })},
-		{Label: "Go to request…", Hint: "ctrl+g", Action: a.run(a.openRequestSearch)},
-		{Label: "Jump mode", Hint: "ctrl+o", Action: a.run(a.jump.Activate)},
+		{Label: "Send request", Hint: a.keyHint("send-request"), Action: a.run(a.send)},
+		{Label: "New request tab", Hint: a.keyHint("new-request"), Action: a.run(a.newTab)},
+		{Label: "Save request", Hint: a.keyHint("save-request"), Action: a.run(a.saveRequest)},
+		{Label: "Close request tab", Hint: a.keyHint("close-tab"), Action: a.run(func() { a.closeSession(a.active.Peek()) })},
+		{Label: "Go to request…", Hint: a.keyHint("search-requests"), Action: a.run(a.openRequestSearch)},
+		{Label: "Jump mode", Hint: a.keyHint("jump"), Action: a.run(a.jump.Activate)},
 		{Divider: "Environment"},
 		{Label: "Switch environment…", ChildrenTitle: "Environments", Children: a.environmentItems},
-		{Label: "Variables", Hint: "ctrl+shift+v", Action: func() {
+		{Label: "Variables", Hint: a.keyHint("variables"), Action: func() {
 			// Closing the palette restores focus, which would otherwise
 			// replace the table focus that openVariables asks for.
 			a.palette.SetNextFocusIDOnClose("vars-table")
@@ -98,7 +98,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "Copy as curl", Action: a.run(a.copyAsCurl)},
 		{Divider: "View"},
 		{Label: layoutLabel, Action: a.run(a.toggleLayout)},
-		{Label: sidebarLabel, Hint: "ctrl+h", Action: a.run(a.toggleSidebar)},
+		{Label: sidebarLabel, Hint: a.keyHint("toggle-collection"), Action: a.run(a.toggleSidebar)},
 		{Label: "View: expand request", Action: a.run(func() { a.expanded.Set("request") })},
 		{Label: "View: expand response", Action: a.run(func() { a.expanded.Set("response") })},
 	}
@@ -109,7 +109,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		t.CommandPaletteItem{Label: "Theme…", ChildrenTitle: themesTitle, Children: a.themeItems},
 		t.CommandPaletteItem{Divider: "App"},
 		t.CommandPaletteItem{Label: "Clear history", Action: a.run(a.clearHistory)},
-		t.CommandPaletteItem{Label: "Keyboard shortcuts", Hint: "f1", Action: a.run(func() { a.overlay.Set("help") })},
+		t.CommandPaletteItem{Label: "Keyboard shortcuts", Hint: a.keyHint("help"), Action: a.run(func() { a.overlay.Set("help") })},
 		t.CommandPaletteItem{Label: "Quit Posting", Hint: "ctrl+c", Action: t.Quit},
 	)
 	return items
@@ -140,6 +140,15 @@ func (a *App) themeItems() []t.CommandPaletteItem {
 	items = append(items, t.CommandPaletteItem{Divider: "Light"})
 	add(t.LightThemeNames())
 	return items
+}
+
+// themePreviewHook previews themes while browsing them, unless the
+// command_palette.theme_preview setting turns it off.
+func (a *App) themePreviewHook() func(t.CommandPaletteItem) {
+	if !a.settings.CommandPalette.ThemePreview {
+		return nil
+	}
+	return a.previewTheme
 }
 
 // previewTheme applies the theme under the cursor while browsing themes.
@@ -253,28 +262,14 @@ type helpOverlay struct {
 	visible bool
 }
 
-var helpSections = []struct {
+type helpSection struct {
 	title string
 	keys  [][2]string
-}{
-	{"Global", [][2]string{
-		{"ctrl+j", "Send the request (alt+enter also works)"},
-		{"esc", "Cancel an in-flight request"},
-		{"ctrl+o", "Jump mode: move focus by typing a label"},
-		{"ctrl+p", "Command palette"},
-		{"ctrl+g", "Go to a request in the collection"},
-		{"ctrl+s", "Save the request to the collection"},
-		{"ctrl+n", "Open a new request tab"},
-		{"alt+w", "Close the request tab"},
-		{"alt+← / alt+→", "Switch request tab"},
-		{"ctrl+l", "Focus the URL bar"},
-		{"ctrl+t", "Choose the HTTP method"},
-		{"ctrl+h", "Show or hide the collection"},
-		{"alt+z", "Expand the focused panel"},
-		{"ctrl+shift+v", "Variables"},
-		{"f1", "This help"},
-		{"ctrl+c", "Quit"},
-	}},
+}
+
+// helpSections are the shortcuts of particular widgets. The global section
+// is built from the keymap.
+var helpSections = []helpSection{
 	{"Jump mode", [][2]string{
 		{"1 / 2", "Method selector / URL bar"},
 		{"3 / 4", "Collection / History"},
@@ -310,7 +305,8 @@ var helpSections = []struct {
 func (h helpOverlay) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	rows := []t.Widget{}
-	for i, section := range helpSections {
+	sections := append([]helpSection{{"Global", h.app.helpForActions()}}, helpSections...)
+	for i, section := range sections {
 		title := t.Text{Content: section.title, Style: t.Style{ForegroundColor: theme.AccentText, Bold: true}}
 		if i > 0 {
 			title.Style.Margin = t.EdgeInsetsTRBL(1, 0, 0, 0)

@@ -310,7 +310,7 @@ func (p urlPreview) Build(ctx t.BuildContext) t.Widget {
 	style := t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(12, 0)}
 
 	refs := model.FindVariables(text)
-	if len(refs) == 0 {
+	if len(refs) == 0 || !p.app.settings.URLBar.ShowValuePreview {
 		return t.Text{Content: "", Style: style}
 	}
 	cursorByte := 0
@@ -326,7 +326,7 @@ func (p urlPreview) Build(ctx t.BuildContext) t.Widget {
 		switch {
 		case !ok:
 			spans = append(spans, t.Span{Text: "not set in this environment", Style: t.SpanStyle{Foreground: theme.ErrorText, Italic: true}})
-		case model.IsSensitiveName(ref.Name):
+		case model.IsSensitiveName(ref.Name) && p.app.settings.URLBar.HideSecretsInValuePreview:
 			spans = append(spans, t.Span{Text: "•••••••• (hidden)", Style: t.SpanStyle{Foreground: theme.TextMuted}})
 		default:
 			spans = append(spans, t.Span{Text: value, Style: t.SpanStyle{Foreground: theme.Text}})
