@@ -4,31 +4,33 @@ If you have any feedback or suggestions, please open a [new discussion on GitHub
 
 <style>
 .tag {
+  --tag: var(--muted);
   display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 0.8em;
+  padding: 0.2em 0.6em;
+  border-radius: 0.3em;
+  font-family: var(--font-grid);
+  font-weight: 600;
+  font-size: 0.75em;
   margin-left: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(135deg, rgba(30, 15, 45, 0.8), rgba(50, 30, 70, 0.9));
-  border: 1px solid rgba(100, 70, 150, 0.4);
+  color: var(--tag);
+  background: color-mix(in oklab, var(--tag) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--tag) 28%, transparent);
 }
-.ui { color: #88ccff; }
-.collection { color: #a0b8ff; }
-.environment { color: #80ffee; }
-.variables { color: #eeff80; }
-.auth { color: #ff80bf; }
-.import { color: #a0ff80; }
-.scripting { color: #d580ff; }
-.documentation { color: #ffcc80; }
-.ux { color: #ff9980; }
-.requests { color: #cccccc; }
-.realtime { color: #80c8ff; }
-.testing { color: #80ffb0; }
-.cookies { color: #ffaa80; }
-.security { color: #ff8080; }
-.logging { color: #8080ff; }
+.ui { --tag: var(--info-text); }
+.collection { --tag: var(--primary-text); }
+.environment { --tag: var(--success-text); }
+.variables { --tag: var(--warning-text); }
+.auth { --tag: var(--accent-text); }
+.import { --tag: var(--success-text); }
+.scripting { --tag: var(--secondary-text); }
+.documentation { --tag: var(--warning-text); }
+.ux { --tag: var(--error-text); }
+.requests { --tag: var(--muted); }
+.realtime { --tag: var(--info-text); }
+.testing { --tag: var(--success-text); }
+.cookies { --tag: var(--warning-text); }
+.security { --tag: var(--error-text); }
+.logging { --tag: var(--secondary-text); }
 .legend-item {
   display: flex;
   align-items: center;
