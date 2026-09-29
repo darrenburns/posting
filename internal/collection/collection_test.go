@@ -178,3 +178,24 @@ func findChild(c *model.Collection, name string) *model.Collection {
 	}
 	return nil
 }
+
+func TestMarshalKeepsQueryOnlyInParams(t *testing.T) {
+	req := model.NewRequest()
+	req.URL = "https://x.test/items?a=1&b=2#top"
+	req.Query = []model.KeyValue{{Name: "a", Value: "1", Enabled: true}, {Name: "b", Value: "2", Enabled: true}, {Name: "c", Value: "3", Enabled: false}}
+	data, err := MarshalRequest(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	back, _ := ParseRequest(data, "")
+	if back.URL != "https://x.test/items#top" || len(back.Query) != 3 {
+		t.Fatalf("url = %q, query = %+v\n%s", back.URL, back.Query, data)
+	}
+
+	// A query with no parameter rows is left in the URL.
+	req.Query = nil
+	data, _ = MarshalRequest(req)
+	if back, _ := ParseRequest(data, ""); back.URL != req.URL {
+		t.Fatalf("url = %q", back.URL)
+	}
+}

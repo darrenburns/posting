@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/darrenburns/posting/internal/model"
@@ -33,5 +34,21 @@ func TestReloadedCollectionUpdatesCleanTabsOnly(tt *testing.T) {
 	}
 	if app.collection.Peek() != root {
 		tt.Error("the collection wasn't replaced")
+	}
+}
+
+func TestSavingDoesNotLookLikeAChangeOnDisk(tt *testing.T) {
+	app := testApp()
+	app.openRequest(sampleRequest(tt, "List users"))
+	s := app.current()
+	// The sample keeps its query in the table only, as saved files do; the
+	// editor has it in the URL too.
+	if !strings.Contains(s.url.GetText(), "?") {
+		tt.Fatal("the editor should show the query in the URL")
+	}
+	app.toast.Set(toast{})
+	app.replaceCollection(model.SampleCollection())
+	if app.toast.Peek().message != "" {
+		tt.Fatalf("an unchanged file was reloaded: %q", app.toast.Peek().message)
 	}
 }
