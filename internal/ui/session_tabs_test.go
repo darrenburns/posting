@@ -256,6 +256,14 @@ func TestTabSearchFiltersAndSwitchesTabs(tt *testing.T) {
 		}
 	}
 	hangsFromStrip("at first")
+	// There's no title row: the search input is the first thing in it, with
+	// only its own padding above.
+	if float := s.renderer.TopFloat(); float != nil {
+		row := strings.Split(s.renderer.ScreenText(), "\n")[float.Y+1]
+		if !strings.Contains(row, "Search open tabs…") {
+			tt.Fatalf("the search input should open the tab search, not %q", row)
+		}
+	}
 	s.renderer.Resize(snapW+30, snapH)
 	s.render()
 	hangsFromStrip("on a wider screen")
