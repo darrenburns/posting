@@ -108,8 +108,9 @@ func DefaultOptions() Options {
 	}
 }
 
-// Scripts are collection-relative paths (optionally "file.py:function") run
-// around a request.
+// Scripts are collection-relative paths (optionally "file.py:function") that
+// Posting 2 runs around a request. Posting 3 doesn't run them, but keeps them
+// so that re-saving a Posting 2 request doesn't lose them.
 type Scripts struct {
 	Setup      string
 	OnRequest  string

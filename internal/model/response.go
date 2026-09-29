@@ -80,29 +80,6 @@ type TraceEvent struct {
 	Duration time.Duration
 }
 
-// ScriptStatus is the outcome of one script hook.
-type ScriptStatus int
-
-const (
-	ScriptNotRun ScriptStatus = iota
-	ScriptSucceeded
-	ScriptFailed
-)
-
-// ScriptOutputLine is one line printed by a script.
-type ScriptOutputLine struct {
-	Stderr bool
-	Text   string
-}
-
-// ScriptResults collects what the setup/pre-request/post-response hooks did.
-type ScriptResults struct {
-	Setup      ScriptStatus
-	OnRequest  ScriptStatus
-	OnResponse ScriptStatus
-	Output     []ScriptOutputLine
-}
-
 // Response is the result of sending a Request.
 type Response struct {
 	StatusCode int
@@ -115,7 +92,6 @@ type Response struct {
 	// ReceivedAt is when the response finished arriving.
 	ReceivedAt time.Time
 	Trace      []TraceEvent
-	Scripts    ScriptResults
 	// URL is the final, resolved URL (after redirects and variable substitution).
 	URL    string
 	Method Method

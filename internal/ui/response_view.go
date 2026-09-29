@@ -96,7 +96,6 @@ func (s *Session) responseTabs(resp *model.Response) tabStrip {
 			{Key: "body", Label: "Body"},
 			{Key: "headers", Label: "Headers", Badge: countBadge(len(resp.Headers))},
 			{Key: "cookies", Label: "Cookies", Badge: countBadge(len(resp.Cookies))},
-			{Key: "scripts", Label: "Scripts", Marked: len(resp.Scripts.Output) > 0},
 			{Key: "trace", Label: "Trace"},
 		},
 	}
@@ -126,7 +125,6 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 				"body":    responseBody{app: r.app, session: s, response: resp},
 				"headers": responseHeaders{session: s},
 				"cookies": responseCookies{session: s},
-				"scripts": responseScripts{session: s, response: resp, gap: r.app.gap()},
 				"trace":   responseTrace{session: s},
 			},
 		},
@@ -271,59 +269,6 @@ func tableCell(theme t.ThemeData, active, focused, key bool, content string) t.W
 // tableHeader is a column heading, padded to line up with tableCell.
 func tableHeader(theme t.ThemeData, label string) t.Widget {
 	return t.Text{Content: label, Style: t.Style{ForegroundColor: theme.TextMuted, Padding: t.EdgeInsetsXY(1, 0)}}
-}
-
-// responseScripts shows the outcome and output of each script hook.
-type responseScripts struct {
-	fillParent
-	session  *Session
-	response *model.Response
-	gap      int
-}
-
-func (r responseScripts) Build(ctx t.BuildContext) t.Widget {
-	theme := ctx.Theme()
-	results := r.response.Scripts
-	status := func(label string, s model.ScriptStatus) t.Widget {
-		value := t.Span{Text: "not run", Style: t.SpanStyle{Foreground: theme.TextMuted}}
-		switch s {
-		case model.ScriptSucceeded:
-			value = t.Span{Text: "✔ success", Style: t.SpanStyle{Foreground: theme.SuccessText}}
-		case model.ScriptFailed:
-			value = t.Span{Text: "✘ error", Style: t.SpanStyle{Foreground: theme.ErrorText}}
-		}
-		return t.Text{Spans: []t.Span{{Text: label + "  ", Style: t.SpanStyle{Foreground: theme.Text, Bold: true}}, value}, Style: t.Style{Width: t.Flex(1)}}
-	}
-	lines := []t.Widget{}
-	for _, line := range results.Output {
-		prefix := t.Span{Text: "out ", Style: t.SpanStyle{Foreground: theme.SuccessText}}
-		if line.Stderr {
-			prefix = t.Span{Text: "err ", Style: t.SpanStyle{Foreground: theme.ErrorText}}
-		}
-		lines = append(lines, t.Text{Spans: []t.Span{prefix, {Text: line.Text}}})
-	}
-	var output t.Widget = emptyState{Title: "No script output", Lines: []string{"Set scripts in the request's [b]Scripts[/] tab"}}
-	if len(lines) > 0 {
-		output = t.Column{Style: t.Style{Padding: inset}, Children: lines}
-	}
-	return t.Scrollable{
-		ID:        "resp-scripts-scroll",
-		State:     r.session.responseScriptsScroll,
-		Focusable: true,
-		Style:     t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Child: t.Column{
-			Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-			Spacing: r.gap,
-			Children: []t.Widget{
-				t.Row{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: []t.Widget{
-					status("Setup", results.Setup),
-					status("Pre-request", results.OnRequest),
-					status("Post-response", results.OnResponse),
-				}},
-				output,
-			},
-		},
-	}
 }
 
 // responseTrace is a waterfall of the exchange's stages.

@@ -553,12 +553,12 @@ func (a *App) jumpTargets() []t.JumpTarget {
 		{Key: "2", ID: urlInputID},
 	}
 	targets = append(targets, tabJumps(sidebarTabsID, "34", []string{"requests", "history"}, a.sidebarTab.Set)...)
-	targets = append(targets, tabJumps(requestTabsID, "qwertyui", []string{"headers", "body", "path", "query", "auth", "info", "scripts", "options"}, func(key string) {
+	targets = append(targets, tabJumps(requestTabsID, "qwertyu", []string{"headers", "body", "path", "query", "auth", "info", "options"}, func(key string) {
 		if s := a.current(); s != nil {
 			s.requestTabs().selectKey(key)
 		}
 	})...)
-	targets = append(targets, tabJumps(responseTabsID, "asdfg", []string{"body", "headers", "cookies", "scripts", "trace"}, func(key string) {
+	targets = append(targets, tabJumps(responseTabsID, "asdf", []string{"body", "headers", "cookies", "trace"}, func(key string) {
 		if s := a.current(); s != nil && s.response.Peek() != nil {
 			s.responseTabs(s.response.Peek()).selectKey(key)
 		}

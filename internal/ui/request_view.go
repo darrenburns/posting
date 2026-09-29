@@ -34,7 +34,6 @@ func (s *Session) requestTabs() tabStrip {
 			{Key: "query", Label: "Query", Badge: countBadge(s.query.Count())},
 			{Key: "auth", Label: "Auth", Marked: s.authType.Get() != model.AuthNone},
 			{Key: "info", Label: "Info"},
-			{Key: "scripts", Label: "Scripts", Marked: !isBlank(s.setup) || !isBlank(s.onRequest) || !isBlank(s.onResponse)},
 			{Key: "options", Label: "Options"},
 		},
 	}
@@ -84,7 +83,6 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 						},
 						"auth":    authEditor{session: s, variables: variables, gap: gap},
 						"info":    infoEditor{session: s, gap: gap},
-						"scripts": scriptsEditor{session: s, gap: gap},
 						"options": optionsEditor{session: s, variables: variables, gap: gap},
 					},
 				},
@@ -299,29 +297,6 @@ func (e infoEditor) Build(ctx t.BuildContext) t.Widget {
 					},
 				},
 			},
-		},
-	}
-}
-
-// scriptsEditor edits the Python hooks that run around the request.
-type scriptsEditor struct {
-	fillParent
-	session *Session
-	gap     int
-}
-
-func (e scriptsEditor) Build(ctx t.BuildContext) t.Widget {
-	theme := ctx.Theme()
-	s := e.session
-	touch := func(string) { s.touch() }
-	return scrollForm{
-		State:   s.scriptsScroll,
-		Spacing: e.gap,
-		Rows: []formField{
-			field(t.Text{Content: "Scripts are collection-relative paths, optionally with a function: scripts/auth.py:sign", Style: t.Style{ForegroundColor: theme.TextMuted, Padding: inset}}),
-			field(formRow(ctx, "Setup", "", input{ID: "req-script-setup", State: s.setup, Placeholder: "Runs once before the request is built", OnChange: touch}), "req-script-setup"),
-			field(formRow(ctx, "Pre-request", "", input{ID: "req-script-pre", State: s.onRequest, Placeholder: "Can modify the request before it is sent", OnChange: touch}), "req-script-pre"),
-			field(formRow(ctx, "Post-response", "", input{ID: "req-script-post", State: s.onResponse, Placeholder: "Runs after the response arrives", OnChange: touch}), "req-script-post"),
 		},
 	}
 }

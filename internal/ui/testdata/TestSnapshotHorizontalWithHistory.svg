@@ -1275,8 +1275,7 @@
   <text x="831.2" y="164.8" fill="#9A96BE">2</text>
   <text x="856.4" y="164.8" fill="#9A96BE">Cookies</text>
   <text x="923.6" y="164.8" fill="#9A96BE">1</text>
-  <text x="948.8" y="164.8" fill="#9A96BE">Scripts</text>
-  <text x="1024.4" y="164.8" class="bold underline" fill="#F5F5F6">Trace</text>
+  <text x="948.8" y="164.8" class="bold underline" fill="#F5F5F6">Trace</text>
   <rect x="8.0" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>

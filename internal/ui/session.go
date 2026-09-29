@@ -52,15 +52,15 @@ type Session struct {
 	name        *t.TextInputState
 	description *t.TextAreaState
 	file        t.Signal[string]
-	setup       *t.TextInputState
-	onRequest   *t.TextInputState
-	onResponse  *t.TextInputState
-	follow      *t.CheckboxState
-	verifySSL   *t.CheckboxState
-	cookies     *t.CheckboxState
-	substitute  *t.CheckboxState
-	proxy       *t.TextInputState
-	timeout     *t.TextInputState
+	// scripts aren't edited in Posting 3, but are kept so saving a
+	// Posting 2 request doesn't drop them.
+	scripts    model.Scripts
+	follow     *t.CheckboxState
+	verifySSL  *t.CheckboxState
+	cookies    *t.CheckboxState
+	substitute *t.CheckboxState
+	proxy      *t.TextInputState
+	timeout    *t.TextInputState
 
 	// title mirrors the name/URL for the tab strip.
 	title t.Signal[string]
@@ -73,11 +73,9 @@ type Session struct {
 	requestTabView  *tabView
 	responseTabView *tabView
 	// Where tabs too long for a short panel are scrolled to.
-	authScroll            *formScroll
-	scriptsScroll         *formScroll
-	optionsScroll         *formScroll
-	responseScriptsScroll *t.ScrollState
-	traceScroll           *t.ScrollState
+	authScroll    *formScroll
+	optionsScroll *formScroll
+	traceScroll   *t.ScrollState
 
 	// Exchange state.
 	phase    t.Signal[exchangePhase]
@@ -119,9 +117,6 @@ func newSession(id int, req model.Request) *Session {
 		name:        t.NewTextInputState(""),
 		description: t.NewTextAreaState(""),
 		file:        t.NewSignal(""),
-		setup:       t.NewTextInputState(""),
-		onRequest:   t.NewTextInputState(""),
-		onResponse:  t.NewTextInputState(""),
 		follow:      t.NewCheckboxState(true),
 		verifySSL:   t.NewCheckboxState(true),
 		cookies:     t.NewCheckboxState(true),
@@ -136,11 +131,9 @@ func newSession(id int, req model.Request) *Session {
 		requestTabView:  newTabView(),
 		responseTabView: newTabView(),
 
-		authScroll:            newFormScroll(),
-		scriptsScroll:         newFormScroll(),
-		optionsScroll:         newFormScroll(),
-		responseScriptsScroll: t.NewScrollState(),
-		traceScroll:           t.NewScrollState(),
+		authScroll:    newFormScroll(),
+		optionsScroll: newFormScroll(),
+		traceScroll:   t.NewScrollState(),
 
 		phase:              t.NewSignal(exchangeIdle),
 		err:                t.NewAnySignal[error](nil),
@@ -196,12 +189,8 @@ func (s *Session) Snapshot() model.Request {
 			ProxyURL:                s.proxy.GetText(),
 			TimeoutSeconds:          timeout,
 		},
-		Scripts: model.Scripts{
-			Setup:      s.setup.GetText(),
-			OnRequest:  s.onRequest.GetText(),
-			OnResponse: s.onResponse.GetText(),
-		},
-		File: s.file.Peek(),
+		Scripts: s.scripts,
+		File:    s.file.Peek(),
 	}
 }
 
@@ -244,9 +233,7 @@ func (s *Session) Load(req model.Request) {
 	s.name.SetText(req.Name)
 	s.description.SetText(req.Description)
 	s.file.Set(req.File)
-	s.setup.SetText(req.Scripts.Setup)
-	s.onRequest.SetText(req.Scripts.OnRequest)
-	s.onResponse.SetText(req.Scripts.OnResponse)
+	s.scripts = req.Scripts
 	s.follow.SetChecked(req.Options.FollowRedirects)
 	s.verifySSL.SetChecked(req.Options.VerifySSL)
 	s.cookies.SetChecked(req.Options.AttachCookies)
