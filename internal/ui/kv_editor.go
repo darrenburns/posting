@@ -16,6 +16,8 @@ type kvRow struct {
 	value   *t.TextInputState
 	// keySuggestions completes the name column, when the editor has suggestions.
 	keySuggestions *t.AutocompleteState
+	// values completes ${VARIABLES} in the value column.
+	values *completion
 }
 
 func (r *kvRow) empty() bool {
@@ -54,6 +56,7 @@ func (e *kvEditor) newRow(item model.KeyValue) *kvRow {
 		enabled: t.NewSignal(item.Enabled),
 		key:     t.NewTextInputState(item.Name),
 		value:   t.NewTextInputState(item.Value),
+		values:  newCompletion(),
 	}
 	if len(e.suggestions) > 0 {
 		row.keySuggestions = t.NewAutocompleteState()
@@ -194,6 +197,8 @@ type kvEditorView struct {
 	Empty            emptyState
 	KeyHighlighter   t.Highlighter
 	ValueHighlighter t.Highlighter
+	// Choices are offered as ${VARIABLE} completions in the value column.
+	Choices variableChoices
 }
 
 func (v kvEditorView) Build(ctx t.BuildContext) t.Widget {
@@ -290,6 +295,8 @@ func (r kvRowView) Build(ctx t.BuildContext) t.Widget {
 		Width:       t.Flex(2),
 		OnChange:    onEdit,
 		Keybinds:    nav("value"),
+		Completion:  row.values,
+		Choices:     r.view.Choices,
 	}
 
 	style := t.Style{Width: t.Flex(1), Height: t.Cells(1)}
