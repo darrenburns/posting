@@ -102,6 +102,7 @@ type App struct {
 	sessions      t.AnySignal[[]*Session]
 	active        t.Signal[int] // Session.id of the visible session
 	nextSessionID int
+	sessionView   *sessionTabsView // where the strip of open tabs is scrolled to
 
 	sidebarVisible t.Signal[bool]
 	sidebarTab     t.Signal[string]
@@ -116,6 +117,7 @@ type App struct {
 	jump               *t.JumpState
 	palette            *t.CommandPaletteState
 	requestSearch      *t.CommandPaletteState
+	tabSearch          *t.CommandPaletteState
 	themeBeforePreview string
 	helpScroll         *t.ScrollState
 	highlighters       map[string]*syntaxHighlighter
@@ -181,6 +183,7 @@ func New(cfg Config) *App {
 		sessionVars:    t.NewAnySignal(map[string]string{}),
 		sessions:       t.NewAnySignal[[]*Session](nil),
 		active:         t.NewSignal(0),
+		sessionView:    newSessionTabsView(),
 		sidebarVisible: t.NewSignal(settings.CollectionBrowser.ShowOnStartup),
 		sidebarTab:     t.NewSignal("requests"),
 		sidebarSplit:   t.NewSplitPaneState(sidebarRatio),
@@ -210,6 +213,7 @@ func New(cfg Config) *App {
 	a.jump = t.NewJumpState()
 	a.palette = t.NewCommandPaletteState("Commands", nil)
 	a.requestSearch = t.NewCommandPaletteState("Go to request", nil)
+	a.tabSearch = t.NewCommandPaletteState("Open tabs", nil)
 	a.methodMenu = t.NewMenuState(a.methodMenuItems())
 	a.save = newSaveForm()
 	a.variables = newVariablesForm()
@@ -330,7 +334,7 @@ func (a *App) openSession(req model.Request) *Session {
 func (a *App) openRequest(req model.Request) {
 	for _, s := range a.sessions.Peek() {
 		if req.File != "" && s.file.Peek() == req.File {
-			a.active.Set(s.id)
+			a.showSession(s.id)
 			return
 		}
 	}

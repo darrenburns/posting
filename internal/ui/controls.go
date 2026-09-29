@@ -245,10 +245,16 @@ func (s tabStrip) Build(ctx t.BuildContext) t.Widget {
 // overflowMark is the ‹ or › shown when tabs are scrolled out of view.
 // Clicking it moves to the next tab in that direction.
 func (s tabStrip) overflowMark(theme t.ThemeData, mark string, delta int) t.Widget {
+	return overflowMarkText(theme, mark, func() { s.step(delta) })
+}
+
+// overflowMarkText draws a ‹ or › mark for a strip scrolled sideways, so
+// every strip that scrolls marks it the same way.
+func overflowMarkText(theme t.ThemeData, mark string, onClick func()) t.Widget {
 	return t.Text{
 		Content: mark,
 		Style:   t.Style{ForegroundColor: theme.AccentText, Bold: true},
-		Click:   func(t.MouseEvent) { s.step(delta) },
+		Click:   func(t.MouseEvent) { onClick() },
 	}
 }
 
