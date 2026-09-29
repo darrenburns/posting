@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/model"
@@ -20,9 +21,37 @@ func openTabs(app *App, n int) {
 	}
 }
 
+// strip is where the strip of open tabs was last painted.
+func (s *screen) strip() t.Rect {
+	return s.renderer.WidgetByID(sessionTabsID).Visible
+}
+
 // tabRow is the text of the strip of open tabs as last painted.
 func (s *screen) tabRow() string {
-	return strings.Split(s.renderer.ScreenText(), "\n")[s.app.sessionView.y]
+	return strings.Split(s.renderer.ScreenText(), "\n")[s.strip().Y]
+}
+
+// wheelTabs turns the wheel over the strip, ten cells in, and paints the
+// result. It reports whether the strip took the wheel. The strip is a plain
+// row: nothing under the pointer scrolls, and the wheel bubbles up from
+// the tab under it to the strip.
+func (s *screen) wheelTabs(tt *testing.T, button uv.MouseButton) bool {
+	tt.Helper()
+	strip := s.renderer.WidgetByID(sessionTabsID)
+	x, y := strip.Visible.X+10, strip.Visible.Y
+	if under := s.renderer.WidgetAt(x, y); under == nil || !strip.Visible.Contains(under.Visible.X, under.Visible.Y) {
+		tt.Fatalf("the pointer at (%d,%d) isn't over the strip", x, y)
+	}
+	if n := len(s.renderer.ScrollablesAt(x, y)); n > 0 {
+		tt.Fatalf("the strip sits in %d scrollables", n)
+	}
+	handler, ok := strip.EventWidget.(t.MouseWheelHandler)
+	if !ok {
+		tt.Fatalf("the strip (%T) doesn't handle the wheel", strip.EventWidget)
+	}
+	handled := handler.OnMouseWheel(t.MouseEvent{X: x, Y: y, LocalX: x - strip.Bounds.X, Button: button})
+	s.render()
+	return handled
 }
 
 // showTab switches to the tab titled title the way the keyboard does, one
@@ -109,25 +138,23 @@ func TestSessionTabsScrollWithTheArrowsAndWheel(tt *testing.T) {
 	}
 
 	view := app.sessionView
-	wheel := func(scroll func(*t.Scrollable) bool) {
+	wheel := func(button uv.MouseButton) {
 		tt.Helper()
-		scrollables := s.renderer.ScrollablesAt(view.x+10, view.y)
-		if len(scrollables) == 0 || !scroll(scrollables[0]) {
+		if !s.wheelTabs(tt, button) {
 			tt.Fatal("the wheel over the strip isn't handled")
 		}
-		s.render()
 	}
-	wheel(func(sc *t.Scrollable) bool { return sc.ScrollDown(1) })
-	wheel(func(sc *t.Scrollable) bool { return sc.ScrollDown(1) })
+	wheel(uv.MouseWheelDown)
+	wheel(uv.MouseWheelDown)
 	if view.first != 2 {
 		tt.Fatalf("two wheel notches should scroll two tabs; first shown = %d", view.first)
 	}
-	wheel(func(sc *t.Scrollable) bool { return sc.ScrollUp(1) })
+	wheel(uv.MouseWheelUp)
 	if view.first != 1 {
 		tt.Fatalf("wheeling up should scroll back a tab; first shown = %d", view.first)
 	}
 	for range 30 {
-		wheel(func(sc *t.Scrollable) bool { return sc.ScrollRight(1) })
+		wheel(uv.MouseWheelRight)
 	}
 	if row := s.tabRow(); strings.Contains(row, "›") || !strings.Contains(row, "Request 12") {
 		tt.Fatalf("scrolling past the end should stop at the last tab:\n%s", row)
@@ -151,11 +178,9 @@ func TestSessionTabsKeepTheActiveTabInViewWhenResized(tt *testing.T) {
 		app.cycleSession(1)
 		s.render()
 	}
-	for _, width := range []int{snapW - 40, snapW - 60, snapW - 20} {
-		// The first frame at a new width measures the strip, and the
-		// second (forced, as in newScreen) lays the tabs out to fit it.
-		s.renderer.Resize(width, snapH)
-		s.render()
+	// One frame at a new width, narrower or wider than the screen started,
+	// lays the tabs out to fit it.
+	for _, width := range []int{snapW - 40, snapW - 60, snapW + 40, snapW - 20} {
 		s.renderer.Resize(width, snapH)
 		s.render()
 		if row := s.tabRow(); !strings.Contains(row, "Request 06") {
@@ -173,6 +198,33 @@ func TestSessionTabsListOnlyWithMoreThanOneTab(tt *testing.T) {
 	s := newScreen(app, 30, snapH)
 	if row := s.tabRow(); strings.Contains(row, "▾") {
 		tt.Fatalf("a single tab that overflows shouldn't offer the tab list:\n%s", row)
+	}
+}
+
+func TestSessionTabsArePlainRow(tt *testing.T) {
+	app := testApp()
+	openTabs(app, 12)
+	s := newScreen(app, snapW, snapH)
+	s.showTab(tt, "Request 06")
+	strip := s.renderer.WidgetByID(sessionTabsID)
+	if strip.Bounds.Height != 1 {
+		tt.Fatalf("the strip is %d rows tall", strip.Bounds.Height)
+	}
+	// No hidden scrollbar column: the tab list button ends the strip.
+	row := []rune(s.tabRow())
+	if end := strip.Visible.X + strip.Visible.Width; string(row[end-8:end]) != " › +  ▾ " {
+		tt.Fatalf("the strip doesn't end with its marks and buttons:\n%s", string(row))
+	}
+	for x := strip.Visible.X; x < strip.Visible.X+strip.Visible.Width; x++ {
+		if len(s.renderer.ScrollablesAt(x, strip.Visible.Y)) > 0 {
+			tt.Fatalf("column %d of the strip is in a scrollable", x)
+		}
+	}
+	// A strip with every tab in view leaves the wheel be.
+	few := testApp()
+	openTabs(few, 1)
+	if newScreen(few, snapW, snapH).wheelTabs(tt, uv.MouseWheelDown) {
+		tt.Error("a strip with nothing hidden took the wheel")
 	}
 }
 
@@ -194,12 +246,22 @@ func TestTabSearchFiltersAndSwitchesTabs(tt *testing.T) {
 	}
 	s.render()
 
-	// It drops down from the right end of the strip.
-	view := app.sessionView
-	float := s.renderer.TopFloat()
-	if float == nil || float.Y != view.y+1 || float.X+float.Width != view.x+view.width {
-		tt.Fatalf("the tab search should hang below the right end of the strip (%d,%d w%d); float = %+v", view.x, view.y, view.width, float)
+	// It drops down from the right end of the strip, and follows the strip
+	// when the screen grows or the sidebar goes.
+	hangsFromStrip := func(when string) {
+		tt.Helper()
+		strip, float := s.strip(), s.renderer.TopFloat()
+		if float == nil || float.Y != strip.Y+1 || float.X+float.Width != strip.X+strip.Width {
+			tt.Fatalf("%s, the tab search should hang below the right end of the strip %+v; float = %+v", when, strip, float)
+		}
 	}
+	hangsFromStrip("at first")
+	s.renderer.Resize(snapW+30, snapH)
+	s.render()
+	hangsFromStrip("on a wider screen")
+	app.sidebarVisible.Set(false)
+	s.render()
+	hangsFromStrip("without the sidebar")
 
 	input := s.paletteInput(tt, tabSearchID+"-input")
 	input.State.SetText("uest 07")
