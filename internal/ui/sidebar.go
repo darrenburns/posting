@@ -289,7 +289,7 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 		target = entry.Response.URL
 	}
 	target = strings.TrimPrefix(strings.TrimPrefix(target, "https://"), "http://")
-	item := t.Column{
+	return t.Column{
 		Style: t.Style{Width: t.Flex(1), BackgroundColor: bg, Padding: t.EdgeInsetsXY(1, 0)},
 		Children: []t.Widget{
 			t.Text{Spans: []t.Span{
@@ -300,8 +300,6 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 			t.Text{Content: target, Style: t.Style{ForegroundColor: fg, Width: t.Flex(1)}},
 		},
 	}
-	// The blank line sits outside the highlighted block.
-	return t.Column{Style: t.Style{Width: t.Flex(1)}, Children: []t.Widget{item, t.Text{Content: " "}}}
 }
 
 // openHistory opens a history entry's request and response in a tab.
