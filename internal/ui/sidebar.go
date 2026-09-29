@@ -94,8 +94,8 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 	}
 }
 
-// collectionView is the request tree, with a summary of the highlighted
-// request floating beside it (see requestSummary).
+// collectionView is the request tree, with a summary of the hovered or
+// highlighted request floating beside it (see requestSummary).
 type collectionView struct {
 	fillParent
 	app *App
@@ -136,11 +136,16 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 	if len(query) > 0 && len(a.visibleTreePaths()) == 0 {
 		return noTreeResults{}
 	}
-	// The tree fills the panel on its own: the summary of the request under
-	// the cursor floats beside it, so the tree never resizes as it moves.
+	row := func(i treeItem, node t.TreeNodeContext) t.Text {
+		return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile, previewFile, query, a.keepFile)
+	}
+	// The tree fills the panel on its own: the summary of a request floats
+	// beside it, so the tree never resizes as it moves. The summary goes
+	// under the tree, which it hangs from (see requestSummary).
 	return t.Stack{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
+			requestSummary{app: a, row: row},
 			t.Scrollable{
 				ID:    treeViewportID,
 				State: a.treeScroll,
@@ -156,7 +161,9 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 					ShowGuideLines: t.BoolPtr(false),
 					// As in Posting 2, a click opens a request or folder.
 					ActivateOnClick: true,
+					OnCursorChange:  func(treeItem) { a.treeCursorMoved() },
 					OnSelect: func(i treeItem, _ []treeItem) {
+						a.dismissSummary()
 						if i.Request != nil {
 							a.openRequest(*i.Request)
 						} else if len(query) == 0 {
@@ -166,12 +173,11 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 						}
 					},
 					RenderNode: func(i treeItem, node t.TreeNodeContext) t.Widget {
-						return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile, previewFile, query, a.keepFile)
+						return a.trackTreeRow(row(i, node), node.Path)
 					},
 					Style: t.Style{Width: t.Flex(1)},
 				}},
 			},
-			requestSummary{app: a},
 		},
 	}
 }
@@ -182,7 +188,7 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 //
 // A click opens a request in the preview tab (see App.openRequest), whose
 // request is in italics like the tab; a double-click keeps it open.
-func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNodeContext, focused bool, openFiles map[string]bool, activeFile, previewFile string, query treeQuery, keep func(file string)) t.Widget {
+func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNodeContext, focused bool, openFiles map[string]bool, activeFile, previewFile string, query treeQuery, keep func(file string)) t.Text {
 	var bg t.Color
 	cursor := node.Active && focused
 	switch {
