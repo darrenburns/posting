@@ -121,6 +121,9 @@ type App struct {
 	highlighters       map[string]*syntaxHighlighter
 	methodMenu         *t.MenuState
 	menuOpen           t.Signal[bool]
+	logoMenu           *t.MenuState
+	logoMenuOpen       t.Signal[bool]
+	logoReturnFocus    string           // focused when the logo menu opened
 	overlay            t.Signal[string] // "", "help", "variables", "save", "confirm"
 	confirm            t.AnySignal[confirmation]
 	save               *saveForm
@@ -190,6 +193,7 @@ func New(cfg Config) *App {
 		compact:        t.NewSignal(false),
 		helpScroll:     t.NewScrollState(),
 		menuOpen:       t.NewSignal(false),
+		logoMenuOpen:   t.NewSignal(false),
 		overlay:        t.NewSignal(""),
 		confirm:        t.NewAnySignal(confirmation{}),
 		toast:          t.NewAnySignal(toast{}),
@@ -211,6 +215,7 @@ func New(cfg Config) *App {
 	a.palette = t.NewCommandPaletteState("Commands", nil)
 	a.requestSearch = t.NewCommandPaletteState("Go to request", nil)
 	a.methodMenu = t.NewMenuState(a.methodMenuItems())
+	a.logoMenu = t.NewMenuState(a.logoMenuItems())
 	a.save = newSaveForm()
 	a.variables = newVariablesForm()
 	a.curlDialog = newCurlForm()
@@ -762,7 +767,7 @@ func (f footer) Build(ctx t.BuildContext) t.Widget {
 			// The hints take the space the version leaves, and leave out
 			// those that don't fit.
 			hints,
-			t.ShowWhen(f.app.settings.Heading.ShowVersion, t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled, Padding: t.EdgeInsets{Left: 2}}}),
+			t.ShowWhen(f.app.settings.Heading.ShowVersion, footerLogo{app: f.app}),
 		},
 	}
 }
