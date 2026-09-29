@@ -276,8 +276,8 @@
   <rect x="1091.6" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <path d="M 314.6000 27.6000 L 314.6000 47.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="335.6" y="37.4" class="bold" fill="#7BF8C8">POS</text>
-  <text x="369.2" y="37.4" class="bold" fill="#F5F5F6">Create</text>
-  <text x="428.0" y="37.4" class="bold" fill="#F5F5F6">user</text>
+  <text x="369.2" y="37.4" class="bold italic" fill="#F5F5F6">Create</text>
+  <text x="428.0" y="37.4" class="bold italic" fill="#F5F5F6">user</text>
   <text x="478.4" y="37.4" fill="#9A96BE">✕</text>
   <text x="503.6" y="37.4" fill="#9A96BE">+</text>
   <rect x="8.0" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1507,8 +1507,8 @@
   <rect x="1083.2" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <text x="58.4" y="213.8" class="bold" fill="#7BF8C8">POS</text>
-  <text x="92.0" y="213.8" class="bold" fill="#DDA8FB">Create</text>
-  <text x="150.8" y="213.8" class="bold" fill="#DDA8FB">user</text>
+  <text x="92.0" y="213.8" class="bold italic" fill="#DDA8FB">Create</text>
+  <text x="150.8" y="213.8" class="bold italic" fill="#DDA8FB">user</text>
   <path d="M 314.6000 204.0000 L 314.6000 223.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="335.6" y="213.8" fill="#9A96BE">{</text>
   <rect x="8.0" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
