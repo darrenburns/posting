@@ -13,3 +13,8 @@ test-snapshot-update:
 .PHONY: test-ci
 test-ci:
 	$(run) pytest --cov=posting tests/ --cov-report term-missing $(ARGS)
+
+.PHONY: docs-screens
+# Re-capture the Posting 3 screens shown on the docs homepage.
+docs-screens:
+	@out=$$(mktemp -d) && HOMEPAGE_OUT=$$out go test ./internal/ui -run TestGenerateHomepageScenes -count=1 && python3 docs/scripts/home_screens.py $$out && rm -rf $$out
