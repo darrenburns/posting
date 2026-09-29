@@ -52,15 +52,19 @@ func (a *App) openDocs() {
 }
 
 // openLink opens url in the browser. Without a way to do that, it shows
-// the address instead, headed by name.
+// the address instead, headed by name. Opening waits for the system's
+// launcher, so it happens in the background, and says if it fails.
 func (a *App) openLink(name, url string) {
-	if a.openURL == nil {
+	open := a.openURL
+	if open == nil {
 		a.notify(name+": "+url, toastInfo)
 		return
 	}
-	if err := a.openURL(url); err != nil {
-		a.notify("Couldn't open "+url+": "+err.Error(), toastError)
-	}
+	go func() {
+		if err := open(url); err != nil {
+			t.Dispatch(func() { a.notify("Couldn't open "+url+": "+err.Error(), toastError) })
+		}
+	}()
 }
 
 // duplicateRequest saves a copy of req beside it and opens the copy.

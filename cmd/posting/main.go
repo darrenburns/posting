@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
+
+	"github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/client"
 	"github.com/darrenburns/posting/internal/collection"
@@ -161,7 +161,7 @@ func appConfig(opts options) (ui.Config, error) {
 		Watch:            watch,
 		Reload:           store,
 		History:          historyStore,
-		OpenURL:          openURL,
+		OpenURL:          terma.OpenURL,
 		Version:          version,
 		Settings:         &settings,
 		NerdFonts:        settings.UseNerdFonts(os.LookupEnv),
@@ -197,20 +197,6 @@ func environmentFiles(given []string) ([]string, error) {
 		files = append(files, abs)
 	}
 	return files, nil
-}
-
-// openURL opens a page in the default browser.
-func openURL(url string) error {
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "darwin":
-		cmd = exec.Command("open", url)
-	case "windows":
-		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
-	default:
-		cmd = exec.Command("xdg-open", url)
-	}
-	return cmd.Start()
 }
 
 func locate(args []string, stdout, stderr io.Writer) int {
