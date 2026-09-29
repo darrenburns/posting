@@ -202,9 +202,10 @@ func (s *screen) underSummary(tt *testing.T, id string) (int, int) {
 }
 
 func TestSummaryLetsThePointerThrough(tt *testing.T) {
-	app := testApp()
+	// The first request in the tree, so its bubble reaches up to the tabs.
+	app := appWithDescription("Current user", "Fetch the signed-in user's profile.", nil)
 	app.openRequest(sampleRequest(tt, "Create user"))
-	moveTreeCursor(tt, app, "Login")
+	moveTreeCursor(tt, app, "Current user")
 	s := newScreen(app, snapW, snapH)
 	s.focusID(tt, treeID)
 
