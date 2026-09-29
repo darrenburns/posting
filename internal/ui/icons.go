@@ -10,6 +10,8 @@ type iconSet struct {
 	info, success      string
 	warning, failure   string
 	elapsed            string
+	docs, donate       string
+	mastodon           string
 }
 
 // plainIcons work in any font.
@@ -18,7 +20,8 @@ var plainIcons = iconSet{
 }
 
 // nerdIcons need a Nerd Font (https://www.nerdfonts.com): Font Awesome
-// glyphs from its private use area.
+// glyphs from its private use area, and Material Design ones where Font
+// Awesome has none.
 var nerdIcons = iconSet{
 	folder:      " ",
 	folderOpen:  " ",
@@ -32,6 +35,9 @@ var nerdIcons = iconSet{
 	warning:     " ",
 	failure:     " ",
 	elapsed:     " ",
+	docs:        " ",
+	donate:      " ",
+	mastodon:    "󰫑 ",
 }
 
 func iconsFor(nerdFonts bool) iconSet {
