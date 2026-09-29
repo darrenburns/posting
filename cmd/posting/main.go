@@ -146,7 +146,12 @@ func appConfig(opts options) (ui.Config, error) {
 		CertFile: settings.SSL.CertificatePath,
 		KeyFile:  settings.SSL.KeyFile,
 	}
+	var watch ui.CollectionWatcher
+	if settings.WatchCollectionFiles {
+		watch = store
+	}
 	return ui.Config{
+		Watch:            watch,
 		Version:          version,
 		Settings:         &settings,
 		HostVariables:    host,
