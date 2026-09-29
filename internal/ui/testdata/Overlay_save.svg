@@ -546,7 +546,12 @@
   <rect x="419.60" y="66.80" width="2.10" height="19.60" fill="#16162D"/>
   <text x="428.0" y="66.8" fill="#3B3A53">Enter</text>
   <text x="478.4" y="66.8" fill="#3B3A53">a</text>
-  <text x="495.2" y="66.8" fill="#3B3A53">URL…</text>
+  <text x="495.2" y="66.8" fill="#3B3A53">URL</text>
+  <text x="528.8" y="66.8" fill="#3B3A53">or</text>
+  <text x="554.0" y="66.8" fill="#3B3A53">paste</text>
+  <text x="604.4" y="66.8" fill="#3B3A53">a</text>
+  <text x="621.2" y="66.8" fill="#3B3A53">curl</text>
+  <text x="663.2" y="66.8" fill="#3B3A53">command…</text>
   <text x="1032.8" y="66.8" fill="#562D78">[</text>
   <text x="1041.2" y="66.8" fill="#281A3E">Send</text>
   <text x="1074.8" y="66.8" fill="#562D78">]</text>

@@ -46,6 +46,7 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 		saveOverlay{app: a, visible: overlay == "save"},
 		variablesOverlay{app: a, visible: overlay == "variables"},
 		confirmOverlay{app: a, visible: overlay == "confirm"},
+		curlOverlay{app: a, visible: overlay == "curl"},
 		toastOverlay{app: a},
 	}}
 }
@@ -94,8 +95,9 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			a.palette.SetNextFocusIDOnClose("vars-table")
 			a.run(a.openVariables)()
 		}},
-		{Divider: "Export"},
-		{Label: "Copy as curl", Action: a.run(a.copyAsCurl)},
+		{Divider: "Import and export"},
+		{Label: "Import curl command…", Description: "Paste a curl command to load it into this tab", Action: a.run(a.openCurlImport)},
+		{Label: "Export as curl", Description: "Copy the request as a curl command", Action: a.run(a.copyAsCurl)},
 		{Divider: "View"},
 		{Label: layoutLabel, Action: a.run(a.toggleLayout)},
 		{Label: sidebarLabel, Hint: a.keyHint("toggle-collection"), Action: a.run(a.toggleSidebar)},

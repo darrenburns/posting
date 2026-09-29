@@ -245,6 +245,8 @@ func (s *Session) Load(req model.Request) {
 	s.timeout.SetText(strconv.FormatFloat(req.Options.TimeoutSeconds, 'f', -1, 64))
 	s.title.Set(req.DisplayName())
 	s.dirty.Set(false)
+	// Show a newly loaded URL from its start.
+	s.url.CursorIndex.Set(0)
 }
 
 // touch marks the session as edited and refreshes its title.

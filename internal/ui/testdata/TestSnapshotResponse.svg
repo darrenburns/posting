@@ -697,8 +697,9 @@
   <text x="24.8" y="86.4" fill="#F5F5F6">▼</text>
   <text x="41.6" y="86.4" class="bold" fill="#9A96BE">auth/</text>
   <text x="310.4" y="86.4" fill="#45407A">│</text>
-  <text x="428.0" y="86.4" fill="#9A96BE">→</text>
-  <text x="444.8" y="86.4" class="italic" fill="#9A96BE">http://localhost:8000/users?page=1&amp;per_page=20</text>
+  <text x="428.0" y="86.4" class="bold" fill="#FAAFD5">BASE_URL</text>
+  <text x="503.6" y="86.4" fill="#9A96BE">=</text>
+  <text x="520.4" y="86.4" fill="#F5F5F6">http://localhost:8000</text>
   <rect x="8.0" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
