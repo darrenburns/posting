@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"strings"
 	"testing"
 
 	t "github.com/darrenburns/terma"
@@ -44,6 +45,15 @@ func TestSettingsHideTheCollectionAndHeading(tt *testing.T) {
 		s.Heading.Visible = false
 	})
 	t.AssertSnapshot(tt, app, snapW, snapH, "Configured: no collection browser and no heading row")
+}
+
+func TestHeadingHostnameIsMarkup(tt *testing.T) {
+	app := settingsApp(tt, func(s *config.Settings) { s.Heading.Hostname = "[i]tempest[/i]" })
+	first := t.RenderToPlainString(app, snapW, snapH)
+	first, _, _ = strings.Cut(first, "\n")
+	if !strings.Contains(first, "tempest") || strings.Contains(first, "[i]") {
+		tt.Fatalf("heading = %q", first)
+	}
 }
 
 func TestKeymapRebindsActions(tt *testing.T) {

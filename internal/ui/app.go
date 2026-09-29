@@ -80,7 +80,7 @@ type App struct {
 	icons      iconSet
 	sender     client.Sender
 	store      collection.Store
-	host       string
+	host       string // markup
 
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
@@ -144,11 +144,13 @@ func New(cfg Config) *App {
 	if cfg.Settings != nil {
 		settings = *cfg.Settings
 	}
-	if settings.Heading.Hostname != "" {
-		cfg.UserHost = settings.Heading.Hostname
-	}
 	if cfg.UserHost == "" {
 		cfg.UserHost = userHost()
+	}
+	host := escapeMarkup(cfg.UserHost)
+	if settings.Heading.Hostname != "" {
+		// Like Posting 2, the configured hostname may contain markup.
+		host = settings.Heading.Hostname
 	}
 	sidebarRatio := 0.28
 	if settings.CollectionBrowser.Position == "right" {
@@ -164,7 +166,7 @@ func New(cfg Config) *App {
 		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
 		store:          cfg.Store,
-		host:           cfg.UserHost,
+		host:           host,
 		collection:     t.NewAnySignal(cfg.Collection),
 		treeScroll:     t.NewScrollState(),
 		history:        t.NewAnySignal[[]model.HistoryEntry](nil),
@@ -785,7 +787,7 @@ func (h header) Build(ctx t.BuildContext) t.Widget {
 				},
 				Click: func(t.MouseEvent) { a.openEnvironmentPicker() },
 			},
-			t.ShowWhen(a.settings.Heading.ShowHost, t.Text{Content: "   " + a.icons.host + a.host, Style: t.Style{ForegroundColor: theme.TextMuted}}),
+			t.ShowWhen(a.settings.Heading.ShowHost, t.ParseMarkupToText("   [$TextMuted]"+escapeMarkup(a.icons.host)+a.host+"[/]", theme)),
 		},
 	}
 }
