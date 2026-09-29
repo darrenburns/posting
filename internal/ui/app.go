@@ -30,6 +30,8 @@ type Config struct {
 	Collection *model.Collection
 	// Store saves and deletes requests. Nil keeps changes in memory only.
 	Store collection.Store
+	// Watch, when set, is polled for changes to the collection on disk.
+	Watch CollectionWatcher
 	// Environments finds and loads environment files.
 	Environments EnvironmentSource
 	// Environment is the files of the environment active at startup.
@@ -198,6 +200,9 @@ func New(cfg Config) *App {
 	}
 	if cfg.WatchEnvironment {
 		a.watchEnvironment(time.Second)
+	}
+	if cfg.Watch != nil {
+		a.watchCollection(cfg.Watch, time.Second)
 	}
 	if n := len(messages); n > 0 {
 		message := messages[0]

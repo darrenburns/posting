@@ -178,6 +178,33 @@ func EnsureFolder(root *model.Collection, folderPath string) *model.Collection {
 	return folder
 }
 
+// Signature summarises the request files on disk (their paths, sizes and
+// modification times) so a watcher can tell cheaply when to reload.
+func (d Dir) Signature() string {
+	var b strings.Builder
+	_ = filepath.WalkDir(d.Root, func(p string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if entry.IsDir() {
+			if p != d.Root && (strings.HasPrefix(entry.Name(), ".") || entry.Name() == "__pycache__" || entry.Name() == "node_modules") {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(entry.Name(), FileSuffix) {
+			return nil
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return nil
+		}
+		fmt.Fprintf(&b, "%s|%d|%d\n", p, info.Size(), info.ModTime().UnixNano())
+		return nil
+	})
+	return b.String()
+}
+
 // Memory is a Store that keeps nothing, for tests and the built-in sample.
 type Memory struct{}
 
