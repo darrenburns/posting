@@ -72,6 +72,12 @@ type Session struct {
 	// Tab strips scroll sideways in panels too narrow for all their tabs.
 	requestTabView  *tabView
 	responseTabView *tabView
+	// Where tabs too long for a short panel are scrolled to.
+	authScroll            *formScroll
+	scriptsScroll         *formScroll
+	optionsScroll         *formScroll
+	responseScriptsScroll *t.ScrollState
+	traceScroll           *t.ScrollState
 
 	// Exchange state.
 	phase    t.Signal[exchangePhase]
@@ -129,6 +135,12 @@ func newSession(id int, req model.Request) *Session {
 
 		requestTabView:  newTabView(),
 		responseTabView: newTabView(),
+
+		authScroll:            newFormScroll(),
+		scriptsScroll:         newFormScroll(),
+		optionsScroll:         newFormScroll(),
+		responseScriptsScroll: t.NewScrollState(),
+		traceScroll:           t.NewScrollState(),
 
 		phase:              t.NewSignal(exchangeIdle),
 		err:                t.NewAnySignal[error](nil),

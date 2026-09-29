@@ -67,6 +67,9 @@ type App struct {
 	sidebarTab     t.Signal[string]
 	layout         t.Signal[layoutMode]
 	expanded       t.Signal[string] // "", "request" or "response"
+	// compact drops the blank rows between parts of the layout when the
+	// terminal is too short to spare them (see heightProbe).
+	compact t.Signal[bool]
 
 	jump               *t.JumpState
 	palette            *t.CommandPaletteState
@@ -113,6 +116,7 @@ func New(cfg Config) *App {
 		sidebarTab:     t.NewSignal("requests"),
 		layout:         t.NewSignal(layoutVertical),
 		expanded:       t.NewSignal(""),
+		compact:        t.NewSignal(false),
 		helpScroll:     t.NewScrollState(),
 		menuOpen:       t.NewSignal(false),
 		overlay:        t.NewSignal(""),
@@ -516,7 +520,13 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 			Body: t.Column{
 				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 				Children: []t.Widget{
-					t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}, Spacing: 1, Children: body},
+					t.Stack{
+						Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+						Children: []t.Widget{
+							heightProbe{app: a},
+							t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}, Spacing: 1, Children: body},
+						},
+					},
 					overlays{app: a},
 				},
 			},
@@ -568,6 +578,38 @@ func tabJumps(stripID, keys string, tabs []string, selectTab func(string)) []t.J
 		})
 	}
 	return targets
+}
+
+// compactHeight is the height of the area between the header and footer
+// below which the layout drops its blank separator rows. Below it, stacked
+// request and response panels would otherwise show only a line or two each.
+const compactHeight = 28
+
+// heightProbe fills the area between the header and footer and switches the
+// app to compact spacing when it is short. Terma doesn't tell widgets the
+// screen size while they build, so layout reports it instead.
+type heightProbe struct{ app *App }
+
+func (p heightProbe) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), t.Flex(1) }
+func (p heightProbe) Build(t.BuildContext) t.Widget                    { return p }
+func (p heightProbe) Render(*t.RenderContext)                          {}
+
+// OnLayout switches spacing for the next frame. Setting the signal here
+// directly would be lost: the frame being laid out has already built the
+// widgets that read it.
+func (p heightProbe) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
+	if compact := metrics.Box().Height < compactHeight; compact != p.app.compact.Peek() {
+		t.Dispatch(func() { p.app.compact.Set(compact) })
+	}
+}
+
+// gap is the number of blank rows between parts of the layout: one, or none
+// in compact mode.
+func (a *App) gap() int {
+	if a.compact.Get() {
+		return 0
+	}
+	return 1
 }
 
 // footer shows the keybinds available for the focused widget, or how to use

@@ -71,7 +71,7 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 		Height: t.Flex(1),
 		Child: t.Column{
 			Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-			Spacing: 1,
+			Spacing: a.gap(),
 			Children: []t.Widget{
 				tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Tabs: []tabItem{
 					{Key: "requests", Label: "Requests"},
