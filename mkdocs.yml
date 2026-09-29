@@ -22,6 +22,9 @@ theme:
     - toc.integrate
 extra_css:
   - stylesheets/extra.css
+exclude_docs: |
+  overrides/
+  scripts/
 nav:
   - Home: "index.md"
   - Guide:
