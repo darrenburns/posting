@@ -66,6 +66,7 @@ type App struct {
 	sidebarVisible t.Signal[bool]
 	sidebarTab     t.Signal[string]
 	sidebarSplit   *t.SplitPaneState
+	panelSplit     *t.SplitPaneState // between the request and response
 	layout         t.Signal[layoutMode]
 	expanded       t.Signal[string] // "", "request" or "response"
 	// compact drops the blank rows between parts of the layout when the
@@ -116,6 +117,7 @@ func New(cfg Config) *App {
 		sidebarVisible: t.NewSignal(true),
 		sidebarTab:     t.NewSignal("requests"),
 		sidebarSplit:   t.NewSplitPaneState(0.28),
+		panelSplit:     t.NewSplitPaneState(0.5),
 		layout:         t.NewSignal(layoutVertical),
 		expanded:       t.NewSignal(""),
 		compact:        t.NewSignal(false),
@@ -679,6 +681,8 @@ type workspace struct {
 	app *App
 }
 
+const panelSplitID = "panel-split"
+
 func (w workspace) Build(ctx t.BuildContext) t.Widget {
 	a := w.app
 	s := a.session()
@@ -696,11 +700,20 @@ func (w workspace) Build(ctx t.BuildContext) t.Widget {
 	case "response":
 		panels = response
 	default:
-		if a.layout.Get() == layoutHorizontal {
-			panels = t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)}, Children: []t.Widget{request, response}}
-		} else {
-			panels = t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)}, Children: []t.Widget{request, response}}
+		split := t.SplitPane{
+			ID:           panelSplitID,
+			State:        a.panelSplit,
+			First:        request,
+			Second:       response,
+			Orientation:  t.SplitVertical,
+			MinPaneSize:  4,
+			DisableFocus: true,
 		}
+		if a.layout.Get() == layoutHorizontal {
+			split.Orientation = t.SplitHorizontal
+			split.MinPaneSize = 30
+		}
+		panels = split
 	}
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},

@@ -91,14 +91,15 @@ func (fillWidth) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Fl
 // with the tab labels above.
 var inset = t.EdgeInsetsTRBL(0, 0, 0, 1)
 
-// section draws a titled rounded panel. The border brightens while focus is
-// anywhere inside it, which is detected through the shared ID prefix.
+// section is a titled panel drawn straight onto the background. Its heading
+// brightens while focus is anywhere inside it, which is detected through the
+// shared ID prefix.
 type section struct {
 	ID        string
 	Prefix    string // focus-within prefix for the children's IDs
 	Title     string
 	TitleMark string // markup appended to the title (e.g. a status chip)
-	Subtitle  string // right-aligned markup on the bottom border
+	Subtitle  string // right-aligned markup on the heading row
 	Child     t.Widget
 	Width     t.Dimension
 	Height    t.Dimension
@@ -108,26 +109,25 @@ func (s section) GetContentDimensions() (t.Dimension, t.Dimension) { return s.Wi
 
 func (s section) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
-	focused := focusWithin(ctx, s.Prefix)
-	borderColor := theme.Border
-	title := "[" + "$TextMuted" + "]" + s.Title + "[/]"
-	if focused {
-		borderColor = theme.Primary
+	title := "[b $TextMuted]" + s.Title + "[/]"
+	if focusWithin(ctx, s.Prefix) {
 		title = "[b $Text]" + s.Title + "[/]"
 	}
-	decorations := []t.BorderDecoration{t.BorderTitleMarkup(" " + title + s.TitleMark + " ")}
+	heading := []t.Widget{t.ParseMarkupToText(title+s.TitleMark, theme), t.Spacer{Width: t.Flex(1)}}
 	if s.Subtitle != "" {
-		decorations = append(decorations, t.BorderSubtitleRightMarkup(" "+s.Subtitle+" "))
+		heading = append(heading, t.ParseMarkupToText(s.Subtitle, theme))
 	}
 	return t.Column{
 		ID: s.ID,
 		Style: t.Style{
 			Width:   s.Width,
 			Height:  s.Height,
-			Border:  t.RoundedBorder(borderColor, decorations...),
 			Padding: t.EdgeInsetsXY(1, 0),
 		},
-		Children: []t.Widget{s.Child},
+		Children: []t.Widget{
+			t.Row{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: heading},
+			s.Child,
+		},
 	}
 }
 
