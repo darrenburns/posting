@@ -163,16 +163,40 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 }
 
 func (a *App) methodMenuWidget() t.Widget {
-	return t.ShowWhen(a.menuOpen.Get(), t.Menu{
-		ID:       methodMenuID,
-		State:    a.methodMenu,
-		AnchorID: methodSelectorID,
-		OnSelect: func(item t.MenuItem) {
-			a.setMethod(model.Method(item.Label))
-			a.closeMethodMenu()
+	return t.ShowWhen(a.menuOpen.Get(), methodMenu{
+		Menu: t.Menu{
+			ID:       methodMenuID,
+			State:    a.methodMenu,
+			AnchorID: methodSelectorID,
+			OnSelect: func(item t.MenuItem) {
+				a.setMethod(model.Method(item.Label))
+				a.closeMethodMenu()
+			},
+			OnDismiss: a.closeMethodMenu,
 		},
-		OnDismiss: a.closeMethodMenu,
+		app: a,
 	})
+}
+
+// methodMenu is the method dropdown. A MenuItem's Shortcut is only a hint, and
+// the selector's letter keys don't reach the menu while it has focus, so the
+// menu binds them itself. They go ahead of the menu's own keys so that h picks
+// HEAD rather than closing the menu.
+type methodMenu struct {
+	t.Menu
+	app *App
+}
+
+func (m methodMenu) Keybinds() []t.Keybind {
+	binds := make([]t.Keybind, 0, len(model.Methods))
+	for _, method := range model.Methods {
+		method := method
+		binds = append(binds, t.Keybind{Key: methodHotkeys[method], Name: string(method), Action: func() {
+			m.app.setMethod(method)
+			m.app.closeMethodMenu()
+		}, Hidden: true})
+	}
+	return append(binds, m.Menu.Keybinds()...)
 }
 
 // methodSelector shows the current method. Letter keys switch method
