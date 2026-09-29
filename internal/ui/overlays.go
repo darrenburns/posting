@@ -120,11 +120,19 @@ func (a *App) themeItems() []t.CommandPaletteItem {
 	if a.themeBeforePreview != "" {
 		current = a.themeBeforePreview
 	}
+	user := map[string]bool{}
+	for _, name := range a.userThemes {
+		user[name] = true
+	}
 	var items []t.CommandPaletteItem
-	add := func(names []string) {
+	add := func(divider string, names []string, userThemes bool) {
+		var group []t.CommandPaletteItem
 		for _, name := range names {
+			if user[name] != userThemes {
+				continue
+			}
 			themeName := name
-			items = append(items, t.CommandPaletteItem{
+			group = append(group, t.CommandPaletteItem{
 				Label:   themeName,
 				Current: themeName == current,
 				Data:    themeName,
@@ -134,11 +142,16 @@ func (a *App) themeItems() []t.CommandPaletteItem {
 				}),
 			})
 		}
+		if len(group) > 0 {
+			items = append(items, t.CommandPaletteItem{Divider: divider})
+			items = append(items, group...)
+		}
 	}
-	items = append(items, t.CommandPaletteItem{Divider: "Dark"})
-	add(t.DarkThemeNames())
-	items = append(items, t.CommandPaletteItem{Divider: "Light"})
-	add(t.LightThemeNames())
+	add("Yours", a.userThemes, true)
+	if a.settings.LoadBuiltinThemes || len(a.userThemes) == 0 {
+		add("Dark", t.DarkThemeNames(), false)
+		add("Light", t.LightThemeNames(), false)
+	}
 	return items
 }
 

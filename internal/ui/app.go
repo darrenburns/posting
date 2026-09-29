@@ -20,6 +20,7 @@ import (
 	"github.com/darrenburns/posting/internal/collection"
 	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/internal/themes"
 )
 
 // Config is everything the UI needs from the outside world.
@@ -41,6 +42,8 @@ type Config struct {
 	Settings *config.Settings
 	// UserHost is shown in the header. Empty uses the current user and host.
 	UserHost string
+	// UserThemes are themes from the theme directory.
+	UserThemes []themes.Theme
 	// StartupMessages are problems found while loading, shown once the app
 	// starts.
 	StartupMessages []string
@@ -56,11 +59,12 @@ const (
 
 // App is the root widget.
 type App struct {
-	version  string
-	settings config.Settings
-	sender   client.Sender
-	store    collection.Store
-	host     string
+	version    string
+	settings   config.Settings
+	userThemes []string
+	sender     client.Sender
+	store      collection.Store
+	host       string
 
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
@@ -170,6 +174,7 @@ func New(cfg Config) *App {
 	a.openSession(model.NewRequest())
 
 	messages := append([]string(nil), cfg.StartupMessages...)
+	a.userThemes = registerUserThemes(cfg.UserThemes)
 	theme := themeAlias(settings.Theme)
 	if _, ok := t.GetTheme(theme); !ok {
 		messages = append(messages, fmt.Sprintf("Unknown theme %q; using galaxy", settings.Theme))
