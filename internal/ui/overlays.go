@@ -10,9 +10,8 @@ import (
 )
 
 const (
-	paletteID       = "palette"
-	requestSearchID = "request-search"
-	themesTitle     = "Themes"
+	paletteID   = "palette"
+	themesTitle = "Themes"
 )
 
 // overlays hosts every floating layer. Floating widgets register themselves
@@ -31,16 +30,6 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 			Offset:         t.Offset{Y: 3},
 			OnCursorChange: a.themePreviewHook(),
 			OnDismiss:      a.restoreTheme,
-		},
-		t.CommandPalette{
-			ID:          requestSearchID,
-			State:       a.requestSearch,
-			Placeholder: "Search for a request…",
-			Position:    t.FloatPositionTopCenter,
-			Offset:      t.Offset{Y: 3},
-			RenderItem: func(item t.CommandPaletteItem, active bool, match t.MatchResult) t.Widget {
-				return renderRequestSearchItem(ctx.Theme(), item, active, match)
-			},
 		},
 		a.tabSearchPalette(ctx.Theme()),
 		helpOverlay{app: a, visible: overlay == "help"},
@@ -97,7 +86,12 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		})
 	}
 	items = append(items, []t.CommandPaletteItem{
-		{Label: "Go to request…", Hint: a.keyHint("search-requests"), Action: a.run(a.openRequestSearch)},
+		{Label: "Search requests…", Hint: a.keyHint("search-requests"), Action: func() {
+			// Closing the palette restores focus, which would otherwise
+			// replace the search box's.
+			a.palette.SetNextFocusIDOnClose(treeSearchID)
+			a.run(a.focusTreeSearch)()
+		}},
 		{Label: "Go to open tab…", Hint: a.keyHint("search-tabs"), Action: a.run(a.openTabSearch)},
 		{Label: "Jump mode", Hint: a.keyHint("jump"), Action: a.run(a.jump.Activate)},
 		{Divider: "Environment"},
@@ -234,31 +228,6 @@ func (a *App) restoreTheme() {
 	}
 }
 
-// openRequestSearch lists every request in the collection for fuzzy search.
-func (a *App) openRequestSearch() {
-	var items []t.CommandPaletteItem
-	a.collection.Peek().Walk(func(_ *model.Collection, r model.Request) {
-		req := r
-		items = append(items, t.CommandPaletteItem{
-			Label: req.DisplayName(),
-			Hint:  req.File,
-			Data:  req.Method,
-			Action: func() {
-				a.requestSearch.SetNextFocusIDOnClose(urlInputID)
-				a.requestSearch.Close(false)
-				a.openRequest(req)
-			},
-		})
-	})
-	a.requestSearch.SetItems(items)
-	a.requestSearch.Open()
-}
-
-func renderRequestSearchItem(theme t.ThemeData, item t.CommandPaletteItem, active bool, match t.MatchResult) t.Widget {
-	method, _ := item.Data.(model.Method)
-	return renderMethodItem(theme, item, active, match, method, padRight(string(method), 8), "")
-}
-
 // renderMethodItem draws a palette row for a request: its method, in the
 // method's colour, then its name with the matched letters highlighted, an
 // optional marker after the name, and the item's hint on the right.
@@ -376,7 +345,10 @@ var helpSections = []helpSection{
 	{"Collection", [][2]string{
 		{"enter, double-click", "Open request / toggle folder"},
 		{"space", "Expand or collapse"},
-		{"/", "Search requests"},
+		{"/", "Search the collection"},
+		{"↓ / enter", "From the search box into the results"},
+		{"↑", "From the top row back to the search box"},
+		{"esc", "Clear the search"},
 		{"d", "Duplicate request"},
 		{"backspace", "Delete request"},
 	}},

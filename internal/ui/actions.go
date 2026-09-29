@@ -23,7 +23,7 @@ func (a *App) actions() []action {
 	return []action{
 		{id: "send-request", keys: []string{"ctrl+j", "alt+enter"}, name: "Send", help: "Send the request", run: a.send},
 		{id: "jump", keys: []string{t.DefaultJumpKey}, name: "Jump", help: "Jump mode: move focus by typing a label", hidden: true, run: a.jump.Activate},
-		{id: "search-requests", keys: []string{"ctrl+g"}, name: "Go to request", help: "Go to a request in the collection", hidden: true, run: a.openRequestSearch},
+		{id: "search-requests", keys: []string{"ctrl+g"}, name: "Search requests", help: "Search the collection", hidden: true, run: a.focusTreeSearch},
 		{id: "save-request", keys: []string{"ctrl+s"}, name: "Save", help: "Save the request to the collection", run: a.saveRequest},
 		{id: "new-request", keys: []string{"ctrl+n"}, name: "New tab", help: "Open a new request tab", run: a.newTab},
 		{id: "commands", keys: []string{"ctrl+p"}, name: "Commands", help: "Command palette", run: a.openPalette},
