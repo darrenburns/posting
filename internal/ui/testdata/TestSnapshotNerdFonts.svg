@@ -138,7 +138,7 @@
   <rect x="1074.8" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="24.8" y="8.0" class="bold" fill="#F5F5F6">sample-api</text>
+  <text x="24.8" y="8.0" class="bold" fill="#9A96BE">sample-api</text>
   <text x="310.4" y="8.0" fill="#45407A">│</text>
   <text x="906.8" y="8.0" fill="#FAAFD5"></text>
   <text x="923.6" y="8.0" class="bold" fill="#FAAFD5">local</text>
@@ -282,18 +282,18 @@
   <text x="495.2" y="27.6" fill="#9A96BE">+</text>
   <rect x="8.0" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="24.8" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="33.2" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="41.6" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="50.0" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="58.4" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="66.8" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="75.2" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="83.6" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="92.0" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="100.4" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="108.8" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
-  <rect x="117.2" y="47.2" width="8.4" height="19.6" fill="#FF69B4"/>
+  <rect x="24.8" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="33.2" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="41.6" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="50.0" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="58.4" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="66.8" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="75.2" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="83.6" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="92.0" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="100.4" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="108.8" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="117.2" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.6" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="134.0" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="142.4" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -410,8 +410,7 @@
   <rect x="1074.8" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="47.2" class="bold" fill="#0F0F1F"></text>
-  <text x="50.0" y="47.2" class="bold" fill="#0F0F1F">Requests</text>
+  <text x="33.2" y="47.2" class="bold underline" fill="#F5F5F6"> Requests</text>
   <text x="134.0" y="47.2" fill="#9A96BE"></text>
   <text x="150.8" y="47.2" fill="#9A96BE">History</text>
   <text x="310.4" y="47.2" fill="#45407A">│</text>
@@ -501,7 +500,6 @@
   <rect x="705.2" y="66.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="713.6" y="66.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="722.0" y="66.8" width="8.4" height="19.6" fill="#1E1E3F"/>
-  <rect x="730.4" y="66.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="738.8" y="66.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="747.2" y="66.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="755.6" y="66.8" width="8.4" height="19.6" fill="#1E1E3F"/>
@@ -560,6 +558,8 @@
   <text x="638.0" y="66.8" fill="#F5F5F6">per_page</text>
   <text x="705.2" y="66.8" fill="#9A96BE">=</text>
   <text x="713.6" y="66.8" fill="#F5F5F6">20</text>
+  <rect x="730.4" y="66.8" width="8.4" height="19.6" fill="#F5F5F6"/>
+  <text x="730.4" y="66.8" fill="#1E1E3F"> </text>
   <text x="906.8" y="66.8" class="bold" fill="#7BF8C8">200</text>
   <text x="948.8" y="66.8" fill="#00FA9A">■</text>
   <text x="957.2" y="66.8" fill="#45407A">■</text>

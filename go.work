@@ -1,6 +1,3 @@
 go 1.25.5
 
 use .
-
-// Build against the main Terma checkout next to this one.
-replace github.com/darrenburns/terma => ../terma
