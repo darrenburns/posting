@@ -163,6 +163,18 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 		Headers:     kvsToFile(req.Headers),
 		Params:      kvsToFile(req.Query),
 	}
+	// The editor keeps the enabled parameters in the URL as well as the
+	// table. Files keep them only in the table, as Posting 2 writes them, so
+	// they aren't listed twice.
+	if len(req.Query) > 0 {
+		if base, _, ok := strings.Cut(req.URL, "?"); ok {
+			fragment := ""
+			if _, f, hasFragment := strings.Cut(req.URL, "#"); hasFragment {
+				fragment = "#" + f
+			}
+			out.URL = base + fragment
+		}
+	}
 	if req.Method != model.MethodGet && req.Method != "" {
 		out.Method = string(req.Method)
 	}

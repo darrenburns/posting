@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"reflect"
 	"time"
 
 	t "github.com/darrenburns/terma"
@@ -37,6 +36,15 @@ func (a *App) watchCollection(w CollectionWatcher, interval time.Duration) {
 	}()
 }
 
+// sameOnDisk reports whether two requests would be saved identically, which
+// is what matters: the editor holds the query in the URL as well as the
+// table, and files don't.
+func sameOnDisk(a, b model.Request) bool {
+	x, errX := collection.MarshalRequest(a)
+	y, errY := collection.MarshalRequest(b)
+	return errX == nil && errY == nil && string(x) == string(y)
+}
+
 // replaceCollection swaps in a collection reloaded from disk. Open tabs of
 // requests that changed on disk are updated unless they have unsaved edits,
 // which are never thrown away.
@@ -50,7 +58,7 @@ func (a *App) replaceCollection(root *model.Collection) {
 			continue
 		}
 		req, ok := onDisk[file]
-		if !ok || reflect.DeepEqual(req, s.Snapshot()) {
+		if !ok || sameOnDisk(req, s.Snapshot()) {
 			continue
 		}
 		s.Load(req)
