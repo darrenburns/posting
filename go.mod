@@ -5,7 +5,7 @@ go 1.25.5
 require (
 	github.com/alecthomas/chroma/v2 v2.23.1
 	github.com/charmbracelet/ultraviolet v0.0.0-20251217160852-6b0c0e26fad9
-	github.com/darrenburns/terma v0.17.0
+	github.com/darrenburns/terma v0.18.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
