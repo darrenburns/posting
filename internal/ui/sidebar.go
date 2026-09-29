@@ -133,8 +133,8 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 	return t.Stack{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
-			treeViewportProbe{app: a},
 			t.Scrollable{
+				ID:    treeViewportID,
 				State: a.treeScroll,
 				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 				Child: t.Tree[treeItem]{
@@ -153,7 +153,6 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 							a.tree.Toggle(a.tree.CursorPath.Peek())
 						}
 					},
-					OnCursorChange: func(treeItem) { a.summary.hidden.Set(false) },
 					RenderNode: func(i treeItem, node t.TreeNodeContext) t.Widget {
 						return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile)
 					},

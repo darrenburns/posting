@@ -6,9 +6,12 @@ import (
 	"unicode/utf8"
 
 	t "github.com/darrenburns/terma"
+
+	"github.com/darrenburns/posting/internal/model"
 )
 
 const (
+	// treeViewportID is the scrollable viewport of the request tree.
 	treeViewportID = "side-tree-viewport"
 	summaryID      = "side-summary"
 	// summaryWidth is the widest a line of the summary bubble may be, and
@@ -19,115 +22,91 @@ const (
 	summaryLines    = 8
 )
 
-// summaryState places the bubble summarising the request under the tree
-// cursor, and keeps it out of the pointer's way.
-type summaryState struct {
-	// viewport is the height of the tree's viewport and room the width of
-	// the workspace beside it. Layout measures them for the next frame.
-	viewport t.Signal[int]
-	room     t.Signal[int]
-	// hidden is set when the pointer moves over the bubble, until the tree
-	// cursor moves.
-	hidden t.Signal[bool]
-	// pointer is where the pointer was at the last hover event since the
-	// bubble was built, if pointerKnown.
-	pointerX, pointerY int
-	pointerKnown       bool
-}
-
-func newSummaryState() *summaryState {
-	return &summaryState{viewport: t.NewSignal(0), room: t.NewSignal(0), hidden: t.NewSignal(false)}
-}
-
-// brush hides the bubble when the pointer moves over it. Terma gives the
-// pointer to whatever floats on top, so the bubble gets out of its way rather
-// than cover the workspace beneath. Hover events also fire when the bubble
-// appears under a pointer that is standing still, and those leave it be.
-func (s *summaryState) brush(x, y int) {
-	if s.pointerKnown && (x != s.pointerX || y != s.pointerY) {
-		s.hidden.Set(true)
-	}
-	s.pointerX, s.pointerY, s.pointerKnown = x, y, true
-}
-
-// treeViewportProbe sits behind the tree's Scrollable and fills it. Terma
-// doesn't tell widgets their size while they build, so it reports the
-// viewport's height from layout. The summary bubble is anchored to it.
-type treeViewportProbe struct{ app *App }
-
-func (p treeViewportProbe) GetContentDimensions() (t.Dimension, t.Dimension) {
-	return t.Flex(1), t.Flex(1)
-}
-func (p treeViewportProbe) Build(t.BuildContext) t.Widget { return p }
-func (p treeViewportProbe) Render(*t.RenderContext)       {}
-func (p treeViewportProbe) WidgetID() string              { return treeViewportID }
-
-// OnLayout records the height for the next frame, as heightProbe does.
-func (p treeViewportProbe) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
-	if height := metrics.Box().Height; height != p.app.summary.viewport.Peek() {
-		t.Dispatch(func() { p.app.summary.viewport.Set(height) })
-	}
-}
-
 // requestSummary floats a summary of the request under the tree cursor beside
 // its row: the method and name, the URL and the description. It shows only
-// while the tree has focus and the request has a description.
+// while the tree has focus and the request has a description. It is only a
+// preview: the pointer passes through it to whatever it covers, and clicking
+// there moves focus out of the tree, which puts the bubble away.
 type requestSummary struct{ app *App }
 
 func (s requestSummary) Build(ctx t.BuildContext) t.Widget {
 	a := s.app
-	state := a.summary
-	theme := ctx.Theme()
-	cursor := a.tree.CursorPath.Get()
+	_ = a.tree.CursorPath.Get()
 	item, ok := a.tree.CursorNode()
 	if !ok || item.Request == nil || strings.TrimSpace(item.Request.Description) == "" ||
-		!isFocusedID(ctx, treeID) || a.jump.IsActive() || state.hidden.Get() {
+		!isFocusedID(ctx, treeID) || a.jump.IsActive() {
 		return t.EmptyWidget{}
+	}
+	// It clears the sidebar's padding and the divider beside the tree's
+	// viewport, and starts a row up so its title can line up with the top
+	// row (see summaryBubble).
+	anchor, x := t.AnchorRightTop, 2
+	if a.settings.CollectionBrowser.Position == "right" {
+		anchor, x = t.AnchorLeftTop, -3
+	}
+	r := *item.Request
+	return t.Floating{
+		Visible: true,
+		Config: t.FloatConfig{
+			AnchorID:           treeViewportID,
+			Anchor:             anchor,
+			Offset:             t.Offset{X: x, Y: -1},
+			PointerPassthrough: true,
+			// Without OnDismiss, the bubble never takes Escape from the
+			// tree.
+		},
+		BuildChild: func(ctx t.BuildContext, geometry t.FloatGeometry) t.Widget {
+			return summaryBubble(ctx, a, r, anchor == t.AnchorLeftTop, geometry)
+		},
+	}
+}
+
+// summaryBubble lays out the summary of r for this frame's tree viewport,
+// the anchor in geometry. The float starts a row above the viewport, and the
+// bubble's top margin moves it down to its row.
+func summaryBubble(ctx t.BuildContext, a *App, r model.Request, leftOfTree bool, geometry t.FloatGeometry) t.Widget {
+	theme := ctx.Theme()
+	viewport := geometry.AnchorBounds
+	if !geometry.AnchorFound || geometry.AnchorVisibleBounds.IsEmpty() {
+		return nil
 	}
 	// The row's line in the viewport. The mouse wheel scrolls without moving
 	// the cursor, and a row scrolled out of view has no bubble.
-	row, ok := a.treeRow(cursor)
-	viewport := state.viewport.Get()
+	row, ok := a.treeRow(a.tree.CursorPath.Get())
 	top := row - a.treeScroll.Offset.Get()
-	if !ok || top < 0 || top >= viewport {
-		return t.EmptyWidget{}
+	if !ok || top < 0 || top >= viewport.Height {
+		return nil
 	}
 	// The bubble covers the edge of the workspace, short of its far side.
 	// Where the workspace is too narrow for a readable line, it stays away.
-	width := min(summaryWidth, state.room.Get()-5)
+	reach := geometry.Screen.Width - (viewport.X + viewport.Width + 2)
+	if leftOfTree {
+		reach = viewport.X - 3
+	}
+	width := min(summaryWidth, reach-6)
 	if width < summaryMinWidth {
-		return t.EmptyWidget{}
+		return nil
 	}
 
-	r := item.Request
 	lines := wrapWords(strings.TrimSpace(r.Description), width, summaryLines)
 	// The title lines up with the row, below the bubble's top border. If the
-	// bubble would run off the bottom it opens upwards instead, with its last
-	// line beside the row. Its lines are wrapped here so its height is known.
+	// bubble would run off the bottom of the viewport it opens upwards
+	// instead, with its last line beside the row.
 	height := len(lines) + 4
 	if r.URL != "" {
 		height++
 	}
 	y := top - 1
-	if top-1+height > viewport && top+2 >= height {
+	if top-1+height > viewport.Height && top+2 >= height {
 		y = top + 2 - height
 	}
-	// It clears the sidebar's padding and the divider beside it.
-	anchor, x := t.AnchorRightTop, 2
-	if a.settings.CollectionBrowser.Position == "right" {
-		anchor, x = t.AnchorLeftTop, -3
-	}
 
-	// The bubble may have moved, so the next hover event starts afresh.
-	state.pointerKnown = false
-	brush := func(e t.HoverEvent) { state.brush(e.X, e.Y) }
-	press := func(t.MouseEvent) { state.hidden.Set(true) }
 	line := func(spans ...t.Span) t.Widget {
 		if len(spans) == 0 {
 			// An empty Text has no height.
 			spans = []t.Span{{Text: " "}}
 		}
-		return t.Text{Spans: spans, Hover: brush, MouseDown: press}
+		return t.Text{Spans: spans}
 	}
 	children := []t.Widget{line(
 		t.Span{Text: " " + string(r.Method) + " ", Style: t.SpanStyle{Foreground: methodColor(theme, r.Method), Background: theme.Surface3, Bold: true}},
@@ -143,27 +122,15 @@ func (s requestSummary) Build(ctx t.BuildContext) t.Widget {
 		spans, code = codeSpans(theme, text, code)
 		children = append(children, line(spans...))
 	}
-
-	return t.Floating{
-		Visible: true,
-		Config: t.FloatConfig{
-			AnchorID: treeViewportID,
-			Anchor:   anchor,
-			Offset:   t.Offset{X: x, Y: y},
-			// Without OnDismiss, the bubble never takes Escape or a click
-			// outside it from the widgets beneath.
+	return t.Column{
+		ID: summaryID,
+		Style: t.Style{
+			BackgroundColor: theme.Background,
+			Border:          t.RoundedBorder(theme.Border),
+			Padding:         t.EdgeInsetsXY(1, 0),
+			Margin:          t.EdgeInsets{Top: y + 1},
 		},
-		Child: t.Column{
-			ID: summaryID,
-			Style: t.Style{
-				BackgroundColor: theme.Background,
-				Border:          t.RoundedBorder(theme.Border),
-				Padding:         t.EdgeInsetsXY(1, 0),
-			},
-			Hover:     brush,
-			MouseDown: press,
-			Children:  children,
-		},
+		Children: children,
 	}
 }
 

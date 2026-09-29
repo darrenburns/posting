@@ -4,23 +4,12 @@ import (
 	"slices"
 	"testing"
 
+	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/model"
 )
-
-// focusOn focuses a widget when a snapshot renders, as a shortcut or click
-// would in the running app.
-type focusOn struct {
-	id    string
-	child t.Widget
-}
-
-func (f focusOn) Build(t.BuildContext) t.Widget {
-	t.RequestFocus(f.id)
-	return f.child
-}
 
 // moveTreeCursor puts the tree cursor on the request with the given name.
 func moveTreeCursor(tt *testing.T, app *App, name string) {
@@ -77,13 +66,15 @@ const longDescription = "Fetch a page of users, newest first.\n\n" +
 func TestSnapshotRequestSummary(tt *testing.T) {
 	app := appWithDescription("List users", longDescription, nil)
 	moveTreeCursor(tt, app, "List users")
-	t.AssertSnapshot(tt, focusOn{treeID, app}, snapW, snapH, "Collection focused: the highlighted request's summary floats beside its row")
+	t.RequestFocus(treeID)
+	t.AssertSnapshot(tt, app, snapW, snapH, "Collection focused: the highlighted request's summary floats beside its row")
 }
 
 func TestSnapshotRequestSummaryOpensUpwards(tt *testing.T) {
 	app := appWithDescription("Delete user", longDescription, nil)
 	moveTreeCursor(tt, app, "Delete user")
-	t.AssertSnapshot(tt, focusOn{treeID, app}, snapW, 20, "Near the bottom of a short terminal, the summary opens upwards from the row")
+	t.RequestFocus(treeID)
+	t.AssertSnapshot(tt, app, snapW, 18, "Near the bottom of a short terminal, the summary opens upwards from the row")
 }
 
 func TestSnapshotRequestSummaryCollectionOnRight(tt *testing.T) {
@@ -91,7 +82,29 @@ func TestSnapshotRequestSummaryCollectionOnRight(tt *testing.T) {
 		s.CollectionBrowser.Position = "right"
 	})
 	moveTreeCursor(tt, app, "List users")
-	t.AssertSnapshot(tt, focusOn{treeID, app}, snapW, snapH, "Collection on the right: the summary floats to the left of the row")
+	t.RequestFocus(treeID)
+	t.AssertSnapshot(tt, app, snapW, snapH, "Collection on the right: the summary floats to the left of the row")
+}
+
+// summary checks that the summary bubble is on screen, beside the tree and
+// with its title (or, when it opens upwards, its last line) on the tree
+// cursor's row, and returns its bounds.
+func (s *screen) summary(tt *testing.T) t.Rect {
+	tt.Helper()
+	bubble, viewport := s.renderer.WidgetByID(summaryID), s.renderer.WidgetByID(treeViewportID)
+	if bubble == nil || bubble.Visible.IsEmpty() {
+		tt.Fatal("no summary beside the focused tree's cursor")
+	}
+	row, _ := s.app.treeRow(s.app.tree.CursorPath.Peek())
+	want := viewport.Bounds.Y + row - s.app.treeScroll.GetOffset()
+	b := bubble.Bounds
+	if title, last := b.Y+1, b.Y+b.Height-2; title != want && last != want {
+		tt.Fatalf("summary spans rows %d-%d, want its title or last line beside the cursor on row %d", title, last, want)
+	}
+	if left, edge := b.X, viewport.Bounds.X+viewport.Bounds.Width; left <= edge {
+		tt.Fatalf("summary starts at column %d, over the tree, which ends at %d", left, edge)
+	}
+	return b
 }
 
 func TestSummaryShowsBesideTheFocusedTreeCursor(tt *testing.T) {
@@ -101,18 +114,10 @@ func TestSummaryShowsBesideTheFocusedTreeCursor(tt *testing.T) {
 	if s.renderer.WidgetByID(summaryID) != nil {
 		tt.Fatal("the summary shows while the tree isn't focused")
 	}
+	// It is there on the frame that focuses the tree.
 	s.focusID(tt, treeID)
-	bubble, viewport := s.renderer.WidgetByID(summaryID), s.renderer.WidgetByID(treeViewportID)
-	if bubble == nil {
-		tt.Fatal("no summary beside the focused tree's cursor")
-	}
-	row, _ := app.treeRow(app.tree.CursorPath.Peek())
-	if got, want := bubble.Bounds.Y+1, viewport.Bounds.Y+row; got != want {
-		tt.Errorf("summary title on row %d, want it beside the cursor on row %d", got, want)
-	}
-	if left, edge := bubble.Bounds.X, viewport.Bounds.X+viewport.Bounds.Width; left <= edge {
-		tt.Errorf("summary starts at column %d, over the tree, which ends at %d", left, edge)
-	}
+	s.summary(tt)
+	viewport := s.renderer.WidgetByID(treeViewportID)
 
 	// Requests without a description have no bubble, and the tree keeps its
 	// height either way.
@@ -126,39 +131,139 @@ func TestSummaryShowsBesideTheFocusedTreeCursor(tt *testing.T) {
 	}
 }
 
-func TestSummaryStepsAsideForThePointer(tt *testing.T) {
-	app := appWithDescription("List users", longDescription, nil)
+func TestSummaryFollowsTheCursorResizeAndScroll(tt *testing.T) {
+	app := testApp()
 	moveTreeCursor(tt, app, "List users")
 	s := newScreen(app, snapW, snapH)
 	s.focusID(tt, treeID)
-	bubble := s.renderer.WidgetByID(summaryID)
-	if bubble == nil {
-		tt.Fatal("no summary to test")
+	first := s.summary(tt)
+
+	// The frame after the cursor moves has the bubble beside the new row.
+	moveTreeCursor(tt, app, "Login")
+	s.render()
+	if moved := s.summary(tt); moved.Y >= first.Y {
+		tt.Errorf("the summary stayed at row %d after the cursor moved up", moved.Y)
 	}
-	hover := func(x, y int) {
+
+	// Resizing lays it out for the new size in one frame, including past
+	// the size the screen started at. Too narrow a workspace has no bubble.
+	for _, width := range []int{snapW + 40, snapW - 30} {
+		s.renderer.Resize(width, snapH+10)
+		s.render()
+		if bubble := s.summary(tt); bubble.X+bubble.Width > width {
+			tt.Errorf("at width %d the summary runs off screen: %v", width, bubble)
+		}
+	}
+	s.renderer.Resize(50, snapH)
+	s.render()
+	if s.renderer.WidgetByID(summaryID) != nil {
+		tt.Error("the summary squeezed into a workspace too narrow to read it")
+	}
+
+	// Scrolling the tree of a short screen moves the bubble with its row,
+	// and a row scrolled out of view has none.
+	s.renderer.Resize(snapW, 10)
+	s.render()
+	before := s.summary(tt)
+	app.treeScroll.SetOffset(1)
+	s.render()
+	if after := s.summary(tt); after.Y != before.Y-1 {
+		tt.Errorf("scrolling the tree a row moved the summary from row %d to %d", before.Y, after.Y)
+	}
+	row, _ := app.treeRow(app.tree.CursorPath.Peek())
+	app.treeScroll.SetOffset(row + 1)
+	if app.treeScroll.GetOffset() != row+1 {
+		tt.Fatal("the tree can't scroll the cursor's row out of view, so this proves nothing")
+	}
+	s.render()
+	if s.renderer.WidgetByID(summaryID) != nil {
+		tt.Error("the summary shows for a row scrolled out of view")
+	}
+}
+
+// underSummary returns a cell of the widget id that the summary covers.
+func (s *screen) underSummary(tt *testing.T, id string) (int, int) {
+	tt.Helper()
+	bubble := s.summary(tt)
+	target := s.renderer.WidgetByID(id)
+	if target == nil {
+		tt.Fatalf("%s is not on screen", id)
+	}
+	v := target.Visible
+	for y := v.Y; y < v.Y+v.Height; y++ {
+		for x := v.X; x < v.X+v.Width; x++ {
+			if bubble.Contains(x, y) {
+				return x, y
+			}
+		}
+	}
+	tt.Fatalf("the summary at %v doesn't cover %s at %v", bubble, id, v)
+	return 0, 0
+}
+
+func TestSummaryLetsThePointerThrough(tt *testing.T) {
+	app := testApp()
+	app.openRequest(sampleRequest(tt, "Create user"))
+	moveTreeCursor(tt, app, "Login")
+	s := newScreen(app, snapW, snapH)
+	s.focusID(tt, treeID)
+
+	// A click on a tab under the bubble reaches the tab, with no pointer
+	// movement over the bubble first.
+	body := tabID(requestTabsID, "body")
+	x, y := s.underSummary(tt, body)
+	entry := s.renderer.WidgetAt(x, y)
+	clickable, ok := entry.EventWidget.(t.Clickable)
+	if !ok || entry.ID != body {
+		tt.Fatalf("a click under the summary reaches %q (%T), not the body tab", entry.ID, entry.EventWidget)
+	}
+	clickable.OnClick(t.MouseEvent{X: x, Y: y, Button: uv.MouseLeft, ClickCount: 1})
+	if got := app.current().requestTab.Peek(); got != "body" {
+		tt.Fatalf("clicking the body tab under the summary left the %s tab showing", got)
+	}
+	s.render()
+
+	// The wheel scrolls the body the bubble covers, not the tree beside it.
+	x, y = s.underSummary(tt, "req-body-text")
+	scrollables := s.renderer.ScrollablesAt(x, y)
+	if len(scrollables) == 0 || scrollables[0].State != app.current().bodyScroll {
+		tt.Fatal("the wheel under the summary doesn't reach the request body")
+	}
+
+	// A click there focuses the body, which leaves the tree and so puts the
+	// bubble away.
+	focusable := s.renderer.FocusableAt(x, y)
+	if focusable == nil || focusable.ID != "req-body-text" {
+		tt.Fatalf("a click under the summary focuses %v, not the request body", focusable)
+	}
+	s.focusID(tt, focusable.ID)
+	if s.renderer.WidgetByID(summaryID) != nil {
+		tt.Error("the summary stayed after focus left the tree")
+	}
+}
+
+func TestKeyboardSummarySurvivesAStillPointer(tt *testing.T) {
+	app := testApp()
+	moveTreeCursor(tt, app, "List users")
+	s := newScreen(app, snapW, snapH)
+	s.focusID(tt, treeID)
+	bubble := s.summary(tt)
+
+	// The pointer rests where the bubble appears: layout tells whatever is
+	// beneath that the pointer is over it. Then the pointer moves within the
+	// bubble. Neither puts the bubble away; only moving focus does.
+	x, y := bubble.X+2, bubble.Y+1
+	for _, source := range []t.HoverEventSource{t.HoverSourceLayout, t.HoverSourcePointer} {
 		entry := s.renderer.WidgetAt(x, y)
+		if entry == nil || entry.ID == summaryID {
+			tt.Fatalf("the summary takes the pointer at (%d,%d)", x, y)
+		}
 		if hoverable, ok := entry.EventWidget.(t.Hoverable); ok {
-			hoverable.OnHover(t.HoverEvent{Type: t.HoverEnter, X: x, Y: y})
+			hoverable.OnHover(t.HoverEvent{Type: t.HoverEnter, Source: source, X: x, Y: y})
 		}
 		s.render()
-	}
-	// Appearing under a pointer that is standing still leaves it be.
-	x, y := bubble.Bounds.X+2, bubble.Bounds.Y+1
-	hover(x, y)
-	hover(x, y)
-	if s.renderer.WidgetByID(summaryID) == nil {
-		tt.Fatal("the summary hid under a pointer that didn't move")
-	}
-	// Moving over it hides it, so the pointer reaches the workspace.
-	hover(x, y+3)
-	if s.renderer.WidgetByID(summaryID) != nil {
-		tt.Fatal("the summary stayed under a moving pointer")
-	}
-	// Until the cursor moves.
-	app.summary.hidden.Set(false)
-	s.render()
-	if s.renderer.WidgetByID(summaryID) == nil {
-		tt.Error("the summary didn't come back")
+		s.summary(tt)
+		y++
 	}
 }
 

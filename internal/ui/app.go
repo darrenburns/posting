@@ -89,7 +89,6 @@ type App struct {
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
 	treeScroll *t.ScrollState
-	summary    *summaryState // the bubble beside the tree cursor
 
 	history       t.AnySignal[[]model.HistoryEntry]
 	historyList   *t.ListState[model.HistoryEntry]
@@ -180,7 +179,6 @@ func New(cfg Config) *App {
 		host:           host,
 		collection:     t.NewAnySignal(cfg.Collection),
 		treeScroll:     t.NewScrollState(),
-		summary:        newSummaryState(),
 		history:        t.NewAnySignal[[]model.HistoryEntry](nil),
 		historyList:    t.NewListState[model.HistoryEntry](nil),
 		historyScroll:  t.NewScrollState(),
@@ -725,8 +723,7 @@ const compactHeight = 28
 
 // heightProbe fills the area between the header and footer and switches the
 // app to compact spacing when it is short. Terma doesn't tell widgets the
-// screen size while they build, so layout reports it instead. It also
-// measures the workspace's width: the room for the collection's summary.
+// screen size while they build, so layout reports it instead.
 type heightProbe struct{ app *App }
 
 func (p heightProbe) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), t.Flex(1) }
@@ -739,9 +736,6 @@ func (p heightProbe) Render(*t.RenderContext)                          {}
 func (p heightProbe) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
 	if compact := metrics.Box().Height < compactHeight; compact != p.app.compact.Peek() {
 		t.Dispatch(func() { p.app.compact.Set(compact) })
-	}
-	if width := metrics.Box().Width; width != p.app.summary.room.Peek() {
-		t.Dispatch(func() { p.app.summary.room.Set(width) })
 	}
 }
 
