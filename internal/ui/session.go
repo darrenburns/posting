@@ -89,13 +89,15 @@ type Session struct {
 	// fromHistory is set when the response was loaded from history rather than sent.
 	fromHistory t.AnySignal[*model.HistoryEntry]
 	// responseBody holds the formatted response body for the read-only viewer.
-	responseBody       *t.TextAreaState
-	responseBodyScroll *t.ScrollState
-	responseHeaders    *t.TableState[model.Header]
-	responseCookies    *t.TableState[model.Cookie]
-	spinner            *t.SpinnerState
-	generation         uint64
-	cancel             context.CancelFunc
+	responseBody          *t.TextAreaState
+	responseBodyScroll    *t.ScrollState
+	responseHeaders       *t.TableState[model.Header]
+	responseHeadersScroll *t.ScrollState
+	responseCookies       *t.TableState[model.Cookie]
+	responseCookiesScroll *t.ScrollState
+	spinner               *t.SpinnerState
+	generation            uint64
+	cancel                context.CancelFunc
 
 	// prettifyJSON indents JSON response bodies.
 	prettifyJSON bool
@@ -143,16 +145,18 @@ func newSession(id int, req model.Request) *Session {
 		optionsScroll: newFormScroll(),
 		traceScroll:   t.NewScrollState(),
 
-		phase:              t.NewSignal(exchangeIdle),
-		err:                t.NewAnySignal[error](nil),
-		trace:              t.NewAnySignal[[]model.TraceEvent](nil),
-		response:           t.NewAnySignal[*model.Response](nil),
-		fromHistory:        t.NewAnySignal[*model.HistoryEntry](nil),
-		responseBody:       t.NewTextAreaState(""),
-		responseBodyScroll: t.NewScrollState(),
-		responseHeaders:    t.NewTableState[model.Header](nil),
-		responseCookies:    t.NewTableState[model.Cookie](nil),
-		spinner:            t.NewSpinnerState(t.SpinnerDots),
+		phase:                 t.NewSignal(exchangeIdle),
+		err:                   t.NewAnySignal[error](nil),
+		trace:                 t.NewAnySignal[[]model.TraceEvent](nil),
+		response:              t.NewAnySignal[*model.Response](nil),
+		fromHistory:           t.NewAnySignal[*model.HistoryEntry](nil),
+		responseBody:          t.NewTextAreaState(""),
+		responseBodyScroll:    t.NewScrollState(),
+		responseHeaders:       t.NewTableState[model.Header](nil),
+		responseHeadersScroll: t.NewScrollState(),
+		responseCookies:       t.NewTableState[model.Cookie](nil),
+		responseCookiesScroll: t.NewScrollState(),
+		spinner:               t.NewSpinnerState(t.SpinnerDots),
 	}
 	s.urlVars, s.usernameVars, s.passwordVars = newCompletion(), newCompletion(), newCompletion()
 	s.tokenVars, s.proxyVars, s.bodyVars = newCompletion(), newCompletion(), newCompletion()
@@ -478,7 +482,9 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 	s.responseBodyScroll.SetOffset(0)
 	s.responseBody.SelectionAnchor.Set(-1)
 	s.responseHeaders.SetRows(resp.Headers)
+	s.responseHeadersScroll.SetOffset(0)
 	s.responseCookies.SetRows(resp.Cookies)
+	s.responseCookiesScroll.SetOffset(0)
 }
 
 // mergeTrace replaces the event for the same stage or appends it.

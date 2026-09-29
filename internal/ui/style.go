@@ -309,3 +309,17 @@ func scrollingArea(id string, scroll *t.ScrollState, background t.Color, area t.
 		Click: func(t.MouseEvent) { t.RequestFocus(id) },
 	}
 }
+
+// scrollingTable puts a table in a Scrollable that shares its ScrollState.
+// A Terma table doesn't scroll by itself: without this, rows past the bottom
+// are cut off, the cursor can move out of sight, and there is no scrollbar
+// to show that there is more. The table should have no height so it grows
+// with its rows.
+func scrollingTable[T any](scroll *t.ScrollState, table t.Table[T]) t.Widget {
+	table.ScrollState = scroll
+	return t.Scrollable{
+		State: scroll,
+		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		Child: table,
+	}
+}

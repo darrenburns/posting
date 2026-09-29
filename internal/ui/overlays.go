@@ -531,6 +531,7 @@ const addRowKey = "+"
 type variablesForm struct {
 	filter *t.TextInputState
 	table  *t.TableState[model.Variable]
+	scroll *t.ScrollState
 	// editing is the name of the row being edited in place, addRowKey for
 	// the add row, or "" while browsing.
 	editing t.Signal[string]
@@ -547,6 +548,7 @@ func newVariablesForm() *variablesForm {
 	return &variablesForm{
 		filter:      t.NewTextInputState(""),
 		table:       t.NewTableState[model.Variable](nil),
+		scroll:      t.NewScrollState(),
 		editing:     t.NewSignal(""),
 		err:         t.NewSignal(""),
 		name:        t.NewTextInputState(""),
@@ -759,7 +761,7 @@ func (o variablesOverlay) Build(ctx t.BuildContext) t.Widget {
 			return tableCell(theme, active, focused, col == 0, []string{v.Name, value, v.Source}[col])
 		},
 		OnSelect: a.editVariable,
-		Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		Style:    t.Style{Width: t.Flex(1)},
 	}
 	return modal{
 		Visible:   o.visible,
@@ -780,7 +782,7 @@ func (o variablesOverlay) Build(ctx t.BuildContext) t.Widget {
 					},
 					t.Text{Content: source, Style: t.Style{ForegroundColor: theme.TextMuted}},
 				}},
-				variableTableKeys{app: a, child: table},
+				variableTableKeys{app: a, child: scrollingTable(f.scroll, table)},
 				variablesHint{form: f},
 			},
 		},
