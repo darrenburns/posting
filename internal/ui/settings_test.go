@@ -84,6 +84,17 @@ func TestPrettifyJSONSetting(tt *testing.T) {
 	}
 }
 
+func TestBlinkingCursorSetting(tt *testing.T) {
+	settingsApp(tt, func(s *config.Settings) { s.TextInput.BlinkingCursor = false })
+	if t.CursorBlink() {
+		tt.Fatal("blinking_cursor: false should stop the cursor blinking")
+	}
+	settingsApp(tt, func(s *config.Settings) { s.TextInput.BlinkingCursor = true })
+	if !t.CursorBlink() {
+		tt.Fatal("blinking_cursor: true should make the cursor blink")
+	}
+}
+
 func TestFocusOnRequestOpen(tt *testing.T) {
 	app := settingsApp(tt, func(s *config.Settings) { s.Focus.OnRequestOpen = "body" })
 	app.openRequest(sampleRequest(tt, "Create user"))

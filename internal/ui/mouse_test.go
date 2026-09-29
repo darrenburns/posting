@@ -3,6 +3,7 @@ package ui
 import (
 	"strings"
 	"testing"
+	"time"
 
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
@@ -153,9 +154,23 @@ func TestClickEnvironmentOpensSwitcher(tt *testing.T) {
 	}
 }
 
-func TestDoubleClickTreeOpensRequest(tt *testing.T) {
+func TestClickHistoryOpensEntry(tt *testing.T) {
 	app := testApp()
-	clickText(tt, app, "Create user", 0, 2)
+	app.sidebarTab.Set("history")
+	resp := fixedResponse()
+	resp.StatusCode, resp.Reason = 404, "Not Found"
+	entries := []model.HistoryEntry{{ID: 1, Request: sampleRequest(tt, "Get user"), Response: resp, SentAt: time.Date(2026, 9, 28, 14, 30, 0, 0, time.UTC)}}
+	app.history.Set(entries)
+	app.historyList.SetItems(entries)
+	clickText(tt, app, "404", 0)
+	if r := app.current().response.Peek(); r == nil || r.StatusCode != 404 {
+		tt.Fatal("clicking a history entry should open it")
+	}
+}
+
+func TestClickTreeOpensRequest(tt *testing.T) {
+	app := testApp()
+	clickText(tt, app, "Create user", 0)
 	if s := app.current(); s.file.Peek() != "users/create-user.posting.yaml" {
 		tt.Fatalf("clicking a request in the tree should open it; open file = %q", s.file.Peek())
 	}

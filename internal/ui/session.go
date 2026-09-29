@@ -259,12 +259,8 @@ func (s *Session) Load(req model.Request) {
 	s.timeout.SetText(strconv.FormatFloat(req.Options.TimeoutSeconds, 'f', -1, 64))
 	s.title.Set(req.DisplayName())
 	s.dirty.Set(false)
-	// Show a newly loaded request from its start: an input shows the text
-	// around its cursor, so a cursor left at the end hides the beginning of
-	// long values.
-	for _, input := range []*t.TextInputState{s.url, s.username, s.password, s.token, s.name, s.proxy, s.timeout} {
-		input.CursorIndex.Set(0)
-	}
+	// Show a newly loaded body from its start. (Unfocused inputs already
+	// show the start of their text.)
 	s.body.CursorIndex.Set(0)
 	s.description.CursorIndex.Set(0)
 	s.bodyScroll.SetOffset(0)

@@ -66,6 +66,7 @@ func (c *completion) wrap(theme t.ThemeData, child t.Widget, choices variableCho
 		Child:                 child,
 		Width:                 width,
 		TriggerChars:          []rune{'$'},
+		TriggerAnywhere:       true, // Variables sit mid-URL: /users/$ID.
 		Insert:                t.InsertFromTrigger,
 		MatchMode:             t.FilterFuzzy,
 		MaxVisible:            8,

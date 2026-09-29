@@ -60,9 +60,6 @@ func (e *kvEditor) newRow(item model.KeyValue) *kvRow {
 		value:   t.NewTextInputState(item.Value),
 		values:  newCompletion(),
 	}
-	// Show loaded values from their start rather than their end.
-	row.key.CursorIndex.Set(0)
-	row.value.CursorIndex.Set(0)
 	if len(e.suggestions) > 0 {
 		row.keySuggestions = t.NewAutocompleteState()
 		row.keySuggestions.SetSuggestions(e.suggestions)

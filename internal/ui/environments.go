@@ -193,9 +193,6 @@ func (a *App) environmentItems() []t.CommandPaletteItem {
 		} else {
 			item.Label = loaded.Name
 			item.Description = pluralize(len(loaded.Variables), "variable")
-			if item.Current {
-				item.Description = "active · " + item.Description
-			}
 		}
 		items = append(items, item)
 	}

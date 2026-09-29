@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/curl"
@@ -95,4 +96,46 @@ func TestSnapshotCurlHintInURLBar(tt *testing.T) {
 	app := testApp()
 	app.current().url.SetText("curl -X POST https://api.test")
 	t.AssertSnapshot(tt, app, snapW, snapH, "A curl command typed into the URL bar, with the hint to press enter to import it")
+}
+
+// pasteInto pastes text into the focusable widget id, as the focus manager
+// does when it has focus, and reports whether the paste was taken.
+func pasteInto(tt *testing.T, app *App, id, text string) bool {
+	tt.Helper()
+	renderer := t.NewRenderer(uv.NewBuffer(snapW, snapH), snapW, snapH, t.NewFocusManager(), t.NewAnySignal[t.Focusable](nil), t.NewAnySignal[t.Widget](nil))
+	for _, entry := range renderer.Render(app) {
+		if entry.ID != id {
+			continue
+		}
+		handler, ok := entry.Focusable.(t.PasteHandler)
+		if !ok {
+			tt.Fatalf("%s (%T) doesn't take pastes", id, entry.Focusable)
+		}
+		return handler.HandlePaste(text)
+	}
+	tt.Fatalf("%s is not focusable on screen", id)
+	return false
+}
+
+func TestPastingCurlIntoURLBarImportsIt(tt *testing.T) {
+	app := testApp()
+	s := app.current()
+	pasteInto(tt, app, urlInputID, "curl -X POST https://api.test/items \\\n  -H 'Accept: text/plain' \\\n  --data-raw 'hi'\n")
+	if s.method.Peek() != model.MethodPost || s.url.GetText() != "https://api.test/items" {
+		tt.Fatalf("imported %s %q", s.method.Peek(), s.url.GetText())
+	}
+	if got := s.headers.Values(); len(got) != 1 || got[0].Value != "text/plain" || s.body.GetText() != "hi" {
+		tt.Fatalf("headers = %+v body = %q", got, s.body.GetText())
+	}
+}
+
+func TestPastingAURLInsertsIt(tt *testing.T) {
+	app := testApp()
+	s := app.current()
+	s.url.SetText("https://api.test/")
+	s.url.CursorEnd()
+	pasteInto(tt, app, urlInputID, "users\n")
+	if s.url.GetText() != "https://api.test/users" || s.method.Peek() != model.MethodGet {
+		tt.Fatalf("url = %q", s.url.GetText())
+	}
 }

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
 	"os/user"
 	"strings"
 	"time"
@@ -81,6 +82,9 @@ type App struct {
 	sender     client.Sender
 	store      collection.Store
 	host       string // markup
+
+	// runExternal runs the editor or pager; tests replace it.
+	runExternal func(*exec.Cmd) error
 
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
@@ -162,6 +166,7 @@ func New(cfg Config) *App {
 		spacing:        t.NewSignal(settings.Spacing),
 		icons:          iconsFor(cfg.NerdFonts),
 		openURL:        cfg.OpenURL,
+		runExternal:    t.RunExternal,
 		watcher:        cfg.Reload,
 		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
@@ -219,6 +224,7 @@ func New(cfg Config) *App {
 		theme = t.ThemeNameGalaxy
 	}
 	t.SetTheme(theme)
+	t.SetCursorBlink(settings.TextInput.BlinkingCursor)
 	switch settings.Focus.OnStartup {
 	case "method":
 		t.RequestFocus(methodSelectorID)
@@ -747,14 +753,15 @@ func (f footer) Build(ctx t.BuildContext) t.Widget {
 	if f.app.jump.IsActive() {
 		text := t.ParseMarkupToText("[b $AccentText]Jump[/]  Type a label to move there  [b $Text]esc[/] cancel", theme)
 		text.Style = style
+		text.Style.Width = t.Flex(1)
 		hints = text
 	}
 	return t.Row{
 		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(2, 0), BackgroundColor: theme.Background},
 		Children: []t.Widget{
-			// The hints take the space the version leaves and are cut off
-			// when there are too many, rather than running into it.
-			t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: []t.Widget{hints}},
+			// The hints take the space the version leaves, and leave out
+			// those that don't fit.
+			hints,
 			t.ShowWhen(f.app.settings.Heading.ShowVersion, t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled, Padding: t.EdgeInsets{Left: 2}}}),
 		},
 	}
