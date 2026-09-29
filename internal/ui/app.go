@@ -50,6 +50,9 @@ type Config struct {
 	UserHost string
 	// UserThemes are themes from the theme directory.
 	UserThemes []themes.Theme
+	// History keeps sent requests between runs. Nil keeps them for the
+	// session only.
+	History HistoryStore
 	// NerdFonts draws icons from a Nerd Font.
 	NerdFonts bool
 	// StartupMessages are problems found while loading, shown once the app
@@ -87,6 +90,7 @@ type App struct {
 	historyList   *t.ListState[model.HistoryEntry]
 	historyScroll *t.ScrollState
 	nextHistoryID int64
+	historyStore  *historySaver
 
 	env         *environments
 	sessionVars t.AnySignal[map[string]string]
@@ -184,6 +188,18 @@ func New(cfg Config) *App {
 		toast:          t.NewAnySignal(toast{}),
 	}
 	a.tree = t.NewTreeState(buildTree(cfg.Collection))
+	if cfg.History != nil {
+		a.historyStore = newHistorySaver(cfg.History)
+		if entries, err := cfg.History.Load(); err != nil {
+			cfg.StartupMessages = append(cfg.StartupMessages, "Couldn't load history: "+err.Error())
+		} else {
+			for _, e := range entries {
+				a.nextHistoryID = max(a.nextHistoryID, e.ID)
+			}
+			a.history.Set(entries)
+			a.historyList.SetItems(entries)
+		}
+	}
 	a.jump = t.NewJumpState()
 	a.palette = t.NewCommandPaletteState("Commands", nil)
 	a.requestSearch = t.NewCommandPaletteState("Go to request", nil)
@@ -420,12 +436,7 @@ func (a *App) send() {
 	s.Send(a.sender, a.variableValuesPeek(), func(req model.Request, resp *model.Response) {
 		a.nextHistoryID++
 		entry := historyEntry(a.nextHistoryID, req, resp)
-		history := append([]model.HistoryEntry{entry}, a.history.Peek()...)
-		if len(history) > 100 {
-			history = history[:100]
-		}
-		a.history.Set(history)
-		a.historyList.SetItems(history)
+		a.setHistory(append([]model.HistoryEntry{entry}, a.history.Peek()...))
 		switch a.settings.Focus.OnResponse {
 		case "body":
 			if s := a.current(); s != nil {

@@ -336,13 +336,11 @@ func (a *App) deleteHistoryAtCursor() {
 			kept = append(kept, e)
 		}
 	}
-	a.history.Set(kept)
-	a.historyList.SetItems(kept)
+	a.setHistory(kept)
 }
 
 func (a *App) clearHistory() {
-	a.history.Set(nil)
-	a.historyList.SetItems(nil)
+	a.setHistory(nil)
 	a.notify("History cleared", toastInfo)
 }
 
