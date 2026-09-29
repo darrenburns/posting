@@ -79,8 +79,8 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 		Children: []t.Widget{
 			heading,
 			tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Tabs: []tabItem{
-				{Key: "requests", Label: "Requests"},
-				{Key: "history", Label: "History", Badge: countBadge(historyCount)},
+				{Key: "requests", Label: a.icons.requests + "Requests"},
+				{Key: "history", Label: a.icons.history + "History", Badge: countBadge(historyCount)},
 			}},
 			t.Switcher{
 				Active: a.sidebarTab.Get(),
@@ -148,7 +148,7 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 						}
 					},
 					RenderNode: func(i treeItem, node t.TreeNodeContext) t.Widget {
-						return renderTreeNode(theme, i, node, focused, openFiles, activeFile)
+						return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile)
 					},
 					Style: t.Style{Width: t.Flex(1)},
 				},
@@ -161,7 +161,7 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 // renderTreeNode draws one row. The cursor is only emphasised while the tree
 // has focus; otherwise it is a quiet highlight so it doesn't compete with the
 // focused widget.
-func renderTreeNode(theme t.ThemeData, i treeItem, node t.TreeNodeContext, focused bool, openFiles map[string]bool, activeFile string) t.Widget {
+func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNodeContext, focused bool, openFiles map[string]bool, activeFile string) t.Widget {
 	var bg t.Color
 	cursor := node.Active && focused
 	switch {
@@ -175,7 +175,14 @@ func renderTreeNode(theme t.ThemeData, i treeItem, node t.TreeNodeContext, focus
 		if cursor {
 			fg = theme.SelectionText
 		}
-		return t.Text{Spans: []t.Span{{Text: i.Folder.Name + "/", Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: true}}}, Style: t.Style{Width: t.Flex(1)}}
+		icon, suffix := icons.folder, ""
+		if node.Expanded {
+			icon = icons.folderOpen
+		}
+		if icon == "" {
+			suffix = "/"
+		}
+		return t.Text{Spans: []t.Span{{Text: icon + i.Folder.Name + suffix, Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: true}}}, Style: t.Style{Width: t.Flex(1)}}
 	}
 	// The method lines up with folder names at the same depth. The request
 	// in the visible tab is bold; others open in tabs get a dot after them.

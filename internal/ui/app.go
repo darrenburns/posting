@@ -50,6 +50,8 @@ type Config struct {
 	UserHost string
 	// UserThemes are themes from the theme directory.
 	UserThemes []themes.Theme
+	// NerdFonts draws icons from a Nerd Font.
+	NerdFonts bool
 	// StartupMessages are problems found while loading, shown once the app
 	// starts.
 	StartupMessages []string
@@ -72,6 +74,7 @@ type App struct {
 	watcher    CollectionWatcher
 	envFile    *envFileForm
 	userThemes []string
+	icons      iconSet
 	sender     client.Sender
 	store      collection.Store
 	host       string
@@ -151,6 +154,7 @@ func New(cfg Config) *App {
 		version:        cfg.Version,
 		settings:       settings,
 		spacing:        t.NewSignal(settings.Spacing),
+		icons:          iconsFor(cfg.NerdFonts),
 		openURL:        cfg.OpenURL,
 		watcher:        cfg.Reload,
 		envFile:        newEnvFileForm(),
@@ -761,12 +765,12 @@ func (h header) Build(ctx t.BuildContext) t.Widget {
 			t.Spacer{},
 			t.Text{
 				Spans: []t.Span{
-					{Text: "◆ ", Style: t.SpanStyle{Foreground: envColor}},
+					{Text: a.icons.environment, Style: t.SpanStyle{Foreground: envColor}},
 					{Text: envLabel, Style: t.SpanStyle{Foreground: envColor, Bold: env != ""}},
 				},
 				Click: func(t.MouseEvent) { a.openEnvironmentPicker() },
 			},
-			t.ShowWhen(a.settings.Heading.ShowHost, t.Text{Content: "   " + a.host, Style: t.Style{ForegroundColor: theme.TextMuted}}),
+			t.ShowWhen(a.settings.Heading.ShowHost, t.Text{Content: "   " + a.icons.host + a.host, Style: t.Style{ForegroundColor: theme.TextMuted}}),
 		},
 	}
 }

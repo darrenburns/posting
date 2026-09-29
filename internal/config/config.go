@@ -254,6 +254,24 @@ func (s *Settings) validate() []string {
 	return warnings
 }
 
+// UseNerdFonts reports whether to draw Nerd Font icons: the nerd_fonts
+// setting when it is set, otherwise whether the terminal is one that ships
+// with a Nerd Font. Ghostty has Nerd Font symbols built in. lookup reads
+// the environment (os.LookupEnv).
+func (s Settings) UseNerdFonts(lookup func(string) (string, bool)) bool {
+	if s.NerdFonts != nil {
+		return *s.NerdFonts
+	}
+	get := func(name string) string { v, _ := lookup(name); return v }
+	if strings.EqualFold(get("TERM_PROGRAM"), "ghostty") || get("TERM") == "xterm-ghostty" {
+		return true
+	}
+	// Inside tmux or screen TERM_PROGRAM is the multiplexer, but Ghostty's
+	// own variables are inherited.
+	_, ghostty := lookup("GHOSTTY_RESOURCES_DIR")
+	return ghostty
+}
+
 // KeysFor returns the keys bound to action, from the keymap or the
 // defaults. Keys are comma-separated, as in Posting 2.
 func (s Settings) KeysFor(action string, defaults ...string) []string {

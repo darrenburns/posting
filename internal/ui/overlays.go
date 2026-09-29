@@ -914,14 +914,15 @@ type toastOverlay struct{ app *App }
 func (o toastOverlay) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	current := o.app.toast.Get()
-	accent := theme.Info
+	icons := o.app.icons
+	accent, icon := theme.Info, icons.info
 	switch current.kind {
 	case toastSuccess:
-		accent = theme.Success
+		accent, icon = theme.Success, icons.success
 	case toastWarning:
-		accent = theme.Warning
+		accent, icon = theme.Warning, icons.warning
 	case toastError:
-		accent = theme.Error
+		accent, icon = theme.Error, icons.failure
 	}
 	return t.Floating{
 		Visible: current.message != "",
@@ -935,7 +936,10 @@ func (o toastOverlay) Build(ctx t.BuildContext) t.Widget {
 			Style: t.Style{BackgroundColor: theme.Surface2},
 			Children: []t.Widget{
 				t.Text{Content: "▌", Style: t.Style{ForegroundColor: accent}},
-				t.Text{Content: current.message, Style: t.Style{ForegroundColor: theme.Text, Padding: t.EdgeInsetsXY(1, 0)}},
+				t.Text{Spans: []t.Span{
+					{Text: icon, Style: t.SpanStyle{Foreground: accent}},
+					{Text: current.message, Style: t.SpanStyle{Foreground: theme.Text}},
+				}, Style: t.Style{Padding: t.EdgeInsetsXY(1, 0)}},
 			},
 		},
 	}

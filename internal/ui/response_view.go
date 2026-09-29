@@ -38,7 +38,7 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 		fg, bg := statusColors(theme, resp.StatusCode)
 		title = fmt.Sprintf(" [b %s on %s] %d %s [/]", fg.Hex(), bg.Hex(), resp.StatusCode, resp.Reason)
 		if p.app.settings.Response.ShowSizeAndTime {
-			subtitle = fmt.Sprintf("[$Text]%s[/] [$TextMuted]in[/] [$Text]%s[/]", model.FormatBytes(resp.Size()), model.FormatDuration(resp.Elapsed))
+			subtitle = fmt.Sprintf("[$Text]%s[/] [$TextMuted]in[/] [$TextMuted]%s[/][$Text]%s[/]", model.FormatBytes(resp.Size()), p.app.icons.elapsed, model.FormatDuration(resp.Elapsed))
 		}
 	}
 
