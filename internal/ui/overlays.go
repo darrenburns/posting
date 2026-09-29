@@ -42,6 +42,7 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 				return renderRequestSearchItem(ctx.Theme(), item, active, match)
 			},
 		},
+		a.tabSearchPalette(ctx.Theme()),
 		helpOverlay{app: a, visible: overlay == "help"},
 		saveOverlay{app: a, visible: overlay == "save"},
 		variablesOverlay{app: a, visible: overlay == "variables"},
@@ -87,6 +88,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "Save request", Hint: a.keyHint("save-request"), Action: a.run(a.saveRequest)},
 		{Label: "Close request tab", Hint: a.keyHint("close-tab"), Action: a.run(func() { a.closeSession(a.active.Peek()) })},
 		{Label: "Go to request…", Hint: a.keyHint("search-requests"), Action: a.run(a.openRequestSearch)},
+		{Label: "Go to open tab…", Hint: a.keyHint("search-tabs"), Action: a.run(a.openTabSearch)},
 		{Label: "Jump mode", Hint: a.keyHint("jump"), Action: a.run(a.jump.Activate)},
 		{Divider: "Environment"},
 		{Label: "Switch environment…", ChildrenTitle: "Environments", Children: a.environmentItems},
@@ -244,6 +246,13 @@ func (a *App) openRequestSearch() {
 
 func renderRequestSearchItem(theme t.ThemeData, item t.CommandPaletteItem, active bool, match t.MatchResult) t.Widget {
 	method, _ := item.Data.(model.Method)
+	return renderMethodItem(theme, item, active, match, method, padRight(string(method), 8), "")
+}
+
+// renderMethodItem draws a palette row for a request: its method, in the
+// method's colour, then its name with the matched letters highlighted, an
+// optional marker after the name, and the item's hint on the right.
+func renderMethodItem(theme t.ThemeData, item t.CommandPaletteItem, active bool, match t.MatchResult, method model.Method, methodLabel, marker string) t.Widget {
 	style := t.Style{Width: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}
 	label := t.Style{ForegroundColor: theme.Text, Width: t.Flex(1)}
 	hint := t.Style{ForegroundColor: theme.TextMuted}
@@ -259,10 +268,21 @@ func renderRequestSearchItem(theme t.ThemeData, item t.CommandPaletteItem, activ
 		name.Content = ""
 		name.Spans = t.HighlightSpans(item.Label, match.Ranges, t.MatchHighlightStyle(theme))
 	}
+	if marker != "" {
+		if name.Spans == nil {
+			name.Content = ""
+			name.Spans = []t.Span{{Text: item.Label}}
+		}
+		markerFg := theme.WarningText
+		if active {
+			markerFg = theme.SelectionText
+		}
+		name.Spans = append(name.Spans, t.Span{Text: " " + marker, Style: t.SpanStyle{Foreground: markerFg}})
+	}
 	return t.Row{
 		Style: style,
 		Children: []t.Widget{
-			t.Text{Content: padRight(string(method), 8), Style: t.Style{ForegroundColor: methodFg, Bold: true}},
+			t.Text{Content: methodLabel, Style: t.Style{ForegroundColor: methodFg, Bold: true}},
 			name,
 			t.Text{Content: item.Hint, Style: hint},
 		},
