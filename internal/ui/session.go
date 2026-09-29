@@ -161,6 +161,9 @@ func newSession(id int, req model.Request) *Session {
 	s.headers.onChange = s.touch
 	s.pathParams.onChange = s.touch
 	s.form.onChange = s.touch
+	toTabs := func() { t.RequestFocus(requestTabsID) }
+	s.headers.onLeaveTop, s.query.onLeaveTop, s.pathParams.onLeaveTop = toTabs, toTabs, toTabs
+	s.form.onLeaveTop = func() { t.RequestFocus("req-body-type") }
 	s.Load(req)
 	return s
 }

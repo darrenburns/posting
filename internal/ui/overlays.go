@@ -331,15 +331,19 @@ var helpSections = []helpSection{
 		{"g p u a d h o", "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS"},
 		{"enter", "Open the method menu"},
 	}},
-	{"Tabs", [][2]string{{"h / l, ← / →", "Previous / next tab"}}},
+	{"Tabs", [][2]string{
+		{"h / l, ← / →", "Previous / next tab"},
+		{"↓ / enter", "Into the tab's content"},
+		{"↑", "Back out (to the URL bar from the request tabs)"},
+	}},
 	{"Headers, query, path, form", [][2]string{
 		{"type in the last row", "Add a new row"},
-		{"↑ / ↓", "Move between rows"},
+		{"↑ / ↓", "Move between rows (↑ from the first row: the tabs)"},
 		{"ctrl+space", "Enable or disable the row"},
 		{"ctrl+x", "Delete the row"},
 	}},
 	{"Collection", [][2]string{
-		{"enter", "Open request / toggle folder"},
+		{"enter, double-click", "Open request / toggle folder"},
 		{"space", "Expand or collapse"},
 		{"/", "Search requests"},
 		{"d", "Duplicate request"},

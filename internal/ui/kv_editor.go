@@ -34,6 +34,8 @@ type kvEditor struct {
 	nextID    int
 	fixedKeys bool // path parameters: names come from the URL
 	onChange  func()
+	// onLeaveTop runs when moving up from the first row.
+	onLeaveTop func()
 	// suggestions are offered while typing a name.
 	suggestions []t.Suggestion
 }
@@ -179,6 +181,9 @@ func (e *kvEditor) moveFocus(rowID int, column string, delta int) {
 	i := e.indexOf(rowID) + delta
 	target := e.rowAt(i)
 	if target == nil {
+		if i < 0 && e.onLeaveTop != nil {
+			e.onLeaveTop()
+		}
 		return
 	}
 	if e.fixedKeys {

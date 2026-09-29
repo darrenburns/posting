@@ -27,6 +27,8 @@ func (s *Session) requestTabs() tabStrip {
 		ID:     requestTabsID,
 		Active: s.requestTab,
 		View:   s.requestTabView,
+		Down:   func() { t.RequestFocus(s.contentFocusID(s.requestTab.Peek())) },
+		Up:     func() { t.RequestFocus(urlInputID) },
 		Tabs: []tabItem{
 			{Key: "headers", Label: "Headers", Badge: countBadge(s.headers.Count())},
 			{Key: "body", Label: "Body", Marked: s.bodyType.Get() != model.BodyNone},
@@ -93,6 +95,38 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 			},
 		},
 	}
+}
+
+// contentFocusID is the first field inside a request tab.
+func (s *Session) contentFocusID(tab string) string {
+	var id string
+	switch tab {
+	case "headers":
+		id = s.headers.FirstInputID()
+	case "query":
+		id = s.query.FirstInputID()
+	case "path":
+		id = s.pathParams.FirstInputID()
+	case "info":
+		id = "req-info-name"
+	case "auth":
+		id = "req-auth-type"
+	case "options":
+		id = "req-opt-follow"
+	case "body":
+		switch s.bodyType.Peek() {
+		case model.BodyRaw:
+			id = "req-body-text"
+		case model.BodyForm:
+			id = s.form.FirstInputID()
+		default:
+			id = "req-body-type"
+		}
+	}
+	if id == "" {
+		return requestTabsID
+	}
+	return id
 }
 
 // bodyEditor selects the body type and edits its content.

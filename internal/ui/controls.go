@@ -28,6 +28,10 @@ type tabStrip struct {
 	// View, when set, lets the strip scroll in a panel too narrow for every
 	// tab, keeping the selected one in view.
 	View *tabView
+	// Down and Up move focus into the tab's content and back out of the
+	// strip, so the keyboard can travel through the layout.
+	Down func()
+	Up   func()
 }
 
 // tabView is where a strip too narrow for its tabs is scrolled to.
@@ -61,6 +65,23 @@ func (s tabStrip) Keybinds() []t.Keybind {
 		{Key: "h", Name: "Prev tab", Action: func() { s.step(-1) }, Hidden: true},
 		{Key: "right", Name: "Next tab", Action: func() { s.step(1) }, Hidden: true},
 		{Key: "l", Name: "Next tab", Action: func() { s.step(1) }, Hidden: true},
+		{Key: "down", Name: "Into tab", Action: s.down, Hidden: true},
+		{Key: "j", Name: "Into tab", Action: s.down, Hidden: true},
+		{Key: "enter", Name: "Into tab", Action: s.down, Hidden: true},
+		{Key: "up", Name: "Out", Action: s.up, Hidden: true},
+		{Key: "k", Name: "Out", Action: s.up, Hidden: true},
+	}
+}
+
+func (s tabStrip) down() {
+	if s.Down != nil {
+		s.Down()
+	}
+}
+
+func (s tabStrip) up() {
+	if s.Up != nil {
+		s.Up()
 	}
 }
 
