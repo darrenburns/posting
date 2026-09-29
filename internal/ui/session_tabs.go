@@ -287,16 +287,24 @@ func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 		bg = theme.Surface
 		fg = theme.Text
 	}
+	// The preview tab's title is in italics, as in VS Code, to show that
+	// the next request opened will replace it.
 	spans := []t.Span{
 		{Text: " " + method.Short() + " ", Style: t.SpanStyle{Foreground: methodColor(theme, method), Background: bg, Bold: true}},
-		{Text: title, Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: c.active}},
+		{Text: title, Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: c.active, Italic: s.preview.Get()}},
 	}
 	if s.phase.Get() == exchangeSending {
 		spans = append(spans, t.Span{Text: " …", Style: t.SpanStyle{Foreground: theme.AccentText, Background: bg}})
 	}
 	spans = append(spans, t.Span{Text: c.marker(), Style: t.SpanStyle{Foreground: theme.WarningText, Background: bg}})
 	id := s.id
-	children := []t.Widget{t.Text{Spans: spans, Click: func(t.MouseEvent) { c.app.active.Set(id) }}}
+	// A double-click keeps a preview tab open.
+	children := []t.Widget{t.Text{Spans: spans, Click: func(e t.MouseEvent) {
+		c.app.active.Set(id)
+		if e.ClickCount == 2 {
+			c.app.keepSession(id)
+		}
+	}}}
 	if c.closable {
 		children = append(children, t.Text{
 			Content: c.closer(),

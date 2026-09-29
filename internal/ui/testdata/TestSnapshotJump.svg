@@ -277,8 +277,8 @@
   <path d="M 314.6000 27.6000 L 314.6000 47.2000" fill="none" stroke="#2F2C56" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="335.6" y="37.4" fill="#0F0F1F">h</text>
   <text x="352.4" y="37.4" class="bold" fill="#8B6BA3">T</text>
-  <text x="369.2" y="37.4" class="bold" fill="#9999A0">List</text>
-  <text x="411.2" y="37.4" class="bold" fill="#9999A0">users</text>
+  <text x="369.2" y="37.4" class="bold italic" fill="#9999A0">List</text>
+  <text x="411.2" y="37.4" class="bold italic" fill="#9999A0">users</text>
   <text x="470.0" y="37.4" fill="#62607E">✕</text>
   <text x="495.2" y="37.4" fill="#62607E">+</text>
   <rect x="8.0" y="47.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1400,8 +1400,8 @@
   <rect x="1091.6" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <text x="33.2" y="194.2" fill="#0F0F1F">x</text>
   <text x="58.4" y="194.2" class="bold" fill="#8B6BA3">GET</text>
-  <text x="92.0" y="194.2" class="bold" fill="#8B6BA3">List</text>
-  <text x="134.0" y="194.2" class="bold" fill="#8B6BA3">users</text>
+  <text x="92.0" y="194.2" class="bold italic" fill="#8B6BA3">List</text>
+  <text x="134.0" y="194.2" class="bold italic" fill="#8B6BA3">users</text>
   <path d="M 314.6000 184.4000 L 314.6000 204.0000" fill="none" stroke="#2F2C56" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="335.6" y="194.2" fill="#494663">+</text>
   <rect x="360.80" y="184.40" width="2.10" height="19.60" fill="#181832"/>

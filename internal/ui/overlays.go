@@ -87,6 +87,16 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "New request tab", Hint: a.keyHint("new-request"), Action: a.run(a.newTab)},
 		{Label: "Save request", Hint: a.keyHint("save-request"), Action: a.run(a.saveRequest)},
 		{Label: "Close request tab", Hint: a.keyHint("close-tab"), Action: a.run(func() { a.closeSession(a.active.Peek()) })},
+	}
+	if s := a.current(); s != nil && s.preview.Peek() {
+		items = append(items, t.CommandPaletteItem{
+			Label:       "Keep tab open",
+			Description: "Keep this tab when you open another request",
+			Hint:        a.keyHint("keep-tab"),
+			Action:      a.run(func() { a.keepSession(s.id) }),
+		})
+	}
+	items = append(items, []t.CommandPaletteItem{
 		{Label: "Go to request…", Hint: a.keyHint("search-requests"), Action: a.run(a.openRequestSearch)},
 		{Label: "Go to open tab…", Hint: a.keyHint("search-tabs"), Action: a.run(a.openTabSearch)},
 		{Label: "Jump mode", Hint: a.keyHint("jump"), Action: a.run(a.jump.Activate)},
@@ -134,7 +144,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: sidebarLabel, Hint: a.keyHint("toggle-collection"), Action: a.run(a.toggleSidebar)},
 		{Label: "View: expand request", Action: a.run(func() { a.expanded.Set("request") })},
 		{Label: "View: expand response", Action: a.run(func() { a.expanded.Set("response") })},
-	}
+	}...)
 	spacingLabel := "View: compact spacing"
 	if a.spacing.Peek() == "compact" {
 		spacingLabel = "View: standard spacing"
@@ -494,6 +504,7 @@ func (a *App) submitSave() {
 	s.syncing = false
 	s.title.Set(req.DisplayName())
 	s.dirty.Set(false)
+	s.preview.Set(false)
 	a.closeOverlay()
 	a.notify("Saved "+path, toastSuccess)
 }

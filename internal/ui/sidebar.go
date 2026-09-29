@@ -118,9 +118,13 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 		return emptyState{Title: "Collection is empty", Lines: []string{"Press [b]ctrl+s[/] to save the current request"}}
 	}
 	openFiles := map[string]bool{}
+	previewFile := ""
 	for _, s := range a.sessions.Get() {
 		if f := s.file.Get(); f != "" {
 			openFiles[f] = true
+			if s.preview.Get() {
+				previewFile = f
+			}
 		}
 	}
 	focused := isFocusedID(ctx, treeID)
@@ -154,7 +158,7 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 						}
 					},
 					RenderNode: func(i treeItem, node t.TreeNodeContext) t.Widget {
-						return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile)
+						return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile, previewFile, a.keepFile)
 					},
 					Style: t.Style{Width: t.Flex(1)},
 				},
@@ -167,7 +171,10 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 // renderTreeNode draws one row. The cursor is only emphasised while the tree
 // has focus; otherwise it is a quiet highlight so it doesn't compete with the
 // focused widget.
-func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNodeContext, focused bool, openFiles map[string]bool, activeFile string) t.Widget {
+//
+// A click opens a request in the preview tab (see App.openRequest), whose
+// request is in italics like the tab; a double-click keeps it open.
+func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNodeContext, focused bool, openFiles map[string]bool, activeFile, previewFile string, keep func(file string)) t.Widget {
 	var bg t.Color
 	cursor := node.Active && focused
 	switch {
@@ -204,6 +211,8 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 	case openFiles[r.File]:
 		mark = " •"
 	}
+	file := r.File
+	nameStyle.Italic = file == previewFile && previewFile != ""
 	if cursor {
 		nameStyle.Foreground = theme.SelectionText
 		methodStyle.Foreground = theme.SelectionText
@@ -216,6 +225,12 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 			{Text: mark, Style: markStyle},
 		},
 		Style: t.Style{Width: t.Flex(1), BackgroundColor: bg},
+		// The tree opens the request on the first click of a double-click.
+		Click: func(e t.MouseEvent) {
+			if e.ClickCount == 2 {
+				keep(file)
+			}
+		},
 	}
 }
 
@@ -294,16 +309,13 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 	}
 }
 
-// openHistory opens a history entry's request and response in a tab.
+// openHistory opens a history entry's request and response in the preview
+// tab, as requests from the collection open, so stepping through history
+// doesn't open a tab per entry.
 func (a *App) openHistory(entry model.HistoryEntry) {
 	req := entry.Request.Clone()
 	req.File = ""
-	s := a.current()
-	if s == nil || !s.isPristine() {
-		s = a.openSession(req)
-	} else {
-		s.Load(req)
-	}
+	s := a.openPreview(req)
 	entryCopy := entry
 	s.showResponse(entry.Response, &entryCopy)
 	s.phase.Set(exchangeDone)
