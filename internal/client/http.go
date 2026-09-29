@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/flate"
 	"compress/gzip"
+	"compress/zlib"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -146,6 +147,11 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 		}
 		for _, hdr := range req.Headers {
 			if hdr.Enabled && hdr.Name != "" {
+				// net/http sends Request.Host rather than a Host header.
+				if strings.EqualFold(hdr.Name, "Host") {
+					r.Host = hdr.Value
+					continue
+				}
 				r.Header.Add(hdr.Name, hdr.Value)
 			}
 		}
@@ -278,7 +284,12 @@ func decompress(body []byte, encoding string) []byte {
 	case "gzip", "x-gzip":
 		reader, err = gzip.NewReader(bytes.NewReader(body))
 	case "deflate":
-		reader = flate.NewReader(bytes.NewReader(body))
+		// HTTP deflate uses a zlib wrapper; accept legacy raw streams too.
+		reader, err = zlib.NewReader(bytes.NewReader(body))
+		if err != nil {
+			reader = flate.NewReader(bytes.NewReader(body))
+			err = nil
+		}
 	default:
 		return body
 	}

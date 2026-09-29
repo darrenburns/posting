@@ -224,7 +224,12 @@ func (s *Session) Load(req model.Request) {
 	s.url.SetText(req.URL)
 	s.headers.Load(req.Headers)
 	s.query.Load(req.Query)
-	if !strings.Contains(req.URL, "?") && len(req.Query) > 0 {
+	base, _, _ := strings.Cut(req.URL, "#")
+	_, query, _ := strings.Cut(base, "?")
+	// An empty URL query falls back to saved rows, as model.Resolve does.
+	if query != "" {
+		s.syncQueryFromURL()
+	} else if len(req.Query) > 0 {
 		s.writeQueryToURL()
 	}
 	s.pathParams.Load(req.PathParams)
@@ -339,14 +344,12 @@ func encodeQueryPart(s string) string {
 }
 
 func (s *Session) syncQueryFromURL() {
-	raw := s.url.GetText()
+	// A question mark inside the fragment is not a query delimiter.
+	raw, _, _ := strings.Cut(s.url.GetText(), "#")
 	q := strings.IndexByte(raw, '?')
 	var parsed []model.KeyValue
 	if q >= 0 {
 		query := raw[q+1:]
-		if i := strings.IndexByte(query, '#'); i >= 0 {
-			query = query[:i]
-		}
 		for _, part := range strings.Split(query, "&") {
 			if part == "" {
 				continue

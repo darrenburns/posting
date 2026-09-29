@@ -199,3 +199,19 @@ func TestMarshalKeepsQueryOnlyInParams(t *testing.T) {
 		t.Fatalf("url = %q", back.URL)
 	}
 }
+
+func TestEmptyFormRoundTrip(t *testing.T) {
+	req := model.NewRequest()
+	req.Body = model.Body{Type: model.BodyForm, ContentType: "application/x-www-form-urlencoded"}
+	data, err := MarshalRequest(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	back, err := ParseRequest(data, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if back.Body.Type != model.BodyForm {
+		t.Fatalf("empty form changed type to %q after save/reload; YAML: %s", back.Body.Type, data)
+	}
+}

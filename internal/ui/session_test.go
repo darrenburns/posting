@@ -123,3 +123,66 @@ func waitFor(t *testing.T, cond func() bool) {
 		time.Sleep(5 * time.Millisecond)
 	}
 }
+
+func TestSessionLoadQueryFromURLPreservesParametersOnEdit(t *testing.T) {
+	req := model.NewRequest()
+	req.URL = "https://api.test/search?q=original#results"
+	req.Query = []model.KeyValue{{Name: "disabled", Value: "saved", Enabled: false}}
+	s := newSession(1, req)
+	rows := append(s.query.Values(), model.KeyValue{Name: "page", Value: "2", Enabled: true})
+	s.query.Load(rows)
+	s.queryEdited()
+	if got, want := s.url.GetText(), "https://api.test/search?q=original&page=2#results"; got != want {
+		t.Fatalf("editing loaded query lost parameters: got %q, want %q", got, want)
+	}
+	if got := s.query.Values(); len(got) != 3 || got[1].Enabled {
+		t.Fatalf("disabled query row was not preserved: %+v", got)
+	}
+}
+
+func TestSessionURLEditIgnoresQuestionMarkInFragment(t *testing.T) {
+	s := newSession(1, model.NewRequest())
+	s.url.SetText("https://api.test/search#results?view=compact")
+	s.urlEdited()
+	if got := s.query.Values(); len(got) != 0 {
+		t.Fatalf("fragment was parsed as query parameters: %+v", got)
+	}
+}
+
+func TestSessionLoadQueryWithQuestionMarkInFragment(t *testing.T) {
+	req := model.NewRequest()
+	req.URL = "https://api.test/search#results?view=compact"
+	req.Query = []model.KeyValue{{Name: "q", Value: "original", Enabled: true}}
+	s := newSession(1, req)
+	if got, want := s.url.GetText(), "https://api.test/search?q=original#results?view=compact"; got != want {
+		t.Fatalf("loaded query missing from URL: got %q, want %q", got, want)
+	}
+}
+
+func TestSessionLoadEmptyQueryPreservesSavedParameters(t *testing.T) {
+	for _, raw := range []string{"https://api.test/search?", "https://api.test/search?#results?view=compact"} {
+		t.Run(raw, func(t *testing.T) {
+			req := model.NewRequest()
+			req.URL = raw
+			req.Query = []model.KeyValue{
+				{Name: "q", Value: "saved", Enabled: true},
+				{Name: "off", Value: "retained", Enabled: false},
+			}
+			before, err := model.Resolve(req, model.MapLookup(nil))
+			if err != nil {
+				t.Fatal(err)
+			}
+			s := newSession(1, req)
+			after, err := model.Resolve(s.Snapshot(), model.MapLookup(nil))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if before.URL != after.URL {
+				t.Fatalf("opening request changed outgoing URL: before=%q after=%q", before.URL, after.URL)
+			}
+			if got := s.query.Values(); !reflect.DeepEqual(got, req.Query) {
+				t.Fatalf("saved query rows changed: got %+v, want %+v", got, req.Query)
+			}
+		})
+	}
+}
