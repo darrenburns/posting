@@ -66,9 +66,9 @@ func TestJumpTargetsSelectTabs(tt *testing.T) {
 	if got := s.requestTab.Peek(); got != "body" {
 		tt.Errorf("after w: request tab = %q, want body", got)
 	}
-	targets["g"].Action()
+	targets["f"].Action()
 	if got := s.responseTab.Peek(); got != "trace" {
-		tt.Errorf("after g: response tab = %q, want trace", got)
+		tt.Errorf("after f: response tab = %q, want trace", got)
 	}
 	targets["4"].Action()
 	if got := app.sidebarTab.Peek(); got != "history" {

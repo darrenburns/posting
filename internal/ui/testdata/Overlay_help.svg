@@ -3457,7 +3457,6 @@
   <text x="302.0" y="478.4" class="bold" fill="#F5F5F6">t</text>
   <text x="318.8" y="478.4" class="bold" fill="#F5F5F6">y</text>
   <text x="335.6" y="478.4" class="bold" fill="#F5F5F6">u</text>
-  <text x="352.4" y="478.4" class="bold" fill="#F5F5F6">i</text>
   <text x="419.6" y="478.4" fill="#9A96BE">Request</text>
   <text x="486.8" y="478.4" fill="#9A96BE">tabs,</text>
   <text x="537.2" y="478.4" fill="#9A96BE">Headers</text>
@@ -3599,7 +3598,6 @@
   <text x="251.6" y="498.0" class="bold" fill="#F5F5F6">s</text>
   <text x="268.4" y="498.0" class="bold" fill="#F5F5F6">d</text>
   <text x="285.2" y="498.0" class="bold" fill="#F5F5F6">f</text>
-  <text x="302.0" y="498.0" class="bold" fill="#F5F5F6">g</text>
   <text x="419.6" y="498.0" fill="#9A96BE">Response</text>
   <text x="495.2" y="498.0" fill="#9A96BE">tabs,</text>
   <text x="545.6" y="498.0" fill="#9A96BE">Body</text>

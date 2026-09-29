@@ -965,8 +965,7 @@
   <text x="587.6" y="125.6" fill="#9A96BE">Auth</text>
   <text x="621.2" y="125.6" fill="#FAAFD5">•</text>
   <text x="646.4" y="125.6" fill="#9A96BE">Info</text>
-  <text x="696.8" y="125.6" fill="#9A96BE">Scripts</text>
-  <text x="772.4" y="125.6" fill="#9A96BE">Options</text>
+  <text x="696.8" y="125.6" fill="#9A96BE">Options</text>
   <rect x="8.0" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>

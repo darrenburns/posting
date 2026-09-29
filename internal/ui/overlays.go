@@ -306,8 +306,8 @@ var helpSections = []struct {
 	{"Jump mode", [][2]string{
 		{"1 / 2", "Method selector / URL bar"},
 		{"3 / 4", "Collection / History"},
-		{"q w e r t y u i", "Request tabs, Headers to Options"},
-		{"a s d f g", "Response tabs, Body to Trace"},
+		{"q w e r t y u", "Request tabs, Headers to Options"},
+		{"a s d f", "Response tabs, Body to Trace"},
 		{"other labels", "Requests, history entries, open tabs and fields"},
 		{"esc", "Leave jump mode"},
 	}},
