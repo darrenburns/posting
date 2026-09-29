@@ -48,12 +48,18 @@ func (a *App) toggleSpacing() {
 }
 
 func (a *App) openDocs() {
+	a.openLink("Documentation", docsURL)
+}
+
+// openLink opens url in the browser. Without a way to do that, it shows
+// the address instead, headed by name.
+func (a *App) openLink(name, url string) {
 	if a.openURL == nil {
-		a.notify("Documentation: "+docsURL, toastInfo)
+		a.notify(name+": "+url, toastInfo)
 		return
 	}
-	if err := a.openURL(docsURL); err != nil {
-		a.notify("Couldn't open "+docsURL+": "+err.Error(), toastError)
+	if err := a.openURL(url); err != nil {
+		a.notify("Couldn't open "+url+": "+err.Error(), toastError)
 	}
 }
 
