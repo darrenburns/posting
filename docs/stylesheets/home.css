@@ -1,0 +1,809 @@
+/* Posting 3 homepage.
+   Layout: a single terminal-session column. Real Posting screens are the
+   imagery, and each section opens with the keystroke that reaches it.
+   Colours come from the active Posting theme (palettes.css, with screen
+   colours in home-palettes.css). Type tokens and the Material chrome are
+   shared with the rest of the docs in theme.css; these are the homepage's
+   spacing tokens. Sizes assume Material's 125% root. */
+:root {
+  --page: 62rem;
+  --gutter: clamp(0.8rem, 3vw, 1.6rem);
+}
+
+/* ---- Material chrome on the homepage ---------------------------------- */
+
+body {
+  /* The page draws its own ambient light. */
+  background: var(--bg);
+}
+
+.md-dialog {
+  display: none;
+}
+
+@media (min-width: 76.25em) {
+  /* The empty main area sits over the homepage and swallows clicks. The nav
+     drawer it holds is only needed at narrower widths. */
+  body > div.md-container > main {
+    display: none;
+  }
+}
+
+/* ---- Page ---------------------------------------------------------------- */
+
+#p3-home {
+  position: relative;
+  isolation: isolate;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-x: clip;
+}
+
+#p3-home::before {
+  /* Ambient light behind the hero, tinted by the theme. */
+  content: "";
+  position: absolute;
+  inset: -6rem 0 auto;
+  height: 60rem;
+  z-index: -1;
+  background:
+    radial-gradient(45% 40% at 78% 38%, var(--glow), transparent 70%),
+    radial-gradient(35% 30% at 12% 70%, var(--glow-2), transparent 70%);
+  pointer-events: none;
+}
+
+#p3-home::after {
+  /* The terminal cell grid, fading out below the hero. */
+  content: "";
+  position: absolute;
+  inset: -6rem 0 auto;
+  height: 42rem;
+  z-index: -1;
+  background-image: radial-gradient(circle, color-mix(in oklab, var(--border) 85%, transparent) 1px, transparent 1.4px);
+  background-size: 0.6rem 1.25rem;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+#p3-home *,
+#p3-home *::before,
+#p3-home *::after {
+  box-sizing: border-box;
+}
+
+.wrap {
+  max-width: var(--page);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+#p3-home a {
+  color: var(--primary-text);
+  text-decoration-color: color-mix(in oklab, var(--primary-text) 45%, transparent);
+  text-underline-offset: 0.2em;
+}
+
+#p3-home a:hover {
+  text-decoration-color: currentColor;
+}
+
+#p3-home :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+#p3-home h1,
+#p3-home h2,
+#p3-home h3 {
+  font-family: var(--font-display);
+  color: var(--text) !important;
+  text-wrap: balance;
+  margin: 0;
+}
+
+#p3-home p {
+  margin: 0;
+}
+
+#p3-home code {
+  font-family: var(--font-grid);
+  font-size: 0.9em;
+  color: var(--text);
+  background: color-mix(in oklab, var(--text) 7%, transparent) !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 0.3em;
+  padding: 0.05em 0.35em;
+  white-space: nowrap;
+}
+
+.eyebrow {
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+kbd.k {
+  display: inline-block;
+  font-family: var(--font-grid);
+  font-size: 0.72em;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.35em 0.5em 0.3em;
+  border-radius: 0.3em;
+  color: var(--accent-text);
+  background: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--accent) 25%, transparent);
+  white-space: nowrap;
+}
+
+/* ---- Hero ---------------------------------------------------------------- */
+
+.hero {
+  padding-block: clamp(2rem, 6vw, 4.2rem) 0;
+  display: grid;
+  gap: 2.2rem;
+}
+
+.hero-head {
+  display: grid;
+  gap: 1.6rem;
+  align-items: end;
+}
+
+@media (min-width: 60em) {
+  .hero-head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
+    gap: 2.5rem;
+  }
+}
+
+.hero-copy {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.release {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6em;
+  justify-self: start;
+  font-family: var(--font-grid);
+  font-size: 0.64rem;
+  color: var(--muted);
+  padding: 0.3em 0.75em 0.3em 0.35em;
+  border-radius: 99px;
+  border: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+}
+
+.release b {
+  font-weight: 700;
+  color: var(--on-primary);
+  background: var(--primary);
+  border-radius: 99px;
+  padding: 0.15em 0.6em;
+}
+
+#p3-home h1 {
+  font-size: calc(clamp(1.75rem, 1.1rem + 2.8vw, 3rem) * var(--display-scale));
+  font-weight: var(--display-weight);
+  font-style: var(--display-style);
+  font-variation-settings: var(--display-vars);
+  line-height: var(--display-leading);
+  letter-spacing: var(--display-tracking);
+}
+
+h1 .caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.9em;
+  margin-left: 0.08em;
+  vertical-align: -0.08em;
+  background: var(--accent);
+  animation: caret 1.1s steps(1) infinite;
+}
+
+@keyframes caret {
+  50% { opacity: 0; }
+}
+
+.lede {
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--text) 82%, var(--muted));
+  max-width: 34em;
+}
+
+.lede strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.hero-side {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.install {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-grid);
+  font-size: 0.6rem;
+}
+
+#p3-home .install code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0.85em 1em;
+  color: var(--text);
+  background: none !important;
+  border: 0 !important;
+  font: inherit;
+  scrollbar-width: thin;
+}
+
+.install code .pr {
+  color: var(--accent);
+  user-select: none;
+  margin-right: 0.7em;
+}
+
+.install button {
+  flex: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--border);
+  padding: 0 1em;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.install button:hover {
+  color: var(--text);
+  background: var(--panel);
+}
+
+.install button[data-copied] {
+  color: var(--success-text);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+#p3-home a.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.75em 1.15em;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+#p3-home a.btn:hover {
+  border-color: var(--muted);
+  background: var(--panel);
+}
+
+#p3-home a.btn.primary {
+  color: var(--on-primary);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+#p3-home a.btn.primary:hover {
+  background: color-mix(in oklab, var(--primary) 85%, var(--text));
+}
+
+.btn .hint {
+  font-family: var(--font-grid);
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.side-note {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* ---- Terminal window ------------------------------------------------------ */
+
+.window {
+  position: relative;
+  min-width: 0;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--bg) 60%, transparent),
+    0 2.5rem 5rem -2rem color-mix(in oklab, var(--primary) 30%, transparent),
+    0 1rem 2.5rem -1rem color-mix(in oklab, #000 45%, transparent);
+}
+
+.window-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.9rem;
+  font-family: var(--font-grid);
+  font-size: 0.56rem;
+  color: var(--dim);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.window-bar span:first-child {
+  color: var(--muted);
+}
+
+.window-bar .dims {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Screens rendered from Posting's own output ---------------------------- */
+
+.tui {
+  container-type: inline-size;
+  background: var(--bg);
+}
+
+.tui-grid {
+  /* 130 columns of a 0.6em-wide monospace cell fill the container. */
+  font-family: var(--font-grid);
+  font-size: calc(100cqi / (var(--cols) * var(--grid-adv)));
+  font-variant-ligatures: none;
+  line-height: 1.25;
+  padding-block: 0.3em;
+  user-select: text;
+}
+
+.tui .r {
+  display: flex;
+  height: 1.25em;
+  white-space: pre;
+  overflow: hidden;
+}
+
+.tui .r > span {
+  flex: none;
+  height: 100%;
+}
+
+.tui .B { font-weight: 700; }
+.tui .I { font-style: italic; }
+
+.tui .g,
+.tui .g2 {
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
+  overflow: visible;
+}
+
+.tui .g2 { width: 2ch; }
+
+.tui .d {
+  --t: max(1px, 0.09em);
+  position: relative;
+  background-repeat: no-repeat;
+}
+
+.tui .h,
+.tui .hh {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 100% var(--t);
+  background-position: 0 50%;
+}
+
+.tui .hh {
+  background-size: 100% max(2px, 0.28em);
+}
+
+.tui .v {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: var(--t) 100%;
+  background-position: 50% 0;
+}
+
+.tui .tl::before,
+.tui .tr::before,
+.tui .bl::before,
+.tui .br::before {
+  content: "";
+  position: absolute;
+  border: var(--t) solid currentColor;
+}
+
+.tui .tl::before { left: calc(50% - var(--t) / 2); top: calc(50% - var(--t) / 2); right: 0; bottom: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 0.45em; }
+.tui .tr::before { left: 0; top: calc(50% - var(--t) / 2); right: calc(50% - var(--t) / 2); bottom: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 0.45em; }
+.tui .bl::before { left: calc(50% - var(--t) / 2); top: 0; right: 0; bottom: calc(50% - var(--t) / 2); border-right: 0; border-top: 0; border-bottom-left-radius: 0.45em; }
+.tui .br::before { left: 0; top: 0; right: calc(50% - var(--t) / 2); bottom: calc(50% - var(--t) / 2); border-left: 0; border-top: 0; border-bottom-right-radius: 0.45em; }
+
+.tui .q1 { background-image: linear-gradient(to right, currentColor 25%, transparent 25%); }
+.tui .q2 { background-image: linear-gradient(to right, currentColor 50%, transparent 50%); }
+.tui .l2 { background-image: linear-gradient(to top, currentColor 25%, transparent 25%); }
+.tui .l3 { background-image: linear-gradient(to top, currentColor 37.5%, transparent 37.5%); }
+.tui .l4 { background-image: linear-gradient(to top, currentColor 50%, transparent 50%); }
+.tui .l5 { background-image: linear-gradient(to top, currentColor 62.5%, transparent 62.5%); }
+.tui .l6 { background-image: linear-gradient(to top, currentColor 75%, transparent 75%); }
+.tui .l7 { background-image: linear-gradient(to top, currentColor 87.5%, transparent 87.5%); }
+
+/* ---- Theme picker --------------------------------------------------------- */
+
+.theme-row {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.1rem;
+}
+
+@media (min-width: 60em) {
+  .theme-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 1.4rem;
+  }
+}
+
+.theme-row .label {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.theme-row .label span:last-child {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* The picker's own styles are in theme.css. */
+
+/* ---- Sections ------------------------------------------------------------- */
+
+.section {
+  padding-block: clamp(3.5rem, 9vw, 6rem) 0;
+}
+
+.section-head {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 38rem;
+  margin-bottom: 2rem;
+}
+
+#p3-home h2 {
+  font-size: calc(clamp(1.25rem, 0.95rem + 1.3vw, 1.85rem) * var(--display-scale));
+  font-weight: var(--display-weight-2);
+  font-style: var(--display-style);
+  font-variation-settings: var(--display-vars);
+  line-height: calc(var(--display-leading) + 0.07);
+  letter-spacing: calc(var(--display-tracking) + 0.005em);
+}
+
+.section-head p {
+  color: color-mix(in oklab, var(--text) 80%, var(--muted));
+  max-width: 36em;
+}
+
+/* ---- Tour ----------------------------------------------------------------- */
+
+.tour {
+  display: grid;
+  gap: 1.4rem;
+}
+
+@media (min-width: 60em) {
+  .tour {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+}
+
+.tour-tabs {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+@media (max-width: 59.99em) {
+  .tour-tabs {
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
+}
+
+.tour-tabs button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 0.8rem;
+  align-items: baseline;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.tour-tabs button:hover {
+  color: var(--text);
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+}
+
+.tour-tabs button[aria-selected="true"] {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.tour-tabs .t {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+}
+
+.tour-tabs .desc {
+  grid-column: 1 / -1;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.tour-tabs button[aria-selected="true"] .desc {
+  color: color-mix(in oklab, var(--text) 78%, var(--muted));
+}
+
+.tour-stage {
+  min-width: 0;
+}
+
+/* ---- Files ---------------------------------------------------------------- */
+
+.files {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (min-width: 60em) {
+  .files {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 3rem;
+  }
+}
+
+.files .copy {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.files .copy p {
+  color: color-mix(in oklab, var(--text) 80%, var(--muted));
+}
+
+.shell {
+  margin: 0;
+  min-width: 0;
+  overflow-x: auto;
+  font-family: var(--font-grid);
+  font-size: 0.64rem;
+  line-height: 1.6;
+  padding: 1.1rem 1.2rem;
+  color: var(--text);
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius);
+}
+
+.shell .pr { color: var(--accent); user-select: none; }
+.shell .cmd { color: var(--text); font-weight: 600; }
+.shell .mut { color: var(--dim); }
+.shell .dir { color: var(--primary-text); font-weight: 600; }
+.shell .env { color: var(--warning-text); }
+.shell .key { color: var(--primary-text); }
+.shell .str { color: var(--success-text); }
+.shell .var { color: var(--accent-text); }
+.shell .gap { display: block; height: 0.9em; }
+
+/* ---- Feature list --------------------------------------------------------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15.5rem), 1fr));
+  gap: 2rem 2.4rem;
+}
+
+.feature {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.feature h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: var(--label-weight);
+  font-style: normal;
+  letter-spacing: var(--label-tracking);
+}
+
+.feature h3::before {
+  content: "";
+  flex: none;
+  width: 0.55em;
+  height: 0.55em;
+  background: var(--accent);
+  transform: translateY(-0.05em);
+}
+
+.feature p {
+  font-size: 0.78rem;
+  color: color-mix(in oklab, var(--text) 76%, var(--muted));
+}
+
+.feature kbd.k {
+  font-size: 0.68rem;
+}
+
+/* ---- Posting 2 ------------------------------------------------------------ */
+
+.upgrade {
+  display: grid;
+  gap: 1.2rem 2.4rem;
+  padding: clamp(1.4rem, 4vw, 2.2rem);
+  border-radius: 0.8rem;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(80% 140% at 100% 0%, var(--glow), transparent 60%),
+    var(--surface);
+}
+
+@media (min-width: 60em) {
+  .upgrade {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+.upgrade p {
+  color: color-mix(in oklab, var(--text) 80%, var(--muted));
+  max-width: 40em;
+  margin-top: 0.6rem !important;
+}
+
+.carry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+
+.carry li {
+  font-family: var(--font-grid);
+  font-size: 0.6rem;
+  padding: 0.25em 0.65em;
+  border-radius: 0.3em;
+  color: var(--success-text);
+  background: color-mix(in oklab, var(--success) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--success) 28%, transparent);
+  margin: 0 !important;
+}
+
+/* ---- Closing -------------------------------------------------------------- */
+
+.closing {
+  display: grid;
+  gap: 2rem;
+  padding-bottom: clamp(3rem, 8vw, 5rem);
+}
+
+@media (min-width: 60em) {
+  .closing {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+  }
+}
+
+.closing .col {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.closing p {
+  color: color-mix(in oklab, var(--text) 80%, var(--muted));
+}
+
+/* Footer drawn like Posting's own key bar. */
+.keybar {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-grid);
+  font-size: 0.62rem;
+}
+
+.keybar .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.6rem 2rem;
+  padding-block: 0.9rem;
+}
+
+.keybar nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.2rem;
+}
+
+.keybar .keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+  color: var(--muted);
+}
+
+.keybar .keys b {
+  color: var(--accent);
+  font-weight: 700;
+  margin-right: 0.45em;
+}
+
+#p3-home .keybar a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+#p3-home .keybar a:hover {
+  color: var(--accent-text);
+}
+
+.keybar .ver {
+  color: var(--dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  h1 .caret { animation: none; }
+  #p3-home *, #p3-home *::before { transition: none !important; }
+}

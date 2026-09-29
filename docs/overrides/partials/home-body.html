@@ -1,0 +1,292 @@
+<div id="p3-home">
+
+  <section class="hero wrap" aria-labelledby="home-title">
+    <div class="hero-head">
+      <div class="hero-copy">
+        <p class="release"><b>New</b> Posting 3 &middot; rebuilt in Go &middot; one binary</p>
+        <h1 id="home-title">The API client that lives in your terminal.<span class="caret" aria-hidden="true"></span></h1>
+        <p class="lede">
+          Posting is a keyboard-driven HTTP client. Compose requests, switch environments and read
+          responses without reaching for the mouse. Run it on your laptop, <strong>over SSH</strong> or
+          inside a container, and keep every request as <strong>plain YAML</strong> next to your code.
+        </p>
+      </div>
+
+      <div class="hero-side">
+        <div class="install">
+          <code><span class="pr">$</span>go install github.com/darrenburns/posting/cmd/posting@latest</code>
+          <button type="button" id="copy-install-top" data-copy="go install github.com/darrenburns/posting/cmd/posting@latest">Copy</button>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="{{ 'guide/' | url }}">Read the guide</a>
+          <a class="btn" href="https://github.com/darrenburns/posting" target="_blank" rel="noopener">GitHub <span class="hint" aria-hidden="true">&#8599;</span></a>
+        </div>
+        <p class="side-note">Open a folder of requests with <code>posting -c ./my-api</code> and load variables with <code>-e local.env</code>.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="window">
+        <div class="window-bar" aria-hidden="true">
+          <span>~ &#10095; posting -c sample-api -e local.env</span>
+          <span class="dims">130&times;36</span>
+        </div>
+        {% include "partials/screens/response.html" %}
+      </div>
+
+      <div class="theme-row">
+        <div class="label">
+          <span class="eyebrow">Theme</span>
+          <span>Posting ships 37 themes. Pick one and the whole site follows.</span>
+        </div>
+        {% include "partials/screens/palette-picker.html" %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap" aria-labelledby="tour-title">
+    <div class="section-head">
+      <span class="eyebrow">Keyboard first</span>
+      <h2 id="tour-title">Every action is a keystroke away.</h2>
+      <p>Jump anywhere with a short label, run any command from the palette, and let Posting handle the fiddly parts of HTTP. These are real screens from Posting 3.</p>
+    </div>
+
+    <div class="tour">
+      <div class="tour-tabs" role="tablist" aria-label="Posting features" aria-orientation="vertical">
+        <button type="button" role="tab" id="tab-jump" aria-controls="panel-jump" aria-selected="true">
+          <span class="t">Jump mode</span><kbd class="k">ctrl+o</kbd>
+          <span class="desc">Every pane, tab and request gets a label. Type it to go straight there.</span>
+        </button>
+        <button type="button" role="tab" id="tab-palette" aria-controls="panel-palette" aria-selected="false" tabindex="-1">
+          <span class="t">Command palette</span><kbd class="k">ctrl+p</kbd>
+          <span class="desc">Search every action by name, with its shortcut alongside.</span>
+        </button>
+        <button type="button" role="tab" id="tab-variables" aria-controls="panel-variables" aria-selected="false" tabindex="-1">
+          <span class="t">Variables</span><kbd class="k">ctrl+shift+v</kbd>
+          <span class="desc">See every value in the active environment, override one for this session, and keep secrets masked.</span>
+        </button>
+        <button type="button" role="tab" id="tab-curlhint" aria-controls="panel-curlhint" aria-selected="false" tabindex="-1">
+          <span class="t">Import curl</span><kbd class="k">paste</kbd>
+          <span class="desc">Paste a curl command into the URL bar and press enter to turn it into a request.</span>
+        </button>
+        <button type="button" role="tab" id="tab-curlexport" aria-controls="panel-curlexport" aria-selected="false" tabindex="-1">
+          <span class="t">Export as curl</span><kbd class="k">ctrl+p</kbd>
+          <span class="desc">Copy any request as a ready-to-run curl command, with its variables filled in.</span>
+        </button>
+        <button type="button" role="tab" id="tab-history" aria-controls="panel-history" aria-selected="false" tabindex="-1">
+          <span class="t">History and timing</span><kbd class="k">ctrl+o 4</kbd>
+          <span class="desc">Every exchange is saved. Reopen one to see its response and how long each stage took.</span>
+        </button>
+        <button type="button" role="tab" id="tab-themes" aria-controls="panel-themes" aria-selected="false" tabindex="-1">
+          <span class="t">Themes</span><kbd class="k">ctrl+p</kbd>
+          <span class="desc">Preview all 37 built-in themes as you scroll, or load the ones you made for Posting 2.</span>
+        </button>
+      </div>
+
+      <div class="tour-stage window">
+        <div class="window-bar" aria-hidden="true">
+          <span>~ &#10095; posting -c sample-api -e local.env</span>
+          <span class="dims">130&times;36</span>
+        </div>
+        <div role="tabpanel" id="panel-jump" aria-labelledby="tab-jump">{% include "partials/screens/jump.html" %}</div>
+        <div role="tabpanel" id="panel-palette" aria-labelledby="tab-palette" hidden>{% include "partials/screens/palette.html" %}</div>
+        <div role="tabpanel" id="panel-variables" aria-labelledby="tab-variables" hidden>{% include "partials/screens/variables.html" %}</div>
+        <div role="tabpanel" id="panel-curlhint" aria-labelledby="tab-curlhint" hidden>{% include "partials/screens/curlhint.html" %}</div>
+        <div role="tabpanel" id="panel-curlexport" aria-labelledby="tab-curlexport" hidden>{% include "partials/screens/curlexport.html" %}</div>
+        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" hidden>{% include "partials/screens/history.html" %}</div>
+        <div role="tabpanel" id="panel-themes" aria-labelledby="tab-themes" hidden>{% include "partials/screens/themes.html" %}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap" aria-labelledby="files-title">
+    <div class="files">
+      <div class="copy">
+        <span class="eyebrow">Plain files</span>
+        <h2 id="files-title">Your requests are files. Commit them.</h2>
+        <p>A collection is a folder, and each request is a short YAML file. Review changes in pull requests, share them with your team, and branch them alongside your code.</p>
+        <p>Environments are ordinary <code>.env</code> files. Layer several with <code>-e</code>, switch between them while Posting is running, and see edits on disk straight away.</p>
+      </div>
+
+<pre class="shell" aria-label="A collection folder and one of its request files"><span class="pr">$ </span><span class="cmd">tree sample-api</span>
+<span class="dir">sample-api</span>
+├── <span class="dir">auth</span>
+│   ├── login.posting.yaml
+│   └── me.posting.yaml
+├── cors-preflight.posting.yaml
+├── health.posting.yaml
+├── <span class="env">local.env</span>
+├── <span class="env">staging.env</span>
+└── <span class="dir">users</span>
+    ├── create-user.posting.yaml
+    ├── delete-user.posting.yaml
+    ├── get-user.posting.yaml
+    ├── list-users.posting.yaml
+    └── update-user.posting.yaml
+<span class="mut">2 directories, 11 files</span>
+<span class="gap"></span><span class="pr">$ </span><span class="cmd">cat sample-api/users/create-user.posting.yaml</span>
+<span class="key">name:</span> Create user
+<span class="key">description:</span> Create a new user account.
+<span class="key">method:</span> POST
+<span class="key">url:</span> <span class="var">${BASE_URL}</span>/users
+<span class="key">body:</span>
+  <span class="key">content:</span> |-
+    <span class="str">{
+      "name": "Ada Lovelace",
+      "email": "ada@example.com",
+      "role": "admin"
+    }</span>
+  <span class="key">content_type:</span> application/json
+<span class="key">auth:</span>
+  <span class="key">type:</span> bearer_token
+  <span class="key">bearer_token:</span>
+    <span class="key">token:</span> <span class="var">${API_TOKEN}</span>
+<span class="key">headers:</span>
+  - <span class="key">name:</span> Content-Type
+    <span class="key">value:</span> application/json</pre>
+    </div>
+  </section>
+
+  <section class="section wrap" aria-labelledby="more-title">
+    <div class="section-head">
+      <span class="eyebrow">In the box</span>
+      <h2 id="more-title">The rest of the toolkit.</h2>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <h3>Autocompletion</h3>
+        <p>Type <code>$</code> in the URL, headers, query, auth or body to complete variable names. Header names complete too, each with a note on what it does.</p>
+      </div>
+      <div class="feature">
+        <h3>A URL bar that checks your work</h3>
+        <p>Variables turn green when they resolve and red when they don't, and the finished URL is shown under the bar before you send.</p>
+      </div>
+      <div class="feature">
+        <h3>Authentication</h3>
+        <p>Basic, Digest (MD5 and SHA-256) and bearer tokens, with variables allowed in every field.</p>
+      </div>
+      <div class="feature">
+        <h3>Responses you can read</h3>
+        <p>Pretty-printed, highlighted JSON with wrap and copy, plus headers, cookies and a timing trace for every request.</p>
+      </div>
+      <div class="feature">
+        <h3>Request tabs</h3>
+        <p>Keep several requests open at once. Unsaved changes are marked with a dot.</p>
+      </div>
+      <div class="feature">
+        <h3>Your editor and pager</h3>
+        <p>Press <kbd class="k">F4</kbd> to edit a body in <code>$EDITOR</code>, or <kbd class="k">F3</kbd> to read it in <code>$PAGER</code>.</p>
+      </div>
+      <div class="feature">
+        <h3>Keymaps and config</h3>
+        <p>Rebind any action. Configure Posting with <code>config.yaml</code> or <code>POSTING_*</code> environment variables.</p>
+      </div>
+      <div class="feature">
+        <h3>Layouts</h3>
+        <p>Stack the request and response or put them side by side. Resize panes, switch to compact spacing, and click anything you like.</p>
+      </div>
+      <div class="feature">
+        <h3>Nerd Font icons</h3>
+        <p>Icons switch on automatically in Ghostty, and anywhere else with one setting.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap" aria-labelledby="upgrade-title">
+    <div class="upgrade">
+      <div>
+        <span class="eyebrow">Coming from Posting 2?</span>
+        <h2 id="upgrade-title">Bring everything with you.</h2>
+        <p>Posting 3 is a ground-up rewrite, and it reads the files you already have. Point it at your collections and keep going.</p>
+        <ul class="carry" aria-label="Files Posting 3 reads unchanged">
+          <li>*.posting.yaml</li>
+          <li>.env files</li>
+          <li>themes</li>
+          <li>keymaps</li>
+          <li>config.yaml</li>
+        </ul>
+      </div>
+      <div class="actions">
+        <a class="btn" href="{{ 'guide/' | url }}">Getting started</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap closing" aria-label="Install and community">
+    <div class="col">
+      <span class="eyebrow">Install</span>
+      <h2>One binary. Nothing else to install.</h2>
+      <div class="install">
+        <code><span class="pr">$</span>go install github.com/darrenburns/posting/cmd/posting@latest</code>
+        <button type="button" id="copy-install-bottom" data-copy="go install github.com/darrenburns/posting/cmd/posting@latest">Copy</button>
+      </div>
+      <p>It runs the same on your laptop, on a remote server over SSH, or inside a container.</p>
+    </div>
+    <div class="col">
+      <span class="eyebrow">Open source</span>
+      <h2>Built in the open.</h2>
+      <p>Posting is Apache 2.0 licensed and shaped by the people who use it. Follow the <a href="{{ 'roadmap/' | url }}">roadmap</a>, report a bug or suggest a feature on <a href="https://github.com/darrenburns/posting/issues" target="_blank" rel="noopener">GitHub</a>, or <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">sponsor development</a>.</p>
+    </div>
+  </section>
+
+  <footer class="keybar">
+    <div class="wrap">
+      <p class="keys" aria-label="Posting's default shortcuts"><span><b>^O</b>Jump</span> <span><b>^J</b>Send</span> <span><b>^S</b>Save</span> <span><b>^N</b>New tab</span> <span><b>^P</b>Commands</span> <span><b>F1</b>Help</span></p>
+      <nav aria-label="Site">
+        <a href="{{ 'guide/' | url }}">Guide</a>
+        <a href="{{ 'CHANGELOG/' | url }}">Changelog</a>
+        <a href="https://github.com/darrenburns/posting" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">Sponsor</a>
+        <span class="ver">&copy; 2026 Darren Burns</span>
+      </nav>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  // The theme picker is wired up by javascripts/palette.js.
+
+  // Feature tour tabs.
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tour-tabs [role=tab]"));
+  function select(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    });
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener("click", function () { select(t); });
+    t.addEventListener("keydown", function (e) {
+      var step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      var next = tabs[(i + step + tabs.length) % tabs.length];
+      next.focus();
+      select(next);
+    });
+  });
+
+  // Copy buttons.
+  document.querySelectorAll("[data-copy]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var text = button.getAttribute("data-copy");
+      var done = function () {
+        button.textContent = "Copied";
+        button.setAttribute("data-copied", "");
+        setTimeout(function () { button.textContent = "Copy"; button.removeAttribute("data-copied"); }, 1600);
+      };
+      var fallback = function () {
+        var range = document.createRange();
+        range.selectNodeContents(button.previousElementSibling);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      };
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+    });
+  });
+})();
+</script>
