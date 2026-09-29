@@ -209,7 +209,7 @@ func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
 		return emptyState{Title: "No headers"}
 	}
 	focused := isFocusedID(ctx, "resp-headers")
-	return t.Table[model.Header]{
+	return scrollingTable(h.session.responseHeadersScroll, t.Table[model.Header]{
 		ID:            "resp-headers",
 		State:         h.session.responseHeaders,
 		SelectionMode: t.TableSelectionRow,
@@ -217,8 +217,8 @@ func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
 		RenderCell: func(row model.Header, rowIndex, col int, active, selected bool) t.Widget {
 			return tableCell(theme, active, focused, col == 0, []string{row.Name, row.Value}[col])
 		},
-		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-	}
+		Style: t.Style{Width: t.Flex(1)},
+	})
 }
 
 type responseCookies struct {
@@ -232,7 +232,7 @@ func (c responseCookies) Build(ctx t.BuildContext) t.Widget {
 		return emptyState{Title: "No cookies", Lines: []string{"The response didn't set any cookies"}}
 	}
 	focused := isFocusedID(ctx, "resp-cookies")
-	return t.Table[model.Cookie]{
+	return scrollingTable(c.session.responseCookiesScroll, t.Table[model.Cookie]{
 		ID:            "resp-cookies",
 		State:         c.session.responseCookies,
 		SelectionMode: t.TableSelectionRow,
@@ -252,8 +252,8 @@ func (c responseCookies) Build(ctx t.BuildContext) t.Widget {
 			}
 			return tableCell(theme, active, focused, col == 0, []string{row.Name, row.Value, row.Path, strings.Join(flags, " ")}[col])
 		},
-		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-	}
+		Style: t.Style{Width: t.Flex(1)},
+	})
 }
 
 // nameColumnWidth fits a table's name column to its longest name, within

@@ -1,10 +1,13 @@
 package ui
 
 import (
+	"fmt"
 	"testing"
 
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
+
+	"github.com/darrenburns/posting/internal/model"
 )
 
 // screen drives an app through the renderer the way the app loop does, so
@@ -75,6 +78,32 @@ func TestFocusScrollsRequestOptionsIntoView(tt *testing.T) {
 	s.focusID(tt, "req-opt-follow")
 	if !s.visible("req-opt-follow") {
 		tt.Error("focusing the first checkbox didn't scroll back up to it")
+	}
+}
+
+func TestFocusScrollsKeyValueRowIntoView(tt *testing.T) {
+	app := testApp()
+	app.openRequest(sampleRequest(tt, "List users"))
+	editor := app.current().headers
+	var headers []model.KeyValue
+	for i := 1; i <= 30; i++ {
+		headers = append(headers, model.KeyValue{Name: fmt.Sprintf("X-Header-%d", i), Value: "v", Enabled: true})
+	}
+	editor.Load(headers)
+	s := newScreen(app, snapW, snapH)
+	// Tab, a jump or a click can focus a row without the arrow keys.
+	far := editor.inputID(editor.rowAt(25).id, "value")
+	if s.visible(far) {
+		tt.Fatal("row 25 fits on screen, so this test proves nothing")
+	}
+	s.focusID(tt, far)
+	if !s.visible(far) {
+		tt.Error("focusing a header row below the panel didn't scroll it into view")
+	}
+	first := editor.FirstInputID()
+	s.focusID(tt, first)
+	if !s.visible(first) {
+		tt.Error("focusing the first header row didn't scroll back up to it")
 	}
 }
 

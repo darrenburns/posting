@@ -30,7 +30,7 @@ func (r *kvRow) empty() bool {
 type kvEditor struct {
 	prefix    string
 	rows      t.AnySignal[[]*kvRow]
-	scroll    *t.ScrollState
+	scroll    *formScroll
 	nextID    int
 	fixedKeys bool // path parameters: names come from the URL
 	onChange  func()
@@ -44,7 +44,7 @@ func newKVEditor(prefix string, fixedKeys bool, suggestions []t.Suggestion) *kvE
 	e := &kvEditor{
 		prefix:    prefix,
 		rows:      t.NewAnySignal[[]*kvRow](nil),
-		scroll:    t.NewScrollState(),
+		scroll:    newFormScroll(),
 		fixedKeys: fixedKeys, suggestions: suggestions,
 	}
 	e.ensureTrailing()
@@ -192,7 +192,6 @@ func (e *kvEditor) moveFocus(rowID int, column string, delta int) {
 	if e.fixedKeys {
 		column = "value"
 	}
-	e.scroll.ScrollToView(i, 1)
 	t.RequestFocus(e.inputID(target.id, column))
 }
 
@@ -215,15 +214,13 @@ func (v kvEditorView) Build(ctx t.BuildContext) t.Widget {
 	if len(rows) == 0 {
 		return v.Empty
 	}
-	children := make([]t.Widget, 0, len(rows))
+	// A scrollForm keeps the focused row in view however focus got there:
+	// the arrow keys, Tab, a jump or a click.
+	fields := make([]formField, 0, len(rows))
 	for _, row := range rows {
-		children = append(children, kvRowView{editor: e, row: row, view: v})
+		fields = append(fields, field(kvRowView{editor: e, row: row, view: v}, e.inputID(row.id, "key"), e.inputID(row.id, "value")))
 	}
-	return t.Scrollable{
-		State: e.scroll,
-		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Child: t.Column{Style: t.Style{Width: t.Flex(1)}, Children: children},
-	}
+	return scrollForm{State: e.scroll, Rows: fields}
 }
 
 type kvRowView struct {
