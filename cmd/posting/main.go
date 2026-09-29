@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/darrenburns/posting/internal/client"
 	"github.com/darrenburns/posting/internal/collection"
@@ -113,7 +112,7 @@ func appConfig(opts options) (ui.Config, error) {
 	}
 	return ui.Config{
 		Version:         version,
-		Sender:          client.Fake{StageDelay: 60 * time.Millisecond},
+		Sender:          client.NewHTTP("posting/"+version, client.TLSSettings{}),
 		Collection:      root,
 		Store:           store,
 		Theme:           os.Getenv("POSTING_THEME"),
