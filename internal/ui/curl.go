@@ -157,6 +157,10 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 		t.Button{ID: "curl-copy", Label: "Copy", Variant: t.ButtonPrimary, OnPress: a.copyCurlText, Click: func(t.MouseEvent) { a.copyCurlText() }},
 	}
 	var toggle t.Widget = t.EmptyWidget{}
+	if f.mode.Get() == "yaml" {
+		title = "Export as YAML"
+		hint = "The request as a Posting request file. It has been copied to the clipboard."
+	}
 	if importing {
 		title = "Import curl command"
 		hint = "Paste a curl command, for example from your browser's \"Copy as cURL\". It replaces the request in the current tab."
@@ -164,7 +168,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 			t.Button{ID: "curl-close", Label: "Cancel", OnPress: a.closeOverlay, Click: func(t.MouseEvent) { a.closeOverlay() }},
 			t.Button{ID: "curl-import", Label: "Import", Variant: t.ButtonSuccess, OnPress: a.submitCurlImport, Click: func(t.MouseEvent) { a.submitCurlImport() }},
 		}
-	} else {
+	} else if f.mode.Get() == "export" {
 		toggle = segmented{
 			ID:       "curl-resolve",
 			Options:  []choice{{Value: "resolved", Label: "Values"}, {Value: "variables", Label: "Variables"}},
@@ -184,7 +188,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 		State:       f.text,
 		ScrollState: f.scroll,
 		Placeholder: "curl https://example.com -H 'Accept: application/json'",
-		Highlighter: a.bodyHighlighter(theme, "bash", false),
+		Highlighter: a.bodyHighlighter(theme, map[bool]string{true: "yaml", false: "bash"}[f.mode.Get() == "yaml"], false),
 		Style:       t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
 	}
 	f.text.ReadOnly.Set(!importing)
