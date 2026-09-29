@@ -750,9 +750,10 @@ func (f footer) Build(ctx t.BuildContext) t.Widget {
 	return t.Row{
 		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(2, 0), BackgroundColor: theme.Background},
 		Children: []t.Widget{
-			hints,
-			t.Spacer{},
-			t.ShowWhen(f.app.settings.Heading.ShowVersion, t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled}}),
+			// The hints take the space the version leaves and are cut off
+			// when there are too many, rather than running into it.
+			t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: []t.Widget{hints}},
+			t.ShowWhen(f.app.settings.Heading.ShowVersion, t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled, Padding: t.EdgeInsets{Left: 2}}}),
 		},
 	}
 }
