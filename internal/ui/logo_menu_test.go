@@ -2,8 +2,8 @@ package ui
 
 import (
 	"fmt"
-	"slices"
 	"testing"
+	"time"
 
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
@@ -11,14 +11,28 @@ import (
 	"github.com/darrenburns/posting/internal/model"
 )
 
-// logoApp is a test app whose links are recorded rather than opened.
-func logoApp(opened *[]string) *App {
+// logoApp is a test app whose links are sent to opened rather than opened.
+func logoApp() (*App, chan string) {
+	opened := make(chan string, 4)
 	app := testApp()
 	app.openURL = func(url string) error {
-		*opened = append(*opened, url)
+		opened <- url
 		return nil
 	}
-	return app
+	return app, opened
+}
+
+// nextOpened waits for the next link the app opens. Links open in the
+// background.
+func nextOpened(tt *testing.T, opened chan string) string {
+	tt.Helper()
+	select {
+	case url := <-opened:
+		return url
+	case <-time.After(2 * time.Second):
+		tt.Fatal("no link opened")
+		return ""
+	}
 }
 
 func TestClickLogoOpensMenu(tt *testing.T) {
@@ -31,15 +45,14 @@ func TestClickLogoOpensMenu(tt *testing.T) {
 
 func TestLogoMenuOpensLinks(tt *testing.T) {
 	for i, want := range []string{docsURL, sponsorURL, mastodonURL} {
-		var opened []string
-		app := logoApp(&opened)
+		app, opened := logoApp()
 		clickID(tt, app, logoID)
 		for range i {
 			pressOn(tt, app, logoMenuID, "down")
 		}
 		pressOn(tt, app, logoMenuID, "enter")
-		if !slices.Equal(opened, []string{want}) {
-			tt.Errorf("choosing item %d opened %q, want %q", i, opened, want)
+		if got := nextOpened(tt, opened); got != want {
+			tt.Errorf("choosing item %d opened %q, want %q", i, got, want)
 		}
 		if app.logoMenuOpen.Peek() {
 			tt.Errorf("choosing item %d left the menu open", i)
@@ -48,28 +61,26 @@ func TestLogoMenuOpensLinks(tt *testing.T) {
 }
 
 func TestLogoMenuStartsAtTheTop(tt *testing.T) {
-	var opened []string
-	app := logoApp(&opened)
+	app, opened := logoApp()
 	clickID(tt, app, logoID)
 	pressOn(tt, app, logoMenuID, "down")
 	pressOn(tt, app, logoMenuID, "escape")
 	clickID(tt, app, logoID)
 	pressOn(tt, app, logoMenuID, "enter")
-	if !slices.Equal(opened, []string{docsURL}) {
-		tt.Errorf("reopening the menu and choosing opened %q, want the docs", opened)
+	if got := nextOpened(tt, opened); got != docsURL {
+		tt.Errorf("reopening the menu and choosing opened %q, want the docs", got)
 	}
 }
 
 func TestLogoMenuEscapeCloses(tt *testing.T) {
-	var opened []string
-	app := logoApp(&opened)
+	app, opened := logoApp()
 	clickID(tt, app, logoID)
 	pressOn(tt, app, logoMenuID, "escape")
 	if app.logoMenuOpen.Peek() {
 		tt.Error("escape left the logo menu open")
 	}
 	if len(opened) > 0 {
-		tt.Errorf("escape opened %q", opened)
+		tt.Errorf("escape opened %q", <-opened)
 	}
 }
 

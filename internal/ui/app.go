@@ -35,7 +35,8 @@ type Config struct {
 	Watch CollectionWatcher
 	// Reload, when set, rereads the collection on request.
 	Reload CollectionWatcher
-	// OpenURL opens a web page in the user's browser.
+	// OpenURL opens a web page in the user's browser, returning once the
+	// browser has the page or has failed to open it (see terma.OpenURL).
 	OpenURL func(url string) error
 	// Environments finds and loads environment files.
 	Environments EnvironmentSource

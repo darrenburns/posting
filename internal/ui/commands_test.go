@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	t "github.com/darrenburns/terma"
@@ -96,4 +98,14 @@ func TestSnapshotLoadEnvironmentFileDialog(tt *testing.T) {
 	app := testApp()
 	app.openEnvFileDialog()
 	t.AssertSnapshot(tt, app, snapW, snapH, "Load environment file dialog")
+}
+
+func TestBrowserOpenFailureIsShown(tt *testing.T) {
+	app := testApp()
+	app.openURL = func(string) error { return errors.New("no launcher") }
+	app.openDocs()
+	waitFor(tt, func() bool {
+		toast := app.toast.Peek()
+		return toast.kind == toastError && strings.Contains(toast.message, docsURL) && strings.Contains(toast.message, "no launcher")
+	})
 }
