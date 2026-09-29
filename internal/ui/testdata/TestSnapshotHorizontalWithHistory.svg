@@ -4863,28 +4863,28 @@
   <rect x="890.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="898.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="906.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="915.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="923.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="932.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="940.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="948.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="957.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="965.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="974.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="982.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="990.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="999.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1007.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1016.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1024.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1032.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1041.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1049.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1058.0" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1066.4" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1074.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1083.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="1091.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="915.2" y="694.0" width="8.4" height="19.6" fill="#101020"/>
+  <rect x="923.6" y="694.0" width="8.4" height="19.6" fill="#101021"/>
+  <rect x="932.0" y="694.0" width="8.4" height="19.6" fill="#111122"/>
+  <rect x="940.4" y="694.0" width="8.4" height="19.6" fill="#121123"/>
+  <rect x="948.8" y="694.0" width="8.4" height="19.6" fill="#131224"/>
+  <rect x="957.2" y="694.0" width="8.4" height="19.6" fill="#131225"/>
+  <rect x="965.6" y="694.0" width="8.4" height="19.6" fill="#141326"/>
+  <rect x="974.0" y="694.0" width="8.4" height="19.6" fill="#151327"/>
+  <rect x="982.4" y="694.0" width="8.4" height="19.6" fill="#161428"/>
+  <rect x="990.8" y="694.0" width="8.4" height="19.6" fill="#161429"/>
+  <rect x="999.2" y="694.0" width="8.4" height="19.6" fill="#17152A"/>
+  <rect x="1007.6" y="694.0" width="8.4" height="19.6" fill="#19162C"/>
+  <rect x="1016.0" y="694.0" width="8.4" height="19.6" fill="#1A182F"/>
+  <rect x="1024.4" y="694.0" width="8.4" height="19.6" fill="#1C1931"/>
+  <rect x="1032.8" y="694.0" width="8.4" height="19.6" fill="#1E1A33"/>
+  <rect x="1041.2" y="694.0" width="8.4" height="19.6" fill="#201C35"/>
+  <rect x="1049.6" y="694.0" width="8.4" height="19.6" fill="#211D38"/>
+  <rect x="1058.0" y="694.0" width="8.4" height="19.6" fill="#231F3A"/>
+  <rect x="1066.4" y="694.0" width="8.4" height="19.6" fill="#25203C"/>
+  <rect x="1074.8" y="694.0" width="8.4" height="19.6" fill="#27213E"/>
+  <rect x="1083.2" y="694.0" width="8.4" height="19.6" fill="#282341"/>
+  <rect x="1091.6" y="694.0" width="8.4" height="19.6" fill="#2A2443"/>
   <text x="310.4" y="694.0" fill="#45407A">│</text>
   <text x="335.6" y="694.0" fill="#FF69B4">^O</text>
   <text x="360.8" y="694.0" fill="#9A96BE">Jump</text>
@@ -4899,6 +4899,20 @@
   <text x="654.8" y="694.0" fill="#9A96BE">Commands</text>
   <text x="730.4" y="694.0" fill="#FF69B4">F1</text>
   <text x="755.6" y="694.0" fill="#9A96BE">Help</text>
-  <text x="940.4" y="694.0" fill="#706B91">Posting</text>
-  <text x="1007.6" y="694.0" fill="#706B91">3.0.0-dev</text>
+  <text x="940.4" y="694.0" fill="#706B91">P</text>
+  <text x="948.8" y="694.0" fill="#706B91">o</text>
+  <text x="957.2" y="694.0" fill="#706B91">s</text>
+  <text x="965.6" y="694.0" fill="#706B91">t</text>
+  <text x="974.0" y="694.0" fill="#706B91">i</text>
+  <text x="982.4" y="694.0" fill="#706B91">n</text>
+  <text x="990.8" y="694.0" fill="#706B91">g</text>
+  <text x="1007.6" y="694.0" fill="#706B91">3</text>
+  <text x="1016.0" y="694.0" fill="#706B91">.</text>
+  <text x="1024.4" y="694.0" fill="#706B91">0</text>
+  <text x="1032.8" y="694.0" fill="#706B91">.</text>
+  <text x="1041.2" y="694.0" fill="#706B91">0</text>
+  <text x="1049.6" y="694.0" fill="#706B91">-</text>
+  <text x="1058.0" y="694.0" fill="#706B91">d</text>
+  <text x="1066.4" y="694.0" fill="#706B91">e</text>
+  <text x="1074.8" y="694.0" fill="#706B91">v</text>
 </svg>
