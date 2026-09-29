@@ -88,7 +88,12 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "Jump mode", Hint: "ctrl+o", Action: a.run(a.jump.Activate)},
 		{Divider: "Environment"},
 		{Label: "Switch environment…", ChildrenTitle: "Environments", Children: a.environmentItems},
-		{Label: "Variables", Hint: "ctrl+shift+v", Action: a.run(a.openVariables)},
+		{Label: "Variables", Hint: "ctrl+shift+v", Action: func() {
+			// Closing the palette restores focus, which would otherwise
+			// replace the table focus that openVariables asks for.
+			a.palette.SetNextFocusIDOnClose("vars-table")
+			a.run(a.openVariables)()
+		}},
 		{Divider: "Export"},
 		{Label: "Copy as curl", Action: a.run(a.copyAsCurl)},
 		{Divider: "View"},
@@ -491,9 +496,20 @@ func (o saveOverlay) Build(ctx t.BuildContext) t.Widget {
 // ---------------------------------------------------------------------------
 // Variables
 
+// addRowKey marks the trailing add row as the one being edited. It can't
+// collide with a real variable because names are identifiers.
+const addRowKey = "+"
+
 type variablesForm struct {
-	filter      *t.TextInputState
-	table       *t.TableState[model.Variable]
+	filter *t.TextInputState
+	table  *t.TableState[model.Variable]
+	// editing is the name of the row being edited in place, addRowKey for
+	// the add row, or "" while browsing.
+	editing t.Signal[string]
+	// err explains why the edit row couldn't be saved. It is shown in the
+	// overlay rather than as a toast, which would sit above the overlay and
+	// swallow escape.
+	err         t.Signal[string]
 	name        *t.TextInputState
 	value       *t.TextInputState
 	showSecrets t.Signal[bool]
@@ -503,19 +519,32 @@ func newVariablesForm() *variablesForm {
 	return &variablesForm{
 		filter:      t.NewTextInputState(""),
 		table:       t.NewTableState[model.Variable](nil),
+		editing:     t.NewSignal(""),
+		err:         t.NewSignal(""),
 		name:        t.NewTextInputState(""),
 		value:       t.NewTextInputState(""),
 		showSecrets: t.NewSignal(false),
 	}
 }
 
+// edit starts editing the named row, or stops editing with "".
+func (f *variablesForm) edit(name string) {
+	f.editing.Set(name)
+	f.err.Set("")
+}
+
+// isAddRow reports whether v is the trailing row that creates a variable.
+func isAddRow(v model.Variable) bool { return v.Name == "" }
+
 func (a *App) openVariables() {
+	a.variables.edit("")
 	a.refreshVariableRows()
 	a.overlay.Set("variables")
 	t.RequestFocus("vars-table")
 }
 
-// refreshVariableRows recomputes the table rows from the filter.
+// refreshVariableRows recomputes the table rows from the filter. The add row
+// is always last so there is somewhere to create a variable.
 func (a *App) refreshVariableRows() {
 	query := strings.ToLower(a.variables.filter.GetText())
 	var rows []model.Variable
@@ -524,7 +553,7 @@ func (a *App) refreshVariableRows() {
 			rows = append(rows, v)
 		}
 	}
-	a.variables.table.SetRows(rows)
+	a.variables.table.SetRows(append(rows, model.Variable{}))
 }
 
 func (a *App) variableList() []model.Variable {
@@ -547,30 +576,94 @@ func (a *App) variableList() []model.Variable {
 
 var identifier = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
-func (a *App) setSessionVariable() {
-	f := a.variables
-	name := strings.TrimSpace(f.name.GetText())
-	if !identifier.MatchString(name) {
-		a.notify("Variable names must be letters, digits and underscores", toastWarning)
+// editVariable turns the row's value cell into an input. Double-clicking
+// another row mid-edit saves the current edit first.
+func (a *App) editVariable(v model.Variable) {
+	if !a.commitVariable() {
 		return
 	}
-	vars := map[string]string{}
-	for k, v := range a.sessionVars.Peek() {
-		vars[k] = v
+	if isAddRow(v) {
+		a.addVariable()
+		return
 	}
-	vars[name] = f.value.GetText()
-	a.sessionVars.Set(vars)
-	f.name.SetText("")
-	f.value.SetText("")
-	a.refreshVariableRows()
-	t.RequestFocus("vars-name")
+	f := a.variables
+	f.name.SetText(v.Name)
+	f.value.SetText(v.Value)
+	f.value.CursorEnd()
+	f.edit(v.Name)
+	t.RequestFocus("vars-edit-value")
 }
 
-func (a *App) editVariable(v model.Variable) {
-	a.variables.name.SetText(v.Name)
-	a.variables.value.SetText(v.Value)
-	a.variables.value.CursorEnd()
-	t.RequestFocus("vars-value")
+// addVariable moves to the add row and starts editing its name.
+func (a *App) addVariable() {
+	f := a.variables
+	f.name.SetText("")
+	f.value.SetText("")
+	f.table.SelectLast()
+	f.edit(addRowKey)
+	t.RequestFocus("vars-edit-name")
+}
+
+// commitVariable stores the row being edited as a session value. It reports
+// whether the edit finished; an invalid name keeps the row open.
+func (a *App) commitVariable() bool {
+	f := a.variables
+	editing := f.editing.Peek()
+	if editing == "" {
+		return true
+	}
+	name := strings.TrimSpace(f.name.GetText())
+	value := f.value.GetText()
+	if editing == addRowKey && name == "" && value == "" {
+		a.cancelVariableEdit()
+		return true
+	}
+	if !identifier.MatchString(name) {
+		f.err.Set("Variable names must be letters, digits and underscores, and can't start with a digit.")
+		t.RequestFocus("vars-edit-name")
+		return false
+	}
+	if current, ok := a.variableValuesPeek()[name]; !ok || current != value {
+		vars := map[string]string{}
+		for k, v := range a.sessionVars.Peek() {
+			vars[k] = v
+		}
+		vars[name] = value
+		a.sessionVars.Set(vars)
+	}
+	f.edit("")
+	a.refreshVariableRows()
+	for i, row := range f.table.GetRows() {
+		if row.Name == name {
+			f.table.SelectIndex(i)
+		}
+	}
+	t.RequestFocus("vars-table")
+	return true
+}
+
+// commitAndMove finishes the edit, then moves the cursor as the arrow keys
+// would in the table itself.
+func (a *App) commitAndMove(delta int) {
+	if !a.commitVariable() {
+		return
+	}
+	table := a.variables.table
+	table.SelectIndex(table.CursorIndex.Peek() + delta)
+}
+
+func (a *App) cancelVariableEdit() {
+	a.variables.edit("")
+	t.RequestFocus("vars-table")
+}
+
+// dismissVariables backs out of an edit before closing the overlay.
+func (a *App) dismissVariables() {
+	if a.variables.editing.Peek() != "" {
+		a.cancelVariableEdit()
+		return
+	}
+	a.closeOverlay()
 }
 
 func (a *App) revertVariable() {
@@ -611,8 +704,19 @@ func (o variablesOverlay) Build(ctx t.BuildContext) t.Widget {
 		source = "Environment: " + env
 	}
 	focused := isFocusedID(ctx, "vars-table")
+	// Leaving an edit row with the arrows commits it, like moving between
+	// cells in a spreadsheet.
+	editKeys := []t.Keybind{
+		{Key: "up", Name: "Row above", Action: func() { a.commitAndMove(-1) }, Hidden: true},
+		{Key: "down", Name: "Row below", Action: func() { a.commitAndMove(1) }, Hidden: true},
+	}
+	// While a row is being edited, only its inputs can take focus, so Tab
+	// can't strand the edit by moving to the filter or the table.
+	editingRow := f.editing.Get() != ""
+	valueInput := input{ID: "vars-edit-value", State: f.value, Placeholder: "value", OnSubmit: func(string) { a.commitVariable() }, Keybinds: editKeys}
 	table := t.Table[model.Variable]{
 		ID:            "vars-table",
+		DisableFocus:  editingRow,
 		State:         f.table,
 		SelectionMode: t.TableSelectionRow,
 		Columns: []t.TableColumn{
@@ -621,6 +725,23 @@ func (o variablesOverlay) Build(ctx t.BuildContext) t.Widget {
 			{Width: t.Cells(14), Header: tableHeader(theme, "Source")},
 		},
 		RenderCell: func(v model.Variable, row, col int, active, selected bool) t.Widget {
+			editing := f.editing.Get()
+			if isAddRow(v) {
+				switch {
+				case editing == addRowKey && col == 0:
+					return input{ID: "vars-edit-name", State: f.name, Placeholder: "NAME", OnSubmit: func(string) { t.RequestFocus("vars-edit-value") }, Keybinds: editKeys}
+				case editing == addRowKey && col == 1:
+					return valueInput
+				case editing == addRowKey:
+					return mutedCell(theme, "session")
+				case col == 0:
+					return addRowCell(theme, active, focused)
+				}
+				return tableCell(theme, active, focused, false, "")
+			}
+			if editing == v.Name && col == 1 {
+				return valueInput
+			}
 			value := v.Value
 			if !reveal && model.IsSensitiveName(v.Name) {
 				value = "••••••••••"
@@ -630,34 +751,57 @@ func (o variablesOverlay) Build(ctx t.BuildContext) t.Widget {
 		OnSelect: a.editVariable,
 		Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 	}
-	var body t.Widget = table
-	if len(f.table.Rows.Get()) == 0 {
-		body = emptyState{Title: "No variables", Lines: []string{"Add one below or switch environment"}}
-	}
 	return modal{
 		Visible:   o.visible,
 		Title:     "Variables",
 		Width:     t.Cells(96),
 		Height:    t.Cells(26),
-		OnDismiss: a.closeOverlay,
+		OnDismiss: a.dismissVariables,
 		Child: t.Column{
 			Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 			Spacing: 1,
 			Children: []t.Widget{
 				t.Row{Style: t.Style{Width: t.Flex(1)}, Spacing: 2, Children: []t.Widget{
-					input{ID: "vars-filter", State: f.filter, Placeholder: "Filter variables…", OnChange: func(string) { a.refreshVariableRows() }},
+					input{
+						ID: "vars-filter", State: f.filter, Placeholder: "Filter variables…", DisableFocus: editingRow,
+						OnChange: func(string) { a.refreshVariableRows() },
+						OnSubmit: func(string) { t.RequestFocus("vars-table") },
+						Keybinds: []t.Keybind{{Key: "down", Name: "Variables", Action: func() { t.RequestFocus("vars-table") }, Hidden: true}},
+					},
 					t.Text{Content: source, Style: t.Style{ForegroundColor: theme.TextMuted}},
 				}},
-				variableTableKeys{app: a, child: body},
-				t.Text{Content: "Session values override the environment and are not written to disk.", Style: t.Style{ForegroundColor: theme.TextMuted}},
-				t.Row{Style: t.Style{Width: t.Flex(1)}, Spacing: 1, Children: []t.Widget{
-					input{ID: "vars-name", State: f.name, Placeholder: "NAME", Width: t.Cells(24), OnSubmit: func(string) { t.RequestFocus("vars-value") }},
-					input{ID: "vars-value", State: f.value, Placeholder: "value", OnSubmit: func(string) { a.setSessionVariable() }},
-					t.Button{ID: "vars-set", Label: "Set", Variant: t.ButtonPrimary, OnPress: a.setSessionVariable, Click: func(t.MouseEvent) { a.setSessionVariable() }},
-				}},
+				variableTableKeys{app: a, child: table},
+				variablesHint{form: f},
 			},
 		},
 	}
+}
+
+// variablesHint explains session values, or why the edit row can't be saved.
+type variablesHint struct {
+	fillWidth
+	form *variablesForm
+}
+
+func (h variablesHint) Build(ctx t.BuildContext) t.Widget {
+	theme := ctx.Theme()
+	if err := h.form.err.Get(); err != "" {
+		return t.Text{Content: err, Style: t.Style{ForegroundColor: theme.ErrorText}}
+	}
+	return t.Text{Content: "Edits are session values: they override the environment and are not written to disk.", Style: t.Style{ForegroundColor: theme.TextMuted}}
+}
+
+// addRowCell is the add row's prompt in the name column.
+func addRowCell(theme t.ThemeData, active, focused bool) t.Widget {
+	cell := tableCell(theme, active, focused, false, "+ Add variable").(t.Text)
+	if !(active && focused) {
+		cell.Style.ForegroundColor = theme.TextMuted
+	}
+	return cell
+}
+
+func mutedCell(theme t.ThemeData, content string) t.Widget {
+	return t.Text{Content: content, Style: t.Style{Width: t.Flex(1), ForegroundColor: theme.TextMuted, Padding: t.EdgeInsetsXY(1, 0)}}
 }
 
 // variableTableKeys adds row actions to the variables table.
@@ -668,12 +812,21 @@ type variableTableKeys struct {
 }
 
 func (k variableTableKeys) Keybinds() []t.Keybind {
+	if k.app.variables.editing.Peek() != "" {
+		// The edit inputs handle these; listing them here puts them in the
+		// footer in place of the table's actions.
+		return []t.Keybind{
+			{Key: "enter", Name: "Save", Action: func() { k.app.commitVariable() }},
+			{Key: "escape", Name: "Cancel", Action: k.app.cancelVariableEdit},
+		}
+	}
 	return []t.Keybind{
 		{Key: "enter", Name: "Edit", Action: func() {
 			if v, ok := k.app.variables.table.SelectedRow(); ok {
 				k.app.editVariable(v)
 			}
 		}},
+		{Key: "a", Name: "Add", Action: k.app.addVariable},
 		{Key: "d", Name: "Revert override", Action: k.app.revertVariable},
 		{Key: "/", Name: "Filter", Action: func() { t.RequestFocus("vars-filter") }},
 	}

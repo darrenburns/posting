@@ -196,6 +196,8 @@ type input struct {
 	Keybinds    []t.Keybind
 	// Suggestions, when set, shows a completion popup while typing.
 	Suggestions *t.AutocompleteState
+	// DisableFocus takes the input out of the focus order.
+	DisableFocus bool
 }
 
 func (i input) GetContentDimensions() (t.Dimension, t.Dimension) {
@@ -227,6 +229,7 @@ func (i input) Build(ctx t.BuildContext) t.Widget {
 		OnChange:      i.OnChange,
 		OnSubmit:      i.OnSubmit,
 		ExtraKeybinds: i.Keybinds,
+		DisableFocus:  i.DisableFocus,
 	}
 	if i.Suggestions != nil {
 		field = t.Autocomplete{

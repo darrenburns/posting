@@ -129,6 +129,16 @@ func TestSnapshotOverlays(tt *testing.T) {
 	t.AssertSnapshotNamed(tt, "Overlay_variables", app, snapW, snapH, "Variables overlay with secrets masked")
 
 	app = testApp()
+	app.openVariables()
+	app.editVariable(app.variables.table.GetRows()[0])
+	t.AssertSnapshotNamed(tt, "Overlay_variables_edit", app, snapW, snapH, "Variables overlay editing the first value in place")
+
+	app = testApp()
+	app.openVariables()
+	app.addVariable()
+	t.AssertSnapshotNamed(tt, "Overlay_variables_add", app, snapW, snapH, "Variables overlay adding a variable in the table's last row")
+
+	app = testApp()
 	app.save.prefill(model.NewRequest(), "users")
 	app.overlay.Set("save")
 	t.AssertSnapshotNamed(tt, "Overlay_save", app, snapW, snapH, "Save request dialog")
