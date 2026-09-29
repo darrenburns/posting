@@ -122,7 +122,7 @@ func (s section) Build(ctx t.BuildContext) t.Widget {
 		Style: t.Style{
 			Width:   s.Width,
 			Height:  s.Height,
-			Padding: t.EdgeInsetsXY(1, 0),
+			Padding: t.EdgeInsets{Right: 1},
 		},
 		Children: []t.Widget{
 			t.Row{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: heading},

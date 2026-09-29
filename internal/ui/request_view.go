@@ -58,7 +58,7 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 				s.requestTabs(),
 				t.Switcher{
 					Active: s.requestTab.Get(),
-					Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+					Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
 					Children: map[string]t.Widget{
 						"headers": kvEditorView{
 							Editor:           s.headers,
