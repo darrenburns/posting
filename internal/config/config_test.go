@@ -77,3 +77,32 @@ func TestInvalidValuesFallBack(t *testing.T) {
 		t.Fatalf("unreadable file: warnings=%v", warnings)
 	}
 }
+
+func TestUseNerdFonts(t *testing.T) {
+	env := func(vars map[string]string) func(string) (string, bool) {
+		return func(name string) (string, bool) { v, ok := vars[name]; return v, ok }
+	}
+	s := Defaults()
+	if s.UseNerdFonts(env(map[string]string{"TERM_PROGRAM": "iTerm.app"})) {
+		t.Error("nerd fonts should be off outside Ghostty by default")
+	}
+	for _, vars := range []map[string]string{
+		{"TERM_PROGRAM": "ghostty"},
+		{"TERM": "xterm-ghostty"},
+		{"TERM_PROGRAM": "tmux", "GHOSTTY_RESOURCES_DIR": "/Applications/Ghostty.app/Contents/Resources/ghostty"},
+	} {
+		if !s.UseNerdFonts(env(vars)) {
+			t.Errorf("nerd fonts should be on with %v", vars)
+		}
+	}
+	off := false
+	s.NerdFonts = &off
+	if s.UseNerdFonts(env(map[string]string{"TERM_PROGRAM": "ghostty"})) {
+		t.Error("nerd_fonts: false should win over Ghostty")
+	}
+	on := true
+	s.NerdFonts = &on
+	if !s.UseNerdFonts(env(nil)) {
+		t.Error("nerd_fonts: true should turn them on anywhere")
+	}
+}

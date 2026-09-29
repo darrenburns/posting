@@ -158,6 +158,7 @@ func appConfig(opts options) (ui.Config, error) {
 		OpenURL:          openURL,
 		Version:          version,
 		Settings:         &settings,
+		NerdFonts:        settings.UseNerdFonts(os.LookupEnv),
 		HostVariables:    host,
 		UserThemes:       userThemes,
 		Sender:           client.NewHTTP("posting/"+version, tlsSettings),

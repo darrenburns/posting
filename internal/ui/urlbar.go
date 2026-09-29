@@ -150,7 +150,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 					t.Button{
 						ID:           sendButtonID,
 						DisableFocus: true,
-						Label:        "Send",
+						Label:        a.icons.send + "Send",
 						Variant:      t.ButtonPrimary,
 						OnPress:      a.send,
 						Click:        func(t.MouseEvent) { a.send() },
