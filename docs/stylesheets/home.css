@@ -1,65 +1,20 @@
 /* Posting 3 homepage.
    Layout: a single terminal-session column. Real Posting screens are the
    imagery, and each section opens with the keystroke that reaches it.
-   Colours come from the active Posting theme (home-palettes.css); these are
-   the type and spacing tokens. Sizes assume Material's 125% root. */
+   Colours come from the active Posting theme (palettes.css, with screen
+   colours in home-palettes.css). Type tokens and the Material chrome are
+   shared with the rest of the docs in theme.css; these are the homepage's
+   spacing tokens. Sizes assume Material's 125% root. */
 :root {
-  --font-display: "Martian Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-body: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-grid: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  /* Small headings, buttons and eyebrows. */
-  --font-label: var(--font-display);
-  --display-weight: 700;
-  --display-weight-2: 650;
-  --display-vars: "wdth" 87.5;
-  --display-tracking: -0.035em;
-  --display-leading: 1.08;
-  --display-scale: 1;
-  --display-style: normal;
-  --label-weight: 600;
-  --label-tracking: -0.01em;
-  /* Advance width of one --font-grid cell, in em. */
-  --grid-adv: 0.6;
   --page: 62rem;
   --gutter: clamp(0.8rem, 3vw, 1.6rem);
-  --radius: 0.5rem;
-  --glow: color-mix(in oklab, var(--primary) 22%, transparent);
-  --glow-2: color-mix(in oklab, var(--accent) 16%, transparent);
-  --hairline: color-mix(in oklab, var(--border) 70%, transparent);
 }
 
 /* ---- Material chrome on the homepage ---------------------------------- */
 
 body {
-  background: var(--bg) !important;
-  background-image: none !important;
-  color: var(--text);
-}
-
-.md-header {
-  background-color: color-mix(in oklab, var(--bg) 82%, transparent) !important;
-  color: var(--text) !important;
-  backdrop-filter: blur(10px);
-}
-
-.md-header .md-header__button,
-.md-header .md-header__title,
-.md-header .md-source {
-  color: var(--text) !important;
-}
-
-nav.md-tabs .md-tabs__link {
-  color: var(--text) !important;
-}
-
-.md-search__input {
-  background-color: color-mix(in oklab, var(--text) 8%, transparent) !important;
-  color: var(--text) !important;
-}
-
-.md-search__input::placeholder,
-.md-search__icon {
-  color: var(--muted) !important;
+  /* The page draws its own ambient light. */
+  background: var(--bg);
 }
 
 .md-dialog {
@@ -530,50 +485,7 @@ h1 .caret {
   color: var(--muted);
 }
 
-.palette-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.palette-picker button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55em;
-  font-family: var(--font-grid);
-  font-size: 0.6rem;
-  cursor: pointer;
-  padding: 0.45em 0.8em 0.45em 0.55em;
-  border-radius: 99px;
-  color: var(--sw-fg);
-  background: var(--sw-bg);
-  border: 1px solid color-mix(in oklab, var(--sw-fg) 18%, transparent);
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.palette-picker button:hover {
-  transform: translateY(-1px);
-}
-
-.palette-picker button[aria-checked="true"] {
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
-}
-
-.palette-picker .sw {
-  display: inline-flex;
-}
-
-.palette-picker .sw i {
-  width: 0.7em;
-  height: 0.7em;
-  border-radius: 50%;
-  margin-left: -0.2em;
-  box-shadow: 0 0 0 1.5px var(--sw-bg);
-}
-
-.palette-picker .sw i:first-child {
-  margin-left: 0;
-}
+/* The picker's own styles are in theme.css. */
 
 /* ---- Sections ------------------------------------------------------------- */
 

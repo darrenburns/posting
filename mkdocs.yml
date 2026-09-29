@@ -10,8 +10,8 @@ theme:
   custom_dir: docs/overrides
   icon:
     logo: fontawesome/solid/paper-plane
-  font:
-    text: Open Sans
+  # Fonts are loaded by docs/overrides/main.html.
+  font: false
   features:
     - search.suggest
     - search.highlight
@@ -21,7 +21,10 @@ theme:
     - navigation.footer
     - toc.integrate
 extra_css:
-  - stylesheets/extra.css
+  - stylesheets/palettes.css
+  - stylesheets/theme.css
+extra_javascript:
+  - javascripts/palette.js
 exclude_docs: |
   overrides/
   scripts/

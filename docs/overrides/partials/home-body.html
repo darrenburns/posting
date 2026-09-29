@@ -37,7 +37,7 @@
       <div class="theme-row">
         <div class="label">
           <span class="eyebrow">Theme</span>
-          <span>Posting ships 37 themes. Pick one and this page follows.</span>
+          <span>Posting ships 37 themes. Pick one and the whole site follows.</span>
         </div>
         {% include "partials/screens/palette-picker.html" %}
       </div>
@@ -245,40 +245,7 @@
 
 <script>
 (function () {
-  var root = document.documentElement;
-  var KEY = "posting.home.palette";
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  // Theme picker: a radio group that re-colours the page and the screens.
-  var radios = Array.prototype.slice.call(document.querySelectorAll(".palette-picker [role=radio]"));
-  var names = radios.map(function (b) { return b.getAttribute("data-palette"); });
-  if (names.indexOf(root.getAttribute("data-palette")) < 0) root.removeAttribute("data-palette");
-
-  function active() { return root.getAttribute("data-palette") || names[0]; }
-  function mark() {
-    radios.forEach(function (b) {
-      var on = b.getAttribute("data-palette") === active();
-      b.setAttribute("aria-checked", on ? "true" : "false");
-      b.tabIndex = on ? 0 : -1;
-    });
-  }
-  function choose(name) {
-    var apply = function () { root.setAttribute("data-palette", name); mark(); };
-    if (document.startViewTransition && !reduce) document.startViewTransition(apply); else apply();
-    try { localStorage.setItem(KEY, name); } catch (e) {}
-  }
-  radios.forEach(function (b, i) {
-    b.addEventListener("click", function () { choose(b.getAttribute("data-palette")); });
-    b.addEventListener("keydown", function (e) {
-      var step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
-      if (!step) return;
-      e.preventDefault();
-      var next = radios[(i + step + radios.length) % radios.length];
-      next.focus();
-      choose(next.getAttribute("data-palette"));
-    });
-  });
-  mark();
+  // The theme picker is wired up by javascripts/palette.js.
 
   // Feature tour tabs.
   var tabs = Array.prototype.slice.call(document.querySelectorAll(".tour-tabs [role=tab]"));
