@@ -515,7 +515,7 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 			Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 			Children: []t.Widget{
 				heightProbe{app: a},
-				t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}, Children: []t.Widget{workspace{app: a}}},
+				t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Right: 1}}, Children: []t.Widget{workspace{app: a}}},
 			},
 		},
 	}
@@ -630,13 +630,21 @@ type footer struct {
 
 func (f footer) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
-	style := t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, ForegroundColor: theme.TextMuted, Padding: t.EdgeInsetsXY(2, 0)}
+	style := t.Style{ForegroundColor: theme.TextMuted}
+	var hints t.Widget = t.KeybindBar{Style: style, FormatKey: t.FormatKeyCaret}
 	if f.app.jump.IsActive() {
 		text := t.ParseMarkupToText("[b $AccentText]Jump[/]  Type a label to move there  [b $Text]esc[/] cancel", theme)
 		text.Style = style
-		return text
+		hints = text
 	}
-	return t.KeybindBar{Style: style, FormatKey: t.FormatKeyCaret}
+	return t.Row{
+		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(2, 0), BackgroundColor: theme.Background},
+		Children: []t.Widget{
+			hints,
+			t.Spacer{},
+			t.Text{Content: "Posting " + f.app.version, Style: t.Style{ForegroundColor: theme.TextDisabled}},
+		},
+	}
 }
 
 // header is the one-line title bar.
@@ -658,10 +666,6 @@ func (h header) Build(ctx t.BuildContext) t.Widget {
 	return t.Row{
 		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(2, 0), BackgroundColor: theme.Background},
 		Children: []t.Widget{
-			t.Text{Spans: []t.Span{
-				{Text: "Posting", Style: t.SpanStyle{Foreground: theme.Text, Bold: true}},
-				{Text: " " + a.version, Style: t.SpanStyle{Foreground: theme.TextMuted}},
-			}},
 			t.Spacer{},
 			t.Text{
 				Spans: []t.Span{
@@ -718,8 +722,13 @@ func (w workspace) Build(ctx t.BuildContext) t.Widget {
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
-			sessionTabs{app: a},
-			urlBar{app: a, session: s},
+			// The panels start a cell further left than the tabs and URL
+			// bar, so their headings and tab labels line up with the
+			// highlighted boxes above rather than the text inside them.
+			t.Column{
+				Style:    t.Style{Width: t.Flex(1), Padding: inset},
+				Children: []t.Widget{sessionTabs{app: a}, urlBar{app: a, session: s}},
+			},
 			panels,
 		},
 	}

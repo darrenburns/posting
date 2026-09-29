@@ -114,13 +114,14 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 				{Text: " HISTORY ", Style: t.SpanStyle{Foreground: theme.TextOnAccent, Background: theme.Accent, Bold: true}},
 				{Text: " sent " + history.SentAt.Format("02 Jan 2006 15:04:05"), Style: t.SpanStyle{Foreground: theme.TextMuted}},
 			},
+			Style: t.Style{Padding: inset},
 		})
 	}
 	children = append(children,
 		s.responseTabs(resp),
 		t.Switcher{
 			Active: s.responseTab.Get(),
-			Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+			Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
 			Children: map[string]t.Widget{
 				"body":    responseBody{app: r.app, session: s, response: resp},
 				"headers": responseHeaders{session: s},
