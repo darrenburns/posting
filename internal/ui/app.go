@@ -351,30 +351,7 @@ func (a *App) focusOpenedRequest() {
 		return
 	}
 	s.requestTab.Set(target)
-	focus := requestTabsID
-	switch target {
-	case "headers":
-		focus = s.headers.FirstInputID()
-	case "query":
-		focus = s.query.FirstInputID()
-	case "path":
-		focus = s.pathParams.FirstInputID()
-	case "info":
-		focus = "req-info-name"
-	case "body":
-		switch s.bodyType.Peek() {
-		case model.BodyRaw:
-			focus = "req-body-text"
-		case model.BodyForm:
-			focus = s.form.FirstInputID()
-		default:
-			focus = "req-body-type"
-		}
-	}
-	if focus == "" {
-		focus = requestTabsID
-	}
-	t.RequestFocus(focus)
+	t.RequestFocus(s.contentFocusID(target))
 }
 
 func (s *Session) isPristine() bool {
@@ -659,7 +636,19 @@ func (a *App) jumpTargets() []t.JumpTarget {
 		{Key: "1", ID: methodSelectorID},
 		{Key: "2", ID: urlInputID},
 	}
-	targets = append(targets, tabJumps(sidebarTabsID, "34", []string{"requests", "history"}, a.sidebarTab.Set)...)
+	// The sidebar jumps go straight to the list, which is what you want to
+	// move through, rather than to its tab strip.
+	for i, tab := range []string{"requests", "history"} {
+		tab := tab
+		id := tabID(sidebarTabsID, tab)
+		if i == 0 {
+			id = sidebarTabsID
+		}
+		targets = append(targets, t.JumpTarget{Key: string("34"[i]), ID: id, Action: func() {
+			a.sidebarTab.Set(tab)
+			a.focusSidebarList()
+		}})
+	}
 	targets = append(targets, tabJumps(requestTabsID, "qwertyu", []string{"headers", "body", "path", "query", "auth", "info", "options"}, func(key string) {
 		if s := a.current(); s != nil {
 			s.requestTabs().selectKey(key)
@@ -671,6 +660,20 @@ func (a *App) jumpTargets() []t.JumpTarget {
 		}
 	})...)
 	return targets
+}
+
+// focusSidebarList focuses the list in the visible sidebar tab.
+func (a *App) focusSidebarList() {
+	if a.sidebarTab.Peek() == "history" {
+		if len(a.history.Peek()) > 0 {
+			t.RequestFocus(historyID)
+			return
+		}
+	} else if len(a.tree.Nodes.Peek()) > 0 {
+		t.RequestFocus(treeID)
+		return
+	}
+	t.RequestFocus(sidebarTabsID)
 }
 
 // tabJumps maps keys to the tabs of a strip: each jump selects its tab and

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	t "github.com/darrenburns/terma"
 
@@ -94,6 +95,14 @@ func (s *Session) responseTabs(resp *model.Response) tabStrip {
 		ID:     responseTabsID,
 		Active: s.responseTab,
 		View:   s.responseTabView,
+		Down: func() {
+			id := map[string]string{"body": "resp-body", "headers": "resp-headers", "cookies": "resp-cookies", "trace": "resp-trace-scroll"}[s.responseTab.Peek()]
+			if (id == "resp-body" && len(resp.Body) == 0) || (id == "resp-headers" && len(resp.Headers) == 0) || (id == "resp-cookies" && len(resp.Cookies) == 0) {
+				return
+			}
+			t.RequestFocus(id)
+		},
+		Up: func() { t.RequestFocus(requestTabsID) },
 		Tabs: []tabItem{
 			{Key: "body", Label: "Body"},
 			{Key: "headers", Label: "Headers", Badge: countBadge(len(resp.Headers))},
@@ -204,7 +213,7 @@ func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
 		ID:            "resp-headers",
 		State:         h.session.responseHeaders,
 		SelectionMode: t.TableSelectionRow,
-		Columns:       []t.TableColumn{{Width: t.Cells(30)}, {Width: t.Flex(1)}},
+		Columns:       []t.TableColumn{{Width: t.Cells(nameColumnWidth(h.session.responseHeaders.Rows.Get(), func(h model.Header) string { return h.Name }))}, {Width: t.Flex(1)}},
 		RenderCell: func(row model.Header, rowIndex, col int, active, selected bool) t.Widget {
 			return tableCell(theme, active, focused, col == 0, []string{row.Name, row.Value}[col])
 		},
@@ -228,7 +237,7 @@ func (c responseCookies) Build(ctx t.BuildContext) t.Widget {
 		State:         c.session.responseCookies,
 		SelectionMode: t.TableSelectionRow,
 		Columns: []t.TableColumn{
-			{Width: t.Cells(22), Header: tableHeader(theme, "Name")},
+			{Width: t.Cells(nameColumnWidth(c.session.responseCookies.Rows.Get(), func(c model.Cookie) string { return c.Name })), Header: tableHeader(theme, "Name")},
 			{Width: t.Flex(1), Header: tableHeader(theme, "Value")},
 			{Width: t.Cells(14), Header: tableHeader(theme, "Path")},
 			{Width: t.Cells(18), Header: tableHeader(theme, "Flags")},
@@ -245,6 +254,16 @@ func (c responseCookies) Build(ctx t.BuildContext) t.Widget {
 		},
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 	}
+}
+
+// nameColumnWidth fits a table's name column to its longest name, within
+// reason, plus the cell padding.
+func nameColumnWidth[T any](rows []T, name func(T) string) int {
+	width := 8
+	for _, row := range rows {
+		width = max(width, utf8.RuneCountInString(name(row)))
+	}
+	return min(width, 40) + 3
 }
 
 // Tables use no column spacing: cells pad themselves instead, so the cursor

@@ -78,7 +78,7 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 		Spacing: a.gap(),
 		Children: []t.Widget{
 			heading,
-			tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Tabs: []tabItem{
+			tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Down: a.focusSidebarList, Tabs: []tabItem{
 				{Key: "requests", Label: a.icons.requests + "Requests"},
 				{Key: "history", Label: a.icons.history + "History", Badge: countBadge(historyCount)},
 			}},
