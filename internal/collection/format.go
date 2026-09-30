@@ -228,37 +228,13 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := yaml.NewEncoder(&buf)
 	encoder.SetIndent(2)
-	if err := encoder.Encode(trimLineEnds(out)); err != nil {
+	if err := encoder.Encode(out); err != nil {
 		return nil, err
 	}
 	if err := encoder.Close(); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
-}
-
-// trimLineEnds strips trailing spaces from the lines of multi-line strings.
-// YAML can only write a multi-line string as a readable block when no line
-// ends in a space; Posting 2 strips them for the same reason.
-func trimLineEnds(r requestFile) requestFile {
-	trim := func(s string) string {
-		if !strings.Contains(s, "\n") {
-			return s
-		}
-		lines := strings.Split(s, "\n")
-		for i, line := range lines {
-			lines[i] = strings.TrimRight(line, " \t")
-		}
-		return strings.Join(lines, "\n")
-	}
-	r.Description = trim(r.Description)
-	if r.Body != nil && r.Body.Content != nil {
-		body := *r.Body
-		content := trim(*body.Content)
-		body.Content = &content
-		r.Body = &body
-	}
-	return r
 }
 
 func kvsFromFile(in []kvFile) []model.KeyValue {
