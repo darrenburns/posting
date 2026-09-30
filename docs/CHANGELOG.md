@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Posting 3
+
+Posting 3 is a rewrite of Posting in Go, distributed as a single binary. It reads the same collections, configuration and `.env` files as Posting 2. See [Coming from Posting 2](guide/migrating.md) for what's new, what's changed, and what isn't supported yet.
+
 ## 2.11.0 [26th September 2026]
 
 ### Added

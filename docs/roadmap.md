@@ -46,74 +46,69 @@ If you have any feedback or suggestions, please open a [new discussion on GitHub
 }
 </style>
 
-## Next planned features 🚀
+## Not yet in Posting 3 🚧
 
-Features planned to be worked on next.
+Posting 3 is a rewrite of Posting in Go. These Posting 2 features haven't been brought across yet.
 
-- Documentation on using 3rd party libraries in scripts <span class="tag documentation">Documentation</span>
-- Transparent background support (experimentation) <span class="tag ui">UI</span>
-- In-app information about headers <span class="tag documentation">Documentation</span>
-- A better footer <span class="tag ux">UX</span> <span class="tag ui">UI</span>
-  - The footer currently contains too many bindings. There should be a way to show that it is scrollable, possibly showing grouping of keybindings.
+- Pre-request and post-response scripts (requests keep their scripts, but they aren't run) <span class="tag scripting">Scripting</span>
+- Undo and redo in text areas <span class="tag ux">UX</span>
+- Encrypted client certificate keys (`ssl.password`) <span class="tag security">Security</span>
+- Live reloading of theme files, and X resources themes <span class="tag ui">UI</span>
+- Custom syntax highlighting and method colours in theme files <span class="tag ui">UI</span>
 
 ## Longer Term 🔮
 
 Features that are planned for future development but are not immediate priorities.
 
-- Directional navigation <span class="tag ui">UI</span> <span class="tag ux">UX</span>
+- Searching in responses <span class="tag requests">Requests</span>
+- Multipart form bodies and file uploads <span class="tag requests">Requests</span>
+- Transparent background support (experimentation) <span class="tag ui">UI</span>
+- In-app information about headers, and quickly opening MDN links for them <span class="tag documentation">Documentation</span>
 - Jump mode 2-stage jump - if you press shift+[jump target key], then it'll jump to the target and then show a secondary overlay of available targets within that section <span class="tag ux">UX</span>
-- Manually resize sections (sidebar, request, response) <span class="tag ui">UI</span>
-- Searching in responses (this will likely be simpler with upcoming Textual changes) <span class="tag requests">Requests</span>
-- File watcher so that if the request changes on disk then the UI updates to reflect it <span class="tag requests">Requests</span>
 - Translating to other languages <span class="tag documentation">Documentation</span>
     - I'd like to support e.g. Chinese, but need to investigate how that would render with double width characters in the terminal.
-- Warning when switching request when there are unsaved changes <span class="tag ux">UX</span>
+- Warning when closing a tab that has unsaved changes <span class="tag ux">UX</span>
 - Request tagging: the ability to add tags to requests, and filter by tag <span class="tag requests">Requests</span>
 - Making it clear which HTTP headers are set automatically <span class="tag ux">UX</span>
 - Collection switcher <span class="tag collection">Collection</span>
-- Environment switcher <span class="tag environment">Environment</span>
-- Viewing the currently loaded environment keys/values in a popup <span class="tag environment">Environment</span>
-- Changing the environment at runtime via command palette <span class="tag environment">Environment</span>
 - WebSocket and SSE support <span class="tag realtime">Realtime</span>
-- Quickly open MDN links for headers <span class="tag ui">UI</span>
 - Add rotating logging <span class="tag logging">Logging</span>
-- Variable completion autocompletion in TextAreas <span class="tag environment">Environment</span>
-- Variable resolution highlighting in TextAreas <span class="tag environment">Environment</span>
-- Status bar? Showing the currently selected env, collection, current path, whether there's unsaved changes, etc. <span class="tag ui">UI</span>
-- Highlighting variables in *tables* to show if they've resolved or not <span class="tag environment">Environment</span>
 - Create a `_template.posting.yaml` file for request templates <span class="tag requests">Requests</span>
 - OAuth2 implementation (need to scope out what's involved) <span class="tag auth">Auth</span>
 - Adding test framework <span class="tag testing">Testing</span>
-- Uploading files <span class="tag requests">Requests</span>
 - Cookie editor <span class="tag requests">Requests</span>
-- Import from Postman (PR is open, needs further work) <span class="tag import">Import</span>
 
 ## Completed ✓
 
-Features that have been implemented and are available in the latest version.
+Features that have been implemented in Posting 3.
 
+- Request tabs, with a preview tab for browsing the collection <span class="tag ui">UI</span>
+- Layered environments: `posting.env`, `<name>.env` and `.local.env` files <span class="tag environment">Environment</span>
+- Environment switcher, remembered per collection <span class="tag environment">Environment</span>
+- Viewing and overriding the loaded variables in a popup <span class="tag environment">Environment</span>
+- Variable autocompletion and highlighting in inputs and text areas <span class="tag environment">Environment</span>
+- Showing the active environment in the header <span class="tag ui">UI</span>
+- Request timing (trace) in the Response panel and history <span class="tag requests">Requests</span>
+- Request and response history, kept per collection <span class="tag requests">Requests</span>
+- Filtering the collection by name, folder and method <span class="tag collection">Collection</span>
+- Manually resize sections (sidebar, request, response) <span class="tag ui">UI</span>
+- Reloading requests when they change on disk <span class="tag requests">Requests</span>
+- A footer that shows the keys for whatever has focus <span class="tag ux">UX</span>
+- Import from OpenAPI, Postman and Bruno <span class="tag import">Import</span>
+- Export as curl, with or without variables filled in <span class="tag import">Import</span>
 - Path parameters <span class="tag requests">Requests</span>
-- Adjustable padding in UI via config file <span class="tag ui">UI</span>
+- Adjustable spacing in the UI via config file <span class="tag ui">UI</span>
 - Don't require user to type `http://` or `https://` in URL field <span class="tag ux">UX</span>
-- Documentation on changing the UI at runtime (e.g. showing/hiding sections, etc.) <span class="tag documentation">Documentation</span>
-- Editing key/value editor rows without having to delete/re-add them <span class="tag ux">UX</span>
+- Editing key/value rows inline <span class="tag ux">UX</span>
 - Keymaps <span class="tag ui">UI</span>
-- Pre-request and post-response scripts <span class="tag scripting">Scripting</span>
 - Parse cURL commands <span class="tag import">Import</span>
 - Watching environment files for changes & updating the UI <span class="tag environment">Environment</span>
-- Bearer token auth <span class="tag auth">Auth</span>
-- Add "quit" to command palette and footer <span class="tag ux">UX</span>
-- More user friendly errors <span class="tag ux">UX</span>
-- Duplicate request from the tree <span class="tag collection">Collection</span>
-- Quickly duplicate request from the tree <span class="tag collection">Collection</span>
-- Colour-coding for request types (i.e. GET is green, POST is blue, etc.) <span class="tag ui">UI</span>
-- Delete request from the tree <span class="tag collection">Collection</span>
-- Inserting into the collection tree in sorted order, not at the bottom <span class="tag collection">Collection</span>
-- External documentation <span class="tag documentation">Documentation</span>
+- Basic, Digest and Bearer token auth <span class="tag auth">Auth</span>
+- Duplicate and delete requests from the tree <span class="tag collection">Collection</span>
+- Colour-coding for request methods <span class="tag ui">UI</span>
 - Enabling and disabling rows in tables <span class="tag ux">UX</span>
-- Custom themes, loaded from theme directory <span class="tag ui">UI</span>
-- Dynamic in-app help system <span class="tag documentation">Documentation</span>
-- Specify certificate path via config or CLI <span class="tag security">Security</span>
+- Custom themes, loaded from the theme directory <span class="tag ui">UI</span>
+- Specify certificates via config <span class="tag security">Security</span>
 
 
 ## Legend

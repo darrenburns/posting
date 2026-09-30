@@ -1,82 +1,219 @@
 ## Overview
 
-As explained in the [Help System](./help_system.md) section, you can view the keybindings for any widget by pressing ++f1++ or ++ctrl+question-mark++ when that widget has focus.
+Posting's global keyboard shortcuts can be changed in the `keymap` section of your
+[configuration file](./configuration.md). Run `posting locate config` to find it.
 
-If you wish to use different keybindings, you can do so by editing the `keymap` section of your `config.yaml` file.
-Check the location of that file on your system by running `posting locate config` on the command line.
+Press ++f1++ inside Posting to see the shortcuts currently in effect, including any you've changed.
+The footer at the bottom of the screen also shows the most useful keys for whatever is focused.
 
-### Changing the keymap
+## Changing a shortcut
 
-Actions in Posting have unique IDs which map to a keybinding (listed at the bottom of this page).
-For any of these IDs, you can change the keybinding by adding an entry to the `keymap` section of your `config.yaml` file:
-
-```yaml
-keymap:
-  <ID>: <key-combination>
-```
-
-Here's an example of changing the keybinding for the "Send Request" action:
+Each global action has an ID (listed [below](#action-ids)). To change the key for an action, map
+its ID to a key in the `keymap` section:
 
 ```yaml
 keymap:
   send-request: ctrl+r
 ```
 
-After adding the above entry to `config.yaml` and restarting Posting, you'll notice that that the footer of the app now shows `^r` to send a request rather than the default `^j`.
+Restart Posting, and ++ctrl+r++ now sends the request. The footer, the help screen and the command
+palette all show the new key.
 
-Now you can press `^r` to send a request *instead of* `^j`.
-
-You can also have multiple keys map to the same action by separating them with commas:
-
-```yaml
-keymap:
-  send-request: ctrl+r,ctrl+i
-```
-
-Note that by adding an entry to the `keymap` you are overriding the default keybinding for that action, so if you wish to keep the default keybinding, you'll need to specify it again:
+To bind several keys to the same action, separate them with commas (`jump` only uses the first):
 
 ```yaml
 keymap:
-  send-request: ctrl+r,ctrl+i,ctrl+j
+  send-request: ctrl+r,f5
 ```
 
-### Key format
+A keymap entry *replaces* the default keys for that action. To keep a default key as well as
+adding a new one, list both:
 
-Support for keys in the terminal varies between terminals, multiplexers and operating systems.
-It's a complex topic, and one that may involve some trial and error.
-Some keys might be intercepted before reaching Posting, and your emulator might not support certain keys.
+```yaml
+keymap:
+  send-request: ctrl+r,ctrl+j
+```
 
-- To specify ++ctrl+x++, use `ctrl+x`.
-- To specify ++ctrl+shift+x++, use `ctrl+X` (control plus uppercase "X").
-- To specify multiple keys, separate them with commas: `ctrl+shift+left,ctrl+y`.
-- To specify a function key, use `f<number>`. For example, ++f1++ would be `f1`.
-- To specify `@` (at) use `at` (*not* e.g. ++shift+2++ as this only applies to some keyboard layouts).
-- Arrow keys can be specified as `left`, `right`, `up` and `down`.
-- `shift` works as a modifier non-printable keys e.g. `shift+backspace`, `shift+enter`, `shift+right` are all acceptable. Support may vary depending on your emulator.
-- `alt` also works as a modifier e.g. `alt+enter`.
-- `ctrl+enter`, `alt+enter`,`ctrl+backspace`, `ctrl+shift+enter`, `ctrl+shift+space` etc. are supported if your terminal supports the Kitty keyboard protocol.
-- Other keys include (but are not limited to) `comma`, `full_stop`, `colon`, `semicolon`, `quotation_mark`, `apostrophe`, `left_bracket`, `right_square_bracket`, `left_square_bracket`, `backslash`, `vertical_line` (pipe |), `plus`, `minus`, `equals_sign`, `slash`, `asterisk`,`tilde`, `percent_sign`.
+## Key format
 
-The only way to know for sure which keys are supported in your particular terminal emulator is to install Textual, run `textual keys`, press the key you want to use, and look at the `key` field of the printed output.
+A key is written as a key name, optionally preceded by modifiers joined with `+`:
 
-!!! example "Work in progress"
-    In the future, I hope to make it easier to discover which keys are supported and when key presses they correspond to for a particular environment directly within Posting. This will likely take the form of a CLI command that outputs key names and their corresponding key presses. For now, if you need assistance, please open a discussion on [GitHub](https://github.com/darrenburns/posting/discussions).
+- Modifiers are `ctrl`, `alt` and `shift` (and `meta` and `super`, where your terminal sends them),
+  for example `ctrl+r`, `alt+enter` or `ctrl+shift+v`.
+- Letters, digits and symbols are written as themselves: `a`, `5`, `/`, `@`.
+- Named keys are `enter`, `tab`, `space`, `backspace`, `delete`, `insert`, `escape`, `up`, `down`,
+  `left`, `right`, `home`, `end`, `pgup`, `pgdown`, and the function keys `f1` to `f12`.
 
-### Binding IDs
+Keys are case-insensitive, so write ++ctrl+shift+x++ as `ctrl+shift+x` rather than Posting 2's
+`ctrl+X`. A comma can't be bound, since commas separate keys.
 
-These are the IDs of the actions that you can change the keybinding for:
+!!! note "Terminal support"
 
-- `send-request` - Send the current request. Default: `ctrl+j,alt+enter`.
-- `focus-method` - Focus the method selector. Default: `ctrl+t`.
-- `focus-url` - Focus the URL input. Default: `ctrl+l`.
-- `save-request` - Save the current request. Default: `ctrl+s`.
-- `expand-section` - Expand or shrink the section which has focus. Default: `ctrl+m`.
-- `toggle-collection` - Toggle the collection browser. Default: `ctrl+h`.
-- `new-request` - Create a new request. Default: `ctrl+n`.
-- `commands` - Open the command palette. Default: `ctrl+p`.
-- `help` - Open the help dialog for the currently focused widget. Default: `f1,ctrl+question_mark`.
-- `quit` - Quit the application. Default: `ctrl+c`.
-- `jump` - Enter jump mode. Default: `ctrl+o`.
-- `open-in-pager` - Open the content of the focused text area in your $PAGER/$POSTING_PAGER/$POSTING_PAGER_JSON. Default: `f3`.
-- `open-in-editor` - Open the content of the focused text area in your $EDITOR/$POSTING_EDITOR. Default: `f4`.
-- `search-requests` - Go to a request by name. Default: `ctrl+shift+p`.
+    Not every terminal can send every key combination, and some are intercepted by your terminal,
+    multiplexer or operating system before they reach Posting. Combinations with `shift` on
+    non-printing keys, and keys such as `ctrl+enter`, generally need a terminal that supports the
+    [Kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/). If a shortcut
+    doesn't seem to work, try a simpler combination.
+
+## Action IDs
+
+These are the actions you can rebind, with their default keys:
+
+| ID | Default | Action |
+|----|---------|--------|
+| `send-request` | ++ctrl+j++, ++alt+enter++ | Send the request |
+| `jump` | ++ctrl+o++ | Enter [jump mode](./navigation.md#jump-mode) |
+| `commands` | ++ctrl+p++ | Open the [command palette](./command_palette.md) |
+| `save-request` | ++ctrl+s++ | Save the request to the collection |
+| `new-request` | ++ctrl+n++ | Open a new request tab |
+| `close-tab` | ++alt+w++ | Close the request tab |
+| `keep-tab` | *(none)* | Keep the [preview tab](./navigation.md#preview-tabs) open |
+| `next-tab` | ++alt+right++ | Go to the next request tab |
+| `previous-tab` | ++alt+left++ | Go to the previous request tab |
+| `search-tabs` | ++alt+down++ | Search the open request tabs |
+| `search-requests` | ++ctrl+g++ | Search the requests in the collection |
+| `focus-url` | ++ctrl+l++ | Focus the URL bar |
+| `focus-method` | ++ctrl+t++ | Open the method menu |
+| `toggle-collection` | ++ctrl+h++ | Show or hide the sidebar |
+| `expand-section` | ++alt+z++ | Expand the focused panel to fill the screen, or restore it |
+| `variables` | ++ctrl+shift+v++ | Open the [variables](./environments.md#the-variables-screen) screen |
+| `help` | ++f1++ | Show the keyboard shortcuts |
+
+`expand-section` can't be fully rebound yet: ++alt+z++ keeps working inside the Request and
+Response panels, and a new key always expands the Request panel.
+
+A few keys are fixed: ++escape++ cancels a request that's in flight (or closes whatever dialog is
+open), ++ctrl+c++ quits, ++ctrl+z++ suspends Posting, and ++ctrl+shift+s++ saves a text screenshot
+of the screen to the current directory.
+
+Many terminals send ++ctrl+h++ as ++backspace++. If ++ctrl+h++ doesn't toggle the sidebar for you,
+rebind `toggle-collection` or use **View: hide collection** in the command palette.
+
+## Default shortcuts
+
+Beyond the global actions above, the parts of Posting have keys of their own. These can't be
+rebound yet.
+
+### Everywhere
+
+| Key | Action |
+|-----|--------|
+| ++tab++ / ++shift+tab++ | Move focus to the next / previous field |
+| ++ctrl+z++ | Suspend Posting (resume it with `fg` in your shell) |
+
+### Method selector
+
+| Key | Action |
+|-----|--------|
+| ++enter++ / ++space++ | Open the method menu |
+| ++g++ ++p++ ++u++ ++a++ ++d++ ++h++ ++o++ | Choose `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` or `OPTIONS` (these also work in the open menu) |
+
+### URL bar
+
+| Key | Action |
+|-----|--------|
+| ++enter++ | Send the request, or import the URL bar's contents if it's a curl command |
+| ++down++ | Move down to the request tabs |
+| ++ctrl+y++ | Copy the URL |
+| Type `$` | Suggest variables |
+
+### Tabs
+
+These work on the request tabs, the response tabs and the sidebar tabs.
+
+| Key | Action |
+|-----|--------|
+| ++left++ / ++h++, ++right++ / ++l++ | Previous / next tab |
+| ++down++ / ++j++ / ++enter++ | Move into the tab's content |
+| ++up++ / ++k++ | Move back out (from the request tabs, to the URL bar) |
+
+### Headers, query and form tables
+
+| Key | Action |
+|-----|--------|
+| Type in the last row | Add a new row |
+| ++up++ / ++down++ | Move between rows (++up++ from the first row goes back to the tabs, or to the body type in a form) |
+| ++ctrl+space++ | Enable or disable the row |
+| ++ctrl+x++ | Delete the row |
+
+The Path table's names come from the URL, so only its values can be edited.
+
+### Selectors and checkboxes
+
+| Key | Action |
+|-----|--------|
+| ++left++ / ++h++, ++right++ / ++l++ | Change a choice such as the body type or auth type |
+| ++enter++ / ++space++ | Toggle a checkbox |
+
+### Text areas and inputs
+
+| Key | Action |
+|-----|--------|
+| ++ctrl+left++ / ++alt+b++, ++ctrl+right++ / ++alt+f++ | Move by word |
+| ++home++ / ++end++, ++ctrl+e++ | Start / end of the line |
+| ++shift++ + movement keys | Select text |
+| ++ctrl+a++ | Select all |
+| ++ctrl+w++ / ++alt+backspace++ | Delete the word before the cursor |
+| ++ctrl+u++ / ++ctrl+k++ | Delete to the start / end of the line |
+| ++ctrl+d++ / ++delete++ | Delete the character after the cursor |
+| ++f3++ | Open the text in your [pager](./external_tools.md) (request and response bodies) |
+| ++f4++ | Open the text in your [editor](./external_tools.md) (request and response bodies) |
+
+In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++escape++ dismisses it.
+
+### Response body
+
+| Key | Action |
+|-----|--------|
+| ++y++ | Copy the whole body |
+| ++w++ | Turn line wrapping on or off |
+| ++f3++ / ++f4++ | Open the body in your pager / editor |
+
+### Collection
+
+| Key | Action |
+|-----|--------|
+| ++enter++ | Open a request, or expand/collapse a folder |
+| ++up++ / ++k++, ++down++ / ++j++ | Move the cursor |
+| ++left++ / ++h++, ++right++ / ++l++ | Collapse / expand, or move to the parent / child |
+| ++home++ / ++g++, ++end++ / ++shift+g++ | First / last row |
+| ++space++ | Expand or collapse a folder |
+| `/` | Search the collection |
+| ++escape++ | Clear the search |
+| ++d++ | Duplicate the request |
+| ++backspace++ / ++delete++ | Delete the request |
+
+### History
+
+| Key | Action |
+|-----|--------|
+| ++enter++ | Open the entry |
+| ++up++ / ++k++, ++down++ / ++j++ | Move the cursor |
+| ++home++ / ++g++, ++end++ / ++shift+g++ | First / last entry |
+| ++page-up++ / ++ctrl+u++, ++page-down++ / ++ctrl+d++ | Page up / down |
+| ++backspace++ | Delete the entry |
+
+### Command palette and menus
+
+| Key | Action |
+|-----|--------|
+| ++up++ / ++down++ (or ++ctrl+p++ / ++ctrl+n++) | Move the cursor |
+| ++enter++ | Run the command, or open a submenu |
+| ++escape++ | Go back a level, or close the palette |
+| ++backspace++ on an empty search | Go back a level |
+
+## Coming from Posting 2
+
+Posting 3 uses the same action IDs as Posting 2 where the action still exists, so most keymap
+entries keep working. A few things changed:
+
+| Posting 2 | Posting 3 |
+|-----------|-----------|
+| `search-requests` defaulted to ++ctrl+shift+p++ | Now ++ctrl+g++ |
+| `expand-section` defaulted to ++ctrl+m++ | Now ++alt+z++ |
+| `help` also accepted `ctrl+?` | ++f1++ only |
+| `quit` could be rebound | ++ctrl+c++ is fixed |
+| `open-in-pager` and `open-in-editor` could be rebound | ++f3++ and ++f4++ are fixed |
+| Keys like `ctrl+X` meant ++ctrl+shift+x++ | Write `ctrl+shift+x` |
+
+Keymap entries for IDs Posting 3 doesn't have are ignored.
