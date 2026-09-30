@@ -24,8 +24,8 @@ github.com/clipperhouse/uax29/v2 v2.3.0 h1:SNdx9DVUqMoBuBoW3iLOj4FQv3dN5mDtuqwuh
 github.com/clipperhouse/uax29/v2 v2.3.0/go.mod h1:Wn1g7MK6OoeDT0vL+Q0SQLDz/KpfsVRgg6W7ihQeh4g=
 github.com/creack/pty v1.1.24 h1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=
 github.com/creack/pty v1.1.24/go.mod h1:08sCNb52WyoAwi2QDyzUCTgcvVFhUzewun7wtTfvcwE=
-github.com/darrenburns/terma v0.18.0 h1:YwrPpZOk+Ey7bESPEKEETxkgmUfIctgVHsYNxRBieM4=
-github.com/darrenburns/terma v0.18.0/go.mod h1:goxFyr8ERzavX+MQyWYiSwB+DiIf6OUBqR2wqEGOzvo=
+github.com/darrenburns/terma v0.18.1 h1:0subw3/NEfYKdJPkJegXlr5WcDyM7Kt0MGscY14mNH0=
+github.com/darrenburns/terma v0.18.1/go.mod h1:goxFyr8ERzavX+MQyWYiSwB+DiIf6OUBqR2wqEGOzvo=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dlclark/regexp2 v1.11.5 h1:Q/sSnsKerHeCkc/jSTNq1oCm7KiVgUMZRDUoRu0JQZQ=
