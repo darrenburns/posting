@@ -5,11 +5,12 @@ go 1.25.5
 require (
 	github.com/alecthomas/chroma/v2 v2.23.1
 	github.com/charmbracelet/ultraviolet v0.0.0-20251217160852-6b0c0e26fad9
-	github.com/darrenburns/terma v0.18.1
+	github.com/darrenburns/terma v0.19.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	github.com/bits-and-blooms/bitset v1.24.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.1 // indirect
 	github.com/charmbracelet/x/ansi v0.11.3 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
