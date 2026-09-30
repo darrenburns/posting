@@ -134,6 +134,11 @@ func authPrefix(name string) string {
 }
 func (p *parser) addVariable(name, value string) {
 	if !p.variableNames[name] {
+		p.outputBytes += len(name) + len(value) + len("OpenAPI")
+		if p.outputBytes > maxMaterializedBytes {
+			p.fail("OpenAPI materialized request data exceeds 32 MiB")
+			return
+		}
 		p.variableNames[name] = true
 		p.result.Variables = append(p.result.Variables, model.Variable{Name: name, Value: value, Source: "OpenAPI"})
 	}
