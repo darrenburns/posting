@@ -5,6 +5,9 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/darrenburns/posting/internal/env"
+	"github.com/darrenburns/posting/internal/model"
 )
 
 func TestEnvironmentFilesAcceptNamesAndFiles(t *testing.T) {
@@ -87,5 +90,45 @@ func TestEnvironmentFilesAcceptNamesAndFiles(t *testing.T) {
 	}
 	if want := []string{"posting.env"}; !reflect.DeepEqual(names(got), want) {
 		t.Errorf("default = %v, want %v", names(got), want)
+	}
+}
+
+func TestNamedEnvironmentReappliesItsLayers(t *testing.T) {
+	dir := t.TempDir()
+	for name, content := range map[string]string{
+		"posting.env":       "X=base\nBASE_ONLY=base\n",
+		"posting.local.env": "X=base-local\n",
+		"staging.env":       "X=stage\n",
+		"staging.local.env": "LOCAL=stage-local\n",
+		"prod.env":          "X=prod\nBASE_ONLY=prod\nLOCAL=prod\n",
+	} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, tc := range []struct {
+		name     string
+		args     []string
+		baseOnly string
+	}{
+		{"file before name", []string{filepath.Join(dir, "staging.env"), "staging"}, "base"},
+		{"repeated name", []string{"staging", "prod", "staging"}, "prod"},
+		{"local file before name", []string{filepath.Join(dir, "staging.local.env"), "prod", "staging"}, "prod"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			files, err := environmentFiles(tc.args, []string{dir})
+			if err != nil {
+				t.Fatal(err)
+			}
+			loaded, err := env.Load(files)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := model.Values(loaded.Variables)
+			want := map[string]string{"X": "stage", "LOCAL": "stage-local", "BASE_ONLY": tc.baseOnly}
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("values = %v, want %v (files %v)", got, want, files)
+			}
+		})
 	}
 }

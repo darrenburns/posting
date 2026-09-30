@@ -2,6 +2,8 @@ package ui
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -9,6 +11,7 @@ import (
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/collection"
+	"github.com/darrenburns/posting/internal/env"
 	"github.com/darrenburns/posting/internal/model"
 )
 
@@ -108,4 +111,44 @@ func TestBrowserOpenFailureIsShown(tt *testing.T) {
 		toast := app.toast.Peek()
 		return toast.kind == toastError && strings.Contains(toast.message, docsURL) && strings.Contains(toast.message, "no launcher")
 	})
+}
+
+func TestLoadEnvironmentFileRemembersSuccessfulSwitch(tt *testing.T) {
+	dir := tt.TempDir()
+	staging, prod := filepath.Join(dir, "staging.env"), filepath.Join(dir, "prod.env")
+	for file, content := range map[string]string{staging: "X=stage\n", prod: "X=prod\n"} {
+		if err := os.WriteFile(file, []byte(content), 0o600); err != nil {
+			tt.Fatal(err)
+		}
+	}
+	memory := env.Memory{File: filepath.Join(tt.TempDir(), "environments.json")}
+	app := New(Config{
+		Collection:   model.SampleCollection(),
+		Environments: env.Source{Dirs: []string{dir}},
+		RememberEnvironment: func(files []string) {
+			if err := memory.Remember(dir, files); err != nil {
+				tt.Fatal(err)
+			}
+		},
+		UserHost: "user@host",
+	})
+	app.switchEnvironment([]string{staging})
+	app.openEnvFileDialog()
+	app.envFile.path.SetText(prod)
+	app.submitEnvFile()
+	if app.envFile.err.Peek() != "" || app.variableValuesPeek()["X"] != "prod" {
+		tt.Fatal("dialog did not load prod successfully")
+	}
+	if got := memory.Recall(dir); !reflect.DeepEqual(got, []string{prod}) {
+		tt.Fatalf("remembered %v, want prod", got)
+	}
+	app.openEnvFileDialog()
+	app.envFile.path.SetText(filepath.Join(dir, "missing.env"))
+	app.submitEnvFile()
+	if app.envFile.err.Peek() == "" || app.overlay.Peek() != "envfile" {
+		tt.Fatal("failed load should keep the dialog open with an error")
+	}
+	if got := memory.Recall(dir); !reflect.DeepEqual(got, []string{prod}) {
+		tt.Fatalf("failed load changed remembered environment to %v", got)
+	}
 }

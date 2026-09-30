@@ -178,6 +178,9 @@ func (a *App) submitEnvFile() {
 	}
 	a.closeOverlay()
 	a.setEnvironment(loaded)
+	if a.env.remember != nil {
+		a.env.remember(loaded.Files)
+	}
 	a.notify("Switched to "+loaded.Name, toastInfo)
 	t.RequestFocus(urlInputID)
 }

@@ -205,8 +205,8 @@ func environmentFiles(given []string, dirs []string) ([]string, error) {
 		return env.Stack(cwd, env.BaseName), nil
 	}
 	// A file given explicitly is layered where it's given, even if it's
-	// already in the stack, so repeating it re-applies its values. A name
-	// only adds the files not already layered, so two names share one base.
+	// already in the stack, so repeating it re-applies its values. Names
+	// re-apply their own layers too, but share base layers already loaded.
 	var files []string
 	for _, arg := range given {
 		abs, err := filepath.Abs(arg)
@@ -221,10 +221,12 @@ func environmentFiles(given []string, dirs []string) ([]string, error) {
 		if named == nil {
 			return nil, fmt.Errorf("environment %s is neither a file nor an environment in %s", arg, strings.Join(dirs, ", "))
 		}
+		base := env.Stack(filepath.Dir(named[0]), env.BaseName)
 		for _, file := range named {
-			if !slices.Contains(files, file) {
-				files = append(files, file)
+			if slices.Contains(base, file) && slices.Contains(files, file) {
+				continue
 			}
+			files = append(files, file)
 		}
 	}
 	return files, nil

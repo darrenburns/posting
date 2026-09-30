@@ -132,7 +132,7 @@ the layers from the first of these that has it. The base layers on their own are
 
 `--env` also accepts the path of a file, which is loaded on its own, without the base. Repeat `--env` to
 layer names and files in any order, later ones on top. A file given again is applied again, so the last
-one given wins:
+one given wins. Named environments also reapply their own layers; shared base layers are loaded only once:
 
 ```bash
 posting --env shared.env --env dev.env
@@ -159,7 +159,7 @@ remembered.
 
 To use an environment file from anywhere else, choose **Load environment file…** in the command
 palette and type its path. Separate several paths with commas to layer them. An environment loaded
-this way lasts for the session only.
+this way is also remembered for the collection.
 
 Switching environments keeps any session values you've set.
 
