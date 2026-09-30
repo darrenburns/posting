@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/darrenburns/posting/internal/importing"
@@ -51,9 +52,11 @@ type request struct {
 	Certificate json.RawMessage
 }
 type parser struct {
-	result   importing.Result
-	seen     map[string]bool
-	defaults map[string]string
+	result         importing.Result
+	seen           map[string]bool
+	defaults       map[string]string
+	expansionBytes int
+	err            error
 }
 
 // Parse converts a collection into requests and collection defaults. A fatal
@@ -112,6 +115,9 @@ func Parse(data []byte) (importing.Result, error) {
 	if err := p.walk(in.Item, nil, in.Auth, map[string]string{}, 0); err != nil {
 		return importing.Result{}, err
 	}
+	if p.err != nil {
+		return importing.Result{}, p.err
+	}
 	if len(p.result.Requests) == 0 {
 		return importing.Result{}, fmt.Errorf("postman: collection contains no requests")
 	}
@@ -157,6 +163,9 @@ func (p *parser) walk(items []node, dirs []string, auth json.RawMessage, local m
 		return fmt.Errorf("postman: folder nesting exceeds 128 levels")
 	}
 	for index, item := range items {
+		if p.err != nil {
+			return p.err
+		}
 		name := item.Name
 		if name == "" {
 			name = fmt.Sprintf("Untitled %d", index+1)
@@ -226,6 +235,7 @@ func (p *parser) convert(raw, inherited json.RawMessage, scope map[string]string
 	if !supported {
 		return req, fmt.Errorf("HTTP method %q is not supported by Posting", in.Method)
 	}
+	scope = p.scopedAliases(scope)
 	transform := func(s string) string { return p.template(s, scope, where) }
 	if err := p.readURL(&req, in.URL, transform, where); err != nil {
 		return req, err
@@ -294,6 +304,16 @@ func (p *parser) convert(raw, inherited json.RawMessage, scope map[string]string
 	if err := p.readAuth(&req, a, transform, where); err != nil {
 		return req, err
 	}
+	for _, q := range req.Query {
+		for _, field := range []string{q.Name, q.Value} {
+			for _, ref := range model.FindVariables(field) {
+				value, ok := p.defaults[ref.Name]
+				if ok && (strings.ContainsAny(value, "%+") || reference.MatchString(value)) {
+					p.warn(where, "encoded query variable %q may need a decoded value in Posting; percent escapes and plus signs in substituted values are encoded literally", ref.Name)
+				}
+			}
+		}
+	}
 	if present(in.Proxy) {
 		p.warn(where, "proxy configuration is not imported")
 	}
@@ -311,11 +331,12 @@ func convertPairs(in []pair, transform func(string) string, encoded bool) []mode
 			value = *v.Value
 		}
 		key := v.Key
+		key, value = transform(key), transform(value)
 		if encoded {
-			key = decodeQuery(key)
-			value = decodeQuery(value)
+			key = decodeQuery(escapeEncodedDollars(key))
+			value = decodeQuery(escapeEncodedDollars(value))
 		}
-		out = append(out, model.KeyValue{Name: transform(key), Value: transform(value), Enabled: !v.Disabled})
+		out = append(out, model.KeyValue{Name: key, Value: value, Enabled: !v.Disabled})
 	}
 	return out
 }
@@ -368,7 +389,10 @@ func (p *parser) readURL(req *model.Request, raw json.RawMessage, transform func
 				if err != nil {
 					return fmt.Errorf("invalid URL path: %w", err)
 				}
-				text += "/" + strings.TrimPrefix(path, "/")
+				if bytes.HasPrefix(bytes.TrimSpace(u.Path), []byte(`"`)) {
+					path = strings.TrimPrefix(path, "/")
+				}
+				text += "/" + path
 			}
 			if u.Hash != "" {
 				text += "#" + u.Hash
@@ -382,8 +406,8 @@ func (p *parser) readURL(req *model.Request, raw json.RawMessage, transform func
 		}
 		vars = u.Variable
 	}
-	base, fragment, _ := strings.Cut(text, "#")
-	base, rawQuery, hasQuery := strings.Cut(base, "?")
+	base, fragment, _ := cutOutsideReference(text, '#')
+	base, rawQuery, hasQuery := cutOutsideReference(base, '?')
 	if structuredQuery {
 		for _, q := range query {
 			if q.Value == nil {
@@ -392,15 +416,15 @@ func (p *parser) readURL(req *model.Request, raw json.RawMessage, transform func
 		}
 		req.Query = convertPairs(query, transform, true)
 	} else if hasQuery {
-		for _, part := range strings.Split(rawQuery, "&") {
+		for _, part := range splitOutsideReference(rawQuery, '&') {
 			if part == "" {
 				continue
 			}
-			key, value, equals := strings.Cut(part, "=")
+			key, value, equals := cutOutsideReference(part, '=')
 			if !equals {
 				p.warn(where, "query parameters without '=' are normalized to empty values")
 			}
-			req.Query = append(req.Query, model.KeyValue{Name: transform(decodeQuery(key)), Value: transform(decodeQuery(value)), Enabled: true})
+			req.Query = append(req.Query, model.KeyValue{Name: decodeQuery(escapeEncodedDollars(transform(key))), Value: decodeQuery(escapeEncodedDollars(transform(value))), Enabled: true})
 		}
 	}
 	req.URL = transform(base)
@@ -415,15 +439,19 @@ func (p *parser) readURL(req *model.Request, raw json.RawMessage, transform func
 		// Posting matches whole path segments, whereas Postman supports :id.json.
 		// Give the suffixed segment an equivalent independent path parameter.
 		for _, segment := range model.PathParamNames(req.URL) {
-			root, suffix, _ := strings.Cut(segment, ".")
+			root, suffix, hasSuffix := strings.Cut(segment, ".")
 			if root != name {
 				continue
 			}
 			value := scalar(v.Value)
-			if suffix != "" && value != "" {
+			if hasSuffix && value != "" {
 				value += "." + suffix
 			}
-			req.PathParams = append(req.PathParams, model.KeyValue{Name: segment, Value: transform(value), Enabled: true})
+			value = transform(value)
+			if decoded, err := url.PathUnescape(escapeEncodedDollars(value)); err == nil {
+				value = decoded
+			}
+			req.PathParams = append(req.PathParams, model.KeyValue{Name: segment, Value: value, Enabled: true})
 		}
 	}
 	return nil
@@ -439,6 +467,9 @@ func joinURLParts(raw json.RawMessage, sep string) (string, error) {
 	}
 	values := make([]string, 0, len(parts))
 	for _, part := range parts {
+		if !present(part) {
+			return "", fmt.Errorf("URL parts cannot be null")
+		}
 		if err := json.Unmarshal(part, &s); err != nil {
 			var p struct{ Value *string }
 			if sep != "/" || json.Unmarshal(part, &p) != nil || p.Value == nil {
@@ -493,12 +524,42 @@ func (p *parser) readAuth(req *model.Request, raw json.RawMessage, transform fun
 		req.Auth = model.Auth{Type: model.AuthBearer, Token: transform(attrs["token"])}
 	case "apikey":
 		kv := model.KeyValue{Name: transform(attrs["key"]), Value: transform(attrs["value"]), Enabled: true}
-		if attrs["in"] == "query" {
-			req.Query = append(req.Query, kv)
-		} else if attrs["in"] == "header" || attrs["in"] == "" {
-			req.Headers = append(req.Headers, kv)
+		if kv.Name == "" && kv.Value == "" {
+			return nil
+		}
+		if len(model.FindVariables(kv.Name)) > 0 {
+			p.warn(where, "API key name uses variables; existing-field override is based on imported defaults and should be reviewed if the name changes")
+		}
+		// Postman's authorizer removes every matching field before adding the
+		// helper value. Headers match without case, query keys exactly.
+		queryTarget := model.Substitute(transform(attrs["in"]), model.MapLookup(p.defaults)) == "query"
+		if queryTarget {
+			kv.Name = decodeQuery(escapeEncodedDollars(kv.Name))
+			kv.Value = decodeQuery(escapeEncodedDollars(kv.Value))
+		}
+		defaults := map[string]string{}
+		for _, v := range p.result.Variables {
+			defaults[v.Name] = v.Value
+		}
+		resolvedKey := model.Substitute(kv.Name, model.MapLookup(defaults))
+		remove := func(fields []model.KeyValue, header bool) []model.KeyValue {
+			kept := fields[:0]
+			for _, field := range fields {
+				name := model.Substitute(field.Name, model.MapLookup(defaults))
+				same := name == resolvedKey
+				if header {
+					same = strings.EqualFold(name, resolvedKey)
+				}
+				if !same {
+					kept = append(kept, field)
+				}
+			}
+			return kept
+		}
+		if queryTarget {
+			req.Query = append(remove(req.Query, false), kv)
 		} else {
-			p.warn(where, "API key auth placement %q is unsupported", attrs["in"])
+			req.Headers = append(remove(req.Headers, true), kv)
 		}
 	default:
 		p.warn(where, "auth type %q is unsupported; configure authentication manually", kind)
@@ -534,6 +595,9 @@ func (p *parser) expandBudget(s string, values map[string]string, stack map[stri
 		p.warn(where, "variable expansion exceeds work limit; unresolved references retained")
 		return s
 	}
+	if p.err != nil {
+		return s
+	}
 	const limit = 1 << 20
 	if len(stack) > 64 {
 		p.warn(where, "variable expansion exceeds 64 levels; unresolved references remain literal")
@@ -560,9 +624,87 @@ func (p *parser) expandBudget(s string, values map[string]string, stack map[stri
 			p.warn(where, "variable expansion exceeds 1 MiB; original references retained")
 			return s
 		}
+		if ok {
+			p.expansionBytes += len(value)
+			if p.expansionBytes > 32<<20 {
+				p.err = fmt.Errorf("postman: total variable expansion exceeds 32 MiB")
+				return s
+			}
+		}
 		b.WriteString(value)
 		last = loc[1]
 	}
 	b.WriteString(s[last:])
 	return b.String()
 }
+
+// A collection alias may transitively refer to a locally overridden variable.
+// Materialize only those aliases, retaining independent collection defaults as
+// editable Posting variables. Sort keys so work limits remain deterministic.
+func (p *parser) scopedAliases(local map[string]string) map[string]string {
+	if len(local) == 0 {
+		return local
+	}
+	out := make(map[string]string, len(local))
+	for k, v := range local {
+		out[k] = v
+	}
+	keys := make([]string, 0, len(p.defaults))
+	for k := range p.defaults {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for pass := 0; pass < 64; pass++ {
+		changed := false
+		for _, key := range keys {
+			if _, ok := out[key]; ok {
+				continue
+			}
+			for _, ref := range reference.FindAllString(p.defaults[key], -1) {
+				if _, ok := out[ref[2:len(ref)-2]]; ok {
+					out[key] = p.defaults[key]
+					changed = true
+					break
+				}
+			}
+		}
+		if !changed {
+			break
+		}
+	}
+	return out
+}
+
+// Delimiters inside a Postman variable name belong to the template, not the
+// URL. Even unsupported variable names must remain intact for diagnostics.
+func cutOutsideReference(s string, delimiter byte) (string, string, bool) {
+	for i := 0; i < len(s); i++ {
+		if strings.HasPrefix(s[i:], "{{") {
+			if end := strings.Index(s[i+2:], "}}"); end >= 0 {
+				i += end + 3
+				continue
+			}
+		}
+		if s[i] == delimiter {
+			return s[:i], s[i+1:], true
+		}
+	}
+	return s, "", false
+}
+func splitOutsideReference(s string, delimiter byte) []string {
+	var parts []string
+	for {
+		before, after, ok := cutOutsideReference(s, delimiter)
+		parts = append(parts, before)
+		if !ok {
+			return parts
+		}
+		s = after
+	}
+}
+
+// Decode only after interpreting source templates. Otherwise %7B%7BNAME%7D%7D
+// accidentally becomes a variable. Newly decoded dollars must remain literal
+// in Posting, while existing escaped dollars and generated ${NAME} references
+// retain the template converter's meaning.
+func escapeEncodedDollars(s string) string { return strings.ReplaceAll(s, "%24", "$$") }
