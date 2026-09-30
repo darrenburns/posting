@@ -27,7 +27,6 @@ type Pair struct {
 //
 // Lines that aren't assignments are ignored.
 func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
-	data = strings.ReplaceAll(data, "\r\n", "\n")
 	var pairs []Pair
 	values := map[string]string{}
 	lookup := func(name string) (string, bool) {
@@ -46,7 +45,7 @@ func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
 			line, rest = data[:i], data[i+1:]
 		}
 		data = rest
-		trimmed := strings.TrimSpace(line)
+		trimmed := strings.TrimLeft(line, " \t\r")
 		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
 			continue
 		}
@@ -81,12 +80,12 @@ func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
 		case strings.HasPrefix(raw, `'`):
 			body := raw[1:]
 			for {
-				if end := strings.IndexByte(body, '\''); end >= 0 {
-					value = body[:end]
+				if end := closingQuote(body, '\''); end >= 0 {
+					value = unescapeSingle(body[:end])
 					break
 				}
 				if data == "" {
-					value = body
+					value = unescapeSingle(body)
 					break
 				}
 				next := data
@@ -111,7 +110,7 @@ func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
 	return pairs
 }
 
-// closingQuote finds the unescaped quote ending a double-quoted value.
+// closingQuote finds the unescaped quote ending a quoted value.
 func closingQuote(s string, quote byte) int {
 	for i := 0; i < len(s); i++ {
 		switch s[i] {
@@ -122,6 +121,11 @@ func closingQuote(s string, quote byte) int {
 		}
 	}
 	return -1
+}
+
+// unescapeSingle follows dotenv's two escapes inside single quotes.
+func unescapeSingle(s string) string {
+	return strings.NewReplacer(`\\`, `\`, `\'`, `'`).Replace(s)
 }
 
 func unescape(s string) string {

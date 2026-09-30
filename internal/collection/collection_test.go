@@ -102,9 +102,7 @@ func TestMarshalOmitsDefaults(t *testing.T) {
 	req.Options.TimeoutSeconds = 30
 	data, _ = MarshalRequest(req)
 	want := `name: Ping
-description: |-
-  Two
-  lines
+description: "Two\nlines "
 method: POST
 url: https://example.com
 body:
