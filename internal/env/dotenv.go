@@ -179,35 +179,152 @@ func validName(name string) bool {
 }
 
 // Load reads and layers the files: a variable in a later file overrides the
-// same variable in an earlier one. The environment is named after the files.
+// same variable in an earlier one, and a ${NAME} in a later file can use a
+// value from an earlier one. The environment is named after the files.
 func Load(files []string) (model.Environment, error) {
 	environment := model.Environment{Name: Name(files), Files: files}
-	index := map[string]int{}
+	loaded := map[string]string{}
+	lookup := func(name string) (string, bool) {
+		if v, ok := loaded[name]; ok {
+			return v, true
+		}
+		return os.LookupEnv(name)
+	}
+	layers := make([][]model.Variable, 0, len(files))
 	for _, file := range files {
 		data, err := os.ReadFile(file)
 		if err != nil {
 			return model.Environment{}, err
 		}
 		source := filepath.Base(file)
-		for _, pair := range Parse(string(data), os.LookupEnv) {
-			v := model.Variable{Name: pair.Name, Value: pair.Value, Source: source}
-			if i, ok := index[pair.Name]; ok {
-				environment.Variables[i] = v
-				continue
-			}
-			index[pair.Name] = len(environment.Variables)
-			environment.Variables = append(environment.Variables, v)
+		var layer []model.Variable
+		for _, pair := range Parse(string(data), lookup) {
+			layer = append(layer, model.Variable{Name: pair.Name, Value: pair.Value, Source: source})
 		}
+		for _, v := range layer {
+			loaded[v.Name] = v.Value
+		}
+		layers = append(layers, layer)
 	}
-	sort.Slice(environment.Variables, func(i, j int) bool { return environment.Variables[i].Name < environment.Variables[j].Name })
+	environment.Variables = model.Merge(layers...)
 	return environment, nil
 }
 
-// Name labels a set of files the way the switcher shows them.
+// The layering convention. In a folder, posting.env is the base that every
+// named environment builds on, and <name>.env is the environment itself.
+// Either may have a .local.env companion for values kept out of version
+// control, which layers directly above it:
+//
+//	posting.env → posting.local.env → staging.env → staging.local.env
+const (
+	BaseFile    = "posting.env"
+	localSuffix = ".local.env"
+	// BaseName is the name of the base environment on its own.
+	BaseName = "base"
+)
+
+// localFile is the .local.env companion of an environment file name.
+func localFile(name string) string { return strings.TrimSuffix(name, ".env") + localSuffix }
+
+// isLocal reports whether a file name is a .local.env companion.
+func isLocal(name string) bool { return strings.HasSuffix(name, localSuffix) && name != localSuffix }
+
+// stem is the environment name a file name gives: staging.env and
+// staging.local.env are both "staging". Names outside the convention (.env,
+// .env.test) are kept whole.
+func stem(name string) string {
+	switch {
+	case isLocal(name):
+		return strings.TrimSuffix(name, localSuffix)
+	case strings.HasSuffix(name, ".env") && name != ".env":
+		return strings.TrimSuffix(name, ".env")
+	}
+	return name
+}
+
+// isBase reports whether a file name belongs to the base layers.
+func isBase(name string) bool { return name == BaseFile || name == localFile(BaseFile) }
+
+// Stack is the files of the environment called name in dir, in layering
+// order, or nil if dir has no such environment. The base environment
+// ("base", or "") is posting.env and posting.local.env alone; any other name
+// is layered on top of them. Only files that exist are included.
+func Stack(dir, name string) []string {
+	exists := func(file string) bool {
+		info, err := os.Stat(filepath.Join(dir, file))
+		return err == nil && !info.IsDir()
+	}
+	var own []string
+	if name != "" && name != BaseName {
+		file := name + ".env"
+		if strings.ContainsRune(name, filepath.Separator) || isBase(file) {
+			return nil
+		}
+		for _, f := range []string{file, localFile(file)} {
+			if exists(f) {
+				own = append(own, f)
+			}
+		}
+		if len(own) == 0 {
+			return nil
+		}
+	}
+	var names []string
+	for _, f := range []string{BaseFile, localFile(BaseFile)} {
+		if exists(f) {
+			names = append(names, f)
+		}
+	}
+	names = append(names, own...)
+	if len(names) == 0 {
+		return nil
+	}
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		abs = dir
+	}
+	files := make([]string, len(names))
+	for i, n := range names {
+		files[i] = filepath.Join(abs, n)
+	}
+	return files
+}
+
+// Named finds the environment called name in the first of dirs that has it.
+func Named(dirs []string, name string) []string {
+	for _, dir := range dirs {
+		if files := Stack(dir, name); files != nil {
+			return files
+		}
+	}
+	return nil
+}
+
+// Name labels a set of files the way the switcher shows them. A stack that
+// follows the layering convention is named after its environment ("staging"
+// for posting.env + staging.env + staging.local.env, "base" for posting.env
+// alone); anything else is named after its files.
 func Name(files []string) string {
 	names := make([]string, len(files))
+	present := map[string]bool{}
 	for i, file := range files {
 		names[i] = filepath.Base(file)
+		present[names[i]] = true
+	}
+	var own []string
+	for _, n := range names {
+		if isBase(n) || isLocal(n) && present[stem(n)+".env"] {
+			continue
+		}
+		own = append(own, n)
+	}
+	switch {
+	case len(files) == 0:
+		return ""
+	case len(own) == 0:
+		return BaseName
+	case len(own) == 1:
+		return stem(own[0])
 	}
 	return strings.Join(names, " + ")
 }
@@ -268,11 +385,37 @@ type Source struct {
 	Dirs []string
 }
 
-// Candidates offers each environment file found on its own.
+// Candidates offers the environments in each directory: the base on its
+// own, then each named environment layered on it. Files outside the
+// convention, such as .env, are offered on their own.
 func (s Source) Candidates() [][]string {
 	var out [][]string
-	for _, file := range Discover(s.Dirs) {
-		out = append(out, []string{file})
+	seen := map[string]bool{}
+	for _, dir := range s.Dirs {
+		abs, err := filepath.Abs(dir)
+		if err != nil || seen[abs] {
+			continue
+		}
+		seen[abs] = true
+		files := Discover([]string{abs})
+		present := map[string]bool{}
+		for _, file := range files {
+			present[filepath.Base(file)] = true
+		}
+		if base := Stack(abs, BaseName); base != nil {
+			out = append(out, base)
+		}
+		for _, file := range files {
+			name := filepath.Base(file)
+			switch {
+			case isBase(name), isLocal(name) && present[stem(name)+".env"]:
+				// Part of the base, or of the environment it's local to.
+			case isLocal(name), strings.HasSuffix(name, ".env") && name != ".env":
+				out = append(out, Stack(abs, stem(name)))
+			default:
+				out = append(out, []string{file})
+			}
+		}
 	}
 	return out
 }

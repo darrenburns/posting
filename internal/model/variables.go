@@ -1,6 +1,9 @@
 package model
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // VariableRef is a $NAME or ${NAME} reference found in a string.
 type VariableRef struct {
@@ -98,4 +101,40 @@ func isIdentByte(c byte, first bool) bool {
 		return !first
 	}
 	return false
+}
+
+// Merge layers sets of variables in increasing priority: a variable in a
+// later layer replaces one of the same name in an earlier layer and records
+// the source it replaced. The result is sorted by name.
+func Merge(layers ...[]Variable) []Variable {
+	index := map[string]int{}
+	var out []Variable
+	for _, layer := range layers {
+		for _, v := range layer {
+			i, ok := index[v.Name]
+			if !ok {
+				index[v.Name] = len(out)
+				out = append(out, v)
+				continue
+			}
+			prev := out[i]
+			overrides := slices.Clone(v.Overrides)
+			if prev.Source != v.Source {
+				overrides = append(overrides, prev.Source)
+			}
+			v.Overrides = append(overrides, prev.Overrides...)
+			out[i] = v
+		}
+	}
+	slices.SortFunc(out, func(a, b Variable) int { return strings.Compare(a.Name, b.Name) })
+	return out
+}
+
+// Values is the name → value map of merged variables.
+func Values(vars []Variable) map[string]string {
+	values := make(map[string]string, len(vars))
+	for _, v := range vars {
+		values[v.Name] = v.Value
+	}
+	return values
 }

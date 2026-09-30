@@ -738,7 +738,7 @@ func (o variablesOverlay) Build(ctx t.BuildContext) t.Widget {
 		Columns: []t.TableColumn{
 			{Width: t.Cells(24), Header: tableHeader(theme, "Variable")},
 			{Width: t.Flex(1), Header: tableHeader(theme, "Value")},
-			{Width: t.Cells(14), Header: tableHeader(theme, "Source")},
+			{Width: t.Cells(36), Header: tableHeader(theme, "Source")},
 		},
 		RenderCell: func(v model.Variable, row, col int, active, selected bool) t.Widget {
 			editing := f.editing.Get()
@@ -762,7 +762,7 @@ func (o variablesOverlay) Build(ctx t.BuildContext) t.Widget {
 			if !reveal && model.IsSensitiveName(v.Name) {
 				value = "••••••••••"
 			}
-			return tableCell(theme, active, focused, col == 0, []string{v.Name, value, v.Source}[col])
+			return tableCell(theme, active, focused, col == 0, []string{v.Name, value, variableSource(v)}[col])
 		},
 		OnSelect: a.editVariable,
 		Style:    t.Style{Width: t.Flex(1)},

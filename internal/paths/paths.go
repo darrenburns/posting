@@ -41,6 +41,9 @@ func ThemeDir() string { return filepath.Join(DataDir(), "themes") }
 // HistoryDir holds response history, one file per collection.
 func HistoryDir() string { return filepath.Join(DataDir(), "history") }
 
+// EnvironmentMemory remembers the environment last used in each collection.
+func EnvironmentMemory() string { return filepath.Join(DataDir(), "environments.json") }
+
 func xdg(variable, fallback string) string {
 	if dir := os.Getenv(variable); dir != "" && filepath.IsAbs(dir) {
 		return dir

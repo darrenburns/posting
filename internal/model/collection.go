@@ -50,11 +50,17 @@ type HistoryEntry struct {
 type Variable struct {
 	Name  string
 	Value string
-	// Source describes where the value came from ("session" or an env file name).
+	// Source describes where the value came from ("session", "host" or an
+	// env file name).
 	Source string
+	// Overrides are the sources of the values this one replaced, nearest
+	// first: with posting.env and staging.env layered, a variable set in
+	// both comes from staging.env and overrides posting.env.
+	Overrides []string
 }
 
-// Environment is a named set of variables loaded from one or more env files.
+// Environment is a named set of variables loaded from one or more env files,
+// layered in order.
 type Environment struct {
 	Name      string
 	Files     []string
