@@ -4,15 +4,17 @@
    Material's own variables are pointed at the same tokens. Sizes assume
    Material's 125% root. */
 :root {
-  --font-display: "Martian Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Headings and labels use the homepage's terminal face; body text stays
+     in a sans for long reading. */
+  --font-display: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --font-body: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-grid: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   /* Small headings, buttons and eyebrows. */
   --font-label: var(--font-display);
   --display-weight: 700;
-  --display-weight-2: 650;
-  --display-vars: "wdth" 87.5;
-  --display-tracking: -0.035em;
+  --display-weight-2: 700;
+  --display-vars: normal;
+  --display-tracking: -0.01em;
   --display-leading: 1.08;
   --display-scale: 1;
   --display-style: normal;
@@ -20,7 +22,8 @@
   --label-tracking: -0.01em;
   /* Advance width of one --font-grid cell, in em. */
   --grid-adv: 0.6;
-  --radius: 0.5rem;
+  /* Square corners, like the panes on the homepage. */
+  --radius: 0;
   --glow: color-mix(in oklab, var(--primary) 22%, transparent);
   --glow-2: color-mix(in oklab, var(--accent) 16%, transparent);
   --hairline: color-mix(in oklab, var(--border) 70%, transparent);
