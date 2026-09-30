@@ -413,25 +413,22 @@ body {
 }
 
 .wordmark {
-  /* The ANSI Shadow figlet, drawn cell by cell: 56 columns by 6 rows of
-     10x20 cells, with the double-line shadow drawn the way Posting's own
-     screens draw box characters. */
-  display: block;
-  width: min(100%, 56 * 1.6em * var(--grid-adv));
-  height: auto;
-  margin-bottom: 1lh;
+  /* The Calvin S figlet, set as text: thin box-drawing strokes rather than
+     solid blocks. Each figlet row spans one and a half text rows, and
+     line-height matches JetBrains Mono's box-drawing glyph height so the
+     strokes join between rows. The bottom margin rounds the block's
+     4.5 rows up to a whole 5. */
+  margin: 0 0 calc(1lh / 3);
+  padding: 0;
   overflow: visible;
-}
-
-.wordmark .wm-blocks {
-  fill: url(#wm-fill);
-  shape-rendering: crispEdges;
-}
-
-.wordmark .wm-shadow {
-  fill: none;
-  stroke: color-mix(in oklab, var(--primary) 45%, var(--dim));
-  stroke-width: 1.3;
+  background: none;
+  font-family: var(--font-grid);
+  /* 25 columns wide: shrink to fit narrow screens. */
+  font-size: min(calc(1.5 * 1.6em / 1.32), calc(100cqi / (25 * var(--grid-adv))));
+  line-height: 1.32;
+  color: var(--primary);
+  white-space: pre;
+  user-select: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
