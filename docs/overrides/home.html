@@ -14,3 +14,8 @@
 {% block content %}{% endblock %}
 
 {% block footer %}{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ 'javascripts/home.js' | url }}"></script>
+{% endblock %}
