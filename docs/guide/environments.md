@@ -7,11 +7,9 @@ These variables will be substituted into outgoing requests.
   <img src="https://github.com/darrenburns/posting/assets/5740731/24b64f58-747b-409e-9672-e354eb8994d8" alt="url-bar-environments-short">
 </p>
 
-## Loading variables
+## Environment files
 
-Variables are stored in `.env` files, and loaded using the `--env` option.
-
-Here's what a `.env` file might look like:
+Variables are stored in `.env` files. Here's what one might look like:
 
 ```bash
 # file: dev.env
@@ -20,72 +18,104 @@ ENV_NAME="dev"
 BASE_URL="https://${ENV_NAME}.example.com"
 ```
 
-To make these variables available in the UI, you can load them using the `--env` option:
+A value can refer to a variable defined above it with `${NAME}`, or
+`${NAME:-default}` to fall back to a default when it isn't set.
+
+## Layered environments
+
+An environment is built from layers: a *base* that every environment shares,
+and the environment itself on top. Name the files like this, side by side in
+a folder:
+
+| File                 | Layer                                                 |
+|----------------------|-------------------------------------------------------|
+| `posting.env`        | The base, shared by every environment                 |
+| `posting.local.env`  | Your own base values, kept out of version control     |
+| `<name>.env`         | The environment called `<name>`, e.g. `staging.env`   |
+| `<name>.local.env`   | Your own values for `<name>`, e.g. secrets            |
+
+Layers apply in that order, so a variable in a later layer overrides the same
+variable in an earlier one. A later layer can also build on an earlier one:
 
 ```bash
-posting --env dev.env
-```
-
-You can load multiple `.env` files by specifying the `--env` option multiple times:
-
-```bash
-posting --env dev.env --env shared.env
-```
-
-This allows you to build up a set of variables which are common to all environments, and then override them for specific environments.
-
-## Autoloading `.env` files
-
-If no `--env` options are provided, Posting will automatically load a `posting.env` file in the current working directory if it exists.
-
-## Using environment variables
-
-By default, Posting will only use variables defined in `.env` files that have been explicitly loaded using the `--env` option.
-
-If you want to permit using environment variables that exist on the host machine (i.e. those which are not defined in any `.env` files), you must set the `use_host_environment` config option to `true` (or set the environment variable `POSTING_USE_HOST_ENVIRONMENT=true`).
-
-## Practical example
-
-Imagine you're testing an API which exists in both `dev` and `prod` environments.
-
-The `dev` and `prod` environments share some common variables, but differ in many ways too.
-We can model this by having a single `shared.env` file which contains variables which are shared between environments, and then a `dev.env` and `prod.env` file which contain environment specific variables.
-
-```bash
-# file: shared.env
+# file: posting.env
 API_PATH="/api/v1"
-ENV_NAME="shared"
+BASE_URL="https://example.com"
 
-# file: dev.env
-API_KEY="dev-api-key"
-ENV_NAME="dev"
-BASE_URL="https://${ENV_NAME}.example.com"
+# file: staging.env
+BASE_URL="https://staging.example.com"
+API="${BASE_URL}${API_PATH}"   # https://staging.example.com/api/v1
 
-# file: prod.env
-API_KEY="prod-api-key"
-ENV_NAME="prod"
-BASE_URL="https://${ENV_NAME}.example.com"
+# file: staging.local.env
+API_KEY="my-staging-key"
 ```
 
-When working in the `dev` environment, you can then load all of the shared variables and all of the development environment specific variables using the `--env` option:
+Start Posting in an environment by name:
+
+```bash
+posting --env staging
+```
+
+This loads `posting.env`, `posting.local.env`, `staging.env` and
+`staging.local.env`, skipping any that don't exist. Posting looks for the
+files in the working directory, then the collection directory, then
+Posting's config directory.
+
+Keep your `.local.env` files out of version control so secrets stay on your
+machine:
+
+```bash
+# file: .gitignore
+*.local.env
+```
+
+### Layering files yourself
+
+`--env` also accepts files. A file is loaded exactly as given, without the
+base, and you can repeat `--env` to layer names and files in any order:
 
 ```bash
 posting --env shared.env --env dev.env
+posting --env staging --env ~/overrides.env
 ```
 
-This will load all of the shared variables from `shared.env`, and then load the variables from `dev.env`. Since `ENV_NAME` appears in both files, the value from the `dev.env` file will be used since that was the last one specified.
+## Choosing an environment
 
-Note that you do *not* need to restart to load changes made to these files,
-so you can open and edit your env files in an editor of your choice alongside Posting.
+Press ++ctrl+p++ and choose **Switch environment…**, or click the environment
+name in the header. The switcher lists each environment it finds, with its
+layers and how many variables it has, and **No environment** to use session
+variables alone.
 
-### Environment specific config
+Posting remembers the environment you switch to in each collection, and
+starts in it next time. Passing `--env` starts in that environment instead.
+Without either, Posting uses the base environment (`posting.env`) in the
+working directory if there is one.
 
-Since all Posting configuration options can also be specified as environment variables, we can also put environment specific config inside `.env` files. There's a dedicated "Configuration" section in this document which covers this in more detail.
+You don't need to restart to load changes to these files: open and edit them
+in an editor of your choice alongside Posting.
 
-For example, if you wanted to use a light theme in the prod environment (as a subtle reminder that you're in production!), you could set the environment variable `POSTING_THEME=solarized-light` inside the `prod.env` file.
+## Where a value comes from
 
-Note that configuration files take precedence over environment variables, so if you set a value in both a `.env` file and a `config.yaml`, the value from the `config.yaml` file will be used.
+Variables come from several places. From lowest to highest priority:
 
+1. Variables from the host machine, if `use_host_environment` is on
+2. The environment's files, in layer order
+3. Session values, set in the **Variables** view
+
+The **Variables** view (++ctrl+p++ → **Variables**) shows each variable with
+its source, and the layer it overrides, for example
+`staging.local.env over posting.env`. The preview under the URL bar shows the
+same for the variable under the cursor.
+
+## Using environment variables
+
+By default, Posting will only use variables defined in `.env` files.
+
+If you want to permit using environment variables that exist on the host machine (i.e. those which are not defined in any `.env` files), you must set the `use_host_environment` config option to `true` (or set the environment variable `POSTING_USE_HOST_ENVIRONMENT=true`).
+Values in your environment files override host variables of the same name.
+
+Posting's own settings (`POSTING_THEME` and so on) are read from the host
+environment, not from `.env` files, and take precedence over `config.yaml`.
 
 ### Sending literal dollar signs in a body
 

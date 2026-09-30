@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -238,7 +239,8 @@ func (p urlPreview) Build(ctx t.BuildContext) t.Widget {
 	graphemes := s.url.Content.Get()
 	cursor := s.url.CursorIndex.Get()
 	text := strings.Join(graphemes, "")
-	values := p.app.variableValues()
+	variables := p.app.resolvedVariables()
+	values := model.Values(variables)
 	style := t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(12, 0)}
 
 	if curl.IsCommand(text) {
@@ -271,6 +273,10 @@ func (p urlPreview) Build(ctx t.BuildContext) t.Widget {
 			spans = append(spans, t.Span{Text: "•••••••• (hidden)", Style: t.SpanStyle{Foreground: theme.TextMuted}})
 		default:
 			spans = append(spans, t.Span{Text: value, Style: t.SpanStyle{Foreground: theme.Text}})
+		}
+		if ok {
+			i, _ := slices.BinarySearchFunc(variables, ref.Name, func(v model.Variable, name string) int { return strings.Compare(v.Name, name) })
+			spans = append(spans, t.Span{Text: "  from " + variableSource(variables[i]), Style: t.SpanStyle{Foreground: theme.TextMuted, Italic: true}})
 		}
 		return t.Text{Spans: spans, Style: style}
 	}

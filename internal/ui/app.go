@@ -43,6 +43,9 @@ type Config struct {
 	Environments EnvironmentSource
 	// Environment is the files of the environment active at startup.
 	Environment []string
+	// RememberEnvironment records the environment the user switches to, so
+	// the next launch can start in it. Switching to none passes no files.
+	RememberEnvironment func(files []string)
 	// HostVariables are available to every request, below the environment.
 	HostVariables []model.Variable
 	// WatchEnvironment reloads the active environment when its files change.
@@ -194,7 +197,7 @@ func New(cfg Config) *App {
 		history:        t.NewAnySignal[[]model.HistoryEntry](nil),
 		historyList:    t.NewListState[model.HistoryEntry](nil),
 		historyScroll:  t.NewScrollState(),
-		env:            &environments{source: cfg.Environments, active: t.NewAnySignal(model.Environment{}), host: cfg.HostVariables},
+		env:            &environments{source: cfg.Environments, active: t.NewAnySignal(model.Environment{}), host: cfg.HostVariables, remember: cfg.RememberEnvironment},
 		sessionVars:    t.NewAnySignal(map[string]string{}),
 		sessions:       t.NewAnySignal[[]*Session](nil),
 		active:         t.NewSignal(0),

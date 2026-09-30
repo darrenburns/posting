@@ -65,7 +65,8 @@ A terminal HTTP client.
 
 Options:
   -c, --collection DIR   Collection directory (default: the default collection)
-  -e, --env FILE         Environment file; repeat to layer several
+  -e, --env ENV          Environment name (staging) or file; repeat to layer
+                         several
   -v, --version          Print the version
 `)
 	}
@@ -115,13 +116,19 @@ func appConfig(opts options) (ui.Config, error) {
 	if info, err := os.Stat(dir); err != nil || !info.IsDir() {
 		return ui.Config{}, fmt.Errorf("collection %s is not a directory", dir)
 	}
-	envFiles, err := environmentFiles(opts.envFiles)
-	if err != nil {
-		return ui.Config{}, err
-	}
 	envDirs := []string{dir, paths.ConfigDir()}
 	if cwd, err := os.Getwd(); err == nil {
 		envDirs = append([]string{cwd}, envDirs...)
+	}
+	memory := env.Memory{File: paths.EnvironmentMemory()}
+	envFiles, err := environmentFiles(opts.envFiles, envDirs)
+	if err != nil {
+		return ui.Config{}, err
+	}
+	if len(opts.envFiles) == 0 {
+		if remembered := memory.Recall(dir); remembered != nil {
+			envFiles = remembered
+		}
 	}
 	for _, file := range envFiles {
 		envDirs = append(envDirs, filepath.Dir(file))
@@ -177,27 +184,49 @@ func appConfig(opts options) (ui.Config, error) {
 		Environment:      envFiles,
 		WatchEnvironment: settings.WatchEnvFiles,
 		StartupMessages:  messages,
+
+		// Forgetting the choice only costs starting in the default
+		// environment next time, so a failed write isn't reported.
+		RememberEnvironment: func(files []string) { memory.Remember(dir, files) },
 	}, nil
 }
 
-// environmentFiles resolves the --env files. Without any, posting.env in the
-// working directory is used if it exists, as in Posting 2.
-func environmentFiles(given []string) ([]string, error) {
+// environmentFiles resolves the --env arguments, layered in order. Each is a
+// file, or the name of an environment in dirs ("staging" for posting.env +
+// staging.env + staging.local.env). Without any, the base environment in the
+// working directory is used if it exists, as posting.env was in Posting 2.
+func environmentFiles(given []string, dirs []string) ([]string, error) {
 	if len(given) == 0 {
-		if info, err := os.Stat("posting.env"); err == nil && !info.IsDir() {
-			given = []string{"posting.env"}
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, nil
+		}
+		return env.Stack(cwd, env.BaseName), nil
+	}
+	var files []string
+	seen := map[string]bool{}
+	add := func(file string) {
+		if !seen[file] {
+			seen[file] = true
+			files = append(files, file)
 		}
 	}
-	files := make([]string, 0, len(given))
-	for _, file := range given {
-		abs, err := filepath.Abs(file)
+	for _, arg := range given {
+		abs, err := filepath.Abs(arg)
 		if err != nil {
 			return nil, err
 		}
-		if info, err := os.Stat(abs); err != nil || info.IsDir() {
-			return nil, fmt.Errorf("environment file %s does not exist", file)
+		if info, err := os.Stat(abs); err == nil && !info.IsDir() {
+			add(abs)
+			continue
 		}
-		files = append(files, abs)
+		named := env.Named(dirs, arg)
+		if named == nil {
+			return nil, fmt.Errorf("environment %s is neither a file nor an environment in %s", arg, strings.Join(dirs, ", "))
+		}
+		for _, file := range named {
+			add(file)
+		}
 	}
 	return files, nil
 }

@@ -3,8 +3,8 @@ package ui
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -55,60 +55,49 @@ type environments struct {
 	active  t.AnySignal[model.Environment]
 	host    []model.Variable
 	history [][]string
+	// remember records the environment switched to, for the next launch.
+	remember func(files []string)
 
 	// watched mirrors the active files for the watcher goroutine.
 	mu      sync.Mutex
 	watched []string
 }
 
-// variableValues merges host variables, the active environment and session
-// overrides, in increasing priority. Reading it in Build subscribes to
+// resolvedVariables layers host variables, the active environment's files
+// and session overrides, in increasing priority, keeping where each value
+// comes from and what it overrides. Reading it in Build subscribes to
 // environment and session changes.
-func (a *App) variableValues() map[string]string {
-	return a.mergeVariables(a.env.active.Get().Variables, a.sessionVars.Get())
+func (a *App) resolvedVariables() []model.Variable {
+	return a.layerVariables(a.env.active.Get().Variables, a.sessionVars.Get())
 }
+
+// variableList is resolvedVariables without subscribing (for actions).
+func (a *App) variableList() []model.Variable {
+	return a.layerVariables(a.env.active.Peek().Variables, a.sessionVars.Peek())
+}
+
+// variableValues is the value of every variable. Reading it in Build
+// subscribes to environment and session changes.
+func (a *App) variableValues() map[string]string { return model.Values(a.resolvedVariables()) }
 
 // variableValuesPeek is variableValues without subscribing (for actions).
-func (a *App) variableValuesPeek() map[string]string {
-	return a.mergeVariables(a.env.active.Peek().Variables, a.sessionVars.Peek())
-}
+func (a *App) variableValuesPeek() map[string]string { return model.Values(a.variableList()) }
 
-func (a *App) mergeVariables(envVars []model.Variable, session map[string]string) map[string]string {
-	values := map[string]string{}
-	for _, v := range a.env.host {
-		values[v.Name] = v.Value
-	}
-	for _, v := range envVars {
-		values[v.Name] = v.Value
-	}
+func (a *App) layerVariables(envVars []model.Variable, session map[string]string) []model.Variable {
+	sessionVars := make([]model.Variable, 0, len(session))
 	for name, value := range session {
-		values[name] = value
+		sessionVars = append(sessionVars, model.Variable{Name: name, Value: value, Source: "session"})
 	}
-	return values
+	return model.Merge(a.env.host, envVars, sessionVars)
 }
 
-// variableList is every variable with where its value comes from.
-func (a *App) variableList() []model.Variable {
-	byName := map[string]model.Variable{}
-	for _, v := range a.env.host {
-		byName[v.Name] = v
+// variableSource describes where a variable's value comes from, and the
+// layer beneath it that it overrides, if any.
+func variableSource(v model.Variable) string {
+	if len(v.Overrides) == 0 {
+		return v.Source
 	}
-	for _, v := range a.env.active.Peek().Variables {
-		byName[v.Name] = v
-	}
-	for name, value := range a.sessionVars.Peek() {
-		byName[name] = model.Variable{Name: name, Value: value, Source: "session"}
-	}
-	out := make([]model.Variable, 0, len(byName))
-	for _, v := range byName {
-		out = append(out, v)
-	}
-	sortVariables(out)
-	return out
-}
-
-func sortVariables(vars []model.Variable) {
-	sort.Slice(vars, func(i, j int) bool { return vars[i].Name < vars[j].Name })
+	return v.Source + " over " + v.Overrides[0]
 }
 
 func (a *App) resolver() func(string) bool {
@@ -153,9 +142,14 @@ func (a *App) setEnvironment(e model.Environment) {
 	a.env.history = append(a.env.history, e.Files)
 }
 
+// switchEnvironment makes files the active environment at the user's
+// request, and remembers the choice for the next launch.
 func (a *App) switchEnvironment(files []string) {
 	if !a.activateEnvironment(files) {
 		return
+	}
+	if a.env.remember != nil {
+		a.env.remember(files)
 	}
 	if len(files) == 0 {
 		a.notify("Environment cleared", toastInfo)
@@ -193,6 +187,9 @@ func (a *App) environmentItems() []t.CommandPaletteItem {
 		} else {
 			item.Label = loaded.Name
 			item.Description = pluralize(len(loaded.Variables), "variable")
+			if layers := fileNames(files); layers != loaded.Name {
+				item.Description += " · " + layers
+			}
 		}
 		items = append(items, item)
 	}
@@ -203,6 +200,15 @@ func (a *App) environmentItems() []t.CommandPaletteItem {
 		Action:  a.run(func() { a.switchEnvironment(nil) }),
 	})
 	return items
+}
+
+// fileNames lists an environment's files by name, in layering order.
+func fileNames(files []string) string {
+	names := make([]string, len(files))
+	for i, f := range files {
+		names[i] = filepath.Base(f)
+	}
+	return strings.Join(names, " + ")
 }
 
 // shortDir is where an environment's files live, abbreviated to fit beside
@@ -259,7 +265,7 @@ func (a *App) watchEnvironment(interval time.Duration) {
 			}
 			t.Dispatch(func() {
 				current := a.env.active.Peek()
-				if envKey(current.Files) != envKey(files) || slices.Equal(current.Variables, loaded.Variables) {
+				if envKey(current.Files) != envKey(files) || reflect.DeepEqual(current.Variables, loaded.Variables) {
 					return
 				}
 				a.env.active.Set(loaded)

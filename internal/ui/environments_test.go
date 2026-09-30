@@ -72,3 +72,48 @@ func TestSwitchingEnvironmentsKeepsSessionVariables(tt *testing.T) {
 		tt.Fatal("No environment should be marked current")
 	}
 }
+
+func TestSwitchingRemembersTheEnvironment(tt *testing.T) {
+	var remembered [][]string
+	app := New(Config{
+		Collection:          model.SampleCollection(),
+		Environments:        flakySource{StaticEnvironments(model.SampleEnvironments())},
+		Environment:         []string{"local.env"},
+		RememberEnvironment: func(files []string) { remembered = append(remembered, files) },
+		UserHost:            "user@host",
+	})
+	if len(remembered) != 0 {
+		tt.Fatalf("the startup environment isn't a choice to remember: %v", remembered)
+	}
+	app.switchEnvironment([]string{"staging.env"})
+	app.switchEnvironment([]string{"gone.env"})
+	app.switchEnvironment(nil)
+	want := [][]string{{"staging.env"}, nil}
+	if len(remembered) != len(want) || remembered[0][0] != "staging.env" || remembered[1] != nil {
+		tt.Fatalf("remembered %v, want %v", remembered, want)
+	}
+}
+
+func TestVariablesShowWhatTheyOverride(tt *testing.T) {
+	app := New(Config{
+		Collection: model.SampleCollection(),
+		Environments: StaticEnvironments{{Name: "staging", Files: []string{"posting.env", "staging.env"}, Variables: []model.Variable{
+			{Name: "BASE_URL", Value: "https://staging", Source: "staging.env", Overrides: []string{"posting.env"}},
+			{Name: "TIMEOUT", Value: "5", Source: "posting.env"},
+		}}},
+		Environment:   []string{"posting.env", "staging.env"},
+		HostVariables: []model.Variable{{Name: "TIMEOUT", Value: "1", Source: "host"}},
+		UserHost:      "user@host",
+	})
+	app.sessionVars.Set(map[string]string{"BASE_URL": "http://mine"})
+	got := map[string]string{}
+	for _, v := range app.variableList() {
+		got[v.Name] = variableSource(v)
+	}
+	if got["BASE_URL"] != "session over staging.env" || got["TIMEOUT"] != "posting.env over host" {
+		tt.Fatalf("sources = %v", got)
+	}
+	if v := app.variableValuesPeek(); v["BASE_URL"] != "http://mine" || v["TIMEOUT"] != "5" {
+		tt.Fatalf("values = %v", v)
+	}
+}
