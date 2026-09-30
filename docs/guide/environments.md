@@ -59,7 +59,8 @@ posting --env staging
 This loads `posting.env`, `posting.local.env`, `staging.env` and
 `staging.local.env`, skipping any that don't exist. Posting looks for the
 files in the working directory, then the collection directory, then
-Posting's config directory.
+Posting's config directory. The base on its own is the environment called
+`posting`, after its file.
 
 Keep your `.local.env` files out of version control so secrets stay on your
 machine:
@@ -72,7 +73,8 @@ machine:
 ### Layering files yourself
 
 `--env` also accepts files. A file is loaded exactly as given, without the
-base, and you can repeat `--env` to layer names and files in any order:
+base, and you can repeat `--env` to layer names and files in any order. A
+file given again is applied again, so the last one given wins:
 
 ```bash
 posting --env shared.env --env dev.env
@@ -87,7 +89,8 @@ layers and how many variables it has, and **No environment** to use session
 variables alone.
 
 Posting remembers the environment you switch to in each collection, and
-starts in it next time. Passing `--env` starts in that environment instead.
+starts in it next time. A named environment is rebuilt from its folder when
+Posting starts, so a `.local.env` file you've added since is included. Passing `--env` starts in that environment instead.
 Without either, Posting uses the base environment (`posting.env`) in the
 working directory if there is one.
 

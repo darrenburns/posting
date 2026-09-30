@@ -73,14 +73,14 @@ func TestStackFollowsTheConvention(t *testing.T) {
 		"only.local.env":    "A=6\n",
 	})
 	cases := map[string][]string{
-		"staging": {"posting.env", "posting.local.env", "staging.env", "staging.local.env"},
-		"prod":    {"posting.env", "posting.local.env", "prod.env"},
-		"only":    {"posting.env", "posting.local.env", "only.local.env"},
-		"base":    {"posting.env", "posting.local.env"},
-		"":        {"posting.env", "posting.local.env"},
-		"missing": nil,
-		"posting": nil,
-		"../prod": nil,
+		"staging":       {"posting.env", "posting.local.env", "staging.env", "staging.local.env"},
+		"prod":          {"posting.env", "posting.local.env", "prod.env"},
+		"only":          {"posting.env", "posting.local.env", "only.local.env"},
+		"posting":       {"posting.env", "posting.local.env"},
+		"":              {"posting.env", "posting.local.env"},
+		"missing":       nil,
+		"../prod":       nil,
+		"posting.local": nil,
 	}
 	for name, want := range cases {
 		got := Stack(dir, name)
@@ -93,7 +93,7 @@ func TestStackFollowsTheConvention(t *testing.T) {
 			t.Errorf("Stack(%q) = %v, want %v", name, baseNames(got), want)
 		}
 	}
-	if got := Stack(t.TempDir(), "base"); got != nil {
+	if got := Stack(t.TempDir(), "posting"); got != nil {
 		t.Errorf("an empty folder has no base: %v", got)
 	}
 	if got := Named([]string{t.TempDir(), dir}, "prod"); !reflect.DeepEqual(baseNames(got), cases["prod"]) {
@@ -113,8 +113,8 @@ func TestName(t *testing.T) {
 		want  string
 	}{
 		{nil, ""},
-		{[]string{"/a/posting.env"}, "base"},
-		{[]string{"/a/posting.env", "/a/posting.local.env"}, "base"},
+		{[]string{"/a/posting.env"}, "posting"},
+		{[]string{"/a/posting.env", "/a/posting.local.env"}, "posting"},
 		{[]string{"/a/posting.env", "/a/staging.env", "/a/staging.local.env"}, "staging"},
 		{[]string{"/a/staging.local.env"}, "staging"},
 		{[]string{"/a/dev.env"}, "dev"},
@@ -146,7 +146,7 @@ func TestCandidatesGroupLayers(t *testing.T) {
 		got = append(got, Name(files)+"="+strings.Join(baseNames(files), ","))
 	}
 	want := []string{
-		"base=posting.env,posting.local.env",
+		"posting=posting.env,posting.local.env",
 		".env=.env",
 		"prod=posting.env,posting.local.env,prod.env",
 		"staging=posting.env,posting.local.env,staging.env,staging.local.env",

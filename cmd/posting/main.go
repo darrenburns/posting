@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/darrenburns/terma"
@@ -203,21 +204,17 @@ func environmentFiles(given []string, dirs []string) ([]string, error) {
 		}
 		return env.Stack(cwd, env.BaseName), nil
 	}
+	// A file given explicitly is layered where it's given, even if it's
+	// already in the stack, so repeating it re-applies its values. A name
+	// only adds the files not already layered, so two names share one base.
 	var files []string
-	seen := map[string]bool{}
-	add := func(file string) {
-		if !seen[file] {
-			seen[file] = true
-			files = append(files, file)
-		}
-	}
 	for _, arg := range given {
 		abs, err := filepath.Abs(arg)
 		if err != nil {
 			return nil, err
 		}
 		if info, err := os.Stat(abs); err == nil && !info.IsDir() {
-			add(abs)
+			files = append(files, abs)
 			continue
 		}
 		named := env.Named(dirs, arg)
@@ -225,7 +222,9 @@ func environmentFiles(given []string, dirs []string) ([]string, error) {
 			return nil, fmt.Errorf("environment %s is neither a file nor an environment in %s", arg, strings.Join(dirs, ", "))
 		}
 		for _, file := range named {
-			add(file)
+			if !slices.Contains(files, file) {
+				files = append(files, file)
+			}
 		}
 	}
 	return files, nil

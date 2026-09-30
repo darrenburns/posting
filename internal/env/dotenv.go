@@ -219,8 +219,10 @@ func Load(files []string) (model.Environment, error) {
 const (
 	BaseFile    = "posting.env"
 	localSuffix = ".local.env"
-	// BaseName is the name of the base environment on its own.
-	BaseName = "base"
+	// BaseName is the name of the base environment on its own. It's named
+	// after its file, as every environment is, so it can't collide with one:
+	// base.env is an environment called "base", layered on posting.env.
+	BaseName = "posting"
 )
 
 // localFile is the .local.env companion of an environment file name.
@@ -247,7 +249,7 @@ func isBase(name string) bool { return name == BaseFile || name == localFile(Bas
 
 // Stack is the files of the environment called name in dir, in layering
 // order, or nil if dir has no such environment. The base environment
-// ("base", or "") is posting.env and posting.local.env alone; any other name
+// ("posting", or "") is posting.env and posting.local.env alone; any other name
 // is layered on top of them. Only files that exist are included.
 func Stack(dir, name string) []string {
 	exists := func(file string) bool {
@@ -302,8 +304,8 @@ func Named(dirs []string, name string) []string {
 
 // Name labels a set of files the way the switcher shows them. A stack that
 // follows the layering convention is named after its environment ("staging"
-// for posting.env + staging.env + staging.local.env, "base" for posting.env
-// alone); anything else is named after its files.
+// for posting.env + staging.env + staging.local.env, "posting" for
+// posting.env alone); anything else is named after its files.
 func Name(files []string) string {
 	names := make([]string, len(files))
 	present := map[string]bool{}
@@ -411,7 +413,12 @@ func (s Source) Candidates() [][]string {
 			case isBase(name), isLocal(name) && present[stem(name)+".env"]:
 				// Part of the base, or of the environment it's local to.
 			case isLocal(name), strings.HasSuffix(name, ".env") && name != ".env":
-				out = append(out, Stack(abs, stem(name)))
+				if stack := Stack(abs, stem(name)); stack != nil {
+					out = append(out, stack)
+					break
+				}
+				// A name Stack won't resolve is still offered, on its own.
+				out = append(out, []string{file})
 			default:
 				out = append(out, []string{file})
 			}
