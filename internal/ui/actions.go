@@ -23,11 +23,14 @@ func (a *App) actions() []action {
 	return []action{
 		{id: "send-request", keys: []string{"ctrl+j", "alt+enter"}, name: "Send", help: "Send the request", run: a.send},
 		{id: "jump", keys: []string{t.DefaultJumpKey}, name: "Jump", help: "Jump mode: move focus by typing a label", hidden: true, run: a.jump.Activate},
-		{id: "search-requests", keys: []string{"ctrl+g"}, name: "Go to request", help: "Go to a request in the collection", hidden: true, run: a.openRequestSearch},
+		{id: "search-requests", keys: []string{"ctrl+g"}, name: "Search requests", help: "Search the collection", hidden: true, run: a.focusTreeSearch},
 		{id: "save-request", keys: []string{"ctrl+s"}, name: "Save", help: "Save the request to the collection", run: a.saveRequest},
 		{id: "new-request", keys: []string{"ctrl+n"}, name: "New tab", help: "Open a new request tab", run: a.newTab},
 		{id: "commands", keys: []string{"ctrl+p"}, name: "Commands", help: "Command palette", run: a.openPalette},
 		{id: "close-tab", keys: []string{"alt+w"}, name: "Close tab", help: "Close the request tab", hidden: true, run: func() { a.closeSession(a.active.Peek()) }},
+		// Unbound by default: editing, sending or saving a preview tab keeps
+		// it too. The keymap can give it a key.
+		{id: "keep-tab", name: "Keep tab", help: "Keep the preview tab open", hidden: true, run: func() { a.keepSession(a.active.Peek()) }},
 		{id: "next-tab", keys: []string{"alt+right"}, name: "Next tab", help: "Next request tab", hidden: true, run: func() { a.cycleSession(1) }},
 		{id: "previous-tab", keys: []string{"alt+left"}, name: "Prev tab", help: "Previous request tab", hidden: true, run: func() { a.cycleSession(-1) }},
 		{id: "search-tabs", keys: []string{"alt+down"}, name: "Tabs", help: "Search the open request tabs", hidden: true, run: a.openTabSearch},

@@ -45,7 +45,7 @@ func (a *App) importCurl(command string) bool {
 	current := s.Snapshot()
 	req.Name, req.Description, req.File, req.Scripts = current.Name, current.Description, current.File, current.Scripts
 	s.Load(req)
-	s.dirty.Set(true)
+	s.markEdited()
 	a.notify("Imported curl command", toastSuccess)
 	return true
 }

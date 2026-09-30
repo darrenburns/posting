@@ -10,9 +10,8 @@ import (
 )
 
 const (
-	paletteID       = "palette"
-	requestSearchID = "request-search"
-	themesTitle     = "Themes"
+	paletteID   = "palette"
+	themesTitle = "Themes"
 )
 
 // overlays hosts every floating layer. Floating widgets register themselves
@@ -31,16 +30,6 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 			Offset:         t.Offset{Y: 3},
 			OnCursorChange: a.themePreviewHook(),
 			OnDismiss:      a.restoreTheme,
-		},
-		t.CommandPalette{
-			ID:          requestSearchID,
-			State:       a.requestSearch,
-			Placeholder: "Search for a request…",
-			Position:    t.FloatPositionTopCenter,
-			Offset:      t.Offset{Y: 3},
-			RenderItem: func(item t.CommandPaletteItem, active bool, match t.MatchResult) t.Widget {
-				return renderRequestSearchItem(ctx.Theme(), item, active, match)
-			},
 		},
 		a.tabSearchPalette(ctx.Theme()),
 		helpOverlay{app: a, visible: overlay == "help"},
@@ -87,7 +76,22 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "New request tab", Hint: a.keyHint("new-request"), Action: a.run(a.newTab)},
 		{Label: "Save request", Hint: a.keyHint("save-request"), Action: a.run(a.saveRequest)},
 		{Label: "Close request tab", Hint: a.keyHint("close-tab"), Action: a.run(func() { a.closeSession(a.active.Peek()) })},
-		{Label: "Go to request…", Hint: a.keyHint("search-requests"), Action: a.run(a.openRequestSearch)},
+	}
+	if s := a.current(); s != nil && s.preview.Peek() {
+		items = append(items, t.CommandPaletteItem{
+			Label:       "Keep tab open",
+			Description: "Keep this tab when you open another request",
+			Hint:        a.keyHint("keep-tab"),
+			Action:      a.run(func() { a.keepSession(s.id) }),
+		})
+	}
+	items = append(items, []t.CommandPaletteItem{
+		{Label: "Search requests…", Hint: a.keyHint("search-requests"), Action: func() {
+			// Closing the palette restores focus, which would otherwise
+			// replace the search box's.
+			a.palette.SetNextFocusIDOnClose(treeSearchID)
+			a.run(a.focusTreeSearch)()
+		}},
 		{Label: "Go to open tab…", Hint: a.keyHint("search-tabs"), Action: a.run(a.openTabSearch)},
 		{Label: "Jump mode", Hint: a.keyHint("jump"), Action: a.run(a.jump.Activate)},
 		{Divider: "Environment"},
@@ -134,7 +138,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: sidebarLabel, Hint: a.keyHint("toggle-collection"), Action: a.run(a.toggleSidebar)},
 		{Label: "View: expand request", Action: a.run(func() { a.expanded.Set("request") })},
 		{Label: "View: expand response", Action: a.run(func() { a.expanded.Set("response") })},
-	}
+	}...)
 	spacingLabel := "View: compact spacing"
 	if a.spacing.Peek() == "compact" {
 		spacingLabel = "View: standard spacing"
@@ -222,31 +226,6 @@ func (a *App) restoreTheme() {
 		t.SetTheme(a.themeBeforePreview)
 		a.themeBeforePreview = ""
 	}
-}
-
-// openRequestSearch lists every request in the collection for fuzzy search.
-func (a *App) openRequestSearch() {
-	var items []t.CommandPaletteItem
-	a.collection.Peek().Walk(func(_ *model.Collection, r model.Request) {
-		req := r
-		items = append(items, t.CommandPaletteItem{
-			Label: req.DisplayName(),
-			Hint:  req.File,
-			Data:  req.Method,
-			Action: func() {
-				a.requestSearch.SetNextFocusIDOnClose(urlInputID)
-				a.requestSearch.Close(false)
-				a.openRequest(req)
-			},
-		})
-	})
-	a.requestSearch.SetItems(items)
-	a.requestSearch.Open()
-}
-
-func renderRequestSearchItem(theme t.ThemeData, item t.CommandPaletteItem, active bool, match t.MatchResult) t.Widget {
-	method, _ := item.Data.(model.Method)
-	return renderMethodItem(theme, item, active, match, method, padRight(string(method), 8), "")
 }
 
 // renderMethodItem draws a palette row for a request: its method, in the
@@ -366,7 +345,10 @@ var helpSections = []helpSection{
 	{"Collection", [][2]string{
 		{"enter, double-click", "Open request / toggle folder"},
 		{"space", "Expand or collapse"},
-		{"/", "Search requests"},
+		{"/", "Search the collection"},
+		{"↓ / enter", "From the search box into the results"},
+		{"↑", "From the top row back to the search box"},
+		{"esc", "Clear the search"},
 		{"d", "Duplicate request"},
 		{"backspace", "Delete request"},
 	}},
@@ -494,6 +476,7 @@ func (a *App) submitSave() {
 	s.syncing = false
 	s.title.Set(req.DisplayName())
 	s.dirty.Set(false)
+	s.preview.Set(false)
 	a.closeOverlay()
 	a.notify("Saved "+path, toastSuccess)
 }
