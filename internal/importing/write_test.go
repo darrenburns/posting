@@ -138,3 +138,42 @@ func FuzzEnvironmentRoundTrip(f *testing.F) {
 		}
 	})
 }
+
+func FuzzImportPathsStayLocal(f *testing.F) {
+	for _, s := range []string{"", ".", "..", "../../escape", `C:\Users\test`, "/absolute", "\x00name", "CON.txt", "folder/😀 request"} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, name string) {
+		path := safePath(strings.TrimSuffix(name, collection.FileSuffix)) + collection.FileSuffix
+		if !filepath.IsLocal(path) {
+			t.Fatalf("non-local output from %q: %q", name, path)
+		}
+		for _, part := range strings.Split(filepath.ToSlash(path), "/") {
+			if part == "" || part == "." || part == ".." || strings.ContainsAny(part, "\x00\\:") {
+				t.Fatalf("unsafe component %q", part)
+			}
+		}
+	})
+}
+
+func FuzzImportedBodyPersistence(f *testing.F) {
+	for _, s := range []string{"", "  trailing  \n", "\r\n", "\t\n", "${TOKEN}", "binary\x00body"} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, body string) {
+		req := sampleRequest("body.posting.yaml")
+		req.Body = model.Body{Type: model.BodyRaw, Raw: body, ContentType: "text/plain"}
+		req.Options.SubstituteBodyVariables = false
+		data, err := collection.MarshalRequest(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		loaded, err := collection.ParseRequest(data, req.File)
+		if err != nil {
+			t.Fatalf("%v; encoded YAML: %q", err, data)
+		}
+		if loaded.Body.Raw != body || loaded.Options.SubstituteBodyVariables {
+			t.Fatalf("payload changed: %q => %q", body, loaded.Body.Raw)
+		}
+	})
+}

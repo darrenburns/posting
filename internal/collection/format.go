@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"gopkg.in/yaml.v3"
 
@@ -22,10 +23,10 @@ const FileSuffix = ".posting.yaml"
 // Posting 2 writes them in, and fields at their default value are left out,
 // as Posting 2 does, so files stay short and diffs stay small.
 type requestFile struct {
-	Name        string          `yaml:"name,omitempty"`
-	Description string          `yaml:"description,omitempty"`
+	Name        yamlString      `yaml:"name,omitempty"`
+	Description yamlString      `yaml:"description,omitempty"`
 	Method      string          `yaml:"method,omitempty"`
-	URL         string          `yaml:"url,omitempty"`
+	URL         yamlString      `yaml:"url,omitempty"`
 	Body        *bodyFile       `yaml:"body,omitempty"`
 	Auth        *authFile       `yaml:"auth,omitempty"`
 	Headers     []kvFile        `yaml:"headers,omitempty"`
@@ -36,9 +37,9 @@ type requestFile struct {
 }
 
 type bodyFile struct {
-	Content     *string   `yaml:"content,omitempty"`
-	FormData    *[]kvFile `yaml:"form_data,omitempty"`
-	ContentType string    `yaml:"content_type,omitempty"`
+	Content     *yamlString `yaml:"content,omitempty"`
+	FormData    *[]kvFile   `yaml:"form_data,omitempty"`
+	ContentType yamlString  `yaml:"content_type,omitempty"`
 }
 
 type authFile struct {
@@ -49,42 +50,42 @@ type authFile struct {
 }
 
 type credentialsFile struct {
-	Username string `yaml:"username,omitempty"`
-	Password string `yaml:"password,omitempty"`
+	Username yamlString `yaml:"username,omitempty"`
+	Password yamlString `yaml:"password,omitempty"`
 }
 
 type bearerTokenFile struct {
-	Token string `yaml:"token,omitempty"`
+	Token yamlString `yaml:"token,omitempty"`
 }
 
 // kvFile is a header, query parameter or form field. Enabled is only
 // written when false, since Posting 2 defaults it to true.
 type kvFile struct {
-	Name    string `yaml:"name"`
-	Value   string `yaml:"value"`
-	Enabled *bool  `yaml:"enabled,omitempty"`
+	Name    yamlString `yaml:"name"`
+	Value   yamlString `yaml:"value"`
+	Enabled *bool      `yaml:"enabled,omitempty"`
 }
 
 type pathParamFile struct {
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"`
+	Name  yamlString `yaml:"name"`
+	Value yamlString `yaml:"value"`
 }
 
 type scriptsFile struct {
-	Setup      string `yaml:"setup,omitempty"`
-	OnRequest  string `yaml:"on_request,omitempty"`
-	OnResponse string `yaml:"on_response,omitempty"`
+	Setup      yamlString `yaml:"setup,omitempty"`
+	OnRequest  yamlString `yaml:"on_request,omitempty"`
+	OnResponse yamlString `yaml:"on_response,omitempty"`
 }
 
 // optionsFile uses pointers so only options that differ from the defaults
 // are written, and missing options load as the defaults.
 type optionsFile struct {
-	FollowRedirects         *bool    `yaml:"follow_redirects,omitempty"`
-	VerifySSL               *bool    `yaml:"verify_ssl,omitempty"`
-	AttachCookies           *bool    `yaml:"attach_cookies,omitempty"`
-	SubstituteBodyVariables *bool    `yaml:"substitute_body_variables,omitempty"`
-	ProxyURL                string   `yaml:"proxy_url,omitempty"`
-	Timeout                 *float64 `yaml:"timeout,omitempty"`
+	FollowRedirects         *bool      `yaml:"follow_redirects,omitempty"`
+	VerifySSL               *bool      `yaml:"verify_ssl,omitempty"`
+	AttachCookies           *bool      `yaml:"attach_cookies,omitempty"`
+	SubstituteBodyVariables *bool      `yaml:"substitute_body_variables,omitempty"`
+	ProxyURL                yamlString `yaml:"proxy_url,omitempty"`
+	Timeout                 *float64   `yaml:"timeout,omitempty"`
 }
 
 // ParseRequest decodes a request file. file is the collection-relative path
@@ -96,9 +97,9 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 	}
 	req := model.NewRequest()
 	req.File = file
-	req.Name = in.Name
-	req.Description = in.Description
-	req.URL = in.URL
+	req.Name = string(in.Name)
+	req.Description = string(in.Description)
+	req.URL = string(in.URL)
 	if in.Method != "" {
 		method := model.Method(strings.ToUpper(in.Method))
 		if !validMethod(method) {
@@ -109,14 +110,14 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 	req.Headers = kvsFromFile(in.Headers)
 	req.Query = kvsFromFile(in.Params)
 	for _, p := range in.PathParams {
-		req.PathParams = append(req.PathParams, model.KeyValue{Name: p.Name, Value: p.Value, Enabled: true})
+		req.PathParams = append(req.PathParams, model.KeyValue{Name: string(p.Name), Value: string(p.Value), Enabled: true})
 	}
 	if b := in.Body; b != nil {
 		switch {
 		case b.FormData != nil:
-			req.Body = model.Body{Type: model.BodyForm, Form: kvsFromFile(*b.FormData), ContentType: orDefault(b.ContentType, "application/x-www-form-urlencoded")}
+			req.Body = model.Body{Type: model.BodyForm, Form: kvsFromFile(*b.FormData), ContentType: orDefault(string(b.ContentType), "application/x-www-form-urlencoded")}
 		case b.Content != nil:
-			req.Body = model.Body{Type: model.BodyRaw, Raw: *b.Content, ContentType: orDefault(b.ContentType, contentTypeFromHeaders(req.Headers))}
+			req.Body = model.Body{Type: model.BodyRaw, Raw: string(*b.Content), ContentType: orDefault(string(b.ContentType), contentTypeFromHeaders(req.Headers))}
 		}
 	}
 	if a := in.Auth; a != nil {
@@ -124,29 +125,29 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 		case model.AuthBasic:
 			req.Auth = model.Auth{Type: model.AuthBasic}
 			if a.Basic != nil {
-				req.Auth.Username, req.Auth.Password = a.Basic.Username, a.Basic.Password
+				req.Auth.Username, req.Auth.Password = string(a.Basic.Username), string(a.Basic.Password)
 			}
 		case model.AuthDigest:
 			req.Auth = model.Auth{Type: model.AuthDigest}
 			if a.Digest != nil {
-				req.Auth.Username, req.Auth.Password = a.Digest.Username, a.Digest.Password
+				req.Auth.Username, req.Auth.Password = string(a.Digest.Username), string(a.Digest.Password)
 			}
 		case model.AuthBearer:
 			req.Auth = model.Auth{Type: model.AuthBearer}
 			if a.BearerToken != nil {
-				req.Auth.Token = a.BearerToken.Token
+				req.Auth.Token = string(a.BearerToken.Token)
 			}
 		}
 	}
 	if s := in.Scripts; s != nil {
-		req.Scripts = model.Scripts{Setup: s.Setup, OnRequest: s.OnRequest, OnResponse: s.OnResponse}
+		req.Scripts = model.Scripts{Setup: string(s.Setup), OnRequest: string(s.OnRequest), OnResponse: string(s.OnResponse)}
 	}
 	if o := in.Options; o != nil {
 		setBool(&req.Options.FollowRedirects, o.FollowRedirects)
 		setBool(&req.Options.VerifySSL, o.VerifySSL)
 		setBool(&req.Options.AttachCookies, o.AttachCookies)
 		setBool(&req.Options.SubstituteBodyVariables, o.SubstituteBodyVariables)
-		req.Options.ProxyURL = o.ProxyURL
+		req.Options.ProxyURL = string(o.ProxyURL)
 		if o.Timeout != nil && *o.Timeout > 0 {
 			req.Options.TimeoutSeconds = *o.Timeout
 		}
@@ -157,9 +158,9 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 // MarshalRequest encodes req in Posting 2's format.
 func MarshalRequest(req model.Request) ([]byte, error) {
 	out := requestFile{
-		Name:        req.Name,
-		Description: req.Description,
-		URL:         req.URL,
+		Name:        yamlString(req.Name),
+		Description: yamlString(req.Description),
+		URL:         yamlString(req.URL),
 		Headers:     kvsToFile(req.Headers),
 		Params:      kvsToFile(req.Query),
 	}
@@ -170,21 +171,21 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 		// A question mark inside a fragment is not a query delimiter.
 		base, fragment, hasFragment := strings.Cut(req.URL, "#")
 		base, _, _ = strings.Cut(base, "?")
-		out.URL = base
+		out.URL = yamlString(base)
 		if hasFragment {
-			out.URL += "#" + fragment
+			out.URL += yamlString("#" + fragment)
 		}
 	}
 	if req.Method != model.MethodGet && req.Method != "" {
 		out.Method = string(req.Method)
 	}
 	for _, p := range req.PathParams {
-		out.PathParams = append(out.PathParams, pathParamFile{Name: p.Name, Value: p.Value})
+		out.PathParams = append(out.PathParams, pathParamFile{Name: yamlString(p.Name), Value: yamlString(p.Value)})
 	}
 	switch req.Body.Type {
 	case model.BodyRaw:
-		content := req.Body.Raw
-		out.Body = &bodyFile{Content: &content, ContentType: req.Body.ContentType}
+		content := yamlString(req.Body.Raw)
+		out.Body = &bodyFile{Content: &content, ContentType: yamlString(req.Body.ContentType)}
 	case model.BodyForm:
 		form := kvsToFile(req.Body.Form)
 		if form == nil {
@@ -194,17 +195,17 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 	}
 	switch req.Auth.Type {
 	case model.AuthBasic:
-		out.Auth = &authFile{Type: string(model.AuthBasic), Basic: &credentialsFile{Username: req.Auth.Username, Password: req.Auth.Password}}
+		out.Auth = &authFile{Type: string(model.AuthBasic), Basic: &credentialsFile{Username: yamlString(req.Auth.Username), Password: yamlString(req.Auth.Password)}}
 	case model.AuthDigest:
-		out.Auth = &authFile{Type: string(model.AuthDigest), Digest: &credentialsFile{Username: req.Auth.Username, Password: req.Auth.Password}}
+		out.Auth = &authFile{Type: string(model.AuthDigest), Digest: &credentialsFile{Username: yamlString(req.Auth.Username), Password: yamlString(req.Auth.Password)}}
 	case model.AuthBearer:
-		out.Auth = &authFile{Type: string(model.AuthBearer), BearerToken: &bearerTokenFile{Token: req.Auth.Token}}
+		out.Auth = &authFile{Type: string(model.AuthBearer), BearerToken: &bearerTokenFile{Token: yamlString(req.Auth.Token)}}
 	}
 	if s := req.Scripts; s != (model.Scripts{}) {
-		out.Scripts = &scriptsFile{Setup: s.Setup, OnRequest: s.OnRequest, OnResponse: s.OnResponse}
+		out.Scripts = &scriptsFile{Setup: yamlString(s.Setup), OnRequest: yamlString(s.OnRequest), OnResponse: yamlString(s.OnResponse)}
 	}
 	defaults := model.DefaultOptions()
-	opts := optionsFile{ProxyURL: req.Options.ProxyURL}
+	opts := optionsFile{ProxyURL: yamlString(req.Options.ProxyURL)}
 	if req.Options.FollowRedirects != defaults.FollowRedirects {
 		opts.FollowRedirects = boolPtr(req.Options.FollowRedirects)
 	}
@@ -237,11 +238,26 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// yamlString prevents yaml.v3 from emitting an invalid block scalar for
+// leading-newline and tab-leading multiline strings. Other strings keep the
+// normal readable style.
+type yamlString string
+
+func (s yamlString) MarshalYAML() (any, error) {
+	value := string(s)
+	if utf8.ValidString(value) && (strings.HasPrefix(value, "\n") || (strings.Contains(value, "\t") && strings.ContainsAny(value, "\n\r")) || (value != "" && strings.TrimSpace(value) == "")) {
+		return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: value, Style: yaml.DoubleQuotedStyle}, nil
+	}
+	// Let the encoder choose ordinary block scalars and !!binary for strings
+	// with invalid UTF-8, preserving arbitrary payload bytes.
+	return value, nil
+}
+
 func kvsFromFile(in []kvFile) []model.KeyValue {
 	var out []model.KeyValue
 	for _, kv := range in {
 		enabled := kv.Enabled == nil || *kv.Enabled
-		out = append(out, model.KeyValue{Name: kv.Name, Value: kv.Value, Enabled: enabled})
+		out = append(out, model.KeyValue{Name: string(kv.Name), Value: string(kv.Value), Enabled: enabled})
 	}
 	return out
 }
@@ -249,7 +265,7 @@ func kvsFromFile(in []kvFile) []model.KeyValue {
 func kvsToFile(in []model.KeyValue) []kvFile {
 	var out []kvFile
 	for _, kv := range in {
-		item := kvFile{Name: kv.Name, Value: kv.Value}
+		item := kvFile{Name: yamlString(kv.Name), Value: yamlString(kv.Value)}
 		if !kv.Enabled {
 			item.Enabled = boolPtr(false)
 		}
