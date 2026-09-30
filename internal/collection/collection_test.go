@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -247,6 +248,32 @@ func TestDirSavePreservesFragmentWithDisabledQuery(t *testing.T) {
 					t.Fatalf("save %d changed disabled query rows: got %+v, want %+v", save, got.Query, req.Query)
 				}
 				req = got
+			}
+		})
+	}
+}
+
+func TestMarshalPreservesWhitespaceInEditableValues(t *testing.T) {
+	for _, value := range []string{"\n", "\t\n", "\n\n", "  \n\t\n"} {
+		t.Run(fmt.Sprintf("%q", value), func(t *testing.T) {
+			req := model.NewRequest()
+			req.Name, req.Description = value, value
+			req.URL = "https://example.test/:id"
+			req.Headers = []model.KeyValue{{Name: "X-Value", Value: value, Enabled: true}}
+			req.Query = []model.KeyValue{{Name: "q", Value: value, Enabled: true}}
+			req.PathParams = []model.KeyValue{{Name: "id", Value: value, Enabled: true}}
+			req.Body = model.Body{Type: model.BodyForm, ContentType: "application/x-www-form-urlencoded", Form: []model.KeyValue{{Name: "field", Value: value, Enabled: true}}}
+			req.Auth = model.Auth{Type: model.AuthBasic, Username: value, Password: value}
+			data, err := MarshalRequest(req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			loaded, err := ParseRequest(data, "")
+			if err != nil {
+				t.Fatalf("%v: %q", err, data)
+			}
+			if !reflect.DeepEqual(loaded, req) {
+				t.Fatalf("changed editable values: before %#v; after %#v", req, loaded)
 			}
 		})
 	}
