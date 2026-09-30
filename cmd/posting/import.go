@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -173,9 +174,18 @@ func readImport(source, format string) (importing.Result, string, error) {
 		if strings.EqualFold(filepath.Ext(source), ".bru") {
 			format = "bruno"
 		} else {
-			var document map[string]yaml.Node
-			if err := yaml.Unmarshal(data, &document); err != nil {
-				return importing.Result{}, "", fmt.Errorf("cannot detect import format: %w", err)
+			// JSON permits characters that YAML's scanner rejects. Inspect JSON
+			// directly before falling back to YAML (including flow-style YAML).
+			var document map[string]json.RawMessage
+			if err := json.Unmarshal(data, &document); err != nil {
+				var yamlDocument map[string]yaml.Node
+				if err := yaml.Unmarshal(data, &yamlDocument); err != nil {
+					return importing.Result{}, "", fmt.Errorf("cannot detect import format: %w", err)
+				}
+				document = make(map[string]json.RawMessage, len(yamlDocument))
+				for name := range yamlDocument {
+					document[name] = nil
+				}
 			}
 			if _, ok := document["openapi"]; ok {
 				format = "openapi"

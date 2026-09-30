@@ -221,3 +221,15 @@ func TestImportErrorsEscapeTerminalControls(t *testing.T) {
 		t.Fatalf("unsafe diagnostic: %q", stderr.String())
 	}
 }
+
+func TestImportCLIDetectsJSONOutsideYAMLCharacterSet(t *testing.T) {
+	source := filepath.Join(t.TempDir(), "collection.json")
+	input := strings.Replace(postmanCLIExample, `"method":"GET"`, `"method":"GET","description":"`+"\u008b"+`"`, 1)
+	if err := os.WriteFile(source, []byte(input), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"import", source, "-o", t.TempDir()}, &stdout, &stderr); code != 0 {
+		t.Fatalf("valid JSON rejected: %s", stderr.String())
+	}
+}
