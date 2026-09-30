@@ -78,7 +78,7 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 		Spacing: a.gap(),
 		Children: []t.Widget{
 			heading,
-			tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Down: a.focusSidebarList, Tabs: []tabItem{
+			tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Down: a.focusBelowSidebarTabs, Tabs: []tabItem{
 				{Key: "requests", Label: a.icons.requests + "Requests"},
 				{Key: "history", Label: a.icons.history + "History", Badge: countBadge(historyCount)},
 			}},
@@ -86,7 +86,7 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 				Active: a.sidebarTab.Get(),
 				Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 				Children: map[string]t.Widget{
-					"requests": collectionView{app: a},
+					"requests": requestsPane{app: a},
 					"history":  historyView{app: a},
 				},
 			},
@@ -94,8 +94,8 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 	}
 }
 
-// collectionView is the request tree, with a summary of the highlighted
-// request floating beside it (see requestSummary).
+// collectionView is the request tree, with a summary of the hovered or
+// highlighted request floating beside it (see requestSummary).
 type collectionView struct {
 	fillParent
 	app *App
@@ -104,7 +104,7 @@ type collectionView struct {
 func (c collectionView) Keybinds() []t.Keybind {
 	a := c.app
 	return []t.Keybind{
-		{Key: "/", Name: "Search", Action: a.openRequestSearch},
+		{Key: "/", Name: "Search", Action: a.focusTreeSearch},
 		{Key: "d", Name: "Duplicate", Action: a.duplicateAtCursor},
 		{Key: "backspace", Name: "Delete", Action: a.confirmDeleteAtCursor},
 		{Key: "delete", Name: "Delete", Action: a.confirmDeleteAtCursor, Hidden: true},
@@ -118,9 +118,13 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 		return emptyState{Title: "Collection is empty", Lines: []string{"Press [b]ctrl+s[/] to save the current request"}}
 	}
 	openFiles := map[string]bool{}
+	previewFile := ""
 	for _, s := range a.sessions.Get() {
 		if f := s.file.Get(); f != "" {
 			openFiles[f] = true
+			if s.preview.Get() {
+				previewFile = f
+			}
 		}
 	}
 	focused := isFocusedID(ctx, treeID)
@@ -128,46 +132,62 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 	if s := a.session(); s != nil {
 		activeFile = s.file.Get()
 	}
-	// The tree fills the panel on its own: the summary of the request under
-	// the cursor floats beside it, so the tree never resizes as it moves.
+	query := parseTreeQuery(a.treeFilter.Query.Get())
+	if len(query) > 0 && len(a.visibleTreePaths()) == 0 {
+		return noTreeResults{}
+	}
+	row := func(i treeItem, node t.TreeNodeContext) t.Text {
+		return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile, previewFile, query, a.keepFile)
+	}
+	// The tree fills the panel on its own: the summary of a request floats
+	// beside it, so the tree never resizes as it moves. The summary goes
+	// under the tree, which it hangs from (see requestSummary).
 	return t.Stack{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
+			requestSummary{app: a, row: row},
 			t.Scrollable{
 				ID:    treeViewportID,
 				State: a.treeScroll,
 				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-				Child: t.Tree[treeItem]{
-					ID:             treeID,
-					State:          a.tree,
-					ScrollState:    a.treeScroll,
-					NodeID:         func(i treeItem) string { return i.key() },
-					HasChildren:    func(i treeItem) bool { return i.Folder != nil },
-					ShowGuideLines: t.BoolPtr(false),
+				Child: collectionTree{app: a, Tree: t.Tree[treeItem]{
+					ID:          treeID,
+					State:       a.tree,
+					ScrollState: a.treeScroll,
+					Filter:      a.treeFilter,
+					MatchNode:   matchTreeItem,
+					NodeID:      func(i treeItem) string { return i.key() },
+					HasChildren: func(i treeItem) bool { return i.Folder != nil },
 					// As in Posting 2, a click opens a request or folder.
 					ActivateOnClick: true,
+					OnCursorChange:  func(treeItem) { a.treeCursorMoved() },
 					OnSelect: func(i treeItem, _ []treeItem) {
+						a.dismissSummary()
 						if i.Request != nil {
 							a.openRequest(*i.Request)
-						} else {
+						} else if len(query) == 0 {
+							// Search results show every folder with a
+							// match open, whatever its collapsed state.
 							a.tree.Toggle(a.tree.CursorPath.Peek())
 						}
 					},
 					RenderNode: func(i treeItem, node t.TreeNodeContext) t.Widget {
-						return renderTreeNode(theme, a.icons, i, node, focused, openFiles, activeFile)
+						return a.trackTreeRow(row(i, node), node.Path)
 					},
 					Style: t.Style{Width: t.Flex(1)},
-				},
+				}},
 			},
-			requestSummary{app: a},
 		},
 	}
 }
 
 // renderTreeNode draws one row. The cursor is only emphasised while the tree
 // has focus; otherwise it is a quiet highlight so it doesn't compete with the
-// focused widget.
-func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNodeContext, focused bool, openFiles map[string]bool, activeFile string) t.Widget {
+// focused widget. Letters that match the search are highlighted.
+//
+// A click opens a request in the preview tab (see App.openRequest), whose
+// request is in italics like the tab; a double-click keeps it open.
+func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNodeContext, focused bool, openFiles map[string]bool, activeFile, previewFile string, query treeQuery, keep func(file string)) t.Text {
 	var bg t.Color
 	cursor := node.Active && focused
 	switch {
@@ -175,6 +195,10 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 		bg = theme.ActiveCursor
 	case node.Active:
 		bg = theme.Surface
+	}
+	highlight := t.MatchHighlightStyle(theme)
+	if cursor {
+		highlight.Background = t.Color{}
 	}
 	if i.Folder != nil {
 		fg := theme.TextMuted
@@ -188,7 +212,10 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 		if icon == "" {
 			suffix = "/"
 		}
-		return t.Text{Spans: []t.Span{{Text: icon + i.Folder.Name + suffix, Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: true}}}, Style: t.Style{Width: t.Flex(1)}}
+		style := t.SpanStyle{Foreground: fg, Background: bg, Bold: true}
+		spans := append([]t.Span{{Text: icon, Style: style}}, query.spans(i.Folder.Name, style, highlight)...)
+		spans = append(spans, t.Span{Text: suffix, Style: style})
+		return t.Text{Spans: spans, Style: t.Style{Width: t.Flex(1), BackgroundColor: bg}}
 	}
 	// The method lines up with folder names at the same depth. The request
 	// in the visible tab is bold; others open in tabs get a dot after them.
@@ -204,18 +231,25 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 	case openFiles[r.File]:
 		mark = " •"
 	}
+	file := r.File
+	nameStyle.Italic = file == previewFile && previewFile != ""
 	if cursor {
 		nameStyle.Foreground = theme.SelectionText
 		methodStyle.Foreground = theme.SelectionText
 		markStyle.Foreground = theme.SelectionText
 	}
+	spans := query.methodSpans(padRight(r.Method.Short(), 3)+" ", i, methodStyle, highlight)
+	spans = append(spans, query.spans(r.DisplayName(), nameStyle, highlight)...)
+	spans = append(spans, t.Span{Text: mark, Style: markStyle})
 	return t.Text{
-		Spans: []t.Span{
-			{Text: padRight(r.Method.Short(), 3) + " ", Style: methodStyle},
-			{Text: r.DisplayName(), Style: nameStyle},
-			{Text: mark, Style: markStyle},
+		Spans: spans,
+		Style: t.Style{Width: t.Flex(1), BackgroundColor: bg},
+		// The tree opens the request on the first click of a double-click.
+		Click: func(e t.MouseEvent) {
+			if e.ClickCount == 2 {
+				keep(file)
+			}
 		},
-		Style: t.Style{Width: t.Flex(1)},
 	}
 }
 
@@ -294,16 +328,13 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 	}
 }
 
-// openHistory opens a history entry's request and response in a tab.
+// openHistory opens a history entry's request and response in the preview
+// tab, as requests from the collection open, so stepping through history
+// doesn't open a tab per entry.
 func (a *App) openHistory(entry model.HistoryEntry) {
 	req := entry.Request.Clone()
 	req.File = ""
-	s := a.current()
-	if s == nil || !s.isPristine() {
-		s = a.openSession(req)
-	} else {
-		s.Load(req)
-	}
+	s := a.openPreview(req)
 	entryCopy := entry
 	s.showResponse(entry.Response, &entryCopy)
 	s.phase.Set(exchangeDone)

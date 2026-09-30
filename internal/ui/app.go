@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"slices"
 	"strings"
 	"time"
 
@@ -86,10 +87,17 @@ type App struct {
 
 	// runExternal runs the editor or pager; tests replace it.
 	runExternal func(*exec.Cmd) error
+	// after runs fn on the UI goroutine once d has passed; tests replace it.
+	after func(d time.Duration, fn func())
 
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
 	treeScroll *t.ScrollState
+	// treeSearch is the search box above the tree, and treeFilter the
+	// search the tree is filtered by (see tree_search.go).
+	treeSearch *t.TextInputState
+	treeFilter *t.FilterState
+	summary    summaryState
 
 	history       t.AnySignal[[]model.HistoryEntry]
 	historyList   *t.ListState[model.HistoryEntry]
@@ -117,7 +125,6 @@ type App struct {
 
 	jump               *t.JumpState
 	palette            *t.CommandPaletteState
-	requestSearch      *t.CommandPaletteState
 	tabSearch          *t.CommandPaletteState
 	themeBeforePreview string
 	helpScroll         *t.ScrollState
@@ -173,6 +180,7 @@ func New(cfg Config) *App {
 		icons:          iconsFor(cfg.NerdFonts),
 		openURL:        cfg.OpenURL,
 		runExternal:    t.RunExternal,
+		after:          dispatchAfter,
 		watcher:        cfg.Reload,
 		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
@@ -180,6 +188,9 @@ func New(cfg Config) *App {
 		host:           host,
 		collection:     t.NewAnySignal(cfg.Collection),
 		treeScroll:     t.NewScrollState(),
+		treeSearch:     t.NewTextInputState(""),
+		treeFilter:     t.NewFilterState(),
+		summary:        newSummaryState(),
 		history:        t.NewAnySignal[[]model.HistoryEntry](nil),
 		historyList:    t.NewListState[model.HistoryEntry](nil),
 		historyScroll:  t.NewScrollState(),
@@ -217,8 +228,9 @@ func New(cfg Config) *App {
 	}
 	a.jump = t.NewJumpState()
 	a.palette = t.NewCommandPaletteState("Commands", nil)
-	a.requestSearch = t.NewCommandPaletteState("Go to request", nil)
-	a.tabSearch = t.NewCommandPaletteState("Open tabs", nil)
+	// No title: the tab search opens straight onto its input, without a
+	// breadcrumb row above it.
+	a.tabSearch = t.NewCommandPaletteState("", nil)
 	a.methodMenu = t.NewMenuState(a.methodMenuItems())
 	a.logoMenu = t.NewMenuState(a.logoMenuItems())
 	a.save = newSaveForm()
@@ -327,29 +339,102 @@ func (a *App) current() *Session {
 }
 
 func (a *App) openSession(req model.Request) *Session {
-	a.nextSessionID++
-	s := newSession(a.nextSessionID, req)
-	s.prettifyJSON = a.settings.Response.PrettifyJSON
+	s := a.createSession(req)
 	a.sessions.Set(append(append([]*Session(nil), a.sessions.Peek()...), s))
 	a.active.Set(s.id)
 	return s
 }
 
-// openRequest shows req, reusing a tab that already holds the same file or
-// replacing an untouched blank tab.
+// createSession makes a session for req without adding it to the tabs.
+func (a *App) createSession(req model.Request) *Session {
+	a.nextSessionID++
+	s := newSession(a.nextSessionID, req)
+	s.prettifyJSON = a.settings.Response.PrettifyJSON
+	return s
+}
+
+// openRequest shows req from the collection. A tab that already holds the
+// same file is brought into view; otherwise req opens in the preview tab.
 func (a *App) openRequest(req model.Request) {
+	if s := a.sessionForFile(req.File); s != nil {
+		a.showSession(s.id)
+		return
+	}
+	a.openPreview(req)
+	a.focusOpenedRequest()
+}
+
+// sessionForFile is the tab holding the request saved in file, if any.
+func (a *App) sessionForFile(file string) *Session {
+	if file == "" {
+		return nil
+	}
 	for _, s := range a.sessions.Peek() {
-		if req.File != "" && s.file.Peek() == req.File {
-			a.showSession(s.id)
-			return
+		if s.file.Peek() == file {
+			return s
 		}
 	}
+	return nil
+}
+
+// previewSession is the preview tab, if there is one.
+func (a *App) previewSession() *Session {
+	for _, s := range a.sessions.Peek() {
+		if s.preview.Peek() {
+			return s
+		}
+	}
+	return nil
+}
+
+// openPreview shows req in the preview tab, as VS Code does for files opened
+// from its explorer, so browsing the sidebar doesn't leave a trail of tabs.
+// There is at most one preview tab. An untouched blank tab in view becomes
+// it, closing the old one; otherwise req replaces the preview tab in place
+// or, without one, opens a new tab at the end. Replacing loses nothing: a
+// tab stops being the preview as soon as it is edited, sent or saved.
+func (a *App) openPreview(req model.Request) *Session {
+	old := a.previewSession()
 	if s := a.current(); s != nil && s.isPristine() {
 		s.Load(req)
-	} else {
-		a.openSession(req)
+		s.preview.Set(true)
+		if old != nil && old != s {
+			a.closeSession(old.id)
+		}
+		return s
 	}
-	a.focusOpenedRequest()
+	s := a.createSession(req)
+	s.preview.Set(true)
+	sessions := append([]*Session(nil), a.sessions.Peek()...)
+	if i := slices.Index(sessions, old); i >= 0 {
+		// A fresh session rather than reloading the old one, so none of its
+		// response or view state carries over to the new request.
+		old.Cancel()
+		sessions[i] = s
+	} else {
+		sessions = append(sessions, s)
+	}
+	a.sessions.Set(sessions)
+	a.active.Set(s.id)
+	return s
+}
+
+// keepSession makes the preview tab id an ordinary tab, which opening other
+// requests leaves alone.
+func (a *App) keepSession(id int) {
+	for _, s := range a.sessions.Peek() {
+		if s.id == id {
+			s.preview.Set(false)
+		}
+	}
+}
+
+// keepFile keeps the preview tab if it holds file, as double-clicking the
+// request in the collection does.
+func (a *App) keepFile(file string) {
+	if s := a.sessionForFile(file); s != nil {
+		a.keepSession(s.id)
+	}
 }
 
 // focusOpenedRequest moves focus as the focus.on_request_open setting asks,
@@ -428,6 +513,9 @@ func (a *App) send() {
 		t.RequestFocus(urlInputID)
 		return
 	}
+	// Sending commits to the tab, so its response isn't lost to the next
+	// request opened.
+	s.preview.Set(false)
 	s.Send(a.sender, a.variableValuesPeek(), func(req model.Request, resp *model.Response) {
 		a.nextHistoryID++
 		entry := historyEntry(a.nextHistoryID, req, resp)
@@ -501,6 +589,7 @@ func (a *App) saveRequest() {
 		return
 	}
 	s.dirty.Set(false)
+	s.preview.Set(false)
 	a.notify("Saved "+req.File, toastSuccess)
 }
 
@@ -551,7 +640,7 @@ func (a *App) deleteRequest(file string) {
 	for _, s := range a.sessions.Peek() {
 		if s.file.Peek() == file {
 			s.file.Set("")
-			s.dirty.Set(true)
+			s.markEdited()
 		}
 	}
 	a.refreshTree()
@@ -682,6 +771,16 @@ func (a *App) jumpTargets() []t.JumpTarget {
 		}
 	})...)
 	return targets
+}
+
+// focusBelowSidebarTabs moves down from the sidebar's tabs: to the search box
+// above the request tree, or the history list.
+func (a *App) focusBelowSidebarTabs() {
+	if a.sidebarTab.Peek() == "requests" && len(a.tree.Nodes.Peek()) > 0 {
+		t.RequestFocus(treeSearchID)
+		return
+	}
+	a.focusSidebarList()
 }
 
 // focusSidebarList focuses the list in the visible sidebar tab.
@@ -904,6 +1003,11 @@ func (a *App) notify(message string, kind toastKind) {
 			}
 		})
 	})
+}
+
+// dispatchAfter runs fn on the UI goroutine once d has passed.
+func dispatchAfter(d time.Duration, fn func()) {
+	time.AfterFunc(d, func() { t.Dispatch(fn) })
 }
 
 func splitFile(file string) (folder, name string) {

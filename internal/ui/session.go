@@ -70,6 +70,11 @@ type Session struct {
 	title t.Signal[string]
 	// dirty is true when the request differs from what was last loaded/saved.
 	dirty t.Signal[bool]
+	// preview marks the preview tab: the one tab that requests opened from
+	// the sidebar load into, replacing each other, until the user commits to
+	// it by editing, sending or saving it or asking to keep it (see
+	// App.openRequest). A preview tab never has unsaved changes.
+	preview t.Signal[bool]
 
 	requestTab  t.Signal[string]
 	responseTab t.Signal[string]
@@ -137,6 +142,7 @@ func newSession(id int, req model.Request) *Session {
 		timeout:           t.NewTextInputState("5.0"),
 		title:             t.NewSignal("Untitled"),
 		dirty:             t.NewSignal(false),
+		preview:           t.NewSignal(false),
 		requestTab:        t.NewSignal("headers"),
 		responseTab:       t.NewSignal("body"),
 
@@ -280,7 +286,7 @@ func (s *Session) touch() {
 	if s.syncing {
 		return
 	}
-	s.dirty.Set(true)
+	s.markEdited()
 	name := strings.TrimSpace(s.name.GetText())
 	if name == "" {
 		name = s.url.GetText()
@@ -289,6 +295,14 @@ func (s *Session) touch() {
 		name = "Untitled"
 	}
 	s.title.Set(name)
+}
+
+// markEdited records that the request has unsaved changes. An edited tab is
+// kept: it stops being the preview, so opening another request can't replace
+// it and lose the changes.
+func (s *Session) markEdited() {
+	s.dirty.Set(true)
+	s.preview.Set(false)
 }
 
 // urlEdited keeps the query and path parameter tables in step with the URL.
