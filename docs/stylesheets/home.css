@@ -413,27 +413,28 @@ body {
 }
 
 .wordmark {
-  /* The Calvin S figlet, set as text: thin box-drawing strokes rather than
-     solid blocks. Each figlet row spans one and a half text rows, and
-     line-height matches JetBrains Mono's box-drawing glyph height so the
-     strokes join between rows. The bottom margin rounds the block's
-     4.5 rows up to a whole 5. */
-  margin: 0 0 calc(1lh / 3);
-  padding: 0;
-  overflow: visible;
-  background: none;
+  /* The name typed at a prompt: triple-size, and line-height set so it
+     fills exactly two text rows. */
+  margin: 0;
   font-family: var(--font-grid);
-  /* 25 columns wide: shrink to fit narrow screens. */
-  font-size: min(calc(1.5 * 1.6em / 1.32), calc(100cqi / (25 * var(--grid-adv))));
-  line-height: 1.32;
+  font-size: 3em;
+  line-height: calc(2 * 1.6 / 3);
+  font-weight: 700;
   color: var(--primary);
-  white-space: pre;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.wordmark .ps1 {
+  color: var(--dim);
+  font-weight: 400;
   user-select: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .wordmark {
-    animation: boot 0.7s steps(28, end) both;
+    /* Types out one cell at a time: "❯ posting" plus the cursor. */
+    animation: boot 0.6s steps(10, end) both;
   }
 }
 
