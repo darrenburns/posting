@@ -205,3 +205,19 @@ func TestImportWarningsEscapeTerminalControls(t *testing.T) {
 		t.Fatalf("unsafe diagnostic %q", out.String())
 	}
 }
+
+func TestImportErrorsEscapeTerminalControls(t *testing.T) {
+	source := filepath.Join(t.TempDir(), "collection.json")
+	input := strings.Replace(postmanCLIExample, `"name":"Ping"`, `"name":"\u001b[2J\nforged line"`, 1)
+	input = strings.Replace(input, `"method":"GET"`, `"method":"INVALID"`, 1)
+	if err := os.WriteFile(source, []byte(input), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"import", source, "-o", t.TempDir()}, &stdout, &stderr); code == 0 {
+		t.Fatal("expected failure")
+	}
+	if strings.Contains(stderr.String(), "\x1b") || strings.Count(stderr.String(), "\n") != 1 {
+		t.Fatalf("unsafe diagnostic: %q", stderr.String())
+	}
+}
