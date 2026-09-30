@@ -1,0 +1,213 @@
+package bruno
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+
+	"github.com/darrenburns/posting/internal/importing"
+)
+
+// Load imports a .bru file or a collection directory containing bruno.json.
+// It never executes scripts, reads upload references, or follows symlinks.
+func Load(path string) (importing.Result, error) {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return importing.Result{}, err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return importing.Result{}, fmt.Errorf("Bruno input must not be a symlink")
+	}
+	if !info.IsDir() {
+		if !info.Mode().IsRegular() {
+			return importing.Result{}, fmt.Errorf("Bruno input must be a regular file")
+		}
+		data, err := readBounded(path)
+		if err != nil {
+			return importing.Result{}, err
+		}
+		r, err := Parse(data)
+		if err == nil && len(r.Requests) > 0 {
+			r.Requests[0].File = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)) + ".posting.yaml"
+		}
+		return r, err
+	}
+	root, err := os.OpenRoot(path)
+	if err != nil {
+		return importing.Result{}, err
+	}
+	defer root.Close()
+	result := importing.Result{Name: filepath.Base(filepath.Clean(path))}
+	count, total, visited := 0, 0, 0
+	read := func(name string) ([]byte, error) {
+		st, err := root.Lstat(name)
+		if err != nil {
+			return nil, err
+		}
+		if !st.Mode().IsRegular() {
+			return nil, fmt.Errorf("%s is not a regular file", name)
+		}
+		count++
+		if count > 10000 {
+			return nil, fmt.Errorf("Bruno collection exceeds 10000 files")
+		}
+		f, err := root.Open(name)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		data, err := io.ReadAll(io.LimitReader(f, maxFileSize+1))
+		if err != nil {
+			return nil, err
+		}
+		if len(data) > maxFileSize {
+			return nil, fmt.Errorf("%s exceeds 16 MiB", name)
+		}
+		total += len(data)
+		if total > 128<<20 {
+			return nil, fmt.Errorf("Bruno collection exceeds 128 MiB")
+		}
+		return data, nil
+	}
+	config, err := read("bruno.json")
+	if err != nil {
+		return importing.Result{}, fmt.Errorf("read bruno.json: %w", err)
+	}
+	var cfg struct {
+		Name   string   `json:"name"`
+		Type   string   `json:"type"`
+		Ignore []string `json:"ignore"`
+	}
+	if err = json.Unmarshal(config, &cfg); err != nil {
+		return importing.Result{}, fmt.Errorf("bruno.json: %w", err)
+	}
+	if cfg.Name != "" {
+		result.Name = cfg.Name
+	}
+	if cfg.Type != "" && cfg.Type != "collection" {
+		return importing.Result{}, fmt.Errorf("bruno.json is not a collection")
+	}
+	if len(cfg.Ignore) > 0 {
+		warn(&result, "bruno.json ignore patterns are not interpreted; hidden directories and node_modules are excluded")
+	}
+	var walk func(string, scope, int) error
+	walk = func(dir string, parent scope, depth int) error {
+		if depth > 64 {
+			return fmt.Errorf("Bruno collection exceeds 64 folder levels")
+		}
+		fileName := "folder.bru"
+		if dir == "." {
+			fileName = "collection.bru"
+		}
+		name := filepath.Join(dir, fileName)
+		if _, err := root.Lstat(name); err == nil {
+			data, e := read(name)
+			if e != nil {
+				return e
+			}
+			doc, e := parseDocument(data)
+			if e != nil {
+				return fmt.Errorf("%s: %w", name, e)
+			}
+			parent, e = applyScope(doc, parent, &result)
+			if e != nil {
+				return fmt.Errorf("%s: %w", name, e)
+			}
+		} else if !os.IsNotExist(err) {
+			return err
+		}
+		f, err := root.Open(dir)
+		if err != nil {
+			return err
+		}
+		var entries []fs.DirEntry
+		for {
+			batch, e := f.ReadDir(256)
+			visited += len(batch)
+			if visited > 20000 {
+				f.Close()
+				return fmt.Errorf("Bruno collection exceeds 20000 directory entries")
+			}
+			entries = append(entries, batch...)
+			if e == io.EOF {
+				break
+			}
+			if e != nil {
+				f.Close()
+				return e
+			}
+		}
+		f.Close()
+		// ReadDir on os.File is directory order; sort for deterministic output.
+		sortEntries(entries)
+		for _, entry := range entries {
+			n := entry.Name()
+			if n == "collection.bru" || n == "folder.bru" || strings.HasPrefix(n, ".") || n == "node_modules" {
+				continue
+			}
+			rel := filepath.Join(dir, n)
+			if entry.Type()&os.ModeSymlink != 0 {
+				warn(&result, "skipped symlink "+rel)
+				continue
+			}
+			if entry.IsDir() {
+				if n == "environments" {
+					warn(&result, "Bruno environments are not selected or imported; supply unresolved values in a Posting environment")
+					continue
+				}
+				if err := walk(rel, parent, depth+1); err != nil {
+					return err
+				}
+				continue
+			}
+			if filepath.Ext(n) != ".bru" {
+				continue
+			}
+			data, e := read(rel)
+			if e != nil {
+				return e
+			}
+			doc, e := parseDocument(data)
+			if e != nil {
+				return fmt.Errorf("%s: %w", rel, e)
+			}
+			start := len(result.Warnings)
+			r, e := convert(doc, parent, &result)
+			if e != nil {
+				return fmt.Errorf("%s: %w", rel, e)
+			}
+			for i := start; i < len(result.Warnings); i++ {
+				result.Warnings[i] = rel + ": " + result.Warnings[i]
+			}
+			if r != nil {
+				r.File = strings.TrimSuffix(rel, ".bru") + ".posting.yaml"
+				result.Requests = append(result.Requests, *r)
+			}
+		}
+		return nil
+	}
+	if err := walk(".", emptyScope(), 0); err != nil {
+		return importing.Result{}, err
+	}
+	return result, nil
+}
+func readBounded(path string) ([]byte, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	b, err := io.ReadAll(io.LimitReader(f, maxFileSize+1))
+	if len(b) > maxFileSize {
+		return nil, fmt.Errorf("Bruno file exceeds 16 MiB")
+	}
+	return b, err
+}
+func sortEntries(entries []fs.DirEntry) {
+	slices.SortFunc(entries, func(a, b fs.DirEntry) int { return strings.Compare(a.Name(), b.Name()) })
+}
