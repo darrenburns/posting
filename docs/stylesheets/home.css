@@ -130,56 +130,6 @@ body {
   padding-inline: var(--gutter);
 }
 
-/* ---- Status line ---------------------------------------------------------- */
-
-.statusline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 2ch;
-  padding-inline: var(--gutter);
-  color: var(--muted);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-
-.sl-badge {
-  font-weight: 700;
-  padding: 0 1ch;
-  color: var(--on-primary);
-  background: var(--primary);
-}
-
-.sl-right {
-  display: flex;
-  gap: 0 3ch;
-  margin-left: auto;
-}
-
-.sl-tip b {
-  color: var(--accent-text);
-}
-
-.sl-theme {
-  color: var(--text);
-}
-
-.sl-theme .dot {
-  color: var(--accent);
-}
-
-@media (max-width: 60em), (pointer: coarse) {
-  .sl-tip {
-    display: none;
-  }
-}
-
-@media (max-width: 30em) {
-  .sl-theme {
-    display: none;
-  }
-}
-
 /* ---- Panes ---------------------------------------------------------------- */
 
 .pane {
@@ -1065,134 +1015,11 @@ body {
   }
 }
 
-/* ---- Command palette ------------------------------------------------------ */
-
-.cmdp {
-  width: min(76ch, calc(100vw - 32px));
-  max-width: none;
-  max-height: none;
-  margin: 12vh auto auto;
-  padding: 0;
-  overflow: visible;
-  color: var(--text);
-  background: transparent;
-  border: 0;
+.js-home .toasts {
+  bottom: calc(2.5lh + 0.5rem);
 }
 
-.cmdp::backdrop {
-  background: color-mix(in oklab, var(--bg) 65%, transparent);
-}
-
-.cmdp-box {
-  position: relative;
-  padding-top: 1lh;
-  background: var(--surface);
-  border: 1px solid var(--primary);
-  box-shadow: 0 1lh 3lh -1lh color-mix(in oklab, #000 60%, transparent);
-}
-
-.cmdp .pane-title {
-  color: var(--text);
-  font-weight: 700;
-  background: var(--surface);
-}
-
-.cmdp-input {
-  display: flex;
-  gap: 1ch;
-  padding: 0 2ch 0.5lh;
-  color: var(--accent-text);
-  border-bottom: 1px solid var(--border);
-}
-
-.cmdp-input input {
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  font: inherit;
-  color: var(--text);
-  caret-color: var(--accent);
-  background: transparent;
-  border: 0;
-  outline: none;
-}
-
-#p3-home .cmdp-input input:focus-visible {
-  outline: none;
-}
-
-.cmdp-input:focus-within {
-  border-bottom-color: var(--accent);
-}
-
-.cmdp-input input::placeholder {
-  color: var(--dim);
-}
-
-.cmdp-list {
-  max-height: min(50vh, 16lh);
-  margin: 0;
-  padding: 0.5lh 0;
-  overflow-y: auto;
-  list-style: none;
-}
-
-.cmdp-list li {
-  display: flex;
-  gap: 2ch;
-  margin: 0 !important;
-  padding: 0 2ch;
-  cursor: pointer;
-}
-
-.cmdp-list li .g {
-  flex: none;
-  width: 7ch;
-  color: var(--dim);
-}
-
-.cmdp-list li .l {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cmdp-list li kbd {
-  color: var(--accent-text);
-}
-
-.cmdp-list li[aria-selected="true"] {
-  color: var(--on-primary);
-  background: var(--primary);
-}
-
-.cmdp-list li[aria-selected="true"] :is(.g, kbd) {
-  color: inherit;
-}
-
-.cmdp-list .empty {
-  color: var(--dim);
-  cursor: default;
-}
-
-.cmdp-foot {
-  padding: 0.25lh 2ch;
-  color: var(--dim);
-  border-top: 1px solid var(--border);
-}
-
-.cmdp-foot b {
-  color: var(--muted);
-  margin-right: 0.5ch;
-}
-
-.cmdp-foot b:not(:first-child) {
-  margin-left: 2ch;
-}
-
-/* ---- Jump mode and toasts ------------------------------------------------- */
+/* ---- Jump mode ---------------------------------------------------- */
 
 .jump-layer {
   position: fixed;
@@ -1220,33 +1047,6 @@ body {
 .jump-label .hit {
   opacity: 0.45;
 }
-
-.toasts {
-  position: fixed;
-  right: var(--gutter);
-  bottom: calc(2.5lh + 0.5rem);
-  z-index: 11;
-  display: grid;
-  gap: 0.5lh;
-  pointer-events: none;
-}
-
-.toast {
-  max-width: min(48ch, calc(100vw - 32px));
-  overflow-wrap: anywhere;
-  padding: 0.4lh 2ch;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 1ch solid var(--success);
-  box-shadow: 0 0.5lh 2lh -0.5lh color-mix(in oklab, #000 50%, transparent);
-}
-
-.toast b {
-  display: block;
-  color: var(--success-text);
-}
-
 
 /* ---- Screens rendered from Posting's own output ---------------------------- */
 

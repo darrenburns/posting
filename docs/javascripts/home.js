@@ -1,21 +1,19 @@
 // Posting 3 homepage behaviour: the page is driven like the app.
 //   1-6      go to a pane          ctrl+o  jump mode (label every control)
-//   ctrl+p : command palette       y       copy the install command
-//   t        pick a theme          esc     leave jump mode / the palette
-// Single-key shortcuts can be switched off from the command palette, and
-// never fire while typing. The theme picker itself is wired by palette.js.
+//   y        copy the install command
+// The command palette (ctrl+p, :, t) is shared with the rest of the docs in
+// commands.js; this adds the panes and jump mode to it. Single-key shortcuts
+// can be switched off from the palette, and never fire while typing.
 (function () {
   var home = document.getElementById("p3-home");
-  if (!home) return;
+  var cmd = window.postingCommands;
+  if (!home || !cmd) return;
 
   var root = document.documentElement;
   root.classList.add("js-home");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var panes = Array.prototype.slice.call(home.querySelectorAll(".term > .pane"));
-  var KEYS = "posting.home.keys";
-  var singleKeys = true;
-  try { singleKeys = localStorage.getItem(KEYS) !== "off"; } catch (e) {}
-  var INSTALL = "go install github.com/darrenburns/posting/cmd/posting@latest";
+  var INSTALL = cmd.INSTALL;
 
   function $(sel, ctx) { return (ctx || home).querySelector(sel); }
   function $$(sel, ctx) { return Array.prototype.slice.call((ctx || home).querySelectorAll(sel)); }
@@ -29,38 +27,9 @@
     modeBadge.textContent = m.toUpperCase();
   }
 
-  // ---- Toasts --------------------------------------------------------------
-  var toasts = $(".toasts");
-  function toast(title, body) {
-    var t = document.createElement("div");
-    t.className = "toast";
-    var b = document.createElement("b");
-    b.textContent = title;
-    t.appendChild(b);
-    if (body) t.appendChild(document.createTextNode(body));
-    toasts.appendChild(t);
-    setTimeout(function () { t.remove(); }, 2800);
-  }
-
   // ---- Copy ----------------------------------------------------------------
   function copyText(text, button) {
-    var done = function () {
-      toast("Copied to clipboard", text);
-      if (!button) return;
-      button.setAttribute("data-copied", "");
-      setTimeout(function () { button.removeAttribute("data-copied"); }, 1600);
-    };
-    var fallback = function () {
-      var code = button ? button.previousElementSibling : $(".prompt code");
-      var range = document.createRange();
-      range.selectNodeContents(code);
-      var sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-      toast("Selected", "Press copy in your browser to take it.");
-    };
-    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback);
-    else fallback();
+    cmd.copy(text, button, button ? button.previousElementSibling : $(".prompt code"));
   }
 
   // ---- Panes ---------------------------------------------------------------
@@ -114,19 +83,6 @@
     panes.forEach(function (p) { p.setAttribute("data-seen", ""); });
   }
 
-  // ---- Themes --------------------------------------------------------------
-  var picker = $(".theme-line .palette-picker");
-  var themes = $$("[role=radio]", picker).map(function (b) { return b.getAttribute("data-palette"); });
-  var themeName = $("[data-theme-name]");
-  function currentTheme() { return root.getAttribute("data-palette") || themes[0]; }
-  function syncTheme() { themeName.textContent = currentTheme(); }
-  function setTheme(name) {
-    var radio = picker.querySelector('[data-palette="' + name + '"]');
-    if (radio) radio.click();
-  }
-  new MutationObserver(syncTheme).observe(root, { attributes: true, attributeFilter: ["data-palette"] });
-  syncTheme();
-
   // ---- Feature tour --------------------------------------------------------
   var tabs = $$(".tour-tabs [role=tab]");
   var count = $("[data-tour-count]");
@@ -153,140 +109,20 @@
   });
 
   // ---- Command palette -----------------------------------------------------
-  var dialog = $("#cmdp");
-  var input = $("input", dialog);
-  var list = $(".cmdp-list", dialog);
-  var shown = [];
-  var cursor = 0;
-  var openedWith = null; // the theme to restore if a preview isn't chosen
-
-  function commands() {
-    var c = [];
-    panes.forEach(function (p, i) {
+  cmd.add(function () {
+    var c = panes.map(function (p, i) {
       var name = $(".pane-title", p).textContent.replace(/^\[\d\]\s*/, "");
       var heading = p.querySelector("h1, h2");
-      c.push({ g: "go to", l: name + " — " + (heading ? heading.textContent.trim() : ""), k: String(i + 1), run: function () { go(p.id); } });
+      return { g: "go to", l: name + " — " + (heading ? heading.textContent.trim() : ""), k: String(i + 1), run: function () { go(p.id); } };
     });
     c.push({ g: "action", l: "Jump mode: label every link and button", k: "^O", run: startJump });
-    c.push({ g: "action", l: "Copy the install command", k: "y", run: function () { copyText(INSTALL); } });
-    themes.forEach(function (name) {
-      c.push({ g: "theme", l: name + (name === openedWith ? "  (current)" : ""), theme: name, k: "", run: function () { openedWith = name; setTheme(name); } });
-    });
-    $$(".site-foot nav a").forEach(function (a) {
-      c.push({ g: "open", l: a.textContent.trim(), k: a.target === "_blank" ? "↗" : "", run: function () { a.click(); } });
-    });
-    c.push({ g: "setting", l: (singleKeys ? "Turn off" : "Turn on") + " single-key shortcuts (1-6, y, t, :)", k: "", run: toggleKeys });
     return c;
-  }
-
-  function matches(query, text) {
-    text = text.toLowerCase();
-    return query.toLowerCase().split(/\s+/).filter(Boolean).every(function (word) {
-      if (text.indexOf(word) >= 0) return true;
-      var at = 0;
-      for (var i = 0; i < word.length; i++) {
-        at = text.indexOf(word[i], at) + 1;
-        if (!at) return false;
-      }
-      return true;
-    });
-  }
-
-  function render() {
-    var q = input.value;
-    shown = commands().filter(function (c) { return matches(q, c.g + " " + c.l); });
-    cursor = Math.min(cursor, Math.max(0, shown.length - 1));
-    list.textContent = "";
-    if (!shown.length) {
-      var none = document.createElement("li");
-      none.className = "empty";
-      none.textContent = "No matching commands";
-      list.appendChild(none);
-      input.removeAttribute("aria-activedescendant");
-      return;
-    }
-    shown.forEach(function (c, i) {
-      var li = document.createElement("li");
-      li.id = "cmdp-" + i;
-      li.setAttribute("role", "option");
-      li.setAttribute("aria-selected", i === cursor ? "true" : "false");
-      li.innerHTML = '<span class="g"></span><span class="l"></span><kbd></kbd>';
-      li.children[0].textContent = c.g;
-      li.children[1].textContent = c.l;
-      li.children[2].textContent = c.k;
-      li.addEventListener("mousemove", function () { if (cursor !== i) { cursor = i; mark(); } });
-      li.addEventListener("click", function () { run(i); });
-      list.appendChild(li);
-    });
-    mark();
-  }
-
-  function mark() {
-    $$("[role=option]", list).forEach(function (li, i) {
-      li.setAttribute("aria-selected", i === cursor ? "true" : "false");
-    });
-    // Like Posting's theme picker, moving over a theme previews it.
-    var c = shown[cursor];
-    preview(c && c.theme ? c.theme : openedWith);
-    var active = document.getElementById("cmdp-" + cursor);
-    if (active) {
-      input.setAttribute("aria-activedescendant", active.id);
-      active.scrollIntoView({ block: "nearest" });
-    }
-  }
-
-  function preview(name) {
-    if (!name || name === currentTheme()) return;
-    root.setAttribute("data-palette", name);
-  }
-
-  function run(i) {
-    var c = shown[i];
-    dialog.close();
-    if (c) c.run();
-  }
-
-  function openPalette(query) {
-    if (!dialog.showModal) return;
+  });
+  cmd.on("open", function () {
     if (mode === "jump") endJump();
-    input.value = query || "";
-    openedWith = currentTheme();
-    cursor = 0;
-    render();
-    if (query === "theme ") {
-      var at = themes.indexOf(currentTheme());
-      if (at >= 0) { cursor = at; mark(); }
-    }
-    dialog.showModal();
-    input.focus();
     setMode("command");
-  }
-
-  input.addEventListener("input", function () { cursor = 0; render(); });
-  input.addEventListener("keydown", function (e) {
-    var step = { ArrowDown: 1, ArrowUp: -1 }[e.key];
-    if (e.ctrlKey && (e.key === "n" || e.key === "j")) step = 1;
-    if (e.ctrlKey && (e.key === "p" || e.key === "k")) step = -1;
-    if (step && shown.length) {
-      e.preventDefault();
-      cursor = (cursor + step + shown.length) % shown.length;
-      mark();
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      run(cursor);
-    }
   });
-  dialog.addEventListener("close", function () {
-    preview(openedWith);
-    setMode("normal");
-  });
-  dialog.addEventListener("click", function (e) { if (e.target === dialog) dialog.close(); });
-
-  function toggleKeys() {
-    singleKeys = !singleKeys;
-    try { localStorage.setItem(KEYS, singleKeys ? "on" : "off"); } catch (e) {}
-    toast("Single-key shortcuts " + (singleKeys ? "on" : "off"), singleKeys ? "" : "ctrl+o and ctrl+p still work.");
-  }
+  cmd.on("close", function () { setMode("normal"); });
 
   // ---- Jump mode -----------------------------------------------------------
   var layer = $(".jump-layer");
@@ -314,7 +150,7 @@
   }
 
   function startJump() {
-    if (dialog.open) dialog.close();
+    cmd.close();
     var found = [];
     document.querySelectorAll("a[href], button, input:not([type=hidden]), summary").forEach(function (el) {
       var r = onScreen(el);
@@ -334,12 +170,14 @@
     });
     typed = "";
     setMode("jump");
+    root.setAttribute("data-keys-busy", "");
     if (!targets.length) endJump();
   }
 
   function endJump() {
     layer.textContent = "";
     targets = [];
+    root.removeAttribute("data-keys-busy");
     setMode("normal");
   }
 
@@ -382,24 +220,19 @@
   }
 
   document.addEventListener("keydown", function (e) {
-    if (dialog.open) return;
+    if (cmd.isOpen()) return;
     if (mode === "jump") { jumpKey(e); return; }
     if (e.metaKey || e.altKey || typing(e.target)) return;
     var key = e.key;
     if (e.ctrlKey) {
       if (key === "o" || key === "O") startJump();
-      else if (key === "p" || key === "P") openPalette();
       else return;
-    } else if (!singleKeys) {
+    } else if (!cmd.singleKeys()) {
       return;
     } else if (/^[1-9]$/.test(key) && panes[+key - 1]) {
       go(panes[+key - 1].id);
-    } else if (key === ":") {
-      openPalette();
     } else if (key === "y") {
       copyText(INSTALL);
-    } else if (key === "t") {
-      openPalette("theme ");
     } else {
       return;
     }
@@ -415,9 +248,9 @@
     b.addEventListener("click", function () {
       var action = b.getAttribute("data-action");
       if (action === "jump") startJump();
-      else if (action === "palette") openPalette();
+      else if (action === "palette") cmd.open();
       else if (action === "copy") copyText(INSTALL);
-      else if (action === "theme") openPalette("theme ");
+      else if (action === "theme") cmd.open("theme ");
     });
   });
   $$("[data-copy]").forEach(function (b) {

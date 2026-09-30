@@ -23,8 +23,10 @@ theme:
 extra_css:
   - stylesheets/palettes.css
   - stylesheets/theme.css
+  - stylesheets/terminal.css
 extra_javascript:
   - javascripts/palette.js
+  - javascripts/commands.js
 exclude_docs: |
   overrides/
   scripts/
