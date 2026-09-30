@@ -1,0 +1,13 @@
+{
+ "info":{"name":"Example API","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+ "variable":[{"key":"BASE","value":"https://example.com"},{"key":"TOKEN","value":"global"},{"key":"OFF","value":"unused","disabled":true}],
+ "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{TOKEN}}"}]},
+ "item":[
+  {"name":"Users","variable":[{"key":"TOKEN","value":"local"}],"item":[
+   {"name":"Create","request":{"method":"POST","description":{"content":"Create a user"},"url":{"raw":"https://wrong.example/ignored?wrong=yes","protocol":"https","host":["example","com"],"path":["users",":id.json"],"query":[{"key":"search","value":"a%2Bb%20c"},{"key":"search","value":"second"},{"key":"hidden","value":"x","disabled":true}],"variable":[{"key":"id","value":"42"}]},"header":[{"key":"X-Token","value":"{{TOKEN}}"},{"key":"X-Off","value":"off","disabled":true}],"body":{"mode":"raw","raw":"{\"price\":\"$10\",\"token\":\"{{TOKEN}}\"}","options":{"raw":{"language":"json"}}}}},
+   {"name":"Public","request":{"url":"{{BASE}}/public","auth":{"type":"noauth"},"body":{"mode":"file","file":{"src":"/etc/passwd"},"disabled":true}}}
+  ]},
+  {"name":"Root","request":{"url":"{{BASE}}/root","method":"GET"}},
+  {"name":"Form","request":{"url":"{{BASE}}/form","method":"POST","body":{"mode":"urlencoded","urlencoded":[{"key":"repeated","value":"one"},{"key":"repeated","value":"two"},{"key":"disabled","value":"x","disabled":true}]}}}
+ ]
+}
