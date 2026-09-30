@@ -1,84 +1,119 @@
 ## Overview
 
-Posting 3 imports OpenAPI specifications, Postman collections, and Bruno requests
-or collections from the command line. Imported requests become ordinary
-`.posting.yaml` files that you can edit and version control.
+Posting can import requests from OpenAPI specifications, Postman collections, and Bruno requests
+or collections, using the `posting import` command. Imported requests become ordinary
+`.posting.yaml` files that you can edit and keep in version control.
 
-```sh
+```bash
 posting import api.yaml -o ./my-api
 posting import collection.postman_collection.json -o ./my-api
 posting import ./bruno-collection -o ./my-api
 posting import request.bru -o ./my-api
 ```
 
-Posting detects the format from the document or the `.bru` extension. You can
-select it explicitly with `--type` (or `-t`):
+To import a `curl` command, paste it into the URL bar inside Posting instead.
+See [Importing curl commands](./requests.md#importing-curl-commands).
 
-```sh
+## Running an import
+
+Posting works out the format from the file itself (or from the `.bru` extension, or the fact that
+the source is a directory). To choose the format yourself, use `--type` (or `-t`):
+
+```bash
 posting import --type openapi api.json -o ./my-api
 posting import --type postman collection.json -o ./my-api
 posting import --type bruno ./bruno-collection -o ./my-api
 ```
 
-Options work before or after the source path. Without `--output` (`-o`), Posting
-creates a named folder inside the default collection directory. Find that
-location with `posting locate collection`.
+`--output` (or `-o`) is the directory to write the requests to. Options can come before or after the
+source. Without `--output`, Posting creates a folder named after the collection inside the
+[default collection](./collections.md#the-default-collection), which you can find with
+`posting locate collection`.
 
-Existing files are never overwritten: filename collisions receive a numeric
-suffix. Folder and request names are made safe for use as filenames. Conversion
-errors produce a nonzero exit status. Warnings explain source features that
-Posting cannot represent; review them before sending imported requests.
+When it's finished, Posting tells you how many requests it imported, and the command to open them:
 
-If an import contains collection variables, Posting writes a separate
-`imported.env` file (also with a numeric suffix if that name is already taken).
-The command prints the exact invocation to open the collection with its variables:
-
-```sh
-posting -c ./my-api -e ./my-api/imported.env
+```text
+$ posting import petstore.yaml -o ./petstore
+warning: GET /pets/{id}: authentication credentials are empty placeholders; configure imported variables before sending
+warning: PATCH /pets/{id} body: generated a body/parameter scaffold from schema; review values and constraints
+Imported 3 openapi request(s) into "/home/you/petstore".
+Collection variables: "/home/you/petstore/imported.env"
+Open with: posting -c /home/you/petstore -e /home/you/petstore/imported.env
 ```
 
-Imports read local files. They do not execute source scripts or send requests.
+A few things are worth knowing:
 
-## Importing from curl
+- **Existing files are never overwritten.** If a file already exists, the new one gets a number
+  added to its name, so importing the same source twice gives you two copies.
+- **Variables go in an environment file.** If the source defines variables, such as a base URL or
+  credentials, Posting writes them to `imported.env` in the output directory. Pass it with `-e`, or
+  pick **imported** in the [environment switcher](./environments.md#switching-environments).
+- **Warnings tell you what couldn't be imported.** Anything Posting can't represent, such as a
+  multipart body or an authentication scheme it doesn't support, is listed as a warning. Review
+  those requests before you send them.
+- **Imports are read-only.** Posting reads local files only: it doesn't fetch anything over the
+  network, run scripts from the source, or send any requests.
 
-Paste a curl command into the URL bar, or choose **Import curl command…** from
-the command palette to use the multiline dialog. **Import curl from clipboard**
-is also available when your terminal allows applications to read its clipboard.
+Files larger than 32 MiB can't be imported.
 
-Importing curl replaces the current tab's request details. The request keeps its
-name and saved file association, and becomes unsaved until you save it.
+## OpenAPI
 
-## Importing from OpenAPI
+Posting imports OpenAPI 3.0 and 3.1 specifications, in JSON or YAML. Swagger (OpenAPI 2.0) isn't
+supported.
 
-The importer accepts OpenAPI 3.0 and 3.1 specifications in JSON or YAML. It maps
-HTTP operations to requests, including servers, parameters, request examples,
-and supported authentication. Local references are resolved within the document.
-External references are diagnosed rather than fetched from the network.
+- Each operation becomes a request, named after its summary (or its `operationId`), in a folder
+  named after its first tag.
+- The URL comes from the first server. If the specification has no server, or only a relative one,
+  the URL starts with `${BASE_URL}`, and `BASE_URL` is added to `imported.env` for you to fill in.
+- Path parameters such as `{id}` become Posting's `:id`.
+- Parameter values and request bodies are filled in from the specification's examples and defaults.
+  Optional parameters without a value start out disabled.
+- JSON and URL-encoded form bodies are imported. Imported bodies have
+  [body variable substitution](./environments.md#literal-dollar-signs) turned off, so examples
+  containing `$` are sent exactly as written.
+- Basic, Digest, Bearer and API key security schemes are imported, with the credentials as variables
+  in `imported.env`. OAuth 2, OpenID Connect and mutual TLS need to be set up by hand.
+- Only references within the document are followed.
 
-Swagger/OpenAPI 2.0 is not supported. Complex parameter serialization, multipart
-uploads, and security schemes that Posting cannot send are reported as warnings.
-See the [OpenAPI research and support notes](../research/import-openapi.md) for
-selection rules and detailed limitations.
+## Postman
 
-## Importing from Postman
+Posting imports Postman Collection v2.0 and v2.1 JSON files.
 
-The importer accepts Postman Collection v2 and v2.1 JSON. It preserves nested
-folders and converts common URL, header, query, body, authentication, and variable
-settings. Collection defaults are exported as environment variables; narrower
-scopes are handled per request so values do not leak between sibling requests.
+- Folders become folders in the collection, and each request becomes a request.
+- URLs, headers and query parameters (including disabled ones), and enabled path variables, are
+  imported.
+- Raw and URL-encoded bodies are imported. Multipart form data, file and GraphQL bodies are skipped
+  with a warning.
+- Basic, Digest, Bearer and API key authentication are imported, including authentication inherited
+  from folders and the collection.
+- Postman's `{{variable}}` references become Posting's `${variable}`. Collection variables are written
+  to `imported.env`; folder and request variables are filled into the requests that use them.
+- Pre-request and test scripts aren't imported. Postman environment files aren't imported either:
+  recreate them as [environment files](./environments.md#environment-files).
 
-Scripts, dynamic variables, file uploads, and unsupported body or authentication
-modes are diagnosed. See the [Postman research and support notes](../research/import-postman.md)
-for the supported mappings and differences from Postman's runtime.
+## Bruno
 
-## Importing from Bruno
+Posting imports a single `.bru` request file, or a whole Bruno collection directory (one containing
+`bruno.json`).
 
-The importer accepts a single `.bru` HTTP request or a Bruno collection directory.
-Directory imports include nested request files and supported collection/folder
-inheritance. Common request bodies, headers, parameters, authentication, and
-static variables are converted to Posting requests.
+- A collection's folders and requests are imported with the same layout, along with the headers,
+  query parameters, variables and authentication that `collection.bru` and `folder.bru` files pass
+  down to their requests.
+- JSON, text and XML bodies, and URL-encoded forms, are imported. Multipart, file and GraphQL bodies
+  are skipped with a warning.
+- Basic, Digest, Bearer and API key authentication are imported.
+- Bruno variables are filled into each request. References that can't be resolved when importing
+  become Posting variables.
+- Bruno's `environments` directory, scripts, tests and assertions aren't imported.
 
-Bruno environments and executable behavior are not automatically activated.
-Unsupported source features are reported as warnings. See the
-[Bruno research and support notes](../research/import-bruno.md) for supported
-Bru syntax, inheritance, and limitations.
+## Detailed support notes
+
+For every mapping and limitation, including the edge cases, see the support notes for
+[OpenAPI](../research/import-openapi.md), [Postman](../research/import-postman.md) and
+[Bruno](../research/import-bruno.md).
+
+## Coming from Posting 2
+
+Posting 2's `posting import --type postman collection.json` still works. Posting 3 detects the format
+by itself, adds Bruno support, and writes collection variables to `imported.env` rather than a file
+named after the collection.
