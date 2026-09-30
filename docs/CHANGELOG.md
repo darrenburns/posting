@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Fixed
+
+- Extend the visual mode selection with `ctrl+d` and `ctrl+u` in read-only text areas instead of dropping it (fixes #229).
+
 ## 2.11.0 [26th September 2026]
 
 ### Added
