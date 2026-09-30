@@ -1112,6 +1112,8 @@
   <rect x="1074.8" y="145.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1083.2" y="145.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1091.6" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <path d="M 29.0000 155.0000 L 33.2000 155.0000 M 29.0000 145.2000 L 29.0000 155.0000 M 29.0000 155.0000 L 29.0000 164.8000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 33.2000 155.0000 L 41.6000 155.0000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="58.4" y="155.0" fill="#4D3D61">GET</text>
   <text x="92.0" y="155.0" fill="#545460">Current</text>
   <text x="159.2" y="155.0" fill="#545460">user</text>
@@ -1249,6 +1251,8 @@
   <rect x="1074.8" y="164.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1083.2" y="164.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1091.6" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <path d="M 29.0000 174.6000 L 33.2000 174.6000 M 29.0000 164.8000 L 29.0000 174.6000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 33.2000 174.6000 L 41.6000 174.6000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="58.4" y="174.6" fill="#2F5552">POS</text>
   <text x="92.0" y="174.6" fill="#545460">Login</text>
   <path d="M 314.6000 164.8000 L 314.6000 184.4000" fill="none" stroke="#1F1E3A" stroke-width="1.0500" shape-rendering="crispEdges"/>
@@ -1528,6 +1532,8 @@
   <rect x="1074.8" y="204.0" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1083.2" y="204.0" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1091.6" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <path d="M 29.0000 213.8000 L 33.2000 213.8000 M 29.0000 204.0000 L 29.0000 213.8000 M 29.0000 213.8000 L 29.0000 223.6000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 33.2000 213.8000 L 41.6000 213.8000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="58.4" y="213.8" fill="#4D3D61">GET</text>
   <text x="92.0" y="213.8" fill="#545460">Get</text>
   <text x="125.6" y="213.8" fill="#545460">user</text>
@@ -1665,6 +1671,8 @@
   <rect x="1074.8" y="223.6" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1083.2" y="223.6" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1091.6" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <path d="M 29.0000 233.4000 L 33.2000 233.4000 M 29.0000 223.6000 L 29.0000 233.4000 M 29.0000 233.4000 L 29.0000 243.2000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 33.2000 233.4000 L 41.6000 233.4000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="58.4" y="233.4" fill="#4D3D61">GET</text>
   <text x="92.0" y="233.4" fill="#545460">List</text>
   <text x="134.0" y="233.4" fill="#545460">users</text>
@@ -1802,6 +1810,8 @@
   <rect x="1074.8" y="243.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1083.2" y="243.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1091.6" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <path d="M 29.0000 253.0000 L 33.2000 253.0000 M 29.0000 243.2000 L 29.0000 253.0000 M 29.0000 253.0000 L 29.0000 262.8000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 33.2000 253.0000 L 41.6000 253.0000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="58.4" y="253.0" fill="#2F5552">POS</text>
   <text x="92.0" y="253.0" fill="#545460">Create</text>
   <text x="150.8" y="253.0" fill="#545460">user</text>
@@ -1939,6 +1949,8 @@
   <rect x="1074.8" y="262.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1083.2" y="262.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1091.6" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <path d="M 29.0000 272.6000 L 33.2000 272.6000 M 29.0000 262.8000 L 29.0000 272.6000 M 29.0000 272.6000 L 29.0000 282.4000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 33.2000 272.6000 L 41.6000 272.6000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="58.4" y="272.6" fill="#48435D">PAT</text>
   <text x="92.0" y="272.6" fill="#545460">Update</text>
   <text x="150.8" y="272.6" fill="#545460">user</text>
@@ -2076,6 +2088,8 @@
   <rect x="1074.8" y="282.4" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1083.2" y="282.4" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="1091.6" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <path d="M 29.0000 292.2000 L 33.2000 292.2000 M 29.0000 282.4000 L 29.0000 292.2000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <path d="M 33.2000 292.2000 L 41.6000 292.2000" fill="none" stroke="#1A1A2B" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="58.4" y="292.2" fill="#563A3B">DEL</text>
   <text x="92.0" y="292.2" fill="#545460">Delete</text>
   <text x="150.8" y="292.2" fill="#545460">user</text>
