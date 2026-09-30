@@ -89,10 +89,29 @@ func TestSessionSendLifecycle(t *testing.T) {
 	req := model.NewRequest()
 	req.URL = "http://api.test/things"
 	s := newSession(1, req)
+	// Standalone Terma dispatches inline. Reproduce the app's UI queue so
+	// sender callbacks and test assertions run on the same goroutine.
+	// Buffer the final cancelled exchange's trace/completion callbacks too,
+	// so its worker can finish after the immediate cancellation assertion.
+	updates := make(chan func(), 2*len(model.TraceStages)+2)
+	s.dispatch = func(fn func()) { updates <- fn }
+	waitForPhase := func(want exchangePhase) {
+		t.Helper()
+		timeout := time.NewTimer(2 * time.Second)
+		defer timeout.Stop()
+		for s.phase.Peek() != want {
+			select {
+			case update := <-updates:
+				update()
+			case <-timeout.C:
+				t.Fatalf("timed out waiting for phase %v", want)
+			}
+		}
+	}
 
 	var done *model.Response
 	s.Send(client.Fake{}, nil, func(_ model.Request, resp *model.Response) { done = resp })
-	waitFor(t, func() bool { return s.phase.Peek() == exchangeDone })
+	waitForPhase(exchangeDone)
 	if s.response.Peek() == nil || done == nil || s.response.Peek() != done {
 		t.Fatal("completed exchange should publish the response")
 	}
@@ -101,7 +120,7 @@ func TestSessionSendLifecycle(t *testing.T) {
 		return nil, errors.New("connection refused")
 	})
 	s.Send(failing, nil, nil)
-	waitFor(t, func() bool { return s.phase.Peek() == exchangeFailed })
+	waitForPhase(exchangeFailed)
 	if err := s.err.Peek(); err == nil || err.Error() != "connection refused" {
 		t.Fatalf("err = %v", err)
 	}
