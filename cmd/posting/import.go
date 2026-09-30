@@ -86,12 +86,12 @@ func importCommand(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, "posting import:", err)
+		fmt.Fprintln(stderr, "posting import:", importDiagnostic(err.Error()))
 		return 2
 	}
 	result, format, err := readImport(opts.source, opts.format)
 	if err != nil {
-		fmt.Fprintln(stderr, "posting import:", err)
+		fmt.Fprintln(stderr, "posting import:", importDiagnostic(err.Error()))
 		return 1
 	}
 	if len(result.Requests) == 0 {
@@ -105,12 +105,12 @@ func importCommand(args []string, stdout, stderr io.Writer) int {
 	}
 	output, err = filepath.Abs(output)
 	if err != nil {
-		fmt.Fprintln(stderr, "posting import:", err)
+		fmt.Fprintln(stderr, "posting import:", importDiagnostic(err.Error()))
 		return 1
 	}
 	written, err := importing.Write(result, output)
 	if err != nil {
-		fmt.Fprintln(stderr, "posting import:", err)
+		fmt.Fprintln(stderr, "posting import:", importDiagnostic(err.Error()))
 		return 1
 	}
 	printImportWarnings(stderr, result.Warnings)
@@ -129,9 +129,13 @@ func printImportWarnings(out io.Writer, warnings []string) {
 	for _, warning := range warnings {
 		// Diagnostics may contain names from an untrusted source document. Render
 		// control characters literally rather than interpreting terminal escapes.
-		escaped := strconv.Quote(warning)
-		fmt.Fprintln(out, "warning:", escaped[1:len(escaped)-1])
+		fmt.Fprintln(out, "warning:", importDiagnostic(warning))
 	}
+}
+
+func importDiagnostic(message string) string {
+	quoted := strconv.Quote(message)
+	return quoted[1 : len(quoted)-1]
 }
 
 func readImport(source, format string) (importing.Result, string, error) {
