@@ -43,6 +43,8 @@ func (m *multiFlag) Set(v string) error { *m = append(*m, v); return nil }
 func run(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 {
 		switch args[0] {
+		case "import":
+			return importCommand(args[1:], stdout, stderr)
 		case "locate":
 			return locate(args[1:], stdout, stderr)
 		case "version", "--version", "-v":
@@ -57,6 +59,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 	fs.Usage = func() {
 		fmt.Fprint(stderr, `Usage: posting [options]
        posting locate config|collection|themes
+       posting import [--type FORMAT] [-o DIR] SOURCE
 
 A terminal HTTP client.
 
