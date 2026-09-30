@@ -29,8 +29,8 @@ func parseDocument(data []byte) (document, error) {
 	lines := strings.Split(s, "\n")
 	var d document
 	for i := 0; i < len(lines); i++ {
-		line := strings.TrimSpace(lines[i])
-		if line == "" {
+		line := strings.TrimLeft(lines[i], " \t")
+		if strings.TrimSpace(line) == "" {
 			continue
 		}
 		p := strings.IndexByte(line, '{')
@@ -46,8 +46,8 @@ func parseDocument(data []byte) (document, error) {
 		start := i + 1
 		i++
 		// Triple-quoted dictionary values may themselves contain column-zero braces.
-		triple := false
 		textBlock := isText(name)
+		triple := !textBlock && opensMultiline(line[p+1:])
 		for ; i < len(lines); i++ {
 			if !triple && strings.HasPrefix(lines[i], "}") {
 				if strings.TrimSpace(lines[i]) != "}" {
@@ -55,8 +55,12 @@ func parseDocument(data []byte) (document, error) {
 				}
 				break
 			}
-			if !textBlock && strings.Count(lines[i], "'''")%2 == 1 {
-				triple = !triple
+			if !textBlock {
+				if triple {
+					triple = !strings.Contains(lines[i], "'''")
+				} else {
+					triple = opensMultiline(lines[i])
+				}
 			}
 		}
 		if i == len(lines) {
@@ -64,7 +68,11 @@ func parseDocument(data []byte) (document, error) {
 		}
 		content := strings.Join(lines[start:i], "\n")
 		if inline := line[p+1:]; strings.TrimSpace(inline) != "" {
-			content = inline + "\n" + content
+			if start < i {
+				content = inline + "\n" + content
+			} else {
+				content = inline
+			}
 		}
 		if len(d) >= 10000 {
 			return nil, fmt.Errorf("Bruno file exceeds 10000 blocks")
@@ -73,6 +81,39 @@ func parseDocument(data []byte) (document, error) {
 	}
 	return d, nil
 }
+
+// Only a value beginning with the multiline delimiter opens a literal. Triple
+// apostrophes elsewhere (including quoted keys and ordinary values) are text.
+func opensMultiline(line string) bool {
+	line = strings.TrimSpace(line)
+	var value string
+	if annotationLine.MatchString(line) {
+		_, value, _ = strings.Cut(line, "(")
+	} else {
+		line = strings.TrimPrefix(line, "~")
+		quoted := strings.HasPrefix(line, "\"")
+		for i := 0; i < len(line); i++ {
+			if quoted {
+				if i == 0 {
+					continue
+				}
+				if line[i] == '\\' && i+1 < len(line) && line[i+1] == '"' {
+					i++
+					continue
+				}
+				if line[i] == '"' {
+					quoted = false
+				}
+			} else if line[i] == ':' {
+				value = line[i+1:]
+				break
+			}
+		}
+	}
+	value = strings.TrimSpace(value)
+	return strings.HasPrefix(value, "'''") && !strings.Contains(value[3:], "'''")
+}
+
 func isText(name string) bool {
 	return name == "body" || name == "docs" || name == "tests" || name == "example" || strings.HasPrefix(name, "script:") || (strings.HasPrefix(name, "body:") && name != "body:form-urlencoded" && name != "body:multipart-form" && name != "body:file" && name != "body:grpc" && name != "body:ws")
 }
@@ -128,7 +169,7 @@ func parsePairs(s string) ([]model.KeyValue, error) {
 		// Annotations carry descriptions/types unsupported by Posting. Skip them as
 		// metadata, including multiline descriptions; callers issue a diagnostic.
 		if annotationLine.MatchString(line) {
-			if strings.Count(line, "'''")%2 == 1 {
+			if opensMultiline(line) {
 				for i++; i < len(lines) && !strings.Contains(lines[i], "'''"); i++ {
 				}
 				if i == len(lines) {
@@ -174,7 +215,7 @@ func parsePairs(s string) ([]model.KeyValue, error) {
 			key = strings.TrimSpace(line[:p])
 			value = strings.TrimSpace(line[p+1:])
 		}
-		if strings.HasPrefix(key, "~") {
+		if enabled && strings.HasPrefix(key, "~") {
 			enabled = false
 			key = key[1:]
 		}
@@ -199,11 +240,7 @@ func parsePairs(s string) ([]model.KeyValue, error) {
 			}
 			parts = strings.Split(value[:end], "\n")
 			for j := range parts {
-				if len(parts[j]) >= 4 {
-					parts[j] = parts[j][4:]
-				} else {
-					parts[j] = ""
-				}
+				parts[j] = sliceUTF16(parts[j], 4)
 			}
 			value = strings.TrimSpace(strings.Join(parts, "\n"))
 			if tail != "" {
@@ -232,4 +269,23 @@ func values(rows []model.KeyValue) map[string]string {
 		}
 	}
 	return m
+}
+
+// Bruno's JavaScript grammar applies line.slice(4) to multiline values, so the
+// indentation width is four UTF-16 code units, not four UTF-8 bytes. Replacing
+// a split surrogate matches the UTF-8 encoding used when Bruno sends a string.
+func sliceUTF16(s string, units int) string {
+	for i, r := range s {
+		if units == 0 {
+			return s[i:]
+		}
+		units--
+		if r > 0xffff {
+			units--
+		}
+		if units < 0 {
+			return "\ufffd" + s[i+utf8.RuneLen(r):]
+		}
+	}
+	return ""
 }

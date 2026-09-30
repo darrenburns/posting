@@ -361,7 +361,6 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 		}
 	}
 	r.URL = expansion.expand(r.URL, nil)
-	r.Body.Raw = expansion.expandMode(r.Body.Raw, nil, bodyMode == "json")
 	r.Auth.Username = expansion.expand(r.Auth.Username, nil)
 	r.Auth.Password = expansion.expand(r.Auth.Password, nil)
 	r.Auth.Token = expansion.expand(r.Auth.Token, nil)
@@ -371,6 +370,18 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 			rows[i].Value = expansion.expand(rows[i].Value, nil)
 		}
 	}
+	// Bruno selects JSON string escaping from the effective Content-Type after
+	// header interpolation, rather than from the body editor's selected mode.
+	contentType := r.Body.ContentType
+	for _, header := range r.Headers {
+		if header.Enabled && strings.EqualFold(header.Name, "Content-Type") {
+			contentType = header.Value
+		}
+	}
+	if strings.Contains(contentType, "${") || strings.Contains(contentType, "{{") {
+		warn(result, "unresolved Content-Type uses import-time body escaping; check body variables after setting the header")
+	}
+	r.Body.Raw = expansion.expandMode(r.Body.Raw, nil, strings.Contains(contentType, "json"))
 	if expansion.err != nil {
 		return nil, expansion.err
 	}
@@ -384,6 +395,7 @@ type expander struct {
 	vars   map[string]string
 	result *importing.Result
 	count  int
+	bytes  int
 	err    error
 }
 
@@ -460,6 +472,14 @@ func (e *expander) expandMode(s string, stack []string, jsonBody bool) string {
 		return ""
 	}
 	out.WriteString(s[last:])
+	// Bound total allocation work across fields and recursive substitutions,
+	// not just each field. A large static value reused by thousands of small
+	// references otherwise multiplies a bounded input into gigabytes.
+	e.bytes += out.Len()
+	if e.bytes > maxFileSize {
+		e.err = fmt.Errorf("Bruno aggregate variable expansion exceeds 16 MiB")
+		return ""
+	}
 	return out.String()
 }
 
