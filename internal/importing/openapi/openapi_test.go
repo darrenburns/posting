@@ -225,6 +225,8 @@ func FuzzParse(f *testing.F) {
 	}
 	fixture, _ := os.ReadFile("testdata/petstore.yaml")
 	f.Add(fixture)
+	f.Add([]byte(`{"openapi":"3.1.1","servers":[{"url":"https://example.test"}],"paths":{"/x":{"post":{"requestBody":{"content":{"application/json; charset=utf-8":{"example":{"n":18446744073709551617}}}}}}}}`))
+	f.Add([]byte("openapi: 3.1.0\npaths: {/x: {get: {parameters: [{name: n, in: query, example: 1.00000000000000000001}]}}}\nx: &x {n: 2}\ny: {<<: *x}\n"))
 	f.Fuzz(func(t *testing.T, data []byte) {
 		result, err := Parse(data)
 		if err != nil {
@@ -239,8 +241,17 @@ func FuzzParse(f *testing.F) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if _, err := collection.ParseRequest(encoded, req.File); err != nil {
+			back, err := collection.ParseRequest(encoded, req.File)
+			if err != nil {
 				t.Fatal(err)
+			}
+			// Check the request that would actually be sent, not just that the
+			// generated YAML is syntactically readable.
+			lookup := model.MapLookup(map[string]string{"BASE_URL": "https://example.test"})
+			beforeWire, beforeErr := model.Resolve(req, lookup)
+			afterWire, afterErr := model.Resolve(back, lookup)
+			if fmt.Sprint(beforeErr) != fmt.Sprint(afterErr) || !reflect.DeepEqual(beforeWire, afterWire) {
+				t.Fatalf("persisted request changes resolution: before=%+v after=%+v", beforeWire, afterWire)
 			}
 		}
 	})

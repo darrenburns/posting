@@ -3,6 +3,7 @@ package openapi
 import (
 	"encoding/json"
 	"fmt"
+	"mime"
 	"net/url"
 	"strconv"
 	"strings"
@@ -11,8 +12,19 @@ import (
 // resolve follows only JSON pointers within this document. Path Item siblings
 // have undefined overlap behavior in OAS, so we diagnose and ignore them.
 func (p *parser) resolve(raw any, context string) object {
+	return p.resolveObject(raw, context, false)
+}
+
+func (p *parser) resolveSchema(raw any, context string) object {
+	return p.resolveObject(raw, context, true)
+}
+
+func (p *parser) resolveObject(raw any, context string, allowBoolean bool) object {
 	seen := map[string]bool{}
 	for depth := 0; depth < 64; depth++ {
+		if _, boolean := raw.(bool); boolean && allowBoolean {
+			return nil
+		}
 		value, ok := raw.(object)
 		if !ok {
 			p.fail("%s: expected an object", context)
@@ -68,7 +80,7 @@ func (p *parser) resolve(raw any, context string) object {
 					}
 				case []any:
 					index, err := strconv.Atoi(part)
-					if err != nil || index < 0 || index >= len(container) || (len(part) > 1 && part[0] == '0') {
+					if err != nil || part == "" || part[0] < '0' || part[0] > '9' || index < 0 || index >= len(container) || (len(part) > 1 && part[0] == '0') {
 						p.fail("%s: invalid array reference %q", context, ref)
 						return nil
 					}
@@ -147,15 +159,10 @@ func (p *parser) example(def object, context string) (any, bool) {
 // sample generates an editable scaffold, not an instance guaranteed to validate
 // against arbitrary JSON Schema. Explicit examples always take precedence.
 func (p *parser) sample(raw any, context string, depth int) (any, bool) {
-	p.budget--
-	if depth > 16 || p.budget < 0 {
-		p.warn("%s: recursive or oversized schema stopped while generating an example", context)
-		return nil, false
-	}
 	if _, ok := raw.(bool); ok {
 		return nil, false
 	}
-	schema := p.resolve(raw, context+" schema")
+	schema := p.resolveSchema(raw, context+" schema")
 	for _, key := range []string{"example", "default", "const"} {
 		if value, exists := schema[key]; exists {
 			return value, true
@@ -166,6 +173,13 @@ func (p *parser) sample(raw any, context string, depth int) (any, bool) {
 	}
 	if enum := array(schema["enum"]); len(enum) > 0 {
 		return enum[0], true
+	}
+	// The shared work budget bounds synthesis, not explicit source values.
+	// An oversized earlier operation must not erase a later schema's example.
+	p.budget--
+	if depth > 16 || p.budget < 0 {
+		p.warn("%s: recursive or oversized schema stopped while generating an example", context)
+		return nil, false
 	}
 	for _, key := range []string{"allOf", "oneOf", "anyOf", "$dynamicRef", "$id"} {
 		if _, exists := schema[key]; exists {
@@ -189,7 +203,7 @@ func (p *parser) sample(raw any, context string, depth int) (any, bool) {
 			if _, isBoolean := props[name].(bool); isBoolean {
 				continue
 			}
-			property := p.resolve(props[name], context+" property "+name)
+			property := p.resolveSchema(props[name], context+" property "+name)
 			if boolean(property["readOnly"]) {
 				continue
 			}
@@ -246,5 +260,15 @@ func str(v any) string        { value, _ := v.(string); return value }
 func boolean(v any) bool      { value, _ := v.(bool); return value }
 func literal(s string) string { return strings.ReplaceAll(s, "$", "$$") }
 func isJSON(s string) bool {
-	return s == "application/json" || strings.HasSuffix(strings.Split(s, ";")[0], "+json")
+	s = mediaType(s)
+	return s == "application/json" || strings.HasSuffix(s, "+json")
+}
+
+// Media types are case insensitive, and parameters do not change the encoding.
+func mediaType(s string) string {
+	typ, _, err := mime.ParseMediaType(s)
+	if err != nil {
+		return strings.ToLower(strings.TrimSpace(strings.Split(s, ";")[0]))
+	}
+	return typ
 }

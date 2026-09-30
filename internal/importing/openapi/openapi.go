@@ -25,6 +25,7 @@ type parser struct {
 	seenWarnings  map[string]bool
 	variableNames map[string]bool
 	budget        int
+	outputBytes   int
 }
 
 // Parse accepts one JSON or YAML document. Conversion warnings identify lossy
@@ -34,25 +35,43 @@ func Parse(data []byte) (importing.Result, error) {
 	if len(data) > 32<<20 {
 		return importing.Result{}, fmt.Errorf("OpenAPI document exceeds 32 MiB")
 	}
-	dec := yaml.NewDecoder(bytes.NewReader(data))
-	var document yaml.Node
-	if err := dec.Decode(&document); err != nil {
-		return importing.Result{}, fmt.Errorf("decode OpenAPI: %w", err)
-	}
-	if err := prepareYAML(&document, 0); err != nil {
-		return importing.Result{}, err
-	}
 	var raw any
-	if err := document.Decode(&raw); err != nil {
-		return importing.Result{}, fmt.Errorf("decode OpenAPI: %w", err)
-	}
-	var extra any
-	if err := dec.Decode(&extra); err != io.EOF {
-		return importing.Result{}, fmt.Errorf("OpenAPI input must contain exactly one document")
+	var document yaml.Node
+	jsonInput := json.Valid(data)
+	if jsonInput {
+		dec := json.NewDecoder(bytes.NewReader(data))
+		dec.UseNumber()
+		var err error
+		raw, err = decodeJSONValue(dec, 0)
+		if err != nil {
+			return importing.Result{}, fmt.Errorf("decode OpenAPI JSON: %w", err)
+		}
+	} else {
+		dec := yaml.NewDecoder(bytes.NewReader(data))
+		if err := dec.Decode(&document); err != nil {
+			return importing.Result{}, fmt.Errorf("decode OpenAPI: %w", err)
+		}
+		if err := prepareYAML(&document, 0); err != nil {
+			return importing.Result{}, err
+		}
+		if err := document.Decode(&raw); err != nil {
+			return importing.Result{}, fmt.Errorf("decode OpenAPI: %w", err)
+		}
+		var extra any
+		if err := dec.Decode(&extra); err != io.EOF {
+			return importing.Result{}, fmt.Errorf("OpenAPI input must contain exactly one document")
+		}
 	}
 	normalized, err := normalize(raw, 0)
 	if err != nil {
 		return importing.Result{}, err
+	}
+	if !jsonInput {
+		budget := 250000
+		normalized, err = exactYAMLNumbers(&document, normalized, &budget)
+		if err != nil {
+			return importing.Result{}, err
+		}
 	}
 	root, ok := normalized.(object)
 	if !ok {
@@ -67,6 +86,7 @@ func Parse(data []byte) (importing.Result, error) {
 	if p.result.Name == "" {
 		p.result.Name = "OpenAPI"
 	}
+	p.outputBytes = len(p.result.Name)
 	p.scan(root)
 	paths, ok := root["paths"].(object)
 	if !ok {
@@ -95,6 +115,9 @@ func Parse(data []byte) (importing.Result, error) {
 				continue
 			}
 			p.operation(path, method, item, op)
+			if p.err != nil {
+				return importing.Result{}, p.err
+			}
 		}
 	}
 	if p.err != nil {
@@ -190,10 +213,10 @@ func (p *parser) operation(path, method string, item, op object) {
 		servers = p.root["servers"]
 	}
 	base := p.server(servers, context)
-	r.URL = literal(strings.TrimRight(base, "/")) + escapePath(path)
+	r.URL = literal(strings.ReplaceAll(strings.TrimRight(base, "/"), "/:", "/::")) + escapePath(path)
 	// BASE_URL is introduced by the importer, not a literal source string.
 	if strings.HasPrefix(base, "${BASE_URL}") {
-		r.URL = "${BASE_URL}" + literal(strings.TrimRight(strings.TrimPrefix(base, "${BASE_URL}"), "/")) + escapePath(path)
+		r.URL = "${BASE_URL}" + literal(strings.ReplaceAll(strings.TrimRight(strings.TrimPrefix(base, "${BASE_URL}"), "/"), "/:", "/::")) + escapePath(path)
 	}
 	params := p.parameters(item["parameters"], context)
 	override := p.parameters(op["parameters"], context)
@@ -212,6 +235,9 @@ func (p *parser) operation(path, method string, item, op object) {
 	}
 	for _, parameter := range params {
 		p.parameter(&r, parameter, context)
+		if p.err != nil || !p.checkRequestBudget(&r) {
+			return
+		}
 	}
 	for _, name := range model.PathParamNames(r.URL) {
 		found := false
@@ -240,10 +266,17 @@ func (p *parser) operation(path, method string, item, op object) {
 	if !exists {
 		security = p.root["security"]
 	}
+	if p.err != nil || !p.checkRequestBudget(&r) {
+		return
+	}
 	p.security(&r, security, context)
 	if len(obj(op["callbacks"])) > 0 {
 		p.warn("%s: callbacks are not imported", context)
 	}
+	if p.err != nil || !p.checkRequestBudget(&r) {
+		return
+	}
+	p.outputBytes += requestBytes(r)
 	p.result.Requests = append(p.result.Requests, r)
 }
 
@@ -393,12 +426,11 @@ func (p *parser) parameter(r *model.Request, parameter object, context string) {
 			return
 		}
 		if isJSON(media) {
-			data, err := json.Marshal(v)
-			if err != nil {
-				p.fail("%s: invalid JSON example: %v", context, err)
+			text, ok := p.encodeJSON(v, false)
+			if !ok {
 				return
 			}
-			value = string(data)
+			value = text
 			present = true
 		} else if s, ok := v.(string); ok {
 			value = s
@@ -533,7 +565,7 @@ func (p *parser) body(r *model.Request, body object, context string) {
 	}
 	definition := obj(content[media])
 	value, present := p.example(definition, context+" body")
-	if strings.HasPrefix(media, "multipart/") {
+	if strings.HasPrefix(mediaType(media), "multipart/") {
 		p.warn("%s: multipart bodies are not supported; body omitted", context)
 		return
 	}
@@ -541,46 +573,38 @@ func (p *parser) body(r *model.Request, body object, context string) {
 		p.warn("%s: request body has no usable example or default; body needs editing", context)
 	}
 	r.Options.SubstituteBodyVariables = false // Examples contain literal source bytes, including '$'.
-	if media == "application/x-www-form-urlencoded" {
+	if mediaType(media) == "application/x-www-form-urlencoded" {
 		values, ok := value.(object)
 		if !ok {
 			p.warn("%s: form body example must be an object; body omitted", context)
 			return
 		}
-		r.Body = model.Body{Type: model.BodyForm, ContentType: media, Form: []model.KeyValue{}}
+		r.Body = model.Body{Type: model.BodyForm, ContentType: "application/x-www-form-urlencoded", Form: []model.KeyValue{}}
+		if media != r.Body.ContentType {
+			r.Headers = append(r.Headers, model.KeyValue{Name: "Content-Type", Value: literal(media), Enabled: true})
+		}
 		encoding := obj(definition["encoding"])
 		for _, name := range keys(values) {
-			enc := obj(encoding[name])
-			style := str(enc["style"])
-			if style == "" {
-				style = "form"
-			}
-			explode := true
-			if v, ok := enc["explode"].(bool); ok {
-				explode = v
-			}
-			if boolean(enc["allowReserved"]) || len(obj(enc["headers"])) > 0 || str(enc["contentType"]) != "" {
-				p.warn("%s: form field %s has unsupported encoding; omitted", context, name)
-				continue
-			}
-			fields, ok := parameterValues(name, values[name], style, explode)
+			fields, ok := p.formValues(name, values[name], obj(encoding[name]))
 			if !ok {
 				p.warn("%s: form field %s has unsupported serialization; omitted", context, name)
 				continue
 			}
 			r.Body.Form = append(r.Body.Form, fields...)
+			if p.err != nil || !p.checkRequestBudget(r) {
+				return
+			}
 		}
 		return
 	}
 	raw := ""
 	if present {
 		if isJSON(media) {
-			encoded, err := json.MarshalIndent(value, "", "  ")
-			if err != nil {
-				p.fail("%s: invalid JSON body example: %v", context, err)
+			var ok bool
+			raw, ok = p.encodeJSON(value, true)
+			if !ok {
 				return
 			}
-			raw = string(encoded)
 		} else {
 			var ok bool
 			raw, ok = value.(string)
@@ -594,4 +618,59 @@ func (p *parser) body(r *model.Request, body object, context string) {
 		p.warn("%s: wildcard body media type %s needs manual selection", context, media)
 	}
 	r.Body = model.Body{Type: model.BodyRaw, ContentType: media, Raw: raw}
+}
+
+// Explicit style/explode/allowReserved select parameter serialization. Without
+// them, object fields use JSON content, including objects in repeated arrays.
+// Per OAS, headers are ignored for URL-encoded forms, and contentType is ignored
+// when parameter serialization is selected.
+func (p *parser) formValues(name string, value any, encoding object) ([]model.KeyValue, bool) {
+	_, styleSet := encoding["style"]
+	_, explodeSet := encoding["explode"]
+	_, reservedSet := encoding["allowReserved"]
+	if styleSet || explodeSet || reservedSet {
+		if boolean(encoding["allowReserved"]) {
+			return nil, false
+		}
+		style := str(encoding["style"])
+		if style == "" {
+			style = "form"
+		}
+		explode := style == "form"
+		if v, ok := encoding["explode"].(bool); ok {
+			explode = v
+		}
+		return parameterValues(name, value, style, explode)
+	}
+	values, array := value.([]any)
+	if !array {
+		values = []any{value}
+	}
+	out := []model.KeyValue{}
+	for _, value := range values {
+		contentType := str(encoding["contentType"])
+		_, objectValue := value.(object)
+		if contentType == "" && objectValue {
+			contentType = "application/json"
+		}
+		var text string
+		if isJSON(contentType) {
+			var ok bool
+			text, ok = p.encodeJSON(value, false)
+			if !ok {
+				return nil, false
+			}
+		} else {
+			if contentType != "" && mediaType(contentType) != "text/plain" {
+				return nil, false
+			}
+			var ok bool
+			text, ok = scalar(value)
+			if !ok {
+				return nil, false
+			}
+		}
+		out = append(out, model.KeyValue{Name: name, Value: text, Enabled: true})
+	}
+	return out, true
 }
