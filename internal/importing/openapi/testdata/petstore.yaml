@@ -1,0 +1,64 @@
+openapi: 3.1.1
+info:
+  title: Pet Store
+  version: '1'
+servers:
+  - url: https://{region}.example.test/{version}
+    variables:
+      region: {default: eu}
+      version: {default: v1}
+security:
+  - bearer: []
+paths:
+  /pets/{id}:
+    parameters:
+      - $ref: '#/components/parameters/pet~1id'
+      - {name: locale, in: query, schema: {type: string, default: en}}
+    get:
+      operationId: getPet
+      summary: Find pet
+      description: Returns one pet.
+      tags: [Pets]
+      parameters:
+        - {name: locale, in: query, example: fr}
+        - {name: tags, in: query, schema: {type: array}, example: [cute, 'a,b']}
+        - {name: X-Trace, in: header, example: 'trace-$literal'}
+        - {name: session, in: cookie, example: 'a b'}
+      responses: {'200': {description: OK}}
+    patch:
+      summary: Update pet
+      servers: [{url: https://edit.example.test/v2}]
+      security: []
+      requestBody:
+        $ref: '#/components/requestBodies/Pet'
+      responses: {'200': {description: OK}}
+  /submit:
+    post:
+      summary: Submit form
+      security: [{apiKey: []}]
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            example: {name: 'Kitty $cat', tag: [a, b]}
+      responses: {'200': {description: OK}}
+components:
+  parameters:
+    pet/id:
+      name: id
+      in: path
+      required: true
+      schema: {type: string, default: 'a/b'}
+  requestBodies:
+    Pet:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id: {type: integer, readOnly: true, example: 7}
+              name: {type: string, default: 'Kitty $cat'}
+              active: {type: boolean, default: false}
+              tags: {type: array, items: {type: string, example: pet}}
+  securitySchemes:
+    bearer: {type: http, scheme: bearer}
+    apiKey: {type: apiKey, in: header, name: X-API-Key}
