@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/darrenburns/posting/internal/importing"
+	"github.com/darrenburns/posting/internal/model"
 )
 
 // Load imports a .bru file or a collection directory containing bruno.json.
@@ -44,6 +45,7 @@ func Load(path string) (importing.Result, error) {
 	defer root.Close()
 	result := importing.Result{Name: filepath.Base(filepath.Clean(path))}
 	count, total, visited := 0, 0, 0
+	materialized := 0
 	read := func(name string) ([]byte, error) {
 		st, err := root.Lstat(name)
 		if err != nil {
@@ -186,6 +188,10 @@ func Load(path string) (importing.Result, error) {
 			}
 			if r != nil {
 				r.File = strings.TrimSuffix(rel, ".bru") + ".posting.yaml"
+				materialized += requestFootprint(*r)
+				if materialized > 128<<20 {
+					return fmt.Errorf("materialized Bruno collection exceeds 128 MiB")
+				}
 				result.Requests = append(result.Requests, *r)
 			}
 		}
@@ -210,4 +216,16 @@ func readBounded(path string) ([]byte, error) {
 }
 func sortEntries(entries []fs.DirEntry) {
 	slices.SortFunc(entries, func(a, b fs.DirEntry) int { return strings.Compare(a.Name(), b.Name()) })
+}
+
+// Account for scoped values copied into each request, which need not be bounded
+// by source file bytes. Include conservative structural overhead for empty rows.
+func requestFootprint(r model.Request) int {
+	size := 512 + len(r.Name) + len(r.Description) + len(r.URL) + len(r.File) + len(r.Body.Raw) + len(r.Body.ContentType) + len(r.Auth.Username) + len(r.Auth.Password) + len(r.Auth.Token)
+	for _, rows := range [][]model.KeyValue{r.Headers, r.Query, r.PathParams, r.Body.Form} {
+		for _, row := range rows {
+			size += 64 + len(row.Name) + len(row.Value)
+		}
+	}
+	return size
 }
