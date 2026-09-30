@@ -1,114 +1,130 @@
 <div id="p3-home">
 
-  <section class="hero wrap" aria-labelledby="home-title">
-    <div class="hero-head">
-      <div class="hero-copy">
-        <p class="release"><b>New</b> Posting 3 &middot; rebuilt in Go &middot; one binary</p>
-        <h1 id="home-title">The API client that lives in your terminal.<span class="caret" aria-hidden="true"></span></h1>
+  <p class="statusline">
+    <span class="sl-badge">POSTING 3</span>
+    <span class="sl-text">rebuilt in Go &middot; one binary</span>
+    <span class="sl-right">
+      <span class="sl-tip">keys: <b>1</b>&ndash;<b>6</b> panes &middot; <b>^O</b> jump &middot; <b>^P</b> commands</span>
+      <span class="sl-theme"><span class="dot" aria-hidden="true">&#9670;</span> <span data-theme-name>galaxy</span></span>
+    </span>
+  </p>
+
+  <div class="term">
+
+  <!-- [1] ------------------------------------------------------------------ -->
+  <section class="pane" id="posting" data-pane="1" tabindex="-1" aria-labelledby="home-title">
+    <div class="pane-title" aria-hidden="true"><b>[1]</b> posting</div>
+    <div class="pane-meta" aria-hidden="true">~/</div>
+
+    <div class="hero">
+      <div class="hero-main">
+<svg class="wordmark" viewBox="-2 -2 564 124" role="img" aria-label="Posting"><defs><linearGradient id="wm-fill" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="560" y2="120"><stop offset="0.05" style="stop-color:var(--primary)"/><stop offset="0.95" style="stop-color:var(--accent)"/></linearGradient></defs><path class="wm-shadow" d="M60 7.6H67.4V20M60 12.4H62.6V20 M150 7.6H157.4V20M150 12.4H152.6V20 M240 7.6H247.4V20M240 12.4H242.6V20 M330 7.6H337.4V20M330 12.4H332.6V20 M360 7.6H367.4V20M360 12.4H362.6V20 M400 7.6H407.4V20M400 12.4H402.6V20 M460 7.6H467.4V20M460 12.4H462.6V20 M540 7.6H547.4V20M540 12.4H542.6V20 M30 27.6H22.6V40M30 32.4H27.4V40 M30 27.6H40M30 32.4H40 M40 27.6H50M40 32.4H50 M70 27.6H77.4V40M70 32.4H72.6V40 M110 27.6H102.6V40M110 32.4H107.4V40 M110 27.6H120M110 32.4H120 M120 27.6H130M120 32.4H130 M130 27.6H140M130 32.4H140 M160 27.6H167.4V40M160 32.4H162.6V40 M200 27.6H192.6V40M200 32.4H197.4V40 M200 27.6H210M200 32.4H210 M210 27.6H220M210 32.4H220 M220 27.6H230M220 32.4H230 M230 27.6H240M230 32.4H240 M240 32.4H247.4V20M240 27.6H242.6V20 M260 32.4H252.6V20M260 27.6H257.4V20 M260 27.6H270M260 32.4H270 M270 27.6H280M270 32.4H280 M310 27.6H302.6V40M310 32.4H307.4V40 M310 27.6H320M310 32.4H320 M320 27.6H330M320 32.4H330 M330 32.4H337.4V20M330 27.6H332.6V20 M362.6 20V40M367.4 20V40 M410 27.6H417.4V40M410 32.4H412.6V40 M462.6 20V40M467.4 20V40 M500 27.6H492.6V40M500 32.4H497.4V40 M500 27.6H510M500 32.4H510 M510 27.6H520M510 32.4H520 M520 27.6H530M520 32.4H530 M530 27.6H540M530 32.4H540 M540 32.4H547.4V20M540 27.6H542.6V20 M70 47.6H62.6V60M70 52.4H67.4V60 M70 52.4H77.4V40M70 47.6H72.6V40 M102.6 40V60M107.4 40V60 M162.6 40V60M167.4 40V60 M240 47.6H247.4V60M240 52.4H242.6V60 M302.6 40V60M307.4 40V60 M362.6 40V60M367.4 40V60 M400 47.6H392.6V60M400 52.4H397.4V60 M420 47.6H427.4V60M420 52.4H422.6V60 M462.6 40V60M467.4 40V60 M492.6 40V60M497.4 40V60 M550 47.6H557.4V60M550 52.4H552.6V60 M30 67.6H22.6V80M30 72.4H27.4V80 M30 67.6H40M30 72.4H40 M40 67.6H50M40 72.4H50 M50 67.6H60M50 72.4H60 M60 72.4H67.4V60M60 67.6H62.6V60 M102.6 60V80M107.4 60V80 M162.6 60V80M167.4 60V80 M180 72.4H172.6V60M180 67.6H177.4V60 M180 67.6H190M180 72.4H190 M190 67.6H200M190 72.4H200 M200 67.6H210M200 72.4H210 M210 67.6H220M210 72.4H220 M242.6 60V80M247.4 60V80 M302.6 60V80M307.4 60V80 M362.6 60V80M367.4 60V80 M392.6 60V80M397.4 60V80 M410 72.4H402.6V60M410 67.6H407.4V60 M430 67.6H437.4V80M430 72.4H432.6V80 M462.6 60V80M467.4 60V80 M492.6 60V80M497.4 60V80 M552.6 60V80M557.4 60V80 M22.6 80V100M27.4 80V100 M90 92.4H82.6V80M90 87.6H87.4V80 M160 87.6H152.6V100M160 92.4H157.4V100 M160 92.4H167.4V80M160 87.6H162.6V80 M242.6 80V100M247.4 80V100 M302.6 80V100M307.4 80V100 M362.6 80V100M367.4 80V100 M392.6 80V100M397.4 80V100 M420 92.4H412.6V80M420 87.6H417.4V80 M462.6 80V100M467.4 80V100 M480 92.4H472.6V80M480 87.6H477.4V80 M550 87.6H542.6V100M550 92.4H547.4V100 M550 92.4H557.4V80M550 87.6H552.6V80 M10 112.4H2.6V100M10 107.6H7.4V100 M10 107.6H20M10 112.4H20 M20 112.4H27.4V100M20 107.6H22.6V100 M100 112.4H92.6V100M100 107.6H97.4V100 M100 107.6H110M100 112.4H110 M110 107.6H120M110 112.4H120 M120 107.6H130M120 112.4H130 M130 107.6H140M130 112.4H140 M140 107.6H150M140 112.4H150 M150 112.4H157.4V100M150 107.6H152.6V100 M180 112.4H172.6V100M180 107.6H177.4V100 M180 107.6H190M180 112.4H190 M190 107.6H200M190 112.4H200 M200 107.6H210M200 112.4H210 M210 107.6H220M210 112.4H220 M220 107.6H230M220 112.4H230 M230 107.6H240M230 112.4H240 M240 112.4H247.4V100M240 107.6H242.6V100 M290 112.4H282.6V100M290 107.6H287.4V100 M290 107.6H300M290 112.4H300 M300 112.4H307.4V100M300 107.6H302.6V100 M350 112.4H342.6V100M350 107.6H347.4V100 M350 107.6H360M350 112.4H360 M360 112.4H367.4V100M360 107.6H362.6V100 M380 112.4H372.6V100M380 107.6H377.4V100 M380 107.6H390M380 112.4H390 M390 112.4H397.4V100M390 107.6H392.6V100 M430 112.4H422.6V100M430 107.6H427.4V100 M430 107.6H440M430 112.4H440 M440 107.6H450M440 112.4H450 M450 107.6H460M450 112.4H460 M460 112.4H467.4V100M460 107.6H462.6V100 M490 112.4H482.6V100M490 107.6H487.4V100 M490 107.6H500M490 112.4H500 M500 107.6H510M500 112.4H510 M510 107.6H520M510 112.4H520 M520 107.6H530M520 112.4H530 M530 107.6H540M530 112.4H540 M540 112.4H547.4V100M540 107.6H542.6V100"/><g class="wm-blocks"><rect x="0" y="0" width="60" height="20.5"/><rect x="90" y="0" width="60" height="20.5"/><rect x="170" y="0" width="70" height="20.5"/><rect x="250" y="0" width="80" height="20.5"/><rect x="340" y="0" width="20" height="20.5"/><rect x="370" y="0" width="30" height="20.5"/><rect x="440" y="0" width="20" height="20.5"/><rect x="480" y="0" width="60" height="20.5"/><rect x="0" y="20" width="20" height="20.5"/><rect x="50" y="20" width="20" height="20.5"/><rect x="80" y="20" width="20" height="20.5"/><rect x="140" y="20" width="20" height="20.5"/><rect x="170" y="20" width="20" height="20.5"/><rect x="280" y="20" width="20" height="20.5"/><rect x="340" y="20" width="20" height="20.5"/><rect x="370" y="20" width="40" height="20.5"/><rect x="440" y="20" width="20" height="20.5"/><rect x="470" y="20" width="20" height="20.5"/><rect x="0" y="40" width="60" height="20.5"/><rect x="80" y="40" width="20" height="20.5"/><rect x="140" y="40" width="20" height="20.5"/><rect x="170" y="40" width="70" height="20.5"/><rect x="280" y="40" width="20" height="20.5"/><rect x="340" y="40" width="20" height="20.5"/><rect x="370" y="40" width="20" height="20.5"/><rect x="400" y="40" width="20" height="20.5"/><rect x="440" y="40" width="20" height="20.5"/><rect x="470" y="40" width="20" height="20.5"/><rect x="520" y="40" width="30" height="20.5"/><rect x="0" y="60" width="20" height="20.5"/><rect x="80" y="60" width="20" height="20.5"/><rect x="140" y="60" width="20" height="20.5"/><rect x="220" y="60" width="20" height="20.5"/><rect x="280" y="60" width="20" height="20.5"/><rect x="340" y="60" width="20" height="20.5"/><rect x="370" y="60" width="20" height="20.5"/><rect x="410" y="60" width="20" height="20.5"/><rect x="440" y="60" width="20" height="20.5"/><rect x="470" y="60" width="20" height="20.5"/><rect x="530" y="60" width="20" height="20.5"/><rect x="0" y="80" width="20" height="20.5"/><rect x="90" y="80" width="60" height="20.5"/><rect x="170" y="80" width="70" height="20.5"/><rect x="280" y="80" width="20" height="20.5"/><rect x="340" y="80" width="20" height="20.5"/><rect x="370" y="80" width="20" height="20.5"/><rect x="420" y="80" width="40" height="20.5"/><rect x="480" y="80" width="60" height="20.5"/></g></svg>
+
+        <h1 id="home-title">The API client that lives in your terminal.<span class="cursor" aria-hidden="true"></span></h1>
+
         <p class="lede">
           Posting is a keyboard-driven HTTP client. Compose requests, switch environments and read
           responses without reaching for the mouse. Run it on your laptop, <strong>over SSH</strong> or
           inside a container, and keep every request as <strong>plain YAML</strong> next to your code.
         </p>
-      </div>
 
-      <div class="hero-side">
-        <div class="install">
-          <code><span class="pr">$</span>go install github.com/darrenburns/posting/cmd/posting@latest</code>
-          <button type="button" id="copy-install-top" data-copy="go install github.com/darrenburns/posting/cmd/posting@latest">Copy</button>
+        <div class="prompt">
+          <code><span class="ps1" aria-hidden="true">~ &#10095; </span><span class="typed">go install github.com/darrenburns/posting/cmd/posting@latest</span></code>
+          <button type="button" class="copy" data-copy="go install github.com/darrenburns/posting/cmd/posting@latest"><b aria-hidden="true">y</b> copy</button>
         </div>
+
         <div class="actions">
           <a class="btn primary" href="{{ 'guide/' | url }}">Read the guide</a>
-          <a class="btn" href="https://github.com/darrenburns/posting" target="_blank" rel="noopener">GitHub <span class="hint" aria-hidden="true">&#8599;</span></a>
+          <a class="btn" href="https://github.com/darrenburns/posting" target="_blank" rel="noopener">GitHub &#8599;</a>
         </div>
-        <p class="side-note">Open a folder of requests with <code>posting -c ./my-api</code> and load variables with <code>-e local.env</code>.</p>
       </div>
+
+      <aside class="fetch" aria-label="Posting at a glance">
+        <p class="fetch-host"><b>posting</b><span>@</span><b>3</b></p>
+        <p class="fetch-rule" aria-hidden="true">───────────</p>
+        <dl>
+          <div><dt>build</dt><dd>rebuilt in Go, one binary</dd></div>
+          <div><dt>runs</dt><dd>laptop &middot; SSH &middot; container</dd></div>
+          <div><dt>input</dt><dd>keyboard first, mouse welcome</dd></div>
+          <div><dt>requests</dt><dd>plain YAML files</dd></div>
+          <div><dt>envs</dt><dd><code>.env</code> files, layered</dd></div>
+          <div><dt>themes</dt><dd>37 built in</dd></div>
+          <div><dt>license</dt><dd>Apache 2.0</dd></div>
+        </dl>
+        <button type="button" class="blocks" data-action="theme" aria-label="Change theme">
+          <span aria-hidden="true"><i style="--c:var(--primary)"></i><i style="--c:var(--secondary)"></i><i style="--c:var(--accent)"></i><i style="--c:var(--success)"></i><i style="--c:var(--warning)"></i><i style="--c:var(--error)"></i><i style="--c:var(--info)"></i><i style="--c:var(--muted)"></i></span>
+        </button>
+        <p class="fetch-note">Open a folder of requests with <code>posting -c ./my-api</code> and load variables with <code>-e local.env</code>.</p>
+      </aside>
     </div>
 
-    <div>
-      <div class="window">
-        <div class="window-bar" aria-hidden="true">
-          <span>~ &#10095; posting -c sample-api -e local.env</span>
-          <span class="dims">130&times;36</span>
-        </div>
-        {% include "partials/screens/response.html" %}
-      </div>
+    <figure class="pane sub window">
+      <div class="pane-title" aria-hidden="true">~ &#10095; posting -c sample-api -e local.env</div>
+      <div class="pane-meta" aria-hidden="true">130&times;36</div>
+      {% include "partials/screens/response.html" %}
+    </figure>
 
-      <div class="theme-row">
-        <div class="label">
-          <span class="eyebrow">Theme</span>
-          <span>Posting ships 37 themes. Pick one and the whole site follows.</span>
-        </div>
-        {% include "partials/screens/palette-picker.html" %}
-      </div>
+    <div class="theme-line">
+      <p class="theme-label"><span class="c-comment"># theme</span> Posting ships 37 themes. Pick one and the whole site follows.</p>
+      {% include "partials/screens/palette-picker.html" %}
     </div>
   </section>
 
-  <section class="section wrap" aria-labelledby="tour-title">
-    <div class="section-head">
-      <span class="eyebrow">Keyboard first</span>
+  <!-- [2] ------------------------------------------------------------------ -->
+  <section class="pane" id="keys" data-pane="2" tabindex="-1" aria-labelledby="tour-title">
+    <div class="pane-title" aria-hidden="true"><b>[2]</b> keys</div>
+    <div class="pane-meta" aria-hidden="true">real screens from Posting 3</div>
+
+    <header class="pane-head">
+      <p class="c-comment"># keyboard first</p>
       <h2 id="tour-title">Every action is a keystroke away.</h2>
       <p>Jump anywhere with a short label, run any command from the palette, and let Posting handle the fiddly parts of HTTP. These are real screens from Posting 3.</p>
-    </div>
+    </header>
 
     <div class="tour">
-      <div class="tour-tabs" role="tablist" aria-label="Posting features" aria-orientation="vertical">
-        <button type="button" role="tab" id="tab-jump" aria-controls="panel-jump" aria-selected="true">
-          <span class="t">Jump mode</span><kbd class="k">ctrl+o</kbd>
-          <span class="desc">Every pane, tab and request gets a label. Type it to go straight there.</span>
-        </button>
-        <button type="button" role="tab" id="tab-palette" aria-controls="panel-palette" aria-selected="false" tabindex="-1">
-          <span class="t">Command palette</span><kbd class="k">ctrl+p</kbd>
-          <span class="desc">Search every action by name, with its shortcut alongside.</span>
-        </button>
-        <button type="button" role="tab" id="tab-variables" aria-controls="panel-variables" aria-selected="false" tabindex="-1">
-          <span class="t">Variables</span><kbd class="k">ctrl+shift+v</kbd>
-          <span class="desc">See every value in the active environment, override one for this session, and keep secrets masked.</span>
-        </button>
-        <button type="button" role="tab" id="tab-curlhint" aria-controls="panel-curlhint" aria-selected="false" tabindex="-1">
-          <span class="t">Import curl</span><kbd class="k">paste</kbd>
-          <span class="desc">Paste a curl command into the URL bar and press enter to turn it into a request.</span>
-        </button>
-        <button type="button" role="tab" id="tab-curlexport" aria-controls="panel-curlexport" aria-selected="false" tabindex="-1">
-          <span class="t">Export as curl</span><kbd class="k">ctrl+p</kbd>
-          <span class="desc">Copy any request as a ready-to-run curl command, with its variables filled in.</span>
-        </button>
-        <button type="button" role="tab" id="tab-history" aria-controls="panel-history" aria-selected="false" tabindex="-1">
-          <span class="t">History and timing</span><kbd class="k">ctrl+o 4</kbd>
-          <span class="desc">Every exchange is saved. Reopen one to see its response and how long each stage took.</span>
-        </button>
-        <button type="button" role="tab" id="tab-themes" aria-controls="panel-themes" aria-selected="false" tabindex="-1">
-          <span class="t">Themes</span><kbd class="k">ctrl+p</kbd>
-          <span class="desc">Preview all 37 built-in themes as you scroll, or load the ones you made for Posting 2.</span>
-        </button>
+      <div class="pane sub tour-list">
+        <div class="pane-title" aria-hidden="true">features</div>
+        <div class="pane-foot" aria-hidden="true"><span data-tour-count>1</span> of 7</div>
+        <div class="tour-tabs" role="tablist" aria-label="Posting features" aria-orientation="vertical">
+          <button type="button" role="tab" id="tab-jump" aria-controls="panel-jump" aria-selected="true"><span class="t">Jump mode</span><kbd>ctrl+o</kbd></button>
+          <button type="button" role="tab" id="tab-palette" aria-controls="panel-palette" aria-selected="false" tabindex="-1"><span class="t">Command palette</span><kbd>ctrl+p</kbd></button>
+          <button type="button" role="tab" id="tab-variables" aria-controls="panel-variables" aria-selected="false" tabindex="-1"><span class="t">Variables</span><kbd>ctrl+shift+v</kbd></button>
+          <button type="button" role="tab" id="tab-curlhint" aria-controls="panel-curlhint" aria-selected="false" tabindex="-1"><span class="t">Import curl</span><kbd>paste</kbd></button>
+          <button type="button" role="tab" id="tab-curlexport" aria-controls="panel-curlexport" aria-selected="false" tabindex="-1"><span class="t">Export as curl</span><kbd>ctrl+p</kbd></button>
+          <button type="button" role="tab" id="tab-history" aria-controls="panel-history" aria-selected="false" tabindex="-1"><span class="t">History and timing</span><kbd>ctrl+o 4</kbd></button>
+          <button type="button" role="tab" id="tab-themes" aria-controls="panel-themes" aria-selected="false" tabindex="-1"><span class="t">Themes</span><kbd>ctrl+p</kbd></button>
+        </div>
       </div>
 
-      <div class="tour-stage window">
-        <div class="window-bar" aria-hidden="true">
-          <span>~ &#10095; posting -c sample-api -e local.env</span>
-          <span class="dims">130&times;36</span>
-        </div>
-        <div role="tabpanel" id="panel-jump" aria-labelledby="tab-jump">{% include "partials/screens/jump.html" %}</div>
-        <div role="tabpanel" id="panel-palette" aria-labelledby="tab-palette" hidden>{% include "partials/screens/palette.html" %}</div>
-        <div role="tabpanel" id="panel-variables" aria-labelledby="tab-variables" hidden>{% include "partials/screens/variables.html" %}</div>
-        <div role="tabpanel" id="panel-curlhint" aria-labelledby="tab-curlhint" hidden>{% include "partials/screens/curlhint.html" %}</div>
-        <div role="tabpanel" id="panel-curlexport" aria-labelledby="tab-curlexport" hidden>{% include "partials/screens/curlexport.html" %}</div>
-        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" hidden>{% include "partials/screens/history.html" %}</div>
-        <div role="tabpanel" id="panel-themes" aria-labelledby="tab-themes" hidden>{% include "partials/screens/themes.html" %}</div>
+      <div class="pane sub tour-stage">
+        <div class="pane-title" aria-hidden="true">~ &#10095; posting -c sample-api -e local.env</div>
+        <div role="tabpanel" id="panel-jump" aria-labelledby="tab-jump"><p class="panel-desc">Every pane, tab and request gets a label. Type it to go straight there.</p>{% include "partials/screens/jump.html" %}</div>
+        <div role="tabpanel" id="panel-palette" aria-labelledby="tab-palette" hidden><p class="panel-desc">Search every action by name, with its shortcut alongside.</p>{% include "partials/screens/palette.html" %}</div>
+        <div role="tabpanel" id="panel-variables" aria-labelledby="tab-variables" hidden><p class="panel-desc">See every value in the active environment, override one for this session, and keep secrets masked.</p>{% include "partials/screens/variables.html" %}</div>
+        <div role="tabpanel" id="panel-curlhint" aria-labelledby="tab-curlhint" hidden><p class="panel-desc">Paste a curl command into the URL bar and press enter to turn it into a request.</p>{% include "partials/screens/curlhint.html" %}</div>
+        <div role="tabpanel" id="panel-curlexport" aria-labelledby="tab-curlexport" hidden><p class="panel-desc">Copy any request as a ready-to-run curl command, with its variables filled in.</p>{% include "partials/screens/curlexport.html" %}</div>
+        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" hidden><p class="panel-desc">Every exchange is saved. Reopen one to see its response and how long each stage took.</p>{% include "partials/screens/history.html" %}</div>
+        <div role="tabpanel" id="panel-themes" aria-labelledby="tab-themes" hidden><p class="panel-desc">Preview all 37 built-in themes as you scroll, or load the ones you made for Posting 2.</p>{% include "partials/screens/themes.html" %}</div>
       </div>
     </div>
   </section>
 
-  <section class="section wrap" aria-labelledby="files-title">
+  <!-- [3] ------------------------------------------------------------------ -->
+  <section class="pane" id="files" data-pane="3" tabindex="-1" aria-labelledby="files-title">
+    <div class="pane-title" aria-hidden="true"><b>[3]</b> files</div>
+    <div class="pane-meta" aria-hidden="true">git-friendly</div>
+
     <div class="files">
-      <div class="copy">
-        <span class="eyebrow">Plain files</span>
+      <header class="pane-head">
+        <p class="c-comment"># plain files</p>
         <h2 id="files-title">Your requests are files. Commit them.</h2>
         <p>A collection is a folder, and each request is a short YAML file. Review changes in pull requests, share them with your team, and branch them alongside your code.</p>
         <p>Environments are ordinary <code>.env</code> files. Layer several with <code>-e</code>, switch between them while Posting is running, and see edits on disk straight away.</p>
-      </div>
+      </header>
 
-<pre class="shell" aria-label="A collection folder and one of its request files"><span class="pr">$ </span><span class="cmd">tree sample-api</span>
+      <div class="pane sub shell-pane">
+        <div class="pane-title" aria-hidden="true">shell</div>
+<pre class="shell" aria-label="A collection folder and one of its request files"><span class="pr">~ &#10095; </span><span class="cmd">tree sample-api</span>
 <span class="dir">sample-api</span>
 ├── <span class="dir">auth</span>
 │   ├── login.posting.yaml
@@ -124,7 +140,8 @@
     ├── list-users.posting.yaml
     └── update-user.posting.yaml
 <span class="mut">2 directories, 11 files</span>
-<span class="gap"></span><span class="pr">$ </span><span class="cmd">cat sample-api/users/create-user.posting.yaml</span>
+
+<span class="pr">~ &#10095; </span><span class="cmd">cat sample-api/users/create-user.posting.yaml</span>
 <span class="key">name:</span> Create user
 <span class="key">description:</span> Create a new user account.
 <span class="key">method:</span> POST
@@ -144,149 +161,127 @@
 <span class="key">headers:</span>
   - <span class="key">name:</span> Content-Type
     <span class="key">value:</span> application/json</pre>
+      </div>
     </div>
   </section>
 
-  <section class="section wrap" aria-labelledby="more-title">
-    <div class="section-head">
-      <span class="eyebrow">In the box</span>
+  <!-- [4] ------------------------------------------------------------------ -->
+  <section class="pane" id="toolkit" data-pane="4" tabindex="-1" aria-labelledby="more-title">
+    <div class="pane-title" aria-hidden="true"><b>[4]</b> toolkit</div>
+    <div class="pane-meta" aria-hidden="true">9 entries</div>
+
+    <header class="pane-head">
+      <p class="c-comment"># in the box</p>
       <h2 id="more-title">The rest of the toolkit.</h2>
-    </div>
-    <div class="features">
-      <div class="feature">
-        <h3>Autocompletion</h3>
-        <p>Type <code>$</code> in the URL, headers, query, auth or body to complete variable names. Header names complete too, each with a note on what it does.</p>
-      </div>
-      <div class="feature">
-        <h3>A URL bar that checks your work</h3>
-        <p>Variables turn green when they resolve and red when they don't, and the finished URL is shown under the bar before you send.</p>
-      </div>
-      <div class="feature">
-        <h3>Authentication</h3>
-        <p>Basic, Digest (MD5 and SHA-256) and bearer tokens, with variables allowed in every field.</p>
-      </div>
-      <div class="feature">
-        <h3>Responses you can read</h3>
-        <p>Pretty-printed, highlighted JSON with wrap and copy, plus headers, cookies and a timing trace for every request.</p>
-      </div>
-      <div class="feature">
-        <h3>Request tabs</h3>
-        <p>Keep several requests open at once. Unsaved changes are marked with a dot.</p>
-      </div>
-      <div class="feature">
-        <h3>Your editor and pager</h3>
-        <p>Press <kbd class="k">F4</kbd> to edit a body in <code>$EDITOR</code>, or <kbd class="k">F3</kbd> to read it in <code>$PAGER</code>.</p>
-      </div>
-      <div class="feature">
-        <h3>Keymaps and config</h3>
-        <p>Rebind any action. Configure Posting with <code>config.yaml</code> or <code>POSTING_*</code> environment variables.</p>
-      </div>
-      <div class="feature">
-        <h3>Layouts</h3>
-        <p>Stack the request and response or put them side by side. Resize panes, switch to compact spacing, and click anything you like.</p>
-      </div>
-      <div class="feature">
-        <h3>Nerd Font icons</h3>
-        <p>Icons switch on automatically in Ghostty, and anywhere else with one setting.</p>
-      </div>
-    </div>
+    </header>
+
+    <dl class="help">
+      <div><dt>autocompletion</dt><dd>Type <code>$</code> in the URL, headers, query, auth or body to complete variable names. Header names complete too, each with a note on what it does.</dd></div>
+      <div><dt>url bar</dt><dd>Checks your work. Variables turn <span class="c-ok">green</span> when they resolve and <span class="c-err">red</span> when they don't, and the finished URL is shown under the bar before you send.</dd></div>
+      <div><dt>authentication</dt><dd>Basic, Digest (MD5 and SHA-256) and bearer tokens, with variables allowed in every field.</dd></div>
+      <div><dt>responses</dt><dd>Pretty-printed, highlighted JSON with wrap and copy, plus headers, cookies and a timing trace for every request.</dd></div>
+      <div><dt>request tabs</dt><dd>Keep several requests open at once. Unsaved changes are marked with a dot.</dd></div>
+      <div><dt>editor &amp; pager</dt><dd>Press <kbd>F4</kbd> to edit a body in <code>$EDITOR</code>, or <kbd>F3</kbd> to read it in <code>$PAGER</code>.</dd></div>
+      <div><dt>keymaps &amp; config</dt><dd>Rebind any action. Configure Posting with <code>config.yaml</code> or <code>POSTING_*</code> environment variables.</dd></div>
+      <div><dt>layouts</dt><dd>Stack the request and response or put them side by side. Resize panes, switch to compact spacing, and click anything you like.</dd></div>
+      <div><dt>nerd font icons</dt><dd>Icons switch on automatically in Ghostty, and anywhere else with one setting.</dd></div>
+    </dl>
   </section>
 
-  <section class="section wrap" aria-labelledby="upgrade-title">
+  <!-- [5] ------------------------------------------------------------------ -->
+  <section class="pane" id="upgrade" data-pane="5" tabindex="-1" aria-labelledby="upgrade-title">
+    <div class="pane-title" aria-hidden="true"><b>[5]</b> upgrade</div>
+    <div class="pane-meta" aria-hidden="true">posting 2 &rarr; 3</div>
+
     <div class="upgrade">
-      <div>
-        <span class="eyebrow">Coming from Posting 2?</span>
+      <header class="pane-head">
+        <p class="c-comment"># coming from Posting 2?</p>
         <h2 id="upgrade-title">Bring everything with you.</h2>
         <p>Posting 3 is a ground-up rewrite, and it reads the files you already have. Point it at your collections and keep going.</p>
+        <div class="actions">
+          <a class="btn" href="{{ 'guide/' | url }}">Getting started</a>
+        </div>
+      </header>
+
+      <div class="log">
         <ul class="carry" aria-label="Files Posting 3 reads unchanged">
-          <li>*.posting.yaml</li>
-          <li>.env files</li>
-          <li>themes</li>
-          <li>keymaps</li>
-          <li>config.yaml</li>
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">*.posting.yaml</span><span class="note">read unchanged</span></li>
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">.env files</span><span class="note">read unchanged</span></li>
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">themes</span><span class="note">read unchanged</span></li>
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">keymaps</span><span class="note">read unchanged</span></li>
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">config.yaml</span><span class="note">read unchanged</span></li>
         </ul>
-      </div>
-      <div class="actions">
-        <a class="btn" href="{{ 'guide/' | url }}">Getting started</a>
+        <p class="bar" aria-hidden="true"><span class="fill"></span><span class="n">5/5</span></p>
       </div>
     </div>
   </section>
 
-  <section class="section wrap closing" aria-label="Install and community">
-    <div class="col">
-      <span class="eyebrow">Install</span>
-      <h2>One binary. Nothing else to install.</h2>
-      <div class="install">
-        <code><span class="pr">$</span>go install github.com/darrenburns/posting/cmd/posting@latest</code>
-        <button type="button" id="copy-install-bottom" data-copy="go install github.com/darrenburns/posting/cmd/posting@latest">Copy</button>
-      </div>
-      <p>It runs the same on your laptop, on a remote server over SSH, or inside a container.</p>
-    </div>
-    <div class="col">
-      <span class="eyebrow">Open source</span>
-      <h2>Built in the open.</h2>
-      <p>Posting is Apache 2.0 licensed and shaped by the people who use it. Follow the <a href="{{ 'roadmap/' | url }}">roadmap</a>, report a bug or suggest a feature on <a href="https://github.com/darrenburns/posting/issues" target="_blank" rel="noopener">GitHub</a>, or <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">sponsor development</a>.</p>
-    </div>
-  </section>
+  <!-- [6] ------------------------------------------------------------------ -->
+  <section class="pane" id="install" data-pane="6" tabindex="-1" aria-label="Install and community">
+    <div class="pane-title" aria-hidden="true"><b>[6]</b> install</div>
+    <div class="pane-meta" aria-hidden="true">apache-2.0</div>
 
-  <footer class="keybar">
-    <div class="wrap">
-      <p class="keys" aria-label="Posting's default shortcuts"><span><b>^O</b>Jump</span> <span><b>^J</b>Send</span> <span><b>^S</b>Save</span> <span><b>^N</b>New tab</span> <span><b>^P</b>Commands</span> <span><b>F1</b>Help</span></p>
+    <div class="closing">
+      <div class="col">
+        <p class="c-comment"># install</p>
+        <h2>One binary. Nothing else to install.</h2>
+        <div class="prompt">
+          <code><span class="ps1" aria-hidden="true">~ &#10095; </span>go install github.com/darrenburns/posting/cmd/posting@latest<span class="cursor" aria-hidden="true"></span></code>
+          <button type="button" class="copy" data-copy="go install github.com/darrenburns/posting/cmd/posting@latest"><b aria-hidden="true">y</b> copy</button>
+        </div>
+        <p>It runs the same on your laptop, on a remote server over SSH, or inside a container.</p>
+      </div>
+      <div class="col">
+        <p class="c-comment"># open source</p>
+        <h2>Built in the open.</h2>
+        <p>Posting is Apache 2.0 licensed and shaped by the people who use it. Follow the <a href="{{ 'roadmap/' | url }}">roadmap</a>, report a bug or suggest a feature on <a href="https://github.com/darrenburns/posting/issues" target="_blank" rel="noopener">GitHub</a>, or <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">sponsor development</a>.</p>
+      </div>
+    </div>
+
+    <footer class="site-foot">
       <nav aria-label="Site">
-        <a href="{{ 'guide/' | url }}">Guide</a>
-        <a href="{{ 'CHANGELOG/' | url }}">Changelog</a>
-        <a href="https://github.com/darrenburns/posting" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">Sponsor</a>
-        <span class="ver">&copy; 2026 Darren Burns</span>
+        <a href="{{ 'guide/' | url }}">guide</a>
+        <a href="{{ 'CHANGELOG/' | url }}">changelog</a>
+        <a href="{{ 'roadmap/' | url }}">roadmap</a>
+        <a href="https://github.com/darrenburns/posting" target="_blank" rel="noopener">github</a>
+        <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">sponsor</a>
       </nav>
+      <p class="exit">&copy; 2026 Darren Burns <span aria-hidden="true">&middot; [process exited 0]</span></p>
+    </footer>
+  </section>
+
+  </div>
+
+  <nav class="keybar" aria-label="Page shortcuts">
+    <span class="mode" data-mode aria-hidden="true">NORMAL</span>
+    <span class="kb-panes">
+      <button type="button" data-go="posting"><b>1</b><span>posting</span></button>
+      <button type="button" data-go="keys"><b>2</b><span>keys</span></button>
+      <button type="button" data-go="files"><b>3</b><span>files</span></button>
+      <button type="button" data-go="toolkit"><b>4</b><span>toolkit</span></button>
+      <button type="button" data-go="upgrade"><b>5</b><span>upgrade</span></button>
+      <button type="button" data-go="install"><b>6</b><span>install</span></button>
+    </span>
+    <span class="kb-actions">
+      <button type="button" data-action="jump" class="kb-jump"><b>^O</b><span>jump</span></button>
+      <button type="button" data-action="palette"><b>^P</b><span>commands</span></button>
+      <button type="button" data-action="copy" class="kb-copy"><b>y</b><span>copy install</span></button>
+      <button type="button" data-action="theme"><b>t</b><span>theme</span></button>
+    </span>
+    <span class="pos" aria-hidden="true"><span data-pos-pane>1/6</span> <span data-pos-pct>0%</span></span>
+  </nav>
+
+  <dialog class="cmdp" id="cmdp" aria-label="Command palette">
+    <div class="cmdp-box">
+      <div class="pane-title" aria-hidden="true">commands</div>
+      <label class="cmdp-input"><span aria-hidden="true">&#10095;</span>
+        <input type="text" role="combobox" aria-label="Search commands" aria-controls="cmdp-list" aria-expanded="true" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search for commands…">
+      </label>
+      <ul class="cmdp-list" id="cmdp-list" role="listbox" aria-label="Commands"></ul>
+      <p class="cmdp-foot" aria-hidden="true"><b>&uarr;&darr;</b> move <b>enter</b> run <b>esc</b> close</p>
     </div>
-  </footer>
+  </dialog>
+
+  <div class="jump-layer" aria-hidden="true"></div>
+  <div class="toasts" role="status" aria-live="polite"></div>
 </div>
-
-<script>
-(function () {
-  // The theme picker is wired up by javascripts/palette.js.
-
-  // Feature tour tabs.
-  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tour-tabs [role=tab]"));
-  function select(tab) {
-    tabs.forEach(function (t) {
-      var on = t === tab;
-      t.setAttribute("aria-selected", on ? "true" : "false");
-      t.tabIndex = on ? 0 : -1;
-      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
-    });
-  }
-  tabs.forEach(function (t, i) {
-    t.addEventListener("click", function () { select(t); });
-    t.addEventListener("keydown", function (e) {
-      var step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
-      if (!step) return;
-      e.preventDefault();
-      var next = tabs[(i + step + tabs.length) % tabs.length];
-      next.focus();
-      select(next);
-    });
-  });
-
-  // Copy buttons.
-  document.querySelectorAll("[data-copy]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      var text = button.getAttribute("data-copy");
-      var done = function () {
-        button.textContent = "Copied";
-        button.setAttribute("data-copied", "");
-        setTimeout(function () { button.textContent = "Copy"; button.removeAttribute("data-copied"); }, 1600);
-      };
-      var fallback = function () {
-        var range = document.createRange();
-        range.selectNodeContents(button.previousElementSibling);
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-      };
-      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
-    });
-  });
-})();
-</script>
