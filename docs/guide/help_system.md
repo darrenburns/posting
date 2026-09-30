@@ -1,13 +1,35 @@
 ## Overview
 
-Posting has a *built-in help system*, which can be used to get information about the currently focused widget.
+Posting has a few ways to help you discover what it can do without leaving the terminal.
 
-### Getting help for the focused widget
+### The footer
 
-With a widget focused, press `f1` to open a help window for that widget.
+The footer at the bottom of the screen shows the most useful keys for whatever has focus,
+and changes as you move around. In jump mode, it explains how to use jump mode instead.
 
-<img width="1229" alt="image" src="https://github.com/user-attachments/assets/707be55f-6dfc-4faf-b9f3-fe7bc5422008">
+### Keyboard shortcuts
 
-Most widgets offer more keybindings and functionality than meets the eye, and more than what is shown in the application footer.
+Press ++f1++, or choose **Keyboard shortcuts** in the command palette, to see a summary of
+Posting's keyboard shortcuts:
 
-The help window explains how to use the focused widget, and lists all of the keybindings offered by it.
+- the global shortcuts, which work from anywhere, as set by your [keymap](./keymap.md)
+- the jump mode labels
+- the keys for the method selector, tabs, tables, the collection and the response body
+
+Scroll through it with the arrow keys, and press ++escape++ to close it.
+For the complete list, see [Keymaps](./keymap.md#default-shortcuts).
+
+### The command palette
+
+The [command palette](./command_palette.md) (++ctrl+p++) lists every command, with its keyboard
+shortcut alongside. If you're not sure how to do something, it's a good place to look.
+
+### These docs
+
+Choose **Open documentation** in the command palette, or click the Posting logo in the bottom
+right corner and choose **Docs**, to open these docs in your browser.
+
+## Getting more help
+
+If something isn't working as you'd expect, or you'd like to suggest an improvement, please open a
+discussion or an issue on [GitHub](https://github.com/darrenburns/posting).

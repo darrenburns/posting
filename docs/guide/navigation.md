@@ -1,61 +1,166 @@
-Posting can be navigated using either mouse or keyboard.
+Posting is designed to be driven from the keyboard, but everything can be clicked too.
+
+## The layout
+
+From top to bottom, Posting's screen is made up of:
+
+- **The sidebar**, on the left, running the full height of the screen. It has two tabs:
+  **Requests**, the requests in your [collection](./collections.md), and **History**, the responses
+  you've received.
+- **The header**, a single row showing the active [environment](./environments.md) and your
+  `user@host`. Click the environment's name to switch to another.
+- **The request tabs**, one for each request you have open.
+- **The URL bar**, with the method selector on its left.
+- **The Request panel**, where you edit the request's headers, body, parameters, auth and options.
+- **The Response panel**, which shows the response. It sits below the request, or beside it in the
+  side by side layout.
+- **The footer**, showing the most useful keys for whatever has focus.
+
+The dividers between the sidebar and the panels, and between the request and response, can be
+dragged with the mouse to resize them.
+
+### Changing the layout
+
+A few commands in the [command palette](./command_palette.md) (++ctrl+p++) change the layout for
+the rest of the session:
+
+- **Layout: side by side** / **Layout: stacked** puts the response beside or below the request.
+- **View: hide collection** / **View: show collection** hides or shows the sidebar. ++ctrl+h++ does
+  the same.
+- **View: expand request** / **View: expand response** makes one panel fill the screen.
+  ++alt+z++ expands the Request or Response panel, whichever has focus (the Request panel if neither
+  does), and pressing it again restores both.
+- **View: compact spacing** / **View: standard spacing** removes or restores the blank rows between
+  parts of the screen.
+
+Posting also switches to compact spacing on its own when your terminal is too short to spare
+the blank rows.
+
+To make any of these permanent, set `layout`, `spacing`, `collection_browser.show_on_startup` or
+`collection_browser.position` in your [configuration](./configuration.md).
 
 ## Jump mode
 
 Jump mode is the fastest way to get around.
 
-Press <kbd>ctrl</kbd>+<kbd>o</kbd> to enter jump mode, followed by the key corresponding to the widget you want to switch focus to (jump to).
+Press ++ctrl+o++ and a label appears over every part of the screen you can move to. Type a label
+to jump straight there. Press ++escape++ to leave jump mode without moving.
 
-![Jump mode preview image](../assets/jump-mode.png)
+<figure class="screen">
+--8<-- "jump.html"
+<figcaption>Jump mode: every pane, tab and request gets a label.</figcaption>
+</figure>
 
-With the default layout, the positioning of keys on the overlays is similar to the positioning of the keys on a QWERTY keyboard.
+Some labels are always the same, so they soon become muscle memory:
 
-To exit jump mode, press <kbd>esc</kbd>.
+| Label | Jumps to |
+|-------|----------|
+| ++1++ | The method selector |
+| ++2++ | The URL bar |
+| ++3++ | The requests in the collection |
+| ++4++ | The history list |
+| ++q++ ++w++ ++e++ ++r++ ++t++ ++y++ ++u++ | The request tabs: Headers, Body, Path, Query, Auth, Info and Options |
+| ++a++ ++s++ ++d++ ++f++ | The response tabs: Body, Headers, Cookies and Trace |
 
-## Tab navigation
+The request and response tabs follow the rows of a QWERTY keyboard, so their labels sit roughly
+where the tabs are on screen.
 
-<kbd>tab</kbd> and <kbd>shift+tab</kbd> will move focus between widgets,
-and <kbd>j</kbd>/<kbd>k</kbd>/<kbd>up</kbd>/<kbd>down</kbd> will move around within a widget.
+Everything else on screen gets a label from the remaining letters: requests in the collection,
+history entries, open request tabs, and the fields inside the current tab. Some of these labels
+are two letters long; the labels narrow down as you type.
 
-Some widgets have additional keybindings for navigation.
-You can check these by pressing <kbd>f1</kbd> while it is focused.
+## Moving around with the keyboard
 
-Where it makes sense, <kbd>up</kbd> and <kbd>down</kbd> will also move between widgets.
+- ++tab++ and ++shift+tab++ move focus forward and backward through the fields on screen.
+- The arrow keys (or ++h++ ++j++ ++k++ ++l++ where you're not typing) move within a part of the
+  screen, and between neighbouring parts where it makes sense. For example, ++down++ in the URL bar
+  moves into the request tabs, ++down++ from a tab moves into its content, and ++up++ from the top of
+  a tab's content moves back to the tabs.
+- ++ctrl+l++ jumps to the URL bar from anywhere, and ++ctrl+t++ opens the method menu.
 
-## Mouse navigation
+## Request tabs
 
-You can also navigate Posting entirely using the mouse, very much like a typical GUI application.
+Every request you open gets a tab above the URL bar. Each tab shows the request's method and name.
+A dot (`●`) marks a tab with unsaved changes, and `…` marks a tab whose request is being sent.
 
-If a widget shows a scrollbar, you can use the mouse wheel or trackpad gestures to scroll through its content.
-Scrollbars can also be clicked and dragged.
+| Key | Action |
+|-----|--------|
+| ++ctrl+n++ | Open a new, empty request tab |
+| ++alt+right++ / ++alt+left++ | Go to the next / previous tab |
+| ++alt+down++ | Search your open tabs by name |
+| ++alt+w++ | Close the current tab |
 
-If you hold shift and scroll using the trackpad or mousewheel, the content will scroll horizontally (if there's a horizontal scrollbar).
+You can also click a tab to switch to it, click its `✕` to close it, click `+` for a new tab, or
+click `▾` to search your tabs. When there are more tabs than fit, scroll the strip with the mouse
+wheel, or click the `‹` and `›` arrows at its ends.
 
-## Searching and jumping to requests
+!!! warning
 
-Press <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>p</kbd> to open the fuzzy search popup (configurable using the `search-requests` keybinding, see [keymap](./keymap.md)).
+    Closing a tab doesn't ask for confirmation, even if it has unsaved changes.
 
-Type the name of the request you want to jump to and press <kbd>enter</kbd> to open it.
+Each tab sends its own requests. You can send a slow request, move to another tab, and carry on
+working: when the response arrives it's kept in its tab, and Posting doesn't pull you away from what
+you're doing. Press ++escape++ to cancel a request that's in flight.
 
-![Search requests preview image](../assets/search-requests.png)
+### Preview tabs
 
-## Contextual help
+When you open a request from the collection or from history, it opens in a *preview tab*, whose
+name is shown in italics. Opening another request replaces the preview tab instead of opening
+yet another tab, so you can browse through your collection without leaving a trail of tabs behind.
 
-Many widgets have additional bindings for navigation other than those displayed in the footer.
-You can view the full list of keybindings for the currently focused widget, as well as additional usage information and tips, by pressing <kbd>f1</kbd> or <kbd>ctrl</kbd>+<kbd>?</kbd> (or <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>/</kbd>).
+The preview tab becomes an ordinary tab, which stays open, as soon as you:
 
-![Contextual help preview image](../assets/contextual-help.png)
+- edit the request, send it, or save it
+- double-click its tab, or double-click the request in the collection
+- choose **Keep tab open** from the command palette
 
-## Automatic focus switching
+If a request is already open in a tab, opening it again takes you to that tab.
 
-You can use the `focus.on_startup` and `focus.on_response` configuration options to control which widget is focused when the app starts and when a response is received.
+## Searching for requests
 
-| Config | Default value | Description |
-|----------------------|---------------|-------------|
-| `focus.on_startup` | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
-| `focus.on_response` | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
-| `focus.on_request_open` | `"headers"`, `"body"`, `"query"`, `"info"`, `"url"`, `"method"` (Default: `unset`) | Automatically focus the specified target when a request is opened from the collection browser. |
+Press ++ctrl+g++ from anywhere to search the requests in your collection. You can also press `/`
+while the collection has focus. The collection is filtered as you type:
 
-## Exiting
+- Separate words with spaces. Every word must match part of a request's name or folder, or the
+  start of its method, so `post users` finds `POST` requests in a `users` folder.
+- Press ++enter++ or ++down++ to move into the results, and ++enter++ to open a request.
+- Press ++escape++ to clear the search.
 
-Quit Posting by pressing <kbd>ctrl</kbd>+<kbd>c</kbd>, or by opening the command palette and selecting "Quit".
+## Mouse support
+
+Anything you can focus with the keyboard can be clicked. A few things are only a click away:
+
+- Hovering over a request in the collection shows its description, if it has one.
+- Clicking the environment name in the header opens the environment switcher.
+- Clicking the Posting logo in the bottom right corner opens a menu with links to these docs,
+  sponsoring the project, and Mastodon.
+- Clicking **wrap on**/**wrap off** or **copy** under the response body toggles line wrapping or copies the body.
+
+## Focus settings
+
+Three settings choose where the cursor goes at key moments:
+
+| Setting | Values | Default |
+|---------|--------|---------|
+| `focus.on_startup` | `url`, `method`, `collection` | `url` |
+| `focus.on_request_open` | `url`, `method`, `headers`, `body`, `path`, `query`, `info` | Focus doesn't move |
+| `focus.on_response` | `body`, `tabs` | Focus doesn't move |
+
+For example, to jump into the response body whenever a response arrives:
+
+```yaml
+focus:
+  on_response: body
+```
+
+`focus.on_response` only applies to the tab you're looking at: a response for a tab in the
+background never moves the cursor.
+
+## Getting help
+
+Press ++f1++ at any time to see the keyboard shortcuts, including any you've changed in your
+[keymap](./keymap.md). See [Help](./help_system.md) for more ways to find your way around.
+
+## Quitting
+
+Press ++ctrl+c++, or choose **Quit Posting** from the command palette.

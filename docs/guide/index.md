@@ -1,140 +1,107 @@
-Posting can be installed in a matter of seconds on MacOS, Linux, and Windows.
+Posting is an HTTP client that lives in your terminal.
+Posting 3 is a single, self-contained binary: there's no Python or other runtime to install.
 
 ## Installation
 
-The recommended method is to use [uv](https://docs.astral.sh/uv/getting-started/installation/), which is a single Rust binary that you can use to install Python apps.
-It's significantly faster than alternative tools, and will get you up and running with Posting in seconds.
-
-You don't even need to worry about installing Python yourself - `uv` will manage everything for you.
-
-### uv
-
-Here's how to install Posting using `uv`:
+Posting 3 is written in Go. If you have [Go](https://go.dev/dl/) 1.25.5 or newer installed,
+you can install it with a single command:
 
 ```bash
-# quick install on MacOS/Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
+go install github.com/darrenburns/posting/cmd/posting@latest
+```
 
-# install Posting (will also quickly install Python 3.12 if needed)
-uv tool install --python 3.12 posting
+This builds Posting and puts the `posting` binary in `$(go env GOPATH)/bin` (usually `~/go/bin`).
+Make sure that directory is on your `PATH`, then run:
 
-# Run posting
+```bash
 posting
 ```
 
-`uv` can also be installed via Homebrew, Cargo, Winget, pipx, and more. See the [installation guide](https://docs.astral.sh/uv/getting-started/installation/) for more information.
+### Building from source
 
-`uv` also makes it easy to install additional Python packages into your Posting environment, which you can then use in your pre-request/post-response scripts.
-
-### pipx
-
-If you prefer, you can install Posting via [`pipx`](https://pipx.pypa.io/stable/).
+To build from a clone of the repository instead:
 
 ```bash
-pipx install posting
+git clone https://github.com/darrenburns/posting.git
+cd posting
+go build -o posting ./cmd/posting
+./posting
 ```
 
----
-
-The methods above will both install Posting globally, in an isolated environment. Do *not* attempt to install Posting with `pip`.
-
-??? failure "Homebrew is not supported"
-
-    Installing via Homebrew is not supported, as some of Posting's Rust and C dependencies can take over 10 minutes to compile. When using uv, installation time is measured in milliseconds, and with pipx it's just a few seconds.
-
-<!-- 
-On MacOS, you can also install Posting via Homebrew:
+### Checking your installation
 
 ```bash
-brew install darrenburns/homebrew/posting
+$ posting version
+Posting 3.0.0
 ```
 
-Note that the Homebrew installation method requires compiling some Rust dependencies, and may take a few minutes to complete. -->
+`posting --help` lists the options you can start Posting with.
 
-## Choose your preferred UI style
+!!! tip "Coming from Posting 2?"
 
-Posting comes with two different "spacing" modes: `compact` and `standard`.
-
-The default is `standard` which includes extra padding and borders around content.
-`compact` mode removes the padding and borders, and uses a more compact layout.
-
-You can toggle the spacing mode using the `spacing` command from the command palette (++ctrl+p++ then type `spacing`, then press ++enter++).
-From this command palette, you can also try out different themes.
-
-<video controls src="../assets/themes-and-compact-mode-23mar25-c.mp4" title="Themes and compact mode" autoplay loop muted playsinline></video>
-
-To permanently change the spacing mode and/or theme, open the config file (`posting locate config` will tell you where it is) and add the following line(s):
-
-```yaml
-spacing: compact
-theme: <theme-name>
-```
+    Posting 3 reads the same configuration file, collections and `.env` files as Posting 2,
+    so you can point it at your existing work straight away.
+    See [Coming from Posting 2](./migrating.md) for what's new and what's changed.
 
 ## A quick introduction
 
-This introduction will show you how to create a simple POST request to the [JSONPlaceholder](https://jsonplaceholder.typicode.com/) mock API to create a new user. It focuses on an efficient keyboard-driven workflow, but you can also use the mouse if you prefer.
+This introduction walks through creating a POST request to the
+[JSONPlaceholder](https://jsonplaceholder.typicode.com/) mock API, sending it, and saving it.
+It focuses on the keyboard, but you can click on anything in Posting too.
 
-### Collections and requests
+<figure class="screen">
+--8<-- "response.html"
+<figcaption>Posting 3 with a collection in the sidebar and a JSON response on screen.</figcaption>
+</figure>
 
-A *collection* is simply a directory which may contain requests saved by Posting.
+### Collections
 
-If you launch Posting without specifying a collection, any requests you create will be saved to the `"default"` collection.
+A *collection* is a directory of requests. Each request is stored in its own YAML file, so a
+collection is easy to read, share and keep in version control.
 
-The default collection is a directory reserved by Posting on your filesystem. It's a "global" collection and is not related to the directory you launched Posting from.
-
-This is fine for quick throwaway requests, but you'll probably want to create a new collection for each project you work on so that you can check it into version control.
-
-To create a new collection, simply create a new directory and pass it into Posting.
+If you start Posting without choosing a collection, your requests are saved to the *default
+collection*, a directory Posting keeps for you. That's handy for quick, throwaway requests, but
+for a project you'll probably want a collection of its own:
 
 ```bash
 mkdir my-collection
 posting --collection my-collection
 ```
 
-Now, any requests you create will be saved in the `my-collection` directory as simple YAML files with the `.posting.yaml` extension.
+The name of the collection is shown at the top of the sidebar on the left.
+Learn more in [Collections](./collections.md).
 
-When Posting opens, you'll see the collection browser on the left side of the screen with `my-collection` displayed at the bottom right corner.
+### Choosing the method
 
-### Setting the request method to POST
+When Posting opens, the cursor is in the URL bar of a new, empty request.
 
-When you launch Posting, no request is open, so the UI will look rather empty.
+Press ++ctrl+t++ to open the method menu. Each method has a letter you can press to choose it:
+press ++p++ for `POST`.
 
-Let's create a simple POST request to the [JSONPlaceholder](https://jsonplaceholder.typicode.com/) mock API to create a new user.
+### Entering the URL
 
-Press ++ctrl+t++ to open the request method dropdown:
+Posting moves you back to the method selector. Press ++tab++ to move to the URL bar (or press
+++ctrl+l++ from anywhere) and type:
 
-![Posting request method dropdown](../assets/request-method-dropdown.png)
+```
+https://jsonplaceholder.typicode.com/users
+```
 
-The underlined character in each method indicates the key you can press to quickly select that method. We want to send a POST request, so press ++p++ to quickly select the POST method.
+The URL is highlighted as you type, so typos are easy to spot.
 
-### Setting the request URL
+!!! tip "Paste a curl command"
 
-You can move focus forward and backward through widgets using ++tab++ and ++shift+tab++ respectively.
-So, you can move focus from the method selector to the URL bar by pressing ++tab++ once.
-
-Alternatively, you can immediately move the focus to the URL bar from anywhere in Posting using ++ctrl+l++.
-
-Type `https://jsonplaceholder.typicode.com/users` into the URL bar.
-
-![Posting URL bar](../assets/url-bar.png)
-
-Posting's URL bar highlights parts of the URL as you type, which can be helpful for spotting typos.
-
-It can also autocomplete domains you've previously used, to save you from having to retype them.
-For example, if you later want to make a request to `https://jsonplaceholder.typicode.com/posts`, you can simply type "json" into the URL bar and select the URL from the autocomplete menu that appears.
-
-![Posting URL autocomplete](../assets/url-autocomplete.gif)
+    You can also paste a whole `curl` command into the URL bar. Posting turns it into a request,
+    filling in the method, headers and body for you. See [Importing curl commands](./requests.md#importing-curl-commands).
 
 ### Adding a JSON body
 
-Press ++ctrl+o++ to enter "jump mode", then press ++w++ to quickly jump to the "Body" tab.
-Jump mode is great for quickly moving through the UI without having to press ++tab++ multiple times.
+Press ++ctrl+o++ to enter *jump mode*. Labels appear over every part of the screen: type the
+label of the place you want to go. Press ++w++ to jump to the request's **Body** tab.
 
-At this point focus is currently on the tab bar itself.
-Press ++j++ (or ++down++) to move the cursor down to the dropdown.
-Press ++enter++ to open it, then select the option `Raw (json, text, etc.)`.
-
-Move down to the text area below using ++j++ (or ++down++), and type (or paste) the JSON below. 
+Press ++down++ to move into the tab, which puts you on the body type selector, then press ++right++
+to change the body type from **None** to **Raw**. JSON is already selected as the content type,
+which is what we want, so press ++tab++ twice to move past it and into the text area. Type or paste:
 
 ```json
 {
@@ -144,60 +111,68 @@ Move down to the text area below using ++j++ (or ++down++), and type (or paste) 
 }
 ```
 
-Note at the bottom right of the text area, JSON is pre-selected as the content type.
-This means Posting will automatically use JSON syntax highlighting and it will insert the `Content-Type: application/json` header for you when the request is sent.
-
-### Viewing keyboard shortcuts
-
-Now is probably a good time to note that you can see the full list of keyboard shortcuts for the focused widget by pressing ++f1++. The text area widget in particular has a lot of useful shortcuts and supports things like undo/redo.
-
-!!! tip "Changing keyboard shortcuts"
-
-    You can remap keybindings in Posting using [Keymaps](../guide/keymap.md).
+The body is syntax highlighted, and Posting sends `Content-Type: application/json` for you
+when the request goes out.
 
 ### Sending the request
 
-Press ++ctrl+j++ to send the request.
-This shortcut works globally.
+Press ++ctrl+j++ to send the request. This works wherever you are in Posting.
+You can also press ++alt+enter++, or press ++enter++ while the URL bar is focused.
 
-!!! tip "Keyboard shortcuts"
-
-    You may also be able to send the request using ++alt+enter++.
-    This only works on terminals that support the Kitty keyboard protocol.
-
+The response appears in the **Response** panel, with its status, size and how long it took.
+The JSON is formatted and highlighted for you.
 
 ### Working with the response
 
-The response will be displayed in the main body of the UI.
-Press ++ctrl+o++ to enter "jump mode", and the ++a++ to move to the response `Body` tab.
+Press ++ctrl+o++ then ++a++ to jump to the response **Body** tab, and ++down++ to move into the
+body. From here you can:
 
-Press ++j++ or ++down++ to move the cursor down into the response body.
-This text area supports a bunch of different keyboard shortcuts for quickly navigating the response body.
-Text can be selected by holding ++shift++ and moving the cursor using the arrow keys (or `hjkl` keys for Vim fans).
-You can also select text by clicking and dragging with the mouse.
+- scroll with the arrow keys, ++page-up++ and ++page-down++
+- press ++y++ to copy the whole body to your clipboard
+- press ++w++ to turn line wrapping on or off
+- press ++f3++ to open the body in your pager, or ++f4++ to open it in your editor
 
-Press ++y++ or ++c++ to copy the selected text to your clipboard.
-If no text is selected, the entire response body will be copied.
-
-!!! tip "Vim keys"
-
-    The response text area supports some Vim-inspired keyboard shortcuts.
-
-    - To select text without holding ++shift++, you can press ++v++ to enter visual mode, and use `hjkl` to navigate.
-    - If your cursor is at a bracket, you can press ++%++ to jump to the matching bracket.
-    - Press ++w++ to move the cursor to the next word, and ++b++ to move the cursor to the previous word.
-
-    Try experimenting to find out what's supported, and if you're desperately missing something, please start a discussion on [GitHub Discussions](https://github.com/darrenburns/posting/discussions).
-
-You can open the response using the command defined in your `$EDITOR`, `$POSTING_EDITOR`, `$POSTING_PAGER`, or `$POSTING_PAGER_JSON` environment variables.
-For example, if you set `$POSTING_PAGER_JSON` to `fx`, then press the corresponding keybind to open the pager when the response text area has focus, the response will be opened in the `fx` JSON viewer.
+The **Headers**, **Cookies** and **Trace** tabs show the rest of the response.
+See [Responses](./responses.md) for more.
 
 ### Saving the request
 
-Finally, press ++ctrl+s++ to save the request to disk.
-Fill out the form on the modal that appears, and press ++enter++ or ++ctrl+n++ to write the request to disk.
+Press ++ctrl+s++ to save the request. The first time you save, Posting asks for a name, and
+where in the collection to put it:
 
-!!! tip "Folders"
+- **Name**: `Create user`
+- **File name**: leave it empty to use one made from the name (`create-user`)
+- **Folder**: leave empty to save at the top of the collection, or type a path such as `users`
+  to save into a folder, which is created if it doesn't exist
 
-    Requests can be saved to folders - simply include a `/` in the `Path in collection` field when you save the request,
-    and Posting will create the required directory structure for you.
+Press ++enter++ to save. The request now appears in the sidebar, and it's written to
+`my-collection/users/create-user.posting.yaml`. From now on, ++ctrl+s++ saves your changes in place.
+
+## Finding your way around
+
+A few keys will get you a long way:
+
+| Key | What it does |
+|-----|--------------|
+| ++ctrl+p++ | Open the [command palette](./command_palette.md), which lists everything Posting can do |
+| ++ctrl+o++ | Enter [jump mode](./navigation.md#jump-mode) |
+| ++f1++ | Show the keyboard shortcuts |
+| ++ctrl+n++ | Open a new request tab |
+| ++ctrl+g++ | Search the requests in the collection |
+| ++ctrl+c++ | Quit |
+
+The footer at the bottom of the screen always shows the most useful keys for whatever is focused.
+
+## Making it yours
+
+- Try a different look: press ++ctrl+p++, choose **Theme…**, and move through the list to preview
+  each theme. See [Themes](./themes.md).
+- Put the request and response side by side with **Layout: side by side** in the command palette,
+  or remove the blank rows between sections with **View: compact spacing**.
+- Make these choices permanent in your [configuration file](./configuration.md):
+
+```yaml
+theme: aurora
+layout: horizontal
+spacing: compact
+```

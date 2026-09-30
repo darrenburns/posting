@@ -1,106 +1,139 @@
 ## Overview
 
-Posting ships with several built-in themes, and also supports custom, user-made themes.
+Posting 3 comes with 37 built-in themes, and can load themes you make yourself, including the
+themes you made for Posting 2.
 
-When editing a theme on disk, Posting can show a live preview of the theme in effect, making it easy to design and test themes.
+## Choosing a theme
 
-### Creating a theme
+Press ++ctrl+p++ and choose **Theme…** to see every theme. As you move through the list, Posting
+previews each one, so you can see how it looks before you choose it. Press ++enter++ to use the
+highlighted theme, or ++escape++ to go back to the theme you had.
 
-You can check where Posting will look for user-defined themes by running `posting locate themes` in your terminal.
-Place custom themes in this directory and Posting will load them on startup.
-Theme files must be suffixed with `.yaml`, but the rest of the filename is unused by Posting.
-Built-in themes are *not* in this directory, but are part of the Posting code itself.
+<figure class="screen">
+--8<-- "themes.html"
+<figcaption>The theme picker. Change the theme of these docs with the picker at the top of the page to see a few of them.</figcaption>
+</figure>
 
-Here's an example theme file:
-
-```yaml
-name: example  # use this name in your config file
-primary: '#4e78c4'  # buttons, fixed table columns
-secondary: '#f39c12'  # method selector, some minor labels
-accent: '#e74c3c'  # header text, scrollbars, cursors, focus highlights
-background: '#0e1726' # background colors
-surface: '#17202a'  # panels, etc
-error: '#e74c3c'  # error messages
-success: '#2ecc71'  # success messages
-warning: '#f1c40f'  # warning messages
-
-# Optional metadata
-author: Darren Burns
-description: A dark theme with a blue primary color.
-homepage: https://github.com/darrenburns/posting
-```
-
-After adding a theme, you'll need to restart Posting for it to take effect.
-
-To use the theme, you can specify it in your `config.yaml` file:
+A theme chosen in the palette lasts until you quit. To keep it, set it in your
+[configuration file](./configuration.md):
 
 ```yaml
-theme: example
+theme: lantern
 ```
 
-Note that the theme name is *not* defined by the filename, but by the `name` field in the theme file.
+or with the `POSTING_THEME` environment variable.
 
-!!! tip
+If moving through the list feels slow in your terminal, turn off the live preview with
+`command_palette.theme_preview: false`.
 
-    If you edit a theme on disk while Posting is using it, the UI will automatically
-    refresh to reflect the changes you've made. This is enabled by default, but if you'd
-    like to disable it, you can set `watch_themes` to `false` in your `config.yaml`.
+## Built-in themes
 
-#### Syntax highlighting
+| Dark | | | |
+|------|-|-|-|
+| `galaxy` (default) | `abyss` | `amber` | `amethyst` |
+| `aurora` | `bonsai` | `catppuccin` | `cyberdeck` |
+| `dracula` | `dwarven` | `garnet` | `gruvbox` |
+| `hearthstone` | `kanagawa` | `kintsugi` | `lantern` |
+| `midnight-ember` | `monokai` | `moonstone` | `neon-reef` |
+| `nord` | `obsidian-tide` | `phosphor` | `rose-pine` |
+| `solarized` | `tokyo-night` | `understory` | `velvet` |
 
-Syntax highlighted elements such as the URL bar, text areas, and fields which contain variables will be colored based on the semantic colors defined in the theme (`primary`, `secondary`, etc) by default.
+| Light | | | |
+|-------|-|-|-|
+| `catppuccin-latte` | `dracula-light` | `gruvbox-light` | `kanagawa-lotus` |
+| `monokai-light` | `nord-light` | `rose-pine-dawn` | `solarized-light` |
+| `tokyo-night-day` | | | |
 
-If you'd like more control over the syntax highlighting, you can specify a custom syntax highlighting colors inside the theme file.
+### Posting 2 theme names
 
-The example below illustrates some of the options available when it comes to customizing syntax highlighting.
+Some of Posting 2's theme names are mapped to their closest Posting 3 theme, so an old config
+keeps working:
+
+| Posting 2 | Posting 3 |
+|-----------|-----------|
+| `posting`, `textual-dark` | `galaxy` |
+| `catppuccin-mocha`, `catppuccin-macchiato`, `catppuccin-frappe` | `catppuccin` |
+| `textual-light` | `catppuccin-latte` |
+
+Posting 2 themes that Posting 3 doesn't have, such as `nebula`, `cobalt` or `synthwave`, fall back
+to `galaxy`, and Posting lets you know when it starts.
+
+## Creating a theme
+
+Run `posting locate themes` to find where Posting looks for your themes:
+
+```bash
+$ posting locate themes
+Themes directory:
+/home/you/.local/share/posting/themes
+```
+
+Each theme is a YAML file in that directory, ending in `.yaml` or `.yml`. Here's an example:
 
 ```yaml
-text_area:
-  cursor: 'reverse'  # style the block cursor
-  cursor_line: 'underline'  # style the line the cursor is on
-  selection: 'reverse'  # style the selected text
-  gutter: 'bold #50e3c2'  # style the gutter
-  matched_bracket: 'black on green'  # style the matched bracket
-url:
-  base: 'italic #50e3c2'  # style the 'base' of the url
-  protocol: 'bold #b8e986'  # style the protocol
-syntax:
-  json_key: 'italic #4a90e2'  # style json keys
-  json_number: '#50e3c2'  # style json numbers
-  json_string: '#b8e986'  # style json strings
-  json_boolean: '#b8e986'  # style json booleans
-  json_null: 'underline #b8e986'  # style json null values
+name: harbour           # the name you use in your config and see in the picker
+dark: true              # false for a light theme
+primary: '#4e78c4'      # the main colour: GET labels, JSON keys, dialog borders
+secondary: '#f39c12'    # a second colour, used for smaller highlights
+accent: '#e74c3c'       # a third colour, used to show what has focus
+background: '#0e1726'   # the screen's background
+surface: '#17202a'      # inputs, text areas and tables
+panel: '#1f2b38'        # raised surfaces, a step above `surface`
+text: '#e6edf3'         # the main text colour
+success: '#2ecc71'      # successful responses, variables that have a value
+warning: '#f1c40f'      # redirects, unsaved changes
+error: '#e74c3c'        # errors, variables that have no value
 ```
 
-#### Method styles
+Only `name` and `primary` are required. Colours must be hex values (`#rgb`, `#rrggbb` or `#rrggbbaa`).
+Any colour you leave out is taken from a built-in theme (`galaxy` for dark themes and
+`catppuccin-latte` for light ones), so you can start with just a couple of colours and add more as you go.
+The file's name doesn't matter: the theme is known by its `name`, and a theme with the same name as a
+built-in theme replaces it.
 
-You can also specify custom styles for methods in the collection tree.
+Themes are loaded when Posting starts, so restart Posting to see changes to a theme file.
+If a theme file has a problem, Posting names the file and the problem in a notification when it starts.
 
-Here's an example:
+Your themes are listed first in the theme picker, under **Yours**. To list only your own themes, set
+`load_builtin_themes: false`. To ignore the themes directory, set `load_user_themes: false`.
+To keep your themes somewhere else, set `theme_directory`.
+
+### Themes from Posting 2
+
+Posting 3 reads Posting 2 theme files, as long as their colours are hex values: a theme that uses
+colour names or `rgb(…)` needs its colours changed to hex first. The colours listed above are used, and other settings in the
+file are ignored, including `author`, `description` and `homepage`, and the custom styles under
+`text_area`, `syntax`, `url`, `method` and `variable`. Syntax highlighting and method colours come
+from the theme's colours instead (see below).
+
+## Colours in the UI
+
+Syntax highlighting, the URL bar and the method labels all use the theme's colours, so every theme
+gets a consistent set of colours without any extra configuration:
+
+| Element | Colour |
+|---------|--------|
+| `GET` | Primary |
+| `POST` | Success |
+| `PUT` | Warning |
+| `PATCH` | Info |
+| `DELETE` | Error |
+| `HEAD`, `OPTIONS` | Muted text |
+| JSON keys, XML and HTML tags | Primary |
+| Strings | Success |
+| Numbers | Warning |
+| `true`, `false`, `null` | Accent |
+| A variable with a value | Success |
+| A variable with no value | Error, underlined |
+| URL scheme / host | Accent / Secondary |
+
+## Icons
+
+Posting can draw icons in the sidebar tabs, the header and notifications using a
+[Nerd Font](https://www.nerdfonts.com/). Icons are on by default in terminals that come with
+Nerd Font symbols built in (currently Ghostty), and off elsewhere, since they show up as boxes
+without one. If you use a Nerd Font, turn them on with:
 
 ```yaml
-method:
-  get: 'underline #50e3c2'
-  post: 'italic #b8e986'
-  put: 'bold #b8e986'
-  delete: 'strikethrough #b8e986'
+nerd_fonts: true
 ```
-
-### X resources themes
-
-Posting supports using X resources for theming. To use this, enable the `use_xresources` option (see above).
-
-It requires the `xrdb` executable on your `PATH` and `xrdb -query` must return the following variables:
-
-| Xresources  | Description |
-|-------------|-----------|
-| *color0     | primary color: used for button backgrounds and fixed table columns |
-| *color8     | secondary color: used in method selector and some minor labels |
-| *color1     | error color: used for error messages |
-| *color2     | success color: used for success messages |
-| *color3     | warning color: used for warning messages |
-| *color4     | accent color: used for header text, scrollbars, cursors, focus highlights |
-| *background | background color |
-| *color7     | surface/panel color |
-
-If these conditions are met, themes called `xresources-dark` and `xresources-light` will be available for use.

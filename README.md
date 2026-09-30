@@ -8,53 +8,45 @@ Posting is an HTTP client, not unlike Postman and Insomnia. As a TUI application
 
 Some notable features include:
 
+- request tabs, so you can work on several requests at once
 - "jump mode" navigation
-- environments/variables
-- autocompletion
-- syntax highlighting using tree-sitter
-- Vim keys
+- layered environments and variables, with a variables screen and autocompletion
+- syntax highlighting
+- request timing, and a persistent history of responses
 - customizable keybindings
-- user-defined themes
-- run Python code before and after requests
+- 37 built-in themes, plus user-defined themes
 - extensive configuration
 - open in $EDITOR/$PAGER
 - import curl commands by pasting them into the URL bar
-- export requests as cURL commands
-- import from Postman and OpenAPI specs
+- export requests as curl commands
+- import from OpenAPI, Postman and Bruno
 - a command palette for quickly accessing functionality
 
 Visit the [website](https://posting.sh) for more information, the roadmap, and the user guide.
 
 ## Installation
 
-Posting can be installed via [uv](https://docs.astral.sh/uv/getting-started/installation/) on MacOS, Linux, and Windows.
+Posting 3 is a single binary written in Go. With [Go](https://go.dev/dl/) 1.25.5 or newer installed, run:
 
 ```bash
-# quickly install uv on MacOS/Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# install Posting (will also quickly install Python 3.13 if needed)
-uv tool install --python 3.13 posting
+go install github.com/darrenburns/posting/cmd/posting@latest
 ```
 
- Now you can run Posting via the command line:
+Now you can run Posting via the command line:
 
 ```bash
 posting
 ```
 
-Homebrew and NixOS are not officially supported at the moment.
-
-### Prefer `pipx`?
-
-If you'd prefer to use `pipx`, that works too: `pipx install posting`.
+Coming from Posting 2? Posting 3 reads the same collections, configuration and `.env` files.
+See [Coming from Posting 2](https://posting.sh/guide/migrating/) for what's changed.
 
 ## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, information on setting up your development environment, and running tests.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. To build Posting 3 from a clone of this repository, run `go build ./cmd/posting`, and run the tests with `go test ./...`.
 
 ## Learn More
 
 Learn more about Posting at [https://posting.sh](https://posting.sh).
 
-Posting was built with [Textual](https://github.com/textualize/textual).
+Posting 3 is built with [Terma](https://github.com/darrenburns/terma). Posting 2 was built with [Textual](https://github.com/textualize/textual).
