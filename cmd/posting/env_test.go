@@ -38,12 +38,30 @@ func TestEnvironmentFilesAcceptNamesAndFiles(t *testing.T) {
 
 	// Names and files layer in order, and a file shared by two names (the
 	// base) is used once, where it first appears.
-	got, err = environmentFiles([]string{"staging", filepath.Join(dir, "extra.env"), "base"}, dirs)
+	got, err = environmentFiles([]string{"staging", filepath.Join(dir, "extra.env"), "posting"}, dirs)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if want := []string{"posting.env", "staging.env", "staging.local.env", "extra.env"}; !reflect.DeepEqual(names(got), want) {
-		t.Errorf("-e staging -e extra.env -e base = %v, want %v", names(got), want)
+		t.Errorf("-e staging -e extra.env -e posting = %v, want %v", names(got), want)
+	}
+
+	// Repeating a file re-applies it: the last one given wins.
+	extra, staging := filepath.Join(dir, "extra.env"), filepath.Join(dir, "staging.env")
+	got, err = environmentFiles([]string{extra, staging, extra}, dirs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"extra.env", "staging.env", "extra.env"}; !reflect.DeepEqual(names(got), want) {
+		t.Errorf("-e extra.env -e staging.env -e extra.env = %v, want %v", names(got), want)
+	}
+	// ...even when a name included it first.
+	got, err = environmentFiles([]string{"staging", filepath.Join(dir, "posting.env")}, dirs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"posting.env", "staging.env", "staging.local.env", "posting.env"}; !reflect.DeepEqual(names(got), want) {
+		t.Errorf("-e staging -e posting.env = %v, want %v", names(got), want)
 	}
 
 	// A file is used exactly as given, without the base.

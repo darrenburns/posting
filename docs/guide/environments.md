@@ -127,10 +127,12 @@ posting --env staging
 This loads `posting.env`, `posting.local.env`, `staging.env` and `staging.local.env`, skipping any that
 don't exist. Posting looks for `staging.env` (or `staging.local.env`) in the directory you start Posting
 from, then the collection's directory, then Posting's config directory (`~/.config/posting`), and takes all
-the layers from the first of these that has it. Use `--env base` for the base layers alone.
+the layers from the first of these that has it. The base layers on their own are the environment called
+`posting`, after its file: use `--env posting`.
 
 `--env` also accepts the path of a file, which is loaded on its own, without the base. Repeat `--env` to
-layer names and files in any order, later ones on top:
+layer names and files in any order, later ones on top. A file given again is applied again, so the last
+one given wins:
 
 ```bash
 posting --env shared.env --env dev.env
@@ -151,7 +153,9 @@ variables each has and the files it's made from. Choose **No environment** to us
 [session values](#the-variables-screen).
 
 Posting remembers the environment you choose for each collection, and starts in it next time.
-Passing `--env` starts in that environment instead, without changing what's remembered.
+A named environment is rebuilt from its folder when Posting starts, so a `.local.env` file you've added
+since is included. Passing `--env` starts in that environment instead, without changing what's
+remembered.
 
 To use an environment file from anywhere else, choose **Load environment file…** in the command
 palette and type its path. Separate several paths with commas to layer them. An environment loaded
