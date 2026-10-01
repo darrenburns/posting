@@ -27,7 +27,6 @@ type Pair struct {
 //
 // Lines that aren't assignments are ignored.
 func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
-	var pairs []Pair
 	values := map[string]string{}
 	lookup := func(name string) (string, bool) {
 		if v, ok := values[name]; ok {
@@ -38,6 +37,39 @@ func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
 		}
 		return "", false
 	}
+	var pairs []Pair
+	scan(data, func(name, text string, expands bool) {
+		if expands {
+			text = expand(text, lookup)
+		}
+		values[name] = text
+		pairs = append(pairs, Pair{Name: name, Value: text})
+	})
+	return pairs
+}
+
+// Templates reads dotenv content without expanding it, giving each value as
+// a Posting template: ${NAME} stays a reference and a literal dollar sign
+// becomes $$. A value that uses ${NAME:-default}, or refers to a name a
+// template can't, has no template form; it is left out and named in skipped.
+func Templates(data string) (pairs []Pair, skipped []string) {
+	scan(data, func(name, text string, expands bool) {
+		if !expands {
+			pairs = append(pairs, Pair{Name: name, Value: strings.ReplaceAll(text, "$", "$$")})
+			return
+		}
+		if value, ok := template(text); ok {
+			pairs = append(pairs, Pair{Name: name, Value: value})
+			return
+		}
+		skipped = append(skipped, name)
+	})
+	return pairs, skipped
+}
+
+// scan calls assign for each assignment in dotenv content with its decoded
+// text, and whether ${...} in that text is to be expanded.
+func scan(data string, assign func(name, text string, expands bool)) {
 	for len(data) > 0 {
 		line := data
 		rest := ""
@@ -56,18 +88,19 @@ func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
 			continue
 		}
 		raw = strings.TrimLeft(raw, " \t")
-		var value string
+		var text string
+		expands := true
 		switch {
 		case strings.HasPrefix(raw, `"`):
 			// A double-quoted value may continue onto following lines.
 			body := raw[1:]
 			for {
 				if end := closingQuote(body, '"'); end >= 0 {
-					value = expand(unescape(body[:end]), lookup)
+					text = unescape(body[:end])
 					break
 				}
 				if data == "" {
-					value = expand(unescape(body), lookup)
+					text = unescape(body)
 					break
 				}
 				next := data
@@ -78,14 +111,15 @@ func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
 				body += "\n" + next
 			}
 		case strings.HasPrefix(raw, `'`):
+			expands = false
 			body := raw[1:]
 			for {
 				if end := closingQuote(body, '\''); end >= 0 {
-					value = unescapeSingle(body[:end])
+					text = unescapeSingle(body[:end])
 					break
 				}
 				if data == "" {
-					value = unescapeSingle(body)
+					text = unescapeSingle(body)
 					break
 				}
 				next := data
@@ -102,12 +136,10 @@ func Parse(data string, lookupHost func(string) (string, bool)) []Pair {
 			if i := strings.Index(raw, "\t#"); i >= 0 {
 				raw = raw[:i]
 			}
-			value = expand(strings.TrimSpace(raw), lookup)
+			text = strings.TrimSpace(raw)
 		}
-		values[name] = value
-		pairs = append(pairs, Pair{Name: name, Value: value})
+		assign(name, text, expands)
 	}
-	return pairs
 }
 
 // closingQuote finds the unescaped quote ending a quoted value.
@@ -158,6 +190,38 @@ func expand(s string, lookup func(string) (string, bool)) string {
 			b.WriteString(value)
 		} else if hasDefault {
 			b.WriteString(fallback)
+		}
+		s = s[start+end+1:]
+	}
+}
+
+// template is the Posting template for text that expand would read, or false
+// if it has none. Nothing has the empty name, so ${:-x} is the literal x.
+func template(s string) (string, bool) {
+	var b strings.Builder
+	literal := func(text string) { b.WriteString(strings.ReplaceAll(text, "$", "$$")) }
+	for {
+		start := strings.Index(s, "${")
+		if start < 0 {
+			literal(s)
+			return b.String(), true
+		}
+		end := strings.IndexByte(s[start:], '}')
+		if end < 0 {
+			literal(s)
+			return b.String(), true
+		}
+		literal(s[:start])
+		name, fallback, hasDefault := strings.Cut(s[start+2:start+end], ":-")
+		switch refs := model.FindVariables("${" + name + "}"); {
+		case name == "":
+			if hasDefault {
+				literal(fallback)
+			}
+		case hasDefault || len(refs) != 1 || refs[0].Name != name:
+			return "", false
+		default:
+			b.WriteString("${" + name + "}")
 		}
 		s = s[start+end+1:]
 	}

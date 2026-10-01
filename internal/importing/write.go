@@ -64,7 +64,12 @@ func Write(result Result, dir string) (written Written, err error) {
 		}
 		entries = append(entries, entry{name: name, data: data})
 	}
-	files, warnings := layers(result.Variables, result.Environments)
+	base, warnings := result.Variables, []string(nil)
+	if len(base) == 0 && len(result.Environments) > 0 {
+		base, warnings = existingBase(dir)
+	}
+	files, layerWarnings := layers(base, result.Environments)
+	warnings = append(warnings, layerWarnings...)
 	if len(result.Variables) > 0 {
 		data, encodeErr := environmentData(files[0])
 		if encodeErr != nil {
@@ -140,6 +145,30 @@ func Write(result Result, dir string) (written Written, err error) {
 	}
 	written.Warnings = warnings
 	return written, nil
+}
+
+// existingBase reads the base environment already in dir, so environments
+// added to a collection can repeat the base variables that depend on them.
+func existingBase(dir string) ([]model.Variable, []string) {
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return nil, nil
+	}
+	defer root.Close()
+	data, err := root.ReadFile(env.BaseFile)
+	if err != nil {
+		return nil, nil
+	}
+	pairs, skipped := env.Templates(string(data))
+	var warnings []string
+	if len(skipped) > 0 {
+		warnings = append(warnings, fmt.Sprintf("%s: variables %s use ${NAME:-default} or a name Posting can't reference, so imported environments don't change their values", env.BaseFile, strings.Join(skipped, ", ")))
+	}
+	base := make([]model.Variable, len(pairs))
+	for i, p := range pairs {
+		base[i] = model.Variable{Name: p.Name, Value: p.Value}
+	}
+	return base, warnings
 }
 
 // environmentFile names an environment's file without stepping on the
