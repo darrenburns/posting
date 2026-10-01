@@ -667,7 +667,7 @@ func (a *App) deleteRequests(files []string) {
 	a.refreshTree()
 	switch {
 	case deleted < len(files):
-		// The error stays on screen.
+		return
 	case deleted == 1:
 		a.notify("Deleted "+files[0], toastInfo)
 	default:
