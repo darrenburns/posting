@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -221,7 +220,7 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 	// in the visible tab is bold; others open in tabs get a dot after them.
 	r := i.Request
 	nameStyle := t.SpanStyle{Foreground: theme.Text, Background: bg}
-	methodStyle := t.SpanStyle{Foreground: methodColor(theme, r.Method), Background: bg, Bold: true}
+	methodStyle := t.SpanStyle{Foreground: requestColor(theme, *r), Background: bg, Bold: true}
 	markStyle := t.SpanStyle{Foreground: theme.TextMuted, Background: bg}
 	mark := ""
 	switch {
@@ -238,7 +237,7 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 		methodStyle.Foreground = theme.SelectionText
 		markStyle.Foreground = theme.SelectionText
 	}
-	spans := query.methodSpans(padRight(r.Method.Short(), 3)+" ", i, methodStyle, highlight)
+	spans := query.methodSpans(padRight(r.Badge(), 3)+" ", i, methodStyle, highlight)
 	spans = append(spans, query.spans(r.DisplayName(), nameStyle, highlight)...)
 	spans = append(spans, t.Span{Text: mark, Style: markStyle})
 	return t.Text{
@@ -294,10 +293,12 @@ func (h historyView) Build(ctx t.BuildContext) t.Widget {
 func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focused bool) t.Widget {
 	var bg t.Color
 	fg := theme.TextMuted
-	methodFg := methodColor(theme, entry.Request.Method)
+	methodFg := requestColor(theme, entry.Request)
 	statusFg := theme.TextMuted
+	var status model.Status
 	if entry.Response != nil {
-		statusFg, _ = statusColors(theme, entry.Response.StatusCode)
+		status = model.StatusOf(entry.Request, entry.Response)
+		statusFg, _ = statusColors(theme, status.Class)
 	}
 	switch {
 	case active && focused:
@@ -306,9 +307,9 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 	case active:
 		bg = theme.Surface
 	}
-	status := t.Span{}
+	statusSpan := t.Span{}
 	if entry.Response != nil {
-		status = t.Span{Text: fmt.Sprintf(" %d", entry.Response.StatusCode), Style: t.SpanStyle{Foreground: statusFg, Background: bg, Bold: true}}
+		statusSpan = t.Span{Text: " " + status.Code, Style: t.SpanStyle{Foreground: statusFg, Background: bg, Bold: true}}
 	}
 	target := entry.Request.URL
 	if entry.Response != nil && entry.Response.URL != "" {
@@ -319,8 +320,8 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 		Style: t.Style{Width: t.Flex(1), BackgroundColor: bg, Padding: t.EdgeInsetsXY(1, 0)},
 		Children: []t.Widget{
 			t.Text{Spans: []t.Span{
-				{Text: string(entry.Request.Method), Style: t.SpanStyle{Foreground: methodFg, Background: bg, Bold: true}},
-				status,
+				{Text: requestLabel(entry.Request), Style: t.SpanStyle{Foreground: methodFg, Background: bg, Bold: true}},
+				statusSpan,
 				{Text: " · " + entry.SentAt.Format("02 Jan 15:04:05"), Style: t.SpanStyle{Foreground: fg, Background: bg}},
 			}},
 			t.Text{Content: target, Style: t.Style{ForegroundColor: fg, Width: t.Flex(1)}},

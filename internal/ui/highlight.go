@@ -34,8 +34,13 @@ func span(index []int, start, end int, style t.SpanStyle) t.TextHighlight {
 // variableHighlights colours ${VAR} references green when they resolve and
 // red when they don't.
 func variableHighlights(theme t.ThemeData, text string, index []int, resolve func(string) bool) []t.TextHighlight {
+	return refHighlights(theme, model.FindVariables(text), index, resolve)
+}
+
+// refHighlights colours the given variable references as variableHighlights does.
+func refHighlights(theme t.ThemeData, refs []model.VariableRef, index []int, resolve func(string) bool) []t.TextHighlight {
 	var out []t.TextHighlight
-	for _, ref := range model.FindVariables(text) {
+	for _, ref := range refs {
 		style := t.SpanStyle{Foreground: theme.SuccessText}
 		if resolve != nil && !resolve(ref.Name) {
 			style = t.SpanStyle{Foreground: theme.ErrorText, Underline: t.UnderlineCurly, UnderlineColor: theme.Error}

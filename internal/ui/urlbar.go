@@ -2,7 +2,6 @@ package ui
 
 import (
 	"slices"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -53,7 +52,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 				Style:   t.Style{Width: t.Flex(1), Height: t.Cells(1)},
 				Spacing: 1,
 				Children: []t.Widget{
-					methodSelector{app: a, method: s.method.Get()},
+					methodSelector{app: a, request: s.badgeRequest()},
 					t.Row{
 						Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)},
 						Children: []t.Widget{
@@ -61,7 +60,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 							s.urlVars.wrap(theme, t.TextInput{
 								ID:          urlInputID,
 								State:       s.url,
-								Placeholder: "Enter a URL or paste a curl command…",
+								Placeholder: kindViews[s.kind.Get()].urlPlaceholder,
 								Highlighter: urlHighlighter(theme, resolve),
 								Style:       inputStyle(theme, false),
 								OnChange:    func(string) { s.urlEdited() },
@@ -101,42 +100,57 @@ func (a *App) methodMenuWidget() t.Widget {
 			ID:       methodMenuID,
 			State:    a.methodMenu,
 			AnchorID: methodSelectorID,
-			OnSelect: func(item t.MenuItem) {
-				a.setMethod(model.Method(item.Label))
-				a.closeMethodMenu()
-			},
+			// Each item's Action makes the choice.
+			OnSelect:  func(t.MenuItem) { a.closeMethodMenu() },
 			OnDismiss: a.closeMethodMenu,
 		},
 		app: a,
 	})
 }
 
-// methodMenu is the method dropdown. A MenuItem's Shortcut is only a hint, and
-// the selector's letter keys don't reach the menu while it has focus, so the
-// menu binds them itself. They go ahead of the menu's own keys so that h picks
-// HEAD rather than closing the menu.
+// methodMenu is the method and kind dropdown. A MenuItem's Shortcut is only a
+// hint, and the selector's letter keys don't reach the menu while it has
+// focus, so the menu binds them itself. They go ahead of the menu's own keys
+// so that h picks HEAD rather than closing the menu.
 type methodMenu struct {
 	t.Menu
 	app *App
 }
 
 func (m methodMenu) Keybinds() []t.Keybind {
-	binds := make([]t.Keybind, 0, len(model.Methods))
-	for _, method := range model.Methods {
-		method := method
-		binds = append(binds, t.Keybind{Key: methodHotkeys[method], Name: string(method), Action: func() {
-			m.app.setMethod(method)
+	binds := m.app.methodHotkeyBinds()
+	for i := range binds {
+		choose := binds[i].Action
+		binds[i].Action = func() {
+			choose()
 			m.app.closeMethodMenu()
-		}, Hidden: true})
+		}
 	}
 	return append(binds, m.Menu.Keybinds()...)
 }
 
-// methodSelector shows the current method. Letter keys switch method
-// directly; enter opens a menu.
+// methodHotkeyBinds pick each method, and each kind of request other than
+// HTTP, by its letter.
+func (a *App) methodHotkeyBinds() []t.Keybind {
+	var binds []t.Keybind
+	for _, method := range model.Methods {
+		method := method
+		binds = append(binds, t.Keybind{Key: methodHotkeys[method], Name: string(method), Action: func() { a.setMethod(method) }, Hidden: true})
+	}
+	for _, kind := range model.Kinds {
+		if hotkey := kindViews[kind.ID].hotkey; hotkey != "" {
+			id := kind.ID
+			binds = append(binds, t.Keybind{Key: hotkey, Name: kind.Label, Action: func() { a.setKind(id) }, Hidden: true})
+		}
+	}
+	return binds
+}
+
+// methodSelector shows the request's method, or its kind when it isn't
+// HTTP. Letter keys choose directly; enter opens a menu.
 type methodSelector struct {
-	app    *App
-	method model.Method
+	app     *App
+	request model.Request
 }
 
 func (m methodSelector) WidgetID() string            { return methodSelectorID }
@@ -152,23 +166,19 @@ func (m methodSelector) Keybinds() []t.Keybind {
 		{Key: "enter", Name: "Choose method", Action: m.app.openMethodMenu},
 		{Key: " ", Name: "Choose method", Action: m.app.openMethodMenu, Hidden: true},
 	}
-	for _, method := range model.Methods {
-		method := method
-		binds = append(binds, t.Keybind{Key: methodHotkeys[method], Name: string(method), Action: func() { m.app.setMethod(method) }, Hidden: true})
-	}
-	return binds
+	return append(binds, m.app.methodHotkeyBinds()...)
 }
 
 func (m methodSelector) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
-	fg := methodColor(theme, m.method)
+	fg := requestColor(theme, m.request)
 	bg := theme.Surface
 	if ctx.IsFocused(m) {
 		bg = theme.Surface3
 	}
 	return t.Text{
 		Spans: []t.Span{
-			{Text: " " + padRight(string(m.method), 7), Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: true}},
+			{Text: " " + padRight(requestLabel(m.request), 7), Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: true}},
 			{Text: "▾ ", Style: t.SpanStyle{Foreground: theme.TextMuted, Background: bg}},
 		},
 	}
@@ -186,12 +196,12 @@ func (c statusChip) Build(ctx t.BuildContext) t.Widget {
 	case exchangeFailed:
 		return t.Text{Content: " ERR ", Style: t.Style{ForegroundColor: theme.ErrorText, BackgroundColor: theme.ErrorBg, Bold: true}}
 	}
-	resp := s.response.Get()
-	if resp == nil {
+	if s.response.Get() == nil {
 		return t.EmptyWidget{}
 	}
-	fg, bg := statusColors(theme, resp.StatusCode)
-	return t.Text{Content: " " + strconv.Itoa(resp.StatusCode) + " ", Style: t.Style{ForegroundColor: fg, BackgroundColor: bg, Bold: true}}
+	status := s.status()
+	fg, bg := statusColors(theme, status.Class)
+	return t.Text{Content: " " + status.Code + " ", Style: t.Style{ForegroundColor: fg, BackgroundColor: bg, Bold: true}}
 }
 
 // traceMarkers is a compact progress indicator: one square per exchange stage.

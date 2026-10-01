@@ -278,8 +278,8 @@ func summaryBubble(ctx t.BuildContext, a *App, r model.Request, place summaryPla
 		return t.Text{Spans: spans}
 	}
 	children := []t.Widget{line(
-		t.Span{Text: " " + string(r.Method) + " ", Style: t.SpanStyle{Foreground: methodColor(theme, r.Method), Background: theme.Surface3, Bold: true}},
-		t.Span{Text: " " + truncate(r.DisplayName(), width-len(r.Method)-3), Style: t.SpanStyle{Foreground: theme.Text, Bold: true}},
+		t.Span{Text: " " + requestLabel(r) + " ", Style: t.SpanStyle{Foreground: requestColor(theme, r), Background: theme.Surface3, Bold: true}},
+		t.Span{Text: " " + truncate(r.DisplayName(), width-len(requestLabel(r))-3), Style: t.SpanStyle{Foreground: theme.Text, Bold: true}},
 	)}
 	if r.URL != "" {
 		children = append(children, line(t.Span{Text: truncate(r.URL, width), Style: t.SpanStyle{Foreground: theme.TextMuted}}))
