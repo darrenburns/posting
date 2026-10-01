@@ -26,6 +26,10 @@ const (
 type Store struct {
 	path string
 	mu   sync.Mutex
+	// unreadable are the entries the last Load couldn't decode, such as a
+	// kind of request from a newer Posting. Save writes them back as they
+	// were, after the others, so this build never loses them.
+	unreadable []json.RawMessage
 }
 
 // ForCollection returns the store for the collection at root, kept in dir.
@@ -41,13 +45,15 @@ func ForCollection(dir, root string) *Store {
 // Path is where the history is stored.
 func (s *Store) Path() string { return s.path }
 
+// file is the history file. Entries are decoded one by one, so one that
+// can't be doesn't lose the rest.
 type file struct {
-	Version int                  `json:"version"`
-	Entries []model.HistoryEntry `json:"entries"`
+	Version int               `json:"version"`
+	Entries []json.RawMessage `json:"entries"`
 }
 
 // Load reads the history, newest first. A store that doesn't exist yet is
-// empty.
+// empty. Entries that can't be decoded are left out, and kept for Save.
 func (s *Store) Load() ([]model.HistoryEntry, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -62,20 +68,37 @@ func (s *Store) Load() ([]model.HistoryEntry, error) {
 	if err := json.Unmarshal(data, &f); err != nil {
 		return nil, err
 	}
-	return f.Entries, nil
+	var entries []model.HistoryEntry
+	s.unreadable = nil
+	for _, raw := range f.Entries {
+		var entry model.HistoryEntry
+		if json.Unmarshal(raw, &entry) != nil {
+			s.unreadable = append(s.unreadable, raw)
+			continue
+		}
+		entries = append(entries, entry)
+	}
+	return entries, nil
 }
 
 // Save replaces the history with entries (newest first), keeping only the
-// newest that fit the limits. The file is private to the user, since
-// responses often contain credentials.
+// newest that fit the limits, then the entries Load couldn't decode. The
+// file is private to the user, since responses often contain credentials.
 func (s *Store) Save(entries []model.HistoryEntry) error {
-	entries = Trim(entries)
-	data, err := json.Marshal(file{Version: 1, Entries: entries})
-	if err != nil {
-		return err
+	var raw []json.RawMessage
+	for _, entry := range Trim(entries) {
+		data, err := json.Marshal(entry)
+		if err != nil {
+			return err
+		}
+		raw = append(raw, data)
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	data, err := json.Marshal(file{Version: 1, Entries: append(raw, s.unreadable...)})
+	if err != nil {
+		return err
+	}
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
 		return err
 	}
