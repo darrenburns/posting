@@ -347,3 +347,40 @@ body:graphql:vars {
 		t.Fatalf("saved file didn't load back: %v\n%s", err, data)
 	}
 }
+
+func TestGraphQLQueriesCountTowardTheCollectionLimit(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "bruno.json"), []byte(`{}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	vars := "vars:pre-request {\n large: " + strings.Repeat("x", 1<<20) + "\n}\n"
+	if err := os.WriteFile(filepath.Join(dir, "collection.bru"), []byte(vars), 0600); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 129; i++ {
+		input := "post {\n url: https://example.test/graphql\n body: graphql\n}\nbody:graphql {\n  {{large}}\n}\n"
+		if err := os.WriteFile(filepath.Join(dir, fmt.Sprintf("%03d.bru", i)), []byte(input), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := Load(dir); err == nil {
+		t.Fatal("accepted more than 128 MiB of GraphQL queries")
+	}
+}
+
+func TestGraphQLImportWarnings(t *testing.T) {
+	for _, c := range []struct{ name, input, want string }{
+		{"graphql type without a graphql body", "meta {\n  type: graphql\n}\npost {\n  url: https://x/graphql\n  body: json\n}\nbody:json {\n  {}\n}\n", "no GraphQL body"},
+		{"graphql over get", "get {\n  url: https://x/graphql\n  body: graphql\n}\nbody:graphql {\n  { a }\n}\n", "uses GET"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			result, err := Parse([]byte(c.input))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(strings.Join(result.Warnings, "\n"), c.want) {
+				t.Fatalf("warnings %q lack %q", result.Warnings, c.want)
+			}
+		})
+	}
+}

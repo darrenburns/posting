@@ -327,6 +327,12 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 	default:
 		warn(result, "unsupported body mode "+bodyMode+"; body was not imported")
 	}
+	switch {
+	case m["type"] == "graphql" && r.Payload == nil:
+		warn(result, "GraphQL request has no GraphQL body; imported as HTTP")
+	case r.Payload != nil && r.Method != model.MethodPost:
+		warn(result, "GraphQL request uses "+string(r.Method)+"; Posting sends GraphQL requests as POST")
+	}
 	if d.has("body") {
 		warn(result, "legacy body block is not imported")
 	}
