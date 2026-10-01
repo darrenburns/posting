@@ -4,8 +4,11 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	t "github.com/darrenburns/terma"
+
+	"github.com/darrenburns/posting/internal/model"
 )
 
 // sidebarScreen is the sample app on screen with focus in the widget id.
@@ -204,4 +207,59 @@ func TestEnterOpensEachSelectedRequestInATab(tt *testing.T) {
 	s.pressKey(tt, "down")
 	s.pressKey(tt, "enter")
 	assertTabs(tt, app, "List users, Get user, Create user, /Update user/")
+}
+
+// historyScreen is the sample app showing four history entries, with IDs 1
+// to 4 from the top, and focus in the history list.
+func historyScreen(tt *testing.T) (*App, *screen) {
+	tt.Helper()
+	app := testApp()
+	var entries []model.HistoryEntry
+	for i, name := range []string{"List users", "Get user", "Create user", "Login"} {
+		entries = append(entries, model.HistoryEntry{ID: int64(i + 1), Request: sampleRequest(tt, name), Response: fixedResponse(), SentAt: time.Now()})
+	}
+	app.setHistory(entries)
+	app.sidebarTab.Set("history")
+	return app, sidebarScreen(tt, app, historyID)
+}
+
+func historyIDs(app *App) []int64 {
+	var ids []int64
+	for _, e := range app.history.Peek() {
+		ids = append(ids, e.ID)
+	}
+	return ids
+}
+
+func TestDeletingSelectedHistory(tt *testing.T) {
+	app, s := historyScreen(tt)
+	s.pressKey(tt, "shift+down")
+	s.pressKey(tt, "shift+down")
+	if !strings.Contains(s.renderer.ScreenText(), "Delete 3 entries") {
+		tt.Fatalf("the footer doesn't count the three selected entries:\n%s", s.renderer.ScreenText())
+	}
+	s.pressKey(tt, "backspace")
+	if got := historyIDs(app); !slices.Equal(got, []int64{4}) {
+		tt.Fatalf("history after deleting the first three = %v, want [4]", got)
+	}
+	if got := app.historyList.SelectedItems(); len(got) != 0 {
+		tt.Errorf("%d entries still selected after the delete", len(got))
+	}
+
+	s.pressKey(tt, "backspace")
+	if got := historyIDs(app); len(got) != 0 {
+		tt.Fatalf("backspace without a selection left %v", got)
+	}
+}
+
+func TestEscapeClearsTheHistorySelection(tt *testing.T) {
+	app, s := historyScreen(tt)
+	s.pressKey(tt, "shift+down")
+	if len(app.historyList.SelectedItems()) != 2 {
+		tt.Fatal("shift+down didn't select two entries")
+	}
+	s.pressKey(tt, "escape")
+	if got := app.historyList.SelectedItems(); len(got) != 0 {
+		tt.Fatalf("escape left %d entries selected", len(got))
+	}
 }

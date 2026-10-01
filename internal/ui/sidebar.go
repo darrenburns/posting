@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -294,8 +295,12 @@ type historyView struct {
 
 func (h historyView) Keybinds() []t.Keybind {
 	a := h.app
+	name := "Delete entry"
+	if n := len(a.historyTargets()); n > 1 {
+		name = fmt.Sprintf("Delete %d entries", n)
+	}
 	binds := []t.Keybind{
-		{Key: "backspace", Name: "Delete entry", Action: a.deleteHistoryAtCursor},
+		{Key: "backspace", Name: name, Action: func() { a.deleteHistory(a.historyTargets()) }},
 	}
 	if len(a.historyList.Selection.Peek()) > 0 {
 		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: a.historyList.ClearSelection})
@@ -381,18 +386,30 @@ func (a *App) openHistory(entry model.HistoryEntry) {
 	s.responseTab.Set("body")
 }
 
-func (a *App) deleteHistoryAtCursor() {
-	entry, ok := a.historyList.SelectedItem()
-	if !ok {
+// historyTargets are the history entries backspace deletes: the selected
+// ones or, with nothing selected, the one under the cursor.
+func (a *App) historyTargets() []model.HistoryEntry {
+	if selected := a.historyList.SelectedItems(); len(selected) > 0 {
+		return selected
+	}
+	if entry, ok := a.historyList.SelectedItem(); ok {
+		return []model.HistoryEntry{entry}
+	}
+	return nil
+}
+
+// deleteHistory removes entries from the history, and the selection that
+// named them.
+func (a *App) deleteHistory(entries []model.HistoryEntry) {
+	if len(entries) == 0 {
 		return
 	}
-	var kept []model.HistoryEntry
-	for _, e := range a.history.Peek() {
-		if e.ID != entry.ID {
-			kept = append(kept, e)
-		}
+	ids := map[int64]bool{}
+	for _, e := range entries {
+		ids[e.ID] = true
 	}
-	a.setHistory(kept)
+	a.historyList.ClearSelection()
+	a.setHistory(slices.DeleteFunc(slices.Clone(a.history.Peek()), func(e model.HistoryEntry) bool { return ids[e.ID] }))
 }
 
 func (a *App) clearHistory() {
