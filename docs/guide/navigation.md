@@ -133,7 +133,7 @@ Anything you can focus with the keyboard can be clicked. A few things are only a
 
 - Hovering over a request in the collection shows its description, if it has one.
 - Clicking the environment name in the header opens the environment switcher.
-- Clicking the Posting logo in the bottom right corner opens a menu with links to these docs,
+- Clicking the Posting logo in the bottom left corner opens a menu with links to these docs,
   sponsoring the project, and Mastodon.
 - Clicking **wrap on**/**wrap off** or **copy** under the response body toggles line wrapping or copies the body.
 

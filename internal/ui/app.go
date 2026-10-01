@@ -774,9 +774,8 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 		top = []t.Widget{header{app: a}}
 	}
 	var main t.Widget = t.Dock{
-		Style:  t.Style{BackgroundColor: theme.Background, Padding: margin},
-		Top:    top,
-		Bottom: []t.Widget{footer{app: a}},
+		Style: t.Style{BackgroundColor: theme.Background, Padding: margin},
+		Top:   top,
 		Body: t.Stack{
 			Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 			Children: []t.Widget{
@@ -785,8 +784,8 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 			},
 		},
 	}
-	// The sidebar runs the full height of the app, beside the header and
-	// footer rather than between them.
+	// The sidebar sits beside the header rather than below it. The footer
+	// runs the full width of the app, below both.
 	if a.sidebarVisible.Get() {
 		split := t.SplitPane{
 			ID:           sidebarSplitID,
@@ -809,7 +808,7 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 		Dynamic: true,
 		Child: t.Column{
 			Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: theme.Background},
-			Children: []t.Widget{main, overlays{app: a}},
+			Children: []t.Widget{main, footer{app: a}, overlays{app: a}},
 		},
 	}
 }
@@ -959,30 +958,30 @@ func (f footer) Build(ctx t.BuildContext) t.Widget {
 	}
 	padding := t.EdgeInsetsXY(2, 0)
 	if f.app.settings.Heading.ShowVersion {
-		// The logo's glow runs to the right edge and pads the logo itself.
-		padding.Right = 0
+		// The logo's glow runs from the left edge and pads the logo itself.
+		padding.Left = 0
 	}
 	return t.Row{
 		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: padding, BackgroundColor: theme.Background},
 		Children: []t.Widget{
+			t.ShowWhen(f.app.settings.Heading.ShowVersion, logoGlow(theme, footerLogo{app: f.app})),
 			// The hints take the space the version leaves, and leave out
 			// those that don't fit.
 			hints,
-			t.ShowWhen(f.app.settings.Heading.ShowVersion, logoGlow(theme, footerLogo{app: f.app})),
 		},
 	}
 }
 
 // logoGlow sits the footer logo on a faint wash of the theme's secondary
-// colour that fades in from the right edge.
+// colour that fades out from the left edge.
 func logoGlow(theme t.ThemeData, logo t.Widget) t.Widget {
 	bg := theme.Background
 	tint := bg.Blend(theme.Secondary, 0.18)
 	return t.Row{
 		Style: t.Style{
 			Height:          t.Cells(1),
-			Padding:         t.EdgeInsets{Left: 4, Right: 2},
-			BackgroundColor: t.NewGradient(bg, bg.Blend(tint, 0.3), tint).WithAngle(90),
+			Padding:         t.EdgeInsets{Left: 2, Right: 4},
+			BackgroundColor: t.NewGradient(tint, bg.Blend(tint, 0.3), bg).WithAngle(90),
 		},
 		Children: []t.Widget{logo},
 	}
