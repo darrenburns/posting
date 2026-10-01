@@ -13,13 +13,14 @@ type Collection struct {
 	Children []*Collection
 }
 
-// Sort orders children by name and requests by method then name, recursively.
+// Sort orders children by name and requests by method (or kind) then name,
+// recursively.
 func (c *Collection) Sort() {
 	sort.SliceStable(c.Children, func(i, j int) bool { return c.Children[i].Name < c.Children[j].Name })
 	sort.SliceStable(c.Requests, func(i, j int) bool {
 		a, b := c.Requests[i], c.Requests[j]
-		if a.Method.SortRank() != b.Method.SortRank() {
-			return a.Method.SortRank() < b.Method.SortRank()
+		if a.SortRank() != b.SortRank() {
+			return a.SortRank() < b.SortRank()
 		}
 		return a.Name < b.Name
 	})

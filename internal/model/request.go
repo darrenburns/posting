@@ -131,6 +131,10 @@ type Request struct {
 	Auth        Auth
 	Options     Options
 	Scripts     Scripts
+	// Payload is the part of the request only its kind understands, such as
+	// a GraphQL document. Nil is a plain HTTP request. The kind is derived
+	// from Payload's type rather than stored beside it, so they can't disagree.
+	Payload Payload
 	// File is the collection-relative path of the saved request, or empty
 	// when the request has not been saved.
 	File string
@@ -152,7 +156,45 @@ func (r Request) Clone() Request {
 	r.Query = cloneKV(r.Query)
 	r.PathParams = cloneKV(r.PathParams)
 	r.Body.Form = cloneKV(r.Body.Form)
+	if r.Payload != nil {
+		r.Payload = r.Payload.clone()
+	}
 	return r
+}
+
+// Kind is the request's kind: HTTPKind when it has no payload.
+func (r Request) Kind() *Kind {
+	if r.Payload == nil {
+		return HTTPKind
+	}
+	return r.Payload.Kind()
+}
+
+// Badge is the short label lists show beside a request: the method for
+// HTTP ("GET", "POS"), the kind's badge otherwise ("GQL").
+func (r Request) Badge() string {
+	if r.Payload == nil {
+		return r.Method.Short()
+	}
+	return r.Kind().Badge
+}
+
+// SortRank orders requests in a collection: HTTP by method, then other
+// kinds in registry order.
+func (r Request) SortRank() int {
+	if r.Payload == nil {
+		return r.Method.SortRank()
+	}
+	return 100 + r.Kind().rank
+}
+
+// PayloadSize is the size in bytes of what the request sends beyond its
+// URL and headers: the raw body for HTTP, the payload otherwise.
+func (r Request) PayloadSize() int {
+	if r.Payload == nil {
+		return len(r.Body.Raw)
+	}
+	return r.Payload.size()
 }
 
 // DisplayName is the name shown in tabs and lists.
