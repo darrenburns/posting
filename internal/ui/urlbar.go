@@ -195,7 +195,7 @@ func (c statusChip) Build(ctx t.BuildContext) t.Widget {
 	if s.response.Get() == nil {
 		return t.EmptyWidget{}
 	}
-	status := s.status()
+	status := s.responseStatus
 	fg, bg := statusColors(theme, status.Class)
 	return t.Text{Content: " " + status.Code + " ", Style: t.Style{ForegroundColor: fg, BackgroundColor: bg, Bold: true}}
 }

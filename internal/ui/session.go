@@ -97,9 +97,12 @@ type Session struct {
 	err      t.AnySignal[error]
 	trace    t.AnySignal[[]model.TraceEvent]
 	response t.AnySignal[*model.Response]
-	// sent is the request the shown response answers, which decides how
-	// its status reads (see model.StatusOf).
-	sent model.Request
+	// sent is the request the shown response answers, and responseStatus
+	// how the response reads for it (see model.StatusOf). The status is read
+	// once, when the response is shown, since a GraphQL status parses the
+	// whole body.
+	sent           model.Request
+	responseStatus model.Status
 	// fromHistory is set when the response was loaded from history rather than sent.
 	fromHistory t.AnySignal[*model.HistoryEntry]
 	// responseBody holds the formatted response body for the read-only viewer.
@@ -457,7 +460,7 @@ func sameKVs(a, b []model.KeyValue) bool {
 
 // Send starts an exchange using sender. Any in-flight exchange is cancelled.
 // onDone runs on the UI goroutine when a response arrives.
-func (s *Session) Send(sender client.Sender, variables map[string]string, onDone func(model.Request, *model.Response)) {
+func (s *Session) Send(sender client.Sender, variables map[string]string, onDone func(model.Request, *model.Response, model.Status)) {
 	s.Cancel()
 	req := s.Snapshot()
 	ctx, cancel := context.WithCancel(context.Background())
@@ -501,7 +504,7 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, onDone
 				s.showResponse(resp, nil)
 				s.phase.Set(exchangeDone)
 				if onDone != nil {
-					onDone(req, resp)
+					onDone(req, resp, s.responseStatus)
 				}
 			}
 		})
@@ -523,7 +526,9 @@ func (s *Session) Cancel() {
 // showResponse displays resp. entry is non-nil when it came from history.
 func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) {
 	if entry != nil {
-		s.sent = entry.Request
+		s.sent, s.responseStatus = entry.Request, entry.Status
+	} else {
+		s.responseStatus = model.StatusOf(s.sent, resp)
 	}
 	s.response.Set(resp)
 	s.fromHistory.Set(entry)
@@ -553,12 +558,8 @@ func mergeTrace(events []model.TraceEvent, event model.TraceEvent) []model.Trace
 	return append(out, event)
 }
 
-// status is the shown response's status, read reactively.
-func (s *Session) status() model.Status {
-	return model.StatusOf(s.sent, s.response.Get())
-}
-
-// historyEntry builds a history record for a completed exchange.
-func historyEntry(id int64, req model.Request, resp *model.Response) model.HistoryEntry {
-	return model.HistoryEntry{ID: id, Request: req.Clone(), Response: resp, SentAt: time.Now()}
+// historyEntry builds a history record for a completed exchange whose
+// response reads as status.
+func historyEntry(id int64, req model.Request, resp *model.Response, status model.Status) model.HistoryEntry {
+	return model.HistoryEntry{ID: id, Request: req.Clone(), Response: resp, SentAt: time.Now(), Status: status}
 }

@@ -217,6 +217,9 @@ func TestStatusOf(t *testing.T) {
 			}
 		})
 	}
+	if got := StatusOf(gql, nil); got != (Status{}) {
+		t.Fatalf("StatusOf with no response = %+v", got)
+	}
 }
 
 func TestRequestJSONRoundTrip(t *testing.T) {

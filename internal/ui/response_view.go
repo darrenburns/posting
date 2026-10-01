@@ -36,7 +36,7 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 
 	title, subtitle := "", ""
 	if resp != nil {
-		status := s.status()
+		status := s.responseStatus
 		fg, bg := statusColors(theme, status.Class)
 		title = fmt.Sprintf(" [b %s on %s] %s %s [/]", fg.Hex(), bg.Hex(), status.Code, status.Text)
 		if p.app.settings.Response.ShowSizeAndTime {

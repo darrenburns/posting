@@ -191,7 +191,7 @@ func TestHistoryOpensInThePreview(tt *testing.T) {
 	app := testApp()
 	var entries []model.HistoryEntry
 	for i, name := range []string{"List users", "Get user"} {
-		entries = append(entries, model.HistoryEntry{ID: int64(i + 1), Request: sampleRequest(tt, name), Response: fixedResponse(), SentAt: time.Now()})
+		entries = append(entries, sentEntry(int64(i+1), sampleRequest(tt, name), fixedResponse(), time.Now()))
 	}
 	app.openHistory(entries[0])
 	app.openHistory(entries[1])
