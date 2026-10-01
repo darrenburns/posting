@@ -1,6 +1,7 @@
 package history
 
 import (
+	"encoding/json"
 	"os"
 	"reflect"
 	"strings"
@@ -42,6 +43,49 @@ func TestSaveAndLoad(t *testing.T) {
 	}
 	if other := ForCollection(dir, "/another/collection"); other.Path() == store.Path() {
 		t.Fatal("collections must not share history")
+	}
+}
+
+func TestSaveWritesTheFileAsBefore(t *testing.T) {
+	store := ForCollection(t.TempDir(), "/c")
+	entries := []model.HistoryEntry{{
+		ID: 1, Request: model.HTTPKind.Example(),
+		Response: &model.Response{StatusCode: 200, Reason: "OK", Body: []byte(`{"a":"<b>"}`)},
+		SentAt:   time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC),
+	}}
+	if err := store.Save(entries); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := os.ReadFile(store.Path())
+	want, _ := json.Marshal(struct {
+		Version int                  `json:"version"`
+		Entries []model.HistoryEntry `json:"entries"`
+	}{1, entries})
+	if string(got) != string(want) {
+		t.Fatalf("history file changed:\n got %s\nwant %s", got, want)
+	}
+}
+
+func TestEntriesThisBuildCantReadSurviveASave(t *testing.T) {
+	store := ForCollection(t.TempDir(), "/c")
+	newer := `{"ID":2,"Request":{"Name":"Stream","Kind":"grpc","Payload":{"Service":"chat"}},"Response":null,"SentAt":"2026-09-29T01:02:03Z"}`
+	http, _ := json.Marshal(model.HistoryEntry{ID: 1, Request: model.NewRequest(), SentAt: time.Date(2026, 9, 29, 1, 0, 0, 0, time.UTC)})
+	if err := os.WriteFile(store.Path(), []byte(`{"version":1,"entries":[`+newer+`,`+string(http)+`]}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := store.Load()
+	if err != nil || len(loaded) != 1 || loaded[0].ID != 1 {
+		t.Fatalf("loaded %+v, %v; want the HTTP entry", loaded, err)
+	}
+	if err := store.Save(append([]model.HistoryEntry{{ID: 3, Request: model.NewRequest()}}, loaded...)); err != nil {
+		t.Fatal(err)
+	}
+	data, _ := os.ReadFile(store.Path())
+	if !strings.Contains(string(data), newer) {
+		t.Fatalf("saving dropped or changed the grpc entry:\n%s", data)
+	}
+	if again, err := store.Load(); err != nil || len(again) != 2 || again[0].ID != 3 || again[1].ID != 1 {
+		t.Fatalf("reloaded %+v, %v", again, err)
 	}
 }
 
