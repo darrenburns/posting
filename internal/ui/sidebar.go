@@ -303,7 +303,7 @@ func (h historyView) Keybinds() []t.Keybind {
 		{Key: "backspace", Name: name, Action: func() { a.deleteHistory(a.historyTargets()) }},
 	}
 	if len(a.historyList.Selection.Peek()) > 0 {
-		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: a.historyList.ClearSelection})
+		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: a.clearHistorySelection})
 	}
 	return binds
 }
@@ -408,8 +408,15 @@ func (a *App) deleteHistory(entries []model.HistoryEntry) {
 	for _, e := range entries {
 		ids[e.ID] = true
 	}
-	a.historyList.ClearSelection()
+	a.clearHistorySelection()
 	a.setHistory(slices.DeleteFunc(slices.Clone(a.history.Peek()), func(e model.HistoryEntry) bool { return ids[e.ID] }))
+}
+
+// clearHistorySelection drops the selection and the entry shift last
+// started it from, so the next shift+move starts a new range at the cursor.
+func (a *App) clearHistorySelection() {
+	a.historyList.ClearSelection()
+	a.historyList.ClearAnchor()
 }
 
 func (a *App) clearHistory() {

@@ -262,4 +262,12 @@ func TestEscapeClearsTheHistorySelection(tt *testing.T) {
 	if got := app.historyList.SelectedItems(); len(got) != 0 {
 		tt.Fatalf("escape left %d entries selected", len(got))
 	}
+	s.pressKey(tt, "shift+down")
+	var ids []int64
+	for _, e := range app.historyList.SelectedItems() {
+		ids = append(ids, e.ID)
+	}
+	if !slices.Equal(ids, []int64{2, 3}) {
+		tt.Fatalf("shift+down after escape selected %v, want a new range from the cursor, [2 3]", ids)
+	}
 }
