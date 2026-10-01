@@ -305,8 +305,12 @@ func TestReviewerMouseBeforeRebuild(tt *testing.T) {
 	s := sidebarScreen(tt, app, treeID)
 	selectFrom(tt, s, "GET Get user", 2)
 	// Escape action changes app state, but Terma does not synchronously render on key dispatch.
-	app.clearTreeSelection()
-	tt.Logf("screen=\n%s", s.renderer.ScreenText())
+	for _, bind := range s.focus.ActiveKeybinds() {
+		if bind.Key == "escape" {
+			bind.Action()
+			break
+		}
+	}
 	lines := strings.Split(s.renderer.ScreenText(), "\n")
 	for y, line := range lines {
 		x := strings.Index(line, "Delete user")
@@ -323,13 +327,43 @@ func TestReviewerMouseBeforeRebuild(tt *testing.T) {
 		}
 		down.OnMouseDown(t.MouseEvent{X: x, Y: y, LocalX: x - owner.Bounds.X, LocalY: y - owner.Bounds.Y, Button: uv.MouseLeft, Mod: uv.ModShift, ClickCount: 1})
 		got := selectedRows(app)
-		tt.Logf("after shift click before render: selected=%q cursor=%v", got, app.tree.CursorPath.Peek())
 		if len(got) != 3 || got[0] != "POST Create user" || got[2] != "DELETE Delete user" {
 			tt.Errorf("wrong range from Escape cursor: %q", got)
 		}
 		s.render()
-		tt.Logf("after render selected=%q", selectedRows(app))
+		if after := selectedRows(app); !slices.Equal(after, got) {
+			tt.Fatalf("render changed selection from %q to %q", got, after)
+		}
 		return
 	}
 	tt.Fatal("row absent")
+}
+
+func TestTreeSelectionResetPreservesCursorAndScroll(tt *testing.T) {
+	app := testApp()
+	screen := sidebarScreen(tt, app, treeID)
+	selectFrom(tt, screen, "GET Get user", 2)
+	entry := screen.renderer.WidgetByID(treeID)
+	tree := entry.EventWidget.(collectionTree).Tree
+	notifications := 0
+	tree.OnCursorChange = func(treeItem) { notifications++ }
+	tree.ScrollState.Offset.Set(3)
+	cursor := slices.Clone(tree.State.CursorPath.Peek())
+	state := tree.State
+	clearTreeSelection(tree)
+	if tree.State != state || app.tree != state {
+		tt.Fatal("reset replaced state")
+	}
+	if !slices.Equal(state.CursorPath.Peek(), cursor) {
+		tt.Fatal("reset moved cursor")
+	}
+	if notifications != 0 {
+		tt.Fatalf("reset notified cursor change %d times", notifications)
+	}
+	if got := tree.ScrollState.Offset.Peek(); got != 3 {
+		tt.Fatalf("reset moved scroll offset to %d", got)
+	}
+	if len(state.Selection.Peek()) != 0 {
+		tt.Fatal("reset retained selected rows")
+	}
 }
