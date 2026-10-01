@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/darrenburns/posting/internal/importing"
@@ -89,25 +90,7 @@ func Parse(data []byte) (importing.Result, error) {
 			p.defaults[v.name()] = scalar(v.Value)
 		}
 	}
-	// Environment files contain literal values. Flatten references between
-	// exported defaults now because Posting deliberately substitutes only once.
-	added := map[string]bool{}
-	for _, v := range in.Variable {
-		name := v.name()
-		if v.Disabled || added[name] {
-			continue
-		}
-		added[name] = true
-		if !identifier.MatchString(name) {
-			p.warn("collection", "variable %q cannot be represented as a Posting variable; references remain literal", name)
-			continue
-		}
-		value := p.expand(p.defaults[name], p.defaults, map[string]bool{name: true}, "collection")
-		if reference.MatchString(value) {
-			p.warn("collection", "variable %q contains unresolved Postman references; provide a concrete value in the imported environment", name)
-		}
-		p.result.Variables = append(p.result.Variables, model.Variable{Name: name, Value: strings.ReplaceAll(value, "$", "$$"), Source: "postman"})
-	}
+	p.result.Variables = p.variables(in.Variable, "collection")
 	if len(in.Event) > 0 {
 		p.warn("collection", "scripts and tests are not imported or executed")
 	}
@@ -122,6 +105,64 @@ func Parse(data []byte) (importing.Result, error) {
 		return importing.Result{}, fmt.Errorf("postman: collection contains no requests")
 	}
 	return p.result, nil
+}
+
+// ParseEnvironment converts a Postman environment export. Its values keep
+// their references, which Posting resolves when the environment is loaded.
+func ParseEnvironment(data []byte) (importing.Environment, []string, error) {
+	var in struct {
+		Name   string
+		Values *[]struct {
+			Key     string
+			Value   json.RawMessage
+			Enabled *bool
+		}
+		Scope string `json:"_postman_variable_scope"`
+	}
+	if err := json.Unmarshal(data, &in); err != nil {
+		return importing.Environment{}, nil, fmt.Errorf("postman: invalid environment JSON: %w", err)
+	}
+	if in.Scope == "globals" {
+		return importing.Environment{}, nil, fmt.Errorf("postman: globals exports are not supported; import an environment or collection instead")
+	}
+	if in.Values == nil {
+		return importing.Environment{}, nil, fmt.Errorf("postman: expected an environment with a values array")
+	}
+	vars := make([]variable, 0, len(*in.Values))
+	for _, v := range *in.Values {
+		vars = append(vars, variable{Key: v.Key, Value: v.Value, Disabled: v.Enabled != nil && !*v.Enabled})
+	}
+	p := &parser{seen: map[string]bool{}}
+	where := "environment"
+	if in.Name != "" {
+		where += " " + strconv.Quote(in.Name)
+	}
+	return importing.Environment{Name: in.Name, Variables: p.variables(vars, where)}, p.result.Warnings, nil
+}
+
+// variables converts enabled variables to Posting variables. A repeated name
+// takes its last enabled value.
+func (p *parser) variables(in []variable, where string) []model.Variable {
+	var out []model.Variable
+	index := map[string]int{}
+	for _, v := range in {
+		name := v.name()
+		if v.Disabled {
+			continue
+		}
+		if !identifier.MatchString(name) {
+			p.warn(where, "variable %q cannot be represented as a Posting variable; references remain literal", name)
+			continue
+		}
+		value := p.template(scalar(v.Value), nil, where)
+		if i, ok := index[name]; ok {
+			out[i].Value = value
+			continue
+		}
+		index[name] = len(out)
+		out = append(out, model.Variable{Name: name, Value: value, Source: "postman"})
+	}
+	return out
 }
 
 var identifier = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
