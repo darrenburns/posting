@@ -11,7 +11,6 @@ import (
 	"github.com/darrenburns/posting/internal/model"
 )
 
-// sidebarScreen is the sample app on screen with focus in the widget id.
 func sidebarScreen(tt *testing.T, app *App, id string) *screen {
 	tt.Helper()
 	s := newScreen(app, snapW, snapH)

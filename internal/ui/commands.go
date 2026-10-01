@@ -90,7 +90,6 @@ func (a *App) duplicateRequests(reqs []model.Request) {
 	for _, req := range reqs {
 		dup, ok := a.saveCopy(req)
 		if !ok {
-			// storeRequest has said why; the copies made so far stay.
 			break
 		}
 		copies[treeItem{Request: &dup}.key()] = struct{}{}
@@ -102,7 +101,8 @@ func (a *App) duplicateRequests(reqs []model.Request) {
 }
 
 // saveCopy saves a copy of req beside it, under a file name no other
-// request has, and reports whether the save worked.
+// request has. Like storeRequest, it reports whether the save worked; a
+// failure has already been shown to the user.
 func (a *App) saveCopy(req model.Request) (model.Request, bool) {
 	dup := req.Clone()
 	dup.Name = strings.TrimSpace(dup.Name + " (copy)")
