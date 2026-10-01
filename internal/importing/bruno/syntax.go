@@ -33,6 +33,13 @@ func parseDocument(data []byte) (document, error) {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
+		if len(d) >= 10000 {
+			return nil, fmt.Errorf("Bruno file exceeds 10000 blocks")
+		}
+		if value, ok := strings.CutPrefix(line, "color:"); ok {
+			d = append(d, block{"color", strings.TrimSpace(value)})
+			continue
+		}
 		// Most blocks are dictionaries or text in braces. A list, such as an
 		// environment's vars:secret, is in square brackets.
 		p, closing := strings.IndexByte(line, '{'), "}"
@@ -48,12 +55,33 @@ func parseDocument(data []byte) (document, error) {
 				return nil, fmt.Errorf("line %d: invalid block name", i+1)
 			}
 		}
+		if closing == "]" {
+			var content strings.Builder
+			part := line[p+1:]
+			for {
+				if end := strings.IndexByte(part, ']'); end >= 0 {
+					if strings.TrimSpace(part[end+1:]) != "" {
+						return nil, fmt.Errorf("line %d: unexpected text after block", i+1)
+					}
+					content.WriteString(part[:end])
+					break
+				}
+				content.WriteString(part)
+				content.WriteByte('\n')
+				i++
+				if i == len(lines) {
+					return nil, fmt.Errorf("unclosed %s block", name)
+				}
+				part = lines[i]
+			}
+			d = append(d, block{name, content.String()})
+			continue
+		}
 		start := i + 1
 		i++
 		// Triple-quoted dictionary values may themselves contain column-zero braces.
-		list := closing == "]"
 		textBlock := isText(name)
-		triple := !textBlock && !list && opensMultiline(line[p+1:])
+		triple := !textBlock && opensMultiline(line[p+1:])
 		for ; i < len(lines); i++ {
 			if !triple && strings.HasPrefix(lines[i], closing) {
 				if strings.TrimSpace(lines[i]) != closing {
@@ -61,7 +89,7 @@ func parseDocument(data []byte) (document, error) {
 				}
 				break
 			}
-			if !textBlock && !list {
+			if !textBlock {
 				if triple {
 					triple = !strings.Contains(lines[i], "'''")
 				} else {
@@ -79,9 +107,6 @@ func parseDocument(data []byte) (document, error) {
 			} else {
 				content = inline
 			}
-		}
-		if len(d) >= 10000 {
-			return nil, fmt.Errorf("Bruno file exceeds 10000 blocks")
 		}
 		d = append(d, block{name, content})
 	}
