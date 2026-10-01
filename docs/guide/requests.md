@@ -220,11 +220,15 @@ Press ++d++ with the cursor on a request in the collection browser, or choose **
 in the command palette, to make a copy. The copy is saved beside the original, with `(copy)` added
 to its name, and opened in a new tab.
 
+To duplicate [several requests](./collections.md#selecting-several-requests) at once, select them
+first. Their copies aren't opened. They become the selection instead.
+
 ### Deleting a request
 
 Press ++backspace++ with the cursor on a request in the collection browser, or choose **Delete request**
 in the command palette to delete the request in the current tab. Posting asks you to confirm,
-then deletes the file.
+then deletes the file. With [several requests](./collections.md#selecting-several-requests) selected,
+Posting asks once and deletes them all.
 
 If the request is open in a tab, the tab stays open with its contents intact, as an unsaved request,
 so you can save it again if you change your mind.

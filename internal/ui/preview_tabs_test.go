@@ -158,7 +158,7 @@ func TestDeletingThePreviewsRequestKeepsTheTab(tt *testing.T) {
 	app := testApp()
 	req := sampleRequest(tt, "List users")
 	app.openRequest(req)
-	app.deleteRequest(req.File)
+	app.deleteRequests([]string{req.File})
 	// The tab now holds the only copy of the request.
 	app.openRequest(sampleRequest(tt, "Get user"))
 	assertTabs(tt, app, "List users, /Get user/")
@@ -178,7 +178,7 @@ func TestClosingThePreview(tt *testing.T) {
 func TestNewAndDuplicatedRequestsArePermanent(tt *testing.T) {
 	app := testApp()
 	app.openRequest(sampleRequest(tt, "List users"))
-	app.duplicateRequest(sampleRequest(tt, "List users"))
+	app.duplicateRequests([]model.Request{sampleRequest(tt, "List users")})
 	app.newTab()
 	for _, s := range app.sessions.Peek()[1:] {
 		if s.preview.Peek() {

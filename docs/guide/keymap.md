@@ -174,15 +174,17 @@ In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++esc
 
 | Key | Action |
 |-----|--------|
-| ++enter++ | Open a request, or expand/collapse a folder |
+| ++enter++ | Open a request, or expand/collapse a folder. With a selection, open every selected request |
 | ++up++ / ++k++, ++down++ / ++j++ | Move the cursor |
+| ++shift+up++ / ++shift+k++, ++shift+down++ / ++shift+j++ | Extend the selection up / down |
 | ++left++ / ++h++, ++right++ / ++l++ | Collapse / expand, or move to the parent / child |
 | ++home++ / ++g++, ++end++ / ++shift+g++ | First / last row |
+| ++shift+home++ / ++shift+end++ | Extend the selection to the first / last row |
 | ++space++ | Expand or collapse a folder |
 | `/` | Search the collection |
-| ++escape++ | Clear the search |
-| ++d++ | Duplicate the request |
-| ++backspace++ / ++delete++ | Delete the request |
+| ++escape++ | Clear the selection, then the search |
+| ++d++ | Duplicate the request, or every selected request |
+| ++backspace++ / ++delete++ | Delete the request, or every selected request |
 
 ### History
 
@@ -190,9 +192,12 @@ In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++esc
 |-----|--------|
 | ++enter++ | Open the entry |
 | ++up++ / ++k++, ++down++ / ++j++ | Move the cursor |
+| ++shift+up++ / ++shift+k++, ++shift+down++ / ++shift+j++ | Extend the selection up / down |
 | ++home++ / ++g++, ++end++ / ++shift+g++ | First / last entry |
+| ++shift+home++ / ++shift+end++ | Extend the selection to the first / last entry |
 | ++page-up++ / ++ctrl+u++, ++page-down++ / ++ctrl+d++ | Page up / down |
-| ++backspace++ | Delete the entry |
+| ++escape++ | Clear the selection |
+| ++backspace++ | Delete the entry, or every selected entry |
 
 ### Command palette and menus
 

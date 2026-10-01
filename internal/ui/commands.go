@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -67,12 +68,42 @@ func (a *App) openLink(name, url string) {
 	}()
 }
 
-// duplicateRequest saves a copy of req beside it and opens the copy.
-func (a *App) duplicateRequest(req model.Request) {
-	if req.File == "" {
-		a.notify("Save the request before duplicating it", toastWarning)
+// duplicateRequests saves a copy of each of reqs beside it. A single copy
+// opens in a tab. Several become the tree's selection instead of opening a
+// tab each, so the next operation can act on them together.
+func (a *App) duplicateRequests(reqs []model.Request) {
+	switch len(reqs) {
+	case 0:
+		return
+	case 1:
+		if reqs[0].File == "" {
+			a.notify("Save the request before duplicating it", toastWarning)
+			return
+		}
+		if dup, ok := a.saveCopy(reqs[0]); ok {
+			a.openSession(dup)
+			a.notify("Duplicated as "+dup.File, toastSuccess)
+		}
 		return
 	}
+	copies := map[string]struct{}{}
+	for _, req := range reqs {
+		dup, ok := a.saveCopy(req)
+		if !ok {
+			break
+		}
+		copies[treeItem{Request: &dup}.key()] = struct{}{}
+	}
+	a.tree.Selection.Set(copies)
+	if len(copies) == len(reqs) {
+		a.notify(fmt.Sprintf("Duplicated %d requests", len(reqs)), toastSuccess)
+	}
+}
+
+// saveCopy saves a copy of req beside it, under a file name no other
+// request has. Like storeRequest, it reports whether the save worked; a
+// failure has already been shown to the user.
+func (a *App) saveCopy(req model.Request) (model.Request, bool) {
 	dup := req.Clone()
 	dup.Name = strings.TrimSpace(dup.Name + " (copy)")
 	base := strings.TrimSuffix(dup.File, collection.FileSuffix)
@@ -81,26 +112,51 @@ func (a *App) duplicateRequest(req model.Request) {
 		candidate = base + "-copy-" + strconv.Itoa(n) + collection.FileSuffix
 	}
 	dup.File = candidate
-	if !a.storeRequest(dup) {
-		return
-	}
-	a.openSession(dup)
-	a.notify("Duplicated as "+dup.File, toastSuccess)
+	return dup, a.storeRequest(dup)
 }
 
-// confirmDelete asks before deleting req's file.
-func (a *App) confirmDelete(req model.Request) {
-	if req.File == "" {
-		a.notify("This request hasn't been saved", toastWarning)
+// deleteListLimit is how many names the confirmation for deleting several
+// requests lists before it counts the rest.
+const deleteListLimit = 5
+
+// confirmDeleteRequests asks before deleting the files of reqs: one request
+// by name and file, several by count with their names listed.
+func (a *App) confirmDeleteRequests(reqs []model.Request) {
+	switch len(reqs) {
+	case 0:
+		return
+	case 1:
+		req := reqs[0]
+		if req.File == "" {
+			a.notify("This request hasn't been saved", toastWarning)
+			return
+		}
+		a.askConfirm(confirmation{
+			title:   "Delete request?",
+			message: "[b]" + escapeMarkup(req.DisplayName()) + "[/] will be removed from the collection.\n[$TextMuted]" + escapeMarkup(req.File) + "[/]",
+			confirm: "Delete",
+			danger:  true,
+			onYes:   func() { a.deleteRequests([]string{req.File}) },
+		})
 		return
 	}
-	file := req.File
+	files := make([]string, len(reqs))
+	lines := []string{"These requests will be removed from the collection:"}
+	for i, req := range reqs {
+		files[i] = req.File
+		if i < deleteListLimit {
+			lines = append(lines, "  [b]"+escapeMarkup(req.DisplayName())+"[/]")
+		}
+	}
+	if more := len(reqs) - deleteListLimit; more > 0 {
+		lines = append(lines, fmt.Sprintf("  [$TextMuted]and %d more[/]", more))
+	}
 	a.askConfirm(confirmation{
-		title:   "Delete request?",
-		message: "[b]" + escapeMarkup(req.DisplayName()) + "[/] will be removed from the collection.\n[$TextMuted]" + escapeMarkup(file) + "[/]",
+		title:   fmt.Sprintf("Delete %d requests?", len(reqs)),
+		message: strings.Join(lines, "\n"),
 		confirm: "Delete",
 		danger:  true,
-		onYes:   func() { a.deleteRequest(file) },
+		onYes:   func() { a.deleteRequests(files) },
 	})
 }
 
