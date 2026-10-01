@@ -4,7 +4,10 @@
 // package knows about Terma, HTTP transports or the filesystem.
 package model
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // Method is an HTTP request method.
 type Method string
@@ -185,7 +188,7 @@ func (r Request) SortRank() int {
 	if r.Payload == nil {
 		return r.Method.SortRank()
 	}
-	return 100 + r.Kind().rank
+	return 100 + slices.Index(Kinds, r.Kind())
 }
 
 // PayloadSize is the size in bytes of what the request sends beyond its
