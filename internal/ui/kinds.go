@@ -2,6 +2,7 @@ package ui
 
 import (
 	"math"
+	"slices"
 
 	t "github.com/darrenburns/terma"
 
@@ -56,11 +57,13 @@ type payloadEditor interface {
 
 // requestTab is a tab of the request panel. badge and marked are read only
 // when the tab strip is drawn, so listing the tabs (for the jump map)
-// doesn't subscribe to what's in them.
+// doesn't subscribe to what's in them. jump is the tab's fixed jump mode
+// label: a shared tab has the same one in every kind, and a kind's own tabs
+// have letters nothing else uses.
 type requestTab struct {
-	key, label string
-	badge      func() string
-	marked     func() bool
+	key, label, jump string
+	badge            func() string
+	marked           func() bool
 }
 
 func (r requestTab) item() tabItem {
@@ -81,22 +84,22 @@ var sharedTabs = []struct {
 	tab   func(s *Session) requestTab
 }{
 	{model.FieldHeaders, func(s *Session) requestTab {
-		return requestTab{key: "headers", label: "Headers", badge: func() string { return countBadge(s.headers.Count()) }}
+		return requestTab{key: "headers", jump: "q", label: "Headers", badge: func() string { return countBadge(s.headers.Count()) }}
 	}},
 	{model.FieldBody, func(s *Session) requestTab {
-		return requestTab{key: "body", label: "Body", marked: func() bool { return s.bodyType.Get() != model.BodyNone }}
+		return requestTab{key: "body", jump: "w", label: "Body", marked: func() bool { return s.bodyType.Get() != model.BodyNone }}
 	}},
 	{model.FieldPathParams, func(s *Session) requestTab {
-		return requestTab{key: "path", label: "Path", badge: func() string { return countBadge(s.pathParams.Count()) }}
+		return requestTab{key: "path", jump: "e", label: "Path", badge: func() string { return countBadge(s.pathParams.Count()) }}
 	}},
 	{model.FieldQuery, func(s *Session) requestTab {
-		return requestTab{key: "query", label: "Query", badge: func() string { return countBadge(s.query.Count()) }}
+		return requestTab{key: "query", jump: "r", label: "Query", badge: func() string { return countBadge(s.query.Count()) }}
 	}},
 	{model.FieldAuth, func(s *Session) requestTab {
-		return requestTab{key: "auth", label: "Auth", marked: func() bool { return s.authType.Get() != model.AuthNone }}
+		return requestTab{key: "auth", jump: "t", label: "Auth", marked: func() bool { return s.authType.Get() != model.AuthNone }}
 	}},
-	{0, func(*Session) requestTab { return requestTab{key: "info", label: "Info"} }},
-	{0, func(*Session) requestTab { return requestTab{key: "options", label: "Options"} }},
+	{0, func(*Session) requestTab { return requestTab{key: "info", jump: "y", label: "Info"} }},
+	{0, func(*Session) requestTab { return requestTab{key: "options", jump: "u", label: "Options"} }},
 }
 
 // requestTabList is the request panel's tabs for the session's kind: the
@@ -119,6 +122,19 @@ func (s *Session) requestTabList() []requestTab {
 		tabs = append(tabs, tab)
 	}
 	return tabs
+}
+
+// selectRequestTab shows the request tab key, or the kind's first tab when
+// the kind has no such tab, and returns the tab shown. Everything outside the
+// tab strip selects request tabs through it, so the panel never shows a tab
+// the kind doesn't have.
+func (s *Session) selectRequestTab(key string) string {
+	tabs := s.requestTabList()
+	if !slices.ContainsFunc(tabs, func(tab requestTab) bool { return tab.key == key }) {
+		key = tabs[0].key
+	}
+	s.requestTabs().selectKey(key)
+	return key
 }
 
 // requestKind is the kind of request the session is editing, read reactively.

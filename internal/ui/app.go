@@ -456,8 +456,7 @@ func (a *App) focusOpenedRequest() {
 		t.RequestFocus(methodSelectorID)
 		return
 	}
-	s.requestTab.Set(target)
-	t.RequestFocus(s.contentFocusID(target))
+	t.RequestFocus(s.contentFocusID(s.selectRequestTab(target)))
 }
 
 func (s *Session) isPristine() bool {
@@ -718,7 +717,7 @@ func (a *App) toggleSidebar() {
 
 func (a *App) focusRequestTab(key string) {
 	if s := a.current(); s != nil {
-		s.requestTabs().selectKey(key)
+		s.selectRequestTab(key)
 		t.RequestFocus(requestTabsID)
 	}
 }
@@ -803,16 +802,15 @@ func (a *App) jumpTargets() []t.JumpTarget {
 		}})
 	}
 	if s := a.current(); s != nil {
-		keys := "qwertyu"
+		var keys string
 		var tabs []string
 		for _, tab := range s.requestTabList() {
-			if len(tabs) < len(keys) {
-				tabs = append(tabs, tab.key)
-			}
+			keys += tab.jump
+			tabs = append(tabs, tab.key)
 		}
 		targets = append(targets, tabJumps(requestTabsID, keys, tabs, func(key string) {
 			if s := a.current(); s != nil {
-				s.requestTabs().selectKey(key)
+				s.selectRequestTab(key)
 			}
 		})...)
 	}

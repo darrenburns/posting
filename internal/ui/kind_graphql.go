@@ -59,8 +59,8 @@ func (e *graphQLEditor) payload() model.Payload {
 
 func (e *graphQLEditor) tabs() []requestTab {
 	return []requestTab{
-		{key: "gql-query", label: "Query", marked: func() bool { return hasText(e.query) }},
-		{key: "gql-variables", label: "Variables", marked: func() bool { return hasText(e.variables) }},
+		{key: "gql-query", label: "Query", jump: "i", marked: func() bool { return hasText(e.query) }},
+		{key: "gql-variables", label: "Variables", jump: "o", marked: func() bool { return hasText(e.variables) }},
 	}
 }
 

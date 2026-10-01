@@ -45,7 +45,7 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 	variables := variableHighlighter(theme, resolve)
 	choices := p.app.variableChoices()
 	gap := p.app.gap()
-	views := map[string]t.Widget{
+	shared := map[string]t.Widget{
 		"headers": kvEditorView{
 			Editor:           s.headers,
 			KeyPlaceholder:   "Add a header…",
@@ -75,9 +75,12 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 		"info":    infoEditor{session: s, gap: gap},
 		"options": optionsEditor{session: s, variables: variables, choices: choices, gap: gap},
 	}
-	if e := s.payloads[s.kind.Get()]; e != nil {
-		for _, tab := range e.tabs() {
-			views[tab.key] = e.view(tab.key, p.app)
+	views := map[string]t.Widget{}
+	for _, tab := range s.requestTabList() {
+		if view, ok := shared[tab.key]; ok {
+			views[tab.key] = view
+		} else {
+			views[tab.key] = s.payloads[s.kind.Get()].view(tab.key, p.app)
 		}
 	}
 	return section{
