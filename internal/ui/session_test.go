@@ -110,7 +110,7 @@ func TestSessionSendLifecycle(t *testing.T) {
 	}
 
 	var done *model.Response
-	s.Send(client.Fake{}, nil, func(_ model.Request, resp *model.Response) { done = resp })
+	s.Send(client.Fake{}, nil, func(_ model.Request, resp *model.Response, _ model.Status) { done = resp })
 	waitForPhase(exchangeDone)
 	if s.response.Peek() == nil || done == nil || s.response.Peek() != done {
 		t.Fatal("completed exchange should publish the response")

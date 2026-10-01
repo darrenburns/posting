@@ -45,6 +45,10 @@ type HistoryEntry struct {
 	Request  Request
 	Response *Response
 	SentAt   time.Time
+	// Status is StatusOf(Request, Response), read once when the entry is
+	// made or loaded rather than each time it's drawn, since a GraphQL
+	// status parses the whole body. It isn't saved.
+	Status Status `json:"-"`
 }
 
 // Variable is a named value available for ${NAME} substitution.

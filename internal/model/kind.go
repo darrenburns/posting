@@ -181,8 +181,12 @@ type Status struct {
 }
 
 // StatusOf reads resp the way req's kind understands it. Displays of an
-// exchange's outcome read this rather than resp.StatusCode.
+// exchange's outcome read this rather than resp.StatusCode. A nil resp has
+// no status.
 func StatusOf(req Request, resp *Response) Status {
+	if resp == nil {
+		return Status{}
+	}
 	if req.Payload == nil {
 		return httpStatus(resp)
 	}

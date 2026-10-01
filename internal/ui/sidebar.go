@@ -295,10 +295,8 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 	fg := theme.TextMuted
 	methodFg := requestColor(theme, entry.Request)
 	statusFg := theme.TextMuted
-	var status model.Status
 	if entry.Response != nil {
-		status = model.StatusOf(entry.Request, entry.Response)
-		statusFg, _ = statusColors(theme, status.Class)
+		statusFg, _ = statusColors(theme, entry.Status.Class)
 	}
 	switch {
 	case active && focused:
@@ -309,7 +307,7 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 	}
 	statusSpan := t.Span{}
 	if entry.Response != nil {
-		statusSpan = t.Span{Text: " " + status.Code, Style: t.SpanStyle{Foreground: statusFg, Background: bg, Bold: true}}
+		statusSpan = t.Span{Text: " " + entry.Status.Code, Style: t.SpanStyle{Foreground: statusFg, Background: bg, Bold: true}}
 	}
 	target := entry.Request.URL
 	if entry.Response != nil && entry.Response.URL != "" {

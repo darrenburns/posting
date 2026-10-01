@@ -246,7 +246,7 @@ func TestSnapshotGraphQLResponseWithErrors(tt *testing.T) {
 	resp.Method = model.MethodPost
 	resp.URL = "http://localhost:8000/graphql"
 	resp.Body = []byte(`{"data": {"user": null}, "errors": [{"message": "User 42 not found", "path": ["user"]}]}`)
-	entry := model.HistoryEntry{ID: 1, Request: graphQLRequest(tt), Response: resp, SentAt: time.Date(2026, 9, 28, 14, 30, 0, 0, time.UTC)}
+	entry := sentEntry(1, graphQLRequest(tt), resp, time.Date(2026, 9, 28, 14, 30, 0, 0, time.UTC))
 	app.history.Set([]model.HistoryEntry{entry})
 	app.historyList.SetItems([]model.HistoryEntry{entry})
 	app.openHistory(entry)
@@ -272,12 +272,25 @@ func TestSendingGraphQLReadsItsStatusAndKeepsItsKindInHistory(tt *testing.T) {
 	if s.err.Peek() != nil {
 		tt.Fatal(s.err.Peek())
 	}
-	if got := s.status(); got != (model.Status{Code: "200", Text: "2 errors", Class: model.StatusClassWarning}) {
+	if got := s.responseStatus; got != (model.Status{Code: "200", Text: "2 errors", Class: model.StatusClassWarning}) {
 		tt.Fatalf("status = %+v", got)
 	}
 	history := app.history.Peek()
 	if len(history) != 1 || history[0].Request.Payload != graphQLRequest(tt).Payload {
 		tt.Fatalf("history keeps the GraphQL request as edited, got %+v", history)
+	}
+	if history[0].Status != s.responseStatus {
+		tt.Fatalf("the history row reads %+v, the response %+v", history[0].Status, s.responseStatus)
+	}
+}
+
+func TestLoadedHistoryReadsGraphQLStatuses(tt *testing.T) {
+	resp := fixedResponse()
+	resp.Body = []byte(`{"errors": [{"message": "a"}]}`)
+	stored := &memoryHistory{entries: []model.HistoryEntry{{ID: 1, Request: graphQLRequest(tt), Response: resp, SentAt: time.Now()}}}
+	app := New(Config{Collection: model.SampleCollection(), History: stored, UserHost: "user@host"})
+	if got := app.history.Peek()[0].Status; got != (model.Status{Code: "200", Text: "1 error", Class: model.StatusClassWarning}) {
+		tt.Fatalf("loaded GraphQL entry reads %+v", got)
 	}
 }
 

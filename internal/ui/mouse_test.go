@@ -159,7 +159,7 @@ func TestClickHistoryOpensEntry(tt *testing.T) {
 	app.sidebarTab.Set("history")
 	resp := fixedResponse()
 	resp.StatusCode, resp.Reason = 404, "Not Found"
-	entries := []model.HistoryEntry{{ID: 1, Request: sampleRequest(tt, "Get user"), Response: resp, SentAt: time.Date(2026, 9, 28, 14, 30, 0, 0, time.UTC)}}
+	entries := []model.HistoryEntry{sentEntry(1, sampleRequest(tt, "Get user"), resp, time.Date(2026, 9, 28, 14, 30, 0, 0, time.UTC))}
 	app.history.Set(entries)
 	app.historyList.SetItems(entries)
 	clickText(tt, app, "404", 0)

@@ -41,7 +41,7 @@ func TestHistoryPersists(tt *testing.T) {
 	}
 
 	app.nextHistoryID++
-	entry := historyEntry(app.nextHistoryID, sampleRequest(tt, "Get user"), fixedResponse())
+	entry := sentEntry(app.nextHistoryID, sampleRequest(tt, "Get user"), fixedResponse(), time.Now())
 	if entry.ID != 8 {
 		tt.Fatalf("new entries should continue from the stored IDs, got %d", entry.ID)
 	}

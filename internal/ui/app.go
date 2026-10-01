@@ -222,8 +222,9 @@ func New(cfg Config) *App {
 		if entries, err := cfg.History.Load(); err != nil {
 			cfg.StartupMessages = append(cfg.StartupMessages, "Couldn't load history: "+err.Error())
 		} else {
-			for _, e := range entries {
+			for i, e := range entries {
 				a.nextHistoryID = max(a.nextHistoryID, e.ID)
+				entries[i].Status = model.StatusOf(e.Request, e.Response)
 			}
 			a.history.Set(entries)
 			a.historyList.SetItems(entries)
@@ -518,9 +519,9 @@ func (a *App) send() {
 	// Sending commits to the tab, so its response isn't lost to the next
 	// request opened.
 	s.preview.Set(false)
-	s.Send(a.sender, a.variableValuesPeek(), func(req model.Request, resp *model.Response) {
+	s.Send(a.sender, a.variableValuesPeek(), func(req model.Request, resp *model.Response, status model.Status) {
 		a.nextHistoryID++
-		entry := historyEntry(a.nextHistoryID, req, resp)
+		entry := historyEntry(a.nextHistoryID, req, resp, status)
 		a.setHistory(append([]model.HistoryEntry{entry}, a.history.Peek()...))
 		// A response in a background tab must not interrupt the request the
 		// user is working on. Switching back before it arrives still applies

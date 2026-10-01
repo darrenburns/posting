@@ -98,6 +98,13 @@ func TestSnapshotRequestTabs(tt *testing.T) {
 	t.AssertSnapshotNamed(tt, "RequestTabs_form", login, snapW, snapH, "Form-encoded body editor")
 }
 
+// sentEntry is the history entry for sending req at sentAt and getting resp.
+func sentEntry(id int64, req model.Request, resp *model.Response, sentAt time.Time) model.HistoryEntry {
+	entry := historyEntry(id, req, resp, model.StatusOf(req, resp))
+	entry.SentAt = sentAt
+	return entry
+}
+
 func TestSnapshotHorizontalWithHistory(tt *testing.T) {
 	app := testApp()
 	app.layout.Set(layoutHorizontal)
@@ -111,7 +118,7 @@ func TestSnapshotHorizontalWithHistory(tt *testing.T) {
 		if i == 2 {
 			resp.StatusCode, resp.Reason = 404, "Not Found"
 		}
-		history = append(history, model.HistoryEntry{ID: int64(i + 1), Request: req, Response: resp, SentAt: sent.Add(-time.Duration(i) * time.Minute)})
+		history = append(history, sentEntry(int64(i+1), req, resp, sent.Add(-time.Duration(i)*time.Minute)))
 	}
 	app.history.Set(history)
 	app.historyList.SetItems(history)
