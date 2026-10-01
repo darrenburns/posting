@@ -2712,7 +2712,7 @@
   <path d="M 213.8000 360.8000 L 213.8000 380.4000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="234.8" y="370.6" class="bold" fill="#F5F5F6">ctrl+shift+v</text>
   <text x="419.6" y="370.6" fill="#9A96BE">Variables</text>
-  <rect x="856.40" y="375.50" width="8.40" height="4.90" fill="#1E1E3F"/>
+  <rect x="856.40" y="370.60" width="8.40" height="9.80" fill="#1E1E3F"/>
   <path d="M 894.2000 360.8000 L 894.2000 380.4000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3962,15 +3962,13 @@
   <rect x="1083.2" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <path d="M 213.8000 537.2000 L 213.8000 556.8000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="234.8" y="547.0" class="bold" fill="#F5F5F6">a</text>
-  <text x="251.6" y="547.0" class="bold" fill="#F5F5F6">s</text>
-  <text x="268.4" y="547.0" class="bold" fill="#F5F5F6">d</text>
-  <text x="285.2" y="547.0" class="bold" fill="#F5F5F6">f</text>
-  <text x="419.6" y="547.0" fill="#9A96BE">Response</text>
-  <text x="495.2" y="547.0" fill="#9A96BE">tabs,</text>
-  <text x="545.6" y="547.0" fill="#9A96BE">Body</text>
-  <text x="587.6" y="547.0" fill="#9A96BE">to</text>
-  <text x="612.8" y="547.0" fill="#9A96BE">Trace</text>
+  <text x="234.8" y="547.0" class="bold" fill="#F5F5F6">i</text>
+  <text x="251.6" y="547.0" class="bold" fill="#F5F5F6">o</text>
+  <text x="419.6" y="547.0" fill="#9A96BE">GraphQL&#39;s</text>
+  <text x="503.6" y="547.0" fill="#9A96BE">Query</text>
+  <text x="554.0" y="547.0" fill="#9A96BE">and</text>
+  <text x="587.6" y="547.0" fill="#9A96BE">Variables</text>
+  <text x="671.6" y="547.0" fill="#9A96BE">tabs</text>
   <path d="M 894.2000 537.2000 L 894.2000 556.8000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4103,15 +4101,15 @@
   <rect x="1083.2" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <path d="M 213.8000 556.8000 L 213.8000 576.4000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="234.8" y="566.6" class="bold" fill="#F5F5F6">other</text>
-  <text x="285.2" y="566.6" class="bold" fill="#F5F5F6">labels</text>
-  <text x="419.6" y="566.6" fill="#9A96BE">Requests,</text>
-  <text x="503.6" y="566.6" fill="#9A96BE">history</text>
-  <text x="570.8" y="566.6" fill="#9A96BE">entries,</text>
-  <text x="646.4" y="566.6" fill="#9A96BE">open</text>
-  <text x="688.4" y="566.6" fill="#9A96BE">tabs</text>
-  <text x="730.4" y="566.6" fill="#9A96BE">and</text>
-  <text x="764.0" y="566.6" fill="#9A96BE">fields</text>
+  <text x="234.8" y="566.6" class="bold" fill="#F5F5F6">a</text>
+  <text x="251.6" y="566.6" class="bold" fill="#F5F5F6">s</text>
+  <text x="268.4" y="566.6" class="bold" fill="#F5F5F6">d</text>
+  <text x="285.2" y="566.6" class="bold" fill="#F5F5F6">f</text>
+  <text x="419.6" y="566.6" fill="#9A96BE">Response</text>
+  <text x="495.2" y="566.6" fill="#9A96BE">tabs,</text>
+  <text x="545.6" y="566.6" fill="#9A96BE">Body</text>
+  <text x="587.6" y="566.6" fill="#9A96BE">to</text>
+  <text x="612.8" y="566.6" fill="#9A96BE">Trace</text>
   <path d="M 894.2000 556.8000 L 894.2000 576.4000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4244,10 +4242,15 @@
   <rect x="1083.2" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <path d="M 213.8000 576.4000 L 213.8000 596.0000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="234.8" y="586.2" class="bold" fill="#F5F5F6">esc</text>
-  <text x="419.6" y="586.2" fill="#9A96BE">Leave</text>
-  <text x="470.0" y="586.2" fill="#9A96BE">jump</text>
-  <text x="512.0" y="586.2" fill="#9A96BE">mode</text>
+  <text x="234.8" y="586.2" class="bold" fill="#F5F5F6">other</text>
+  <text x="285.2" y="586.2" class="bold" fill="#F5F5F6">labels</text>
+  <text x="419.6" y="586.2" fill="#9A96BE">Requests,</text>
+  <text x="503.6" y="586.2" fill="#9A96BE">history</text>
+  <text x="570.8" y="586.2" fill="#9A96BE">entries,</text>
+  <text x="646.4" y="586.2" fill="#9A96BE">open</text>
+  <text x="688.4" y="586.2" fill="#9A96BE">tabs</text>
+  <text x="730.4" y="586.2" fill="#9A96BE">and</text>
+  <text x="764.0" y="586.2" fill="#9A96BE">fields</text>
   <path d="M 894.2000 576.4000 L 894.2000 596.0000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4380,6 +4383,10 @@
   <rect x="1083.2" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <path d="M 213.8000 596.0000 L 213.8000 615.6000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="234.8" y="605.8" class="bold" fill="#F5F5F6">esc</text>
+  <text x="419.6" y="605.8" fill="#9A96BE">Leave</text>
+  <text x="470.0" y="605.8" fill="#9A96BE">jump</text>
+  <text x="512.0" y="605.8" fill="#9A96BE">mode</text>
   <path d="M 894.2000 596.0000 L 894.2000 615.6000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4512,8 +4519,6 @@
   <rect x="1083.2" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <path d="M 213.8000 615.6000 L 213.8000 635.2000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="234.8" y="625.4" class="bold" fill="#FAAFD5">Method</text>
-  <text x="293.6" y="625.4" class="bold" fill="#FAAFD5">selector</text>
   <path d="M 894.2000 615.6000 L 894.2000 635.2000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4646,20 +4651,8 @@
   <rect x="1083.2" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <path d="M 213.8000 635.2000 L 213.8000 654.8000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="234.8" y="645.0" class="bold" fill="#F5F5F6">g</text>
-  <text x="251.6" y="645.0" class="bold" fill="#F5F5F6">p</text>
-  <text x="268.4" y="645.0" class="bold" fill="#F5F5F6">u</text>
-  <text x="285.2" y="645.0" class="bold" fill="#F5F5F6">a</text>
-  <text x="302.0" y="645.0" class="bold" fill="#F5F5F6">d</text>
-  <text x="318.8" y="645.0" class="bold" fill="#F5F5F6">h</text>
-  <text x="335.6" y="645.0" class="bold" fill="#F5F5F6">o</text>
-  <text x="419.6" y="645.0" fill="#9A96BE">GET,</text>
-  <text x="461.6" y="645.0" fill="#9A96BE">POST,</text>
-  <text x="512.0" y="645.0" fill="#9A96BE">PUT,</text>
-  <text x="554.0" y="645.0" fill="#9A96BE">PATCH,</text>
-  <text x="612.8" y="645.0" fill="#9A96BE">DELETE,</text>
-  <text x="680.0" y="645.0" fill="#9A96BE">HEAD,</text>
-  <text x="730.4" y="645.0" fill="#9A96BE">OPTIONS</text>
+  <text x="234.8" y="645.0" class="bold" fill="#FAAFD5">Method</text>
+  <text x="293.6" y="645.0" class="bold" fill="#FAAFD5">selector</text>
   <path d="M 894.2000 635.2000 L 894.2000 654.8000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>

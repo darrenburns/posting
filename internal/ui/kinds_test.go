@@ -11,6 +11,7 @@ import (
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/client"
+	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/model"
 )
 
@@ -301,5 +302,49 @@ func TestMethodMenuEnterChoosesTheItemUnderTheCursor(tt *testing.T) {
 	}
 	if app.menuOpen.Peek() {
 		tt.Fatal("choosing GraphQL left the menu open")
+	}
+}
+
+func TestRequestTabsOutsideTheKindFallBackToItsFirstTab(tt *testing.T) {
+	app := settingsApp(tt, func(s *config.Settings) { s.Focus.OnRequestOpen = "body" })
+	app.openRequest(graphQLRequest(tt))
+	s := app.current()
+	if got := s.requestTab.Peek(); got != "gql-query" {
+		tt.Fatalf("focus.on_request_open: body shows %q on a GraphQL request, want its Query tab", got)
+	}
+	s.requestTab.Set("auth")
+	app.focusRequestTab("body")
+	if got := s.requestTab.Peek(); got != "gql-query" {
+		tt.Fatalf("focusing the body tab of a GraphQL request shows %q, want its Query tab", got)
+	}
+}
+
+func TestEveryRequestTabHasAFixedJumpLabel(tt *testing.T) {
+	shared := map[string]string{"headers": "q", "body": "w", "path": "e", "query": "r", "auth": "t", "info": "y", "options": "u"}
+	sharedLabels := map[string]bool{}
+	for _, label := range shared {
+		sharedLabels[label] = true
+	}
+	for _, kind := range model.Kinds {
+		app := testApp()
+		app.openRequest(kind.Example())
+		for _, tab := range app.current().requestTabList() {
+			want, isShared := shared[tab.key]
+			switch {
+			case tab.jump == "":
+				tt.Errorf("%s's %s tab has no jump label", kind.Label, tab.label)
+			case isShared && tab.jump != want:
+				tt.Errorf("%s's %s tab jumps on %q, want %q as in every kind", kind.Label, tab.label, tab.jump, want)
+			case !isShared && sharedLabels[tab.jump]:
+				tt.Errorf("%s's own %s tab takes a shared tab's label %q", kind.Label, tab.label, tab.jump)
+			}
+		}
+		seen := map[string]string{}
+		for _, target := range app.jumpTargets() {
+			if other, ok := seen[target.Key]; ok {
+				tt.Errorf("%s: jump label %q is both %s's and %s's", kind.Label, target.Key, other, target.ID)
+			}
+			seen[target.Key] = target.ID
+		}
 	}
 }
