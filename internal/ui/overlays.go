@@ -118,6 +118,11 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			}
 		})},
 		{Label: "Copy response body", Action: a.run(a.copyResponseBody)},
+		{Label: "Toggle response wrap", Description: "Wrap long lines in the response body", Action: a.run(func() {
+			if s := a.current(); s != nil {
+				s.responseBody.ToggleWrap()
+			}
+		})},
 		{Label: "Reload collection", Description: "Read the collection from disk again", Action: a.run(a.reloadCollection)},
 		{Divider: "Import and export"},
 		{Label: "Import curl command…", Description: "Paste a curl command to load it into this tab", Action: func() {
@@ -354,8 +359,16 @@ var helpSections = []helpSection{
 		{"backspace", "Delete request"},
 	}},
 	{"Response body", [][2]string{
-		{"w", "Toggle soft wrap"},
-		{"y", "Copy the body"},
+		{"↑ ↓ ← → / k j h l", "Move the cursor"},
+		{"w / b", "Next / previous word"},
+		{"0 ^ home / $ end", "Start / end of the line"},
+		{"g / G", "Top / bottom"},
+		{"%", "Matching bracket"},
+		{"shift+movement", "Select (also K J H L W B)"},
+		{"v", "Visual mode: moving selects"},
+		{"V / f6, f7", "Select the line, select all"},
+		{"y / c", "Copy the selection, or the whole body"},
+		{"esc", "Leave visual mode"},
 	}},
 }
 
