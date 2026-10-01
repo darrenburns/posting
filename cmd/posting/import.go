@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -21,21 +22,30 @@ import (
 	"github.com/darrenburns/posting/internal/paths"
 )
 
-const importUsage = `Usage: posting import [options] SOURCE
+const importUsage = `Usage: posting import [options] SOURCE [ENVIRONMENT...]
 
 Import an OpenAPI 3.x specification, Postman v2 collection, Bruno .bru request,
-or Bruno collection directory. The format is detected unless --type is given.
+or Bruno collection directory, with any number of Postman environment exports.
+The collection format is detected unless --type is given.
+
+Collection variables are written to posting.env, the base environment. Each
+environment is written to its own <name>.env, layered on the base. To add
+environments to an existing collection, give only environment files and
+--output.
 
 Options:
-  -t, --type FORMAT    openapi, postman, or bruno
+  -t, --type FORMAT    Collection format: openapi, postman, or bruno
   -o, --output DIR     Destination (default: a named folder in the default collection)
   -h, --help           Show this help
 
-Options may appear before or after SOURCE. Existing files are never overwritten.
-Unsupported source features are reported as warnings.
+Options may appear before or after the files. Existing files are never
+overwritten. Unsupported source features are reported as warnings.
 `
 
-type importOptions struct{ source, format, output string }
+type importOptions struct {
+	sources        []string
+	format, output string
+}
 
 func parseImportOptions(args []string, stderr io.Writer) (importOptions, error) {
 	var opts importOptions
@@ -70,10 +80,10 @@ func parseImportOptions(args []string, stderr io.Writer) (importOptions, error) 
 	if err := fs.Parse(flags); err != nil {
 		return opts, err
 	}
-	if len(positional) != 1 {
-		return opts, fmt.Errorf("expected exactly one source file or directory")
+	if len(positional) == 0 {
+		return opts, fmt.Errorf("expected a source file or directory")
 	}
-	opts.source = positional[0]
+	opts.sources = positional
 	opts.format = strings.ToLower(opts.format)
 	if opts.format != "" && opts.format != "postman" && opts.format != "openapi" && opts.format != "bruno" {
 		return opts, fmt.Errorf("unknown import type %q (choose openapi, postman, or bruno)", opts.format)
@@ -90,12 +100,16 @@ func importCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "posting import:", importDiagnostic(err.Error()))
 		return 2
 	}
-	result, format, err := readImport(opts.source, opts.format)
+	result, format, err := readImports(opts.sources, opts.format)
 	if err != nil {
 		fmt.Fprintln(stderr, "posting import:", importDiagnostic(err.Error()))
 		return 1
 	}
-	if len(result.Requests) == 0 {
+	if format == "" && opts.output == "" {
+		fmt.Fprintln(stderr, "posting import: importing only environments requires --output DIR, the collection to add them to")
+		return 2
+	}
+	if format != "" && len(result.Requests) == 0 {
 		fmt.Fprintln(stderr, "posting import: source contains no importable HTTP requests")
 		printImportWarnings(stderr, result.Warnings)
 		return 1
@@ -115,7 +129,11 @@ func importCommand(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	printImportWarnings(stderr, append(result.Warnings, written.Warnings...))
-	fmt.Fprintf(stdout, "Imported %d %s request(s) into %q.\n", len(written.Files), format, output)
+	if format == "" {
+		fmt.Fprintf(stdout, "Imported %d environment(s) into %q.\n", len(written.Environments), output)
+	} else {
+		fmt.Fprintf(stdout, "Imported %d %s request(s) into %q.\n", len(written.Files), format, output)
+	}
 	printImportedEnvironments(stdout, output, written.Environments)
 	return 0
 }
@@ -156,37 +174,98 @@ func importDiagnostic(message string) string {
 	return quoted[1 : len(quoted)-1]
 }
 
-func readImport(source, format string) (importing.Result, string, error) {
+// readImports reads at most one collection source and any number of Postman
+// environment exports into one Result. The format is empty when only
+// environments were given.
+func readImports(sources []string, format string) (importing.Result, string, error) {
+	var collection importing.Result
+	var environments []importing.Environment
+	var warnings []string
+	collectionSource, collectionFormat := "", ""
+	for _, source := range sources {
+		data, isDir, err := readSource(source)
+		if err != nil {
+			return importing.Result{}, "", err
+		}
+		if !isDir && isPostmanEnvironment(data) {
+			e, w, err := postman.ParseEnvironment(data)
+			if err != nil {
+				return importing.Result{}, "", fmt.Errorf("%s: %w", source, err)
+			}
+			if e.Name == "" {
+				e.Name = strings.TrimSuffix(strings.TrimSuffix(filepath.Base(source), ".json"), ".postman_environment")
+			}
+			environments = append(environments, e)
+			warnings = append(warnings, w...)
+			continue
+		}
+		if collectionSource != "" {
+			return importing.Result{}, "", fmt.Errorf("expected one collection, but %s and %s are both collections; other arguments must be Postman environment exports", collectionSource, source)
+		}
+		collectionSource = source
+		if isDir {
+			if format != "" && format != "bruno" {
+				return importing.Result{}, "", fmt.Errorf("%s import requires a file", format)
+			}
+			collection, err = bruno.Load(source)
+			collectionFormat = "bruno"
+		} else {
+			collection, collectionFormat, err = parseCollection(source, data, format)
+		}
+		if err != nil {
+			return importing.Result{}, "", err
+		}
+	}
+	collection.Environments = append(collection.Environments, environments...)
+	collection.Warnings = append(collection.Warnings, warnings...)
+	return collection, collectionFormat, nil
+}
+
+const maxImportSize = 32 << 20
+
+// readSource reads a source file, or reports that it is a directory.
+func readSource(source string) (data []byte, isDir bool, err error) {
 	info, err := os.Stat(source)
 	if err != nil {
-		return importing.Result{}, format, err
+		return nil, false, err
 	}
 	if info.IsDir() {
-		if format != "" && format != "bruno" {
-			return importing.Result{}, format, fmt.Errorf("%s import requires a file", format)
-		}
-		result, err := bruno.Load(source)
-		return result, "bruno", err
+		return nil, true, nil
 	}
 	if !info.Mode().IsRegular() {
-		return importing.Result{}, format, fmt.Errorf("source must be a regular file or Bruno directory")
+		return nil, false, fmt.Errorf("source must be a regular file or Bruno directory")
 	}
-	const maxImportSize = 32 << 20
 	if info.Size() > maxImportSize {
-		return importing.Result{}, format, fmt.Errorf("source exceeds the 32 MiB import limit")
+		return nil, false, fmt.Errorf("source exceeds the 32 MiB import limit")
 	}
 	f, err := os.Open(source)
 	if err != nil {
-		return importing.Result{}, format, err
+		return nil, false, err
 	}
 	defer f.Close()
-	data, err := io.ReadAll(io.LimitReader(f, maxImportSize+1))
+	data, err = io.ReadAll(io.LimitReader(f, maxImportSize+1))
 	if err != nil {
-		return importing.Result{}, format, err
+		return nil, false, err
 	}
 	if len(data) > maxImportSize {
-		return importing.Result{}, format, fmt.Errorf("source exceeds the 32 MiB import limit")
+		return nil, false, fmt.Errorf("source exceeds the 32 MiB import limit")
 	}
+	return data, false, nil
+}
+
+// isPostmanEnvironment reports whether data looks like a Postman environment
+// (or globals) export: a values array and no collection item array.
+func isPostmanEnvironment(data []byte) bool {
+	var document struct{ Values, Item json.RawMessage }
+	if json.Unmarshal(data, &document) != nil {
+		return false
+	}
+	isArray := func(raw json.RawMessage) bool { return bytes.HasPrefix(bytes.TrimSpace(raw), []byte("[")) }
+	return isArray(document.Values) && !isArray(document.Item)
+}
+
+func parseCollection(source string, data []byte, format string) (importing.Result, string, error) {
+	var err error
 	if format == "" {
 		if strings.EqualFold(filepath.Ext(source), ".bru") {
 			format = "bruno"
