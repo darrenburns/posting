@@ -24,7 +24,6 @@ func clickText(tt *testing.T, app *App, text string, nth int, clicks ...int) {
 	pressText(tt, app, text, nth, count, 0)
 }
 
-// shiftClickText is clickText with shift held.
 func shiftClickText(tt *testing.T, app *App, text string, nth int) {
 	tt.Helper()
 	pressText(tt, app, text, nth, 1, uv.ModShift)
