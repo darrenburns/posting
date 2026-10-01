@@ -160,6 +160,7 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 					HasChildren: func(i treeItem) bool { return i.Folder != nil },
 					// As in Posting 2, a click opens a request or folder.
 					ActivateOnClick: true,
+					MultiSelect:     true,
 					OnCursorChange:  func(treeItem) { a.treeCursorMoved() },
 					OnSelect: func(i treeItem, _ []treeItem) {
 						a.dismissSummary()
@@ -183,7 +184,8 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 
 // renderTreeNode draws one row. The cursor is only emphasised while the tree
 // has focus; otherwise it is a quiet highlight so it doesn't compete with the
-// focused widget. Letters that match the search are highlighted.
+// focused widget, and gives way to the selection. Letters that match the
+// search are highlighted.
 //
 // A click opens a request in the preview tab (see App.openRequest), whose
 // request is in italics like the tab; a double-click keeps it open.
@@ -193,6 +195,8 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 	switch {
 	case cursor:
 		bg = theme.ActiveCursor
+	case node.Selected:
+		bg = theme.Selection
 	case node.Active:
 		bg = theme.Surface
 	}
@@ -261,9 +265,13 @@ type historyView struct {
 
 func (h historyView) Keybinds() []t.Keybind {
 	a := h.app
-	return []t.Keybind{
+	binds := []t.Keybind{
 		{Key: "backspace", Name: "Delete entry", Action: a.deleteHistoryAtCursor},
 	}
+	if len(a.historyList.Selection.Peek()) > 0 {
+		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: a.historyList.ClearSelection})
+	}
+	return binds
 }
 
 func (h historyView) Build(ctx t.BuildContext) t.Widget {
@@ -283,15 +291,16 @@ func (h historyView) Build(ctx t.BuildContext) t.Widget {
 			OnSelect:    a.openHistory,
 			// Clicks open entries, like requests in the collection.
 			ActivateOnClick: true,
+			MultiSelect:     true,
 			RenderItem: func(entry model.HistoryEntry, active, selected bool) t.Widget {
-				return renderHistoryItem(theme, entry, active, focused)
+				return renderHistoryItem(theme, entry, active, selected, focused)
 			},
 			Style: t.Style{Width: t.Flex(1)},
 		},
 	}
 }
 
-func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focused bool) t.Widget {
+func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, selected, focused bool) t.Widget {
 	var bg t.Color
 	fg := theme.TextMuted
 	methodFg := methodColor(theme, entry.Request.Method)
@@ -303,6 +312,8 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 	case active && focused:
 		bg = theme.ActiveCursor
 		fg, methodFg, statusFg = theme.SelectionText, theme.SelectionText, theme.SelectionText
+	case selected:
+		bg = theme.Selection
 	case active:
 		bg = theme.Surface
 	}

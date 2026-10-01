@@ -252,7 +252,8 @@ func (noTreeResults) Build(ctx t.BuildContext) t.Widget {
 
 // collectionTree is the request tree with the keys that tie it to its search
 // box: up from the first row goes back to the box, and escape clears the
-// search.
+// search. Escape clears a selection first, so the search stays until the
+// next press.
 type collectionTree struct {
 	t.Tree[treeItem]
 	app *App
@@ -263,6 +264,9 @@ func (c collectionTree) Keybinds() []t.Keybind {
 	var binds []t.Keybind
 	if a.treeCursorAtTop() {
 		binds = append(binds, t.Keybind{Key: "up", Name: "Search", Action: func() { t.RequestFocus(treeSearchID) }, Hidden: true})
+	}
+	if len(a.tree.Selection.Peek()) > 0 {
+		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: a.tree.ClearSelection})
 	}
 	if a.treeFilter.PeekQuery() != "" {
 		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear search", Action: a.clearTreeSearch})
