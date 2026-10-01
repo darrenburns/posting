@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"strings"
 	"testing"
 
 	uv "github.com/charmbracelet/ultraviolet"
@@ -211,6 +212,36 @@ func TestBracketMatchKeepsSyntaxColour(tt *testing.T) {
 	}
 	if styles[1].Bold {
 		tt.Fatal("only the brackets should be emphasised")
+	}
+}
+
+func TestJumpsScrollTheNextFrame(tt *testing.T) {
+	app := testApp()
+	app.openRequest(sampleRequest(tt, "List users"))
+	s := app.current()
+	s.showResponse(longResponse(), nil)
+	s.phase.Set(exchangeDone)
+	buf := uv.NewBuffer(snapW, snapH)
+	renderer := t.NewRenderer(buf, snapW, snapH, t.NewFocusManager(), t.NewAnySignal[t.Focusable](nil), t.NewAnySignal[t.Widget](nil))
+	frame := func() string {
+		renderer.Render(app)
+		var lines []string
+		for y := 0; y < snapH; y++ {
+			lines = append(lines, buf.Line(y).String())
+		}
+		return strings.Join(lines, "\n")
+	}
+	frame()
+	for _, step := range []struct{ key, want string }{
+		{"G", `"name": "User 80"`},
+		{"g", `"name": "User 1"`},
+		{"V", `"name": "User 1"`},
+		{"f7", `"name": "User 80"`},
+	} {
+		press(tt, app, step.key)
+		if !strings.Contains(frame(), step.want) {
+			tt.Fatalf("the first frame after %s doesn't show %s", step.key, step.want)
+		}
 	}
 }
 

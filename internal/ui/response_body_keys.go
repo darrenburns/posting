@@ -70,7 +70,18 @@ func (s *Session) moveBodyCursor(move func(*t.TextAreaState), extend bool) func(
 			body.ClearSelection()
 		}
 		move(body)
+		s.revealBodyCursor()
 	}
+}
+
+// revealBodyCursor scrolls the cursor into view as the key is handled, as
+// Terma's own text area keys do. The text area also reveals the cursor when
+// it renders, but by then the frame is laid out at the old scroll position,
+// so a jump like G shows nothing until the next keypress. In the Scrollable
+// the text area never scrolls itself, so the cursor's y is its line.
+func (s *Session) revealBodyCursor() {
+	_, line := s.responseBody.CursorScreenPosition(0, 0)
+	s.responseBodyScroll.ScrollToView(line, 1)
 }
 
 // setBodyVisual turns visual mode on or off. Turning it on anchors a
@@ -92,11 +103,13 @@ func (s *Session) setBodyVisual(on bool) {
 func (s *Session) selectBodyLine() {
 	s.responseVisual.Set(false)
 	s.responseBody.SelectLine(s.responseBody.CursorIndex.Peek())
+	s.revealBodyCursor()
 }
 
 func (s *Session) selectAllBody() {
 	s.responseVisual.Set(false)
 	s.responseBody.SelectAll()
+	s.revealBodyCursor()
 }
 
 // bodyCopyText is what y copies: the selection, or the whole body when
