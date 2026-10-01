@@ -89,3 +89,25 @@ func TestDiscover(t *testing.T) {
 		t.Fatalf("Discover = %v, want %v", names, want)
 	}
 }
+
+func TestTemplatesKeepReferences(t *testing.T) {
+	data := "A=plain $x # comment\n" +
+		"export B='single ${A} $5'\n" +
+		"C=\"${A}/${B} $D ${:-$}{literal} ${:-}x\"\n" +
+		"D=\"${A:-fallback}\"\n" +
+		"E=\"${my-var}\"\n" +
+		"F=\"multi\nline ${A}\"\n"
+	pairs, skipped := Templates(data)
+	want := []Pair{
+		{Name: "A", Value: "plain $$x"},
+		{Name: "B", Value: "single $${A} $$5"},
+		{Name: "C", Value: "${A}/${B} $$D $${literal} x"},
+		{Name: "F", Value: "multi\nline ${A}"},
+	}
+	if !reflect.DeepEqual(pairs, want) {
+		t.Fatalf("Templates = %q, want %q", pairs, want)
+	}
+	if !reflect.DeepEqual(skipped, []string{"D", "E"}) {
+		t.Fatalf("skipped = %q", skipped)
+	}
+}

@@ -140,7 +140,7 @@ func (p *parser) addVariable(name, value string) {
 			return
 		}
 		p.variableNames[name] = true
-		p.result.Variables = append(p.result.Variables, model.Variable{Name: name, Value: value, Source: "OpenAPI"})
+		p.result.Variables = append(p.result.Variables, model.Variable{Name: name, Value: literal(value), Source: "OpenAPI"})
 	}
 }
 func (p *parser) placeholder(name string) string { p.addVariable(name, ""); return "${" + name + "}" }

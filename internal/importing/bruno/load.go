@@ -97,6 +97,65 @@ func Load(path string) (importing.Result, error) {
 	if len(cfg.Ignore) > 0 {
 		warn(&result, "bruno.json ignore patterns are not interpreted; hidden directories and node_modules are excluded")
 	}
+	readDir := func(dir string) ([]fs.DirEntry, error) {
+		f, err := root.Open(dir)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		var entries []fs.DirEntry
+		for {
+			batch, e := f.ReadDir(256)
+			visited += len(batch)
+			if visited > 20000 {
+				return nil, fmt.Errorf("Bruno collection exceeds 20000 directory entries")
+			}
+			entries = append(entries, batch...)
+			if e == io.EOF {
+				break
+			}
+			if e != nil {
+				return nil, e
+			}
+		}
+		// ReadDir on os.File is directory order; sort for deterministic output.
+		sortEntries(entries)
+		return entries, nil
+	}
+	loadEnvironments := func(dir string) error {
+		entries, err := readDir(dir)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			n := entry.Name()
+			rel := filepath.Join(dir, n)
+			switch {
+			case strings.HasPrefix(n, "."):
+				continue
+			case entry.Type()&os.ModeSymlink != 0:
+				warn(&result, "skipped symlink "+rel)
+				continue
+			case entry.IsDir() || filepath.Ext(n) != ".bru":
+				warn(&result, "skipped "+rel+"; Bruno environments are .bru files")
+				continue
+			}
+			data, err := read(rel)
+			if err != nil {
+				return err
+			}
+			doc, err := parseDocument(data)
+			if err != nil {
+				return fmt.Errorf("%s: %w", rel, err)
+			}
+			e, err := environment(doc, strings.TrimSuffix(n, ".bru"), rel, &result)
+			if err != nil {
+				return fmt.Errorf("%s: %w", rel, err)
+			}
+			result.Environments = append(result.Environments, e)
+		}
+		return nil
+	}
 	var walk func(string, scope, int) error
 	walk = func(dir string, parent scope, depth int) error {
 		if depth > 64 {
@@ -116,37 +175,17 @@ func Load(path string) (importing.Result, error) {
 			if e != nil {
 				return fmt.Errorf("%s: %w", name, e)
 			}
-			parent, e = applyScope(doc, parent, &result)
+			parent, e = applyScope(doc, parent, &result, dir == ".")
 			if e != nil {
 				return fmt.Errorf("%s: %w", name, e)
 			}
 		} else if !os.IsNotExist(err) {
 			return err
 		}
-		f, err := root.Open(dir)
+		entries, err := readDir(dir)
 		if err != nil {
 			return err
 		}
-		var entries []fs.DirEntry
-		for {
-			batch, e := f.ReadDir(256)
-			visited += len(batch)
-			if visited > 20000 {
-				f.Close()
-				return fmt.Errorf("Bruno collection exceeds 20000 directory entries")
-			}
-			entries = append(entries, batch...)
-			if e == io.EOF {
-				break
-			}
-			if e != nil {
-				f.Close()
-				return e
-			}
-		}
-		f.Close()
-		// ReadDir on os.File is directory order; sort for deterministic output.
-		sortEntries(entries)
 		for _, entry := range entries {
 			n := entry.Name()
 			if n == "collection.bru" || n == "folder.bru" || strings.HasPrefix(n, ".") || n == "node_modules" {
@@ -158,8 +197,10 @@ func Load(path string) (importing.Result, error) {
 				continue
 			}
 			if entry.IsDir() {
-				if n == "environments" {
-					warn(&result, "Bruno environments are not selected or imported; supply unresolved values in a Posting environment")
+				if dir == "." && n == "environments" {
+					if err := loadEnvironments(n); err != nil {
+						return err
+					}
 					continue
 				}
 				if err := walk(rel, parent, depth+1); err != nil {

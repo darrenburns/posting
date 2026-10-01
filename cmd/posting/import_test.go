@@ -4,10 +4,14 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/darrenburns/posting/internal/collection"
+	"github.com/darrenburns/posting/internal/curl"
+	"github.com/darrenburns/posting/internal/env"
 	"github.com/darrenburns/posting/internal/model"
 	"github.com/darrenburns/posting/internal/paths"
 )
@@ -105,11 +109,15 @@ func TestImportCLIInvalidInputsDoNotWrite(t *testing.T) {
 func TestImportCLIOptions(t *testing.T) {
 	for _, args := range [][]string{{"input.json", "-o", "dest", "-t", "postman"}, {"-o=dest", "--type=postman", "input.json"}, {"-t", "postman", "--output", "dest", "--", "input.json"}} {
 		got, err := parseImportOptions(args, &bytes.Buffer{})
-		if err != nil || got != (importOptions{source: "input.json", format: "postman", output: "dest"}) {
+		if err != nil || !reflect.DeepEqual(got, importOptions{sources: []string{"input.json"}, format: "postman", output: "dest"}) {
 			t.Fatalf("%v => %+v, %v", args, got, err)
 		}
 	}
-	for _, args := range [][]string{nil, {"a", "b"}, {"--type", "unknown", "file"}, {"--output"}, {"--bad", "file"}} {
+	got, err := parseImportOptions([]string{"collection.json", "-o", "dest", "staging.json", "production.json"}, &bytes.Buffer{})
+	if err != nil || !reflect.DeepEqual(got.sources, []string{"collection.json", "staging.json", "production.json"}) {
+		t.Fatalf("environments: %+v, %v", got, err)
+	}
+	for _, args := range [][]string{nil, {"--type", "unknown", "file"}, {"--output"}, {"--bad", "file"}} {
 		if _, err := parseImportOptions(args, &bytes.Buffer{}); err == nil {
 			t.Fatalf("accepted %v", args)
 		}
@@ -148,8 +156,95 @@ func TestImportCLIEnvironmentInstructions(t *testing.T) {
 	if code := run([]string{"import", source, "-o", output}, &stdout, &stderr); code != 0 {
 		t.Fatal(stderr.String())
 	}
-	if !strings.Contains(stdout.String(), " -e ") || !strings.Contains(stdout.String(), "imported.env") {
+	if !strings.Contains(stdout.String(), "Environments: posting.env (base)\n") || !strings.Contains(stdout.String(), " --env posting\n") {
 		t.Fatalf("missing environment instructions: %s", stdout.String())
+	}
+}
+
+func writeImportFiles(t *testing.T, files map[string]string) string {
+	t.Helper()
+	dir := t.TempDir()
+	for name, data := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(data), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return dir
+}
+
+func loadImportedEnvironment(t *testing.T, dir, name string) map[string]string {
+	t.Helper()
+	files := env.Stack(dir, name)
+	if files == nil {
+		t.Fatalf("no environment %q in %s", name, dir)
+	}
+	loaded, err := env.Load(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return model.Values(loaded.Variables)
+}
+
+const postmanLayeredCollection = `{"info":{"name":"Layers","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+"variable":[{"key":"HOST","value":"https://prod.example"},{"key":"BASE_URL","value":"{{HOST}}/api"}],
+"item":[{"name":"Ping","request":{"method":"GET","url":"{{BASE_URL}}/ping"}}]}`
+
+func TestImportCLICollectionWithEnvironments(t *testing.T) {
+	in := writeImportFiles(t, map[string]string{
+		"collection.json":                     postmanLayeredCollection,
+		"staging.postman_environment.json":    `{"name":"staging","values":[{"key":"HOST","value":"https://staging.example","enabled":true}],"_postman_variable_scope":"environment"}`,
+		"production.postman_environment.json": `{"name":"production","values":[{"key":"TOKEN","value":"{{HOST}}-token","enabled":true}],"_postman_variable_scope":"environment"}`,
+	})
+	output := filepath.Join(t.TempDir(), "out")
+	var stdout, stderr bytes.Buffer
+	args := []string{"import", filepath.Join(in, "staging.postman_environment.json"), filepath.Join(in, "collection.json"), "-o", output, filepath.Join(in, "production.postman_environment.json")}
+	if code := run(args, &stdout, &stderr); code != 0 {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	want := "Imported 1 postman request(s) into " + strconv.Quote(output) + ".\nEnvironments: posting.env (base), staging.env, production.env\nOpen with: posting -c " + curl.Quote(output) + " --env staging\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout:\n%s\nwant:\n%s", stdout.String(), want)
+	}
+	for name, values := range map[string]map[string]string{
+		"posting":    {"HOST": "https://prod.example", "BASE_URL": "https://prod.example/api"},
+		"staging":    {"HOST": "https://staging.example", "BASE_URL": "https://staging.example/api"},
+		"production": {"HOST": "https://prod.example", "BASE_URL": "https://prod.example/api", "TOKEN": "https://prod.example-token"},
+	} {
+		if got := loadImportedEnvironment(t, output, name); !reflect.DeepEqual(got, values) {
+			t.Fatalf("%s: %q", name, got)
+		}
+	}
+}
+
+func TestImportCLIEnvironmentsOnly(t *testing.T) {
+	in := writeImportFiles(t, map[string]string{
+		"staging.postman_environment.json": `{"name":"staging","values":[{"key":"HOST","value":"https://staging.example"}]}`,
+		"collection.json":                  postmanLayeredCollection,
+		"other.json":                       postmanCLIExample,
+	})
+	environment := filepath.Join(in, "staging.postman_environment.json")
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"import", environment}, &stdout, &stderr); code == 0 || !strings.Contains(stderr.String(), "--output") {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	output := t.TempDir()
+	stdout.Reset()
+	stderr.Reset()
+	if code := run([]string{"import", filepath.Join(in, "collection.json"), "-o", output}, &stdout, &stderr); code != 0 {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	stdout.Reset()
+	if code := run([]string{"import", environment, "-o", output}, &stdout, &stderr); code != 0 {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "Imported 1 environment(s)") || !strings.Contains(stdout.String(), "Environments: staging.env\n") || !strings.Contains(stdout.String(), "--env staging\n") {
+		t.Fatalf("stdout: %s", stdout.String())
+	}
+	if got := loadImportedEnvironment(t, output, "staging")["BASE_URL"]; got != "https://staging.example/api" {
+		t.Fatalf("an environment added later still layers on the collection's base: %q", got)
+	}
+	if code := run([]string{"import", filepath.Join(in, "collection.json"), filepath.Join(in, "other.json"), "-o", t.TempDir()}, &stdout, &stderr); code == 0 {
+		t.Fatal("accepted two collections")
 	}
 }
 

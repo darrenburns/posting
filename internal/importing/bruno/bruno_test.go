@@ -143,18 +143,16 @@ func TestCollectionInheritanceAndSiblingIsolation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(result.Requests) != 2 {
+	if len(result.Requests) != 2 || len(result.Environments) != 1 || result.Environments[0].Name != "Production" {
 		t.Fatalf("%+v", result)
 	}
-	a, b := result.Requests[0], result.Requests[1]
+	requests, _ := imported(t, result, "Production")
+	a, b := requests["A/one.posting.yaml"], requests["B/two.posting.yaml"]
 	if a.URL != "https://example.test/A" || b.URL != "https://example.test/root" || a.Auth.Type != model.AuthNone || b.Auth.Type != model.AuthBasic || b.Auth.Username != "root" {
 		t.Fatalf("a=%+v b=%+v", a, b)
 	}
 	if a.Headers[0].Value != "A" || b.Headers[0].Value != "root" || len(b.Headers) != 2 || b.Headers[1].Enabled {
 		t.Fatalf("headers a=%+v b=%+v", a.Headers, b.Headers)
-	}
-	if a.File != filepath.Join("A", "one.posting.yaml") || !strings.Contains(strings.Join(result.Warnings, " "), "environments") {
-		t.Fatalf("result=%+v", result)
 	}
 }
 func TestUnsupportedFeaturesWarn(t *testing.T) {
