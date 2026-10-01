@@ -107,7 +107,7 @@ func Trim(entries []model.HistoryEntry) []model.HistoryEntry {
 		if len(kept) >= MaxEntries {
 			break
 		}
-		size := len(e.Request.Body.Raw)
+		size := e.Request.PayloadSize()
 		if e.Response != nil {
 			size += len(e.Response.Body)
 		}

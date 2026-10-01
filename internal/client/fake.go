@@ -23,7 +23,10 @@ type Fake struct {
 // Send simulates a request.
 func (f Fake) Send(ctx context.Context, call Call) (*model.Response, error) {
 	started := time.Now()
-	req := call.Request
+	req, ok := model.Lower(call.Request)
+	if !ok {
+		return nil, fmt.Errorf("%s requests aren't sent over HTTP", call.Request.Kind().Label)
+	}
 	resolvedURL := model.Substitute(model.ResolvePathParams(req.URL, req.PathParams), call.Lookup)
 	parsed, err := url.Parse(resolvedURL)
 	if err != nil || parsed.Host == "" {
