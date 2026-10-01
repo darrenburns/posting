@@ -1,0 +1,17 @@
+name: echo
+description: This is an echo server we can use to see exactly what request is being sent.
+url: https://postman-echo.com/get
+body:
+  form_data:
+    - name: something
+      value: "123"
+  content_type: application/x-www-form-urlencoded
+headers:
+  - name: X-Setup-Var
+    value: $setup_var
+scripts:
+  setup: scripts/my_script.py
+  on_request: scripts/my_script.py
+  on_response: scripts/my_script.py
+options:
+  follow_redirects: false
