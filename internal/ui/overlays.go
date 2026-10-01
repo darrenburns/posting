@@ -233,17 +233,18 @@ func (a *App) restoreTheme() {
 	}
 }
 
-// renderMethodItem draws a palette row for a request: its badge in
-// methodFg, then its name with the matched letters highlighted, an optional
-// marker after the name, and the item's hint on the right.
+// renderMethodItem draws a palette item for a request: its badge in
+// methodFg, then its name with the matched letters highlighted and an
+// optional marker after the name, with the item's description (its path)
+// on a second line under the name.
 func renderMethodItem(theme t.ThemeData, item t.CommandPaletteItem, active bool, match t.MatchResult, methodFg t.Color, methodLabel, marker string) t.Widget {
 	style := t.Style{Width: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}
 	label := t.Style{ForegroundColor: theme.Text, Width: t.Flex(1)}
-	hint := t.Style{ForegroundColor: theme.TextMuted}
+	description := t.Style{ForegroundColor: theme.TextMuted, Width: t.Flex(1)}
 	if active {
 		style.BackgroundColor = theme.ActiveCursor
 		label.ForegroundColor = theme.SelectionText
-		hint.ForegroundColor = theme.SelectionText
+		description.ForegroundColor = theme.SelectionText
 		methodFg = theme.SelectionText
 	}
 	name := t.Text{Content: item.Label, Style: label}
@@ -262,12 +263,15 @@ func renderMethodItem(theme t.ThemeData, item t.CommandPaletteItem, active bool,
 		}
 		name.Spans = append(name.Spans, t.Span{Text: " " + marker, Style: t.SpanStyle{Foreground: markerFg}})
 	}
+	lines := []t.Widget{name}
+	if item.Description != "" {
+		lines = append(lines, t.Text{Content: item.Description, Style: description})
+	}
 	return t.Row{
 		Style: style,
 		Children: []t.Widget{
 			t.Text{Content: methodLabel, Style: t.Style{ForegroundColor: methodFg, Bold: true}},
-			name,
-			t.Text{Content: item.Hint, Style: hint},
+			t.Column{Style: t.Style{Width: t.Flex(1)}, Children: lines},
 		},
 	}
 }

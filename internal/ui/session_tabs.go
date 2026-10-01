@@ -329,10 +329,10 @@ func (a *App) openTabSearch() {
 	for _, s := range sessions {
 		id := s.id
 		items = append(items, t.CommandPaletteItem{
-			Label:   s.title.Peek(),
-			Hint:    s.file.Peek(),
-			Current: id == active,
-			Data:    s,
+			Label:       s.title.Peek(),
+			Description: s.file.Peek(),
+			Current:     id == active,
+			Data:        s,
 			Action: func() {
 				a.tabSearch.Close(false)
 				a.showSession(id)

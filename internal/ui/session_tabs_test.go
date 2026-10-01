@@ -339,7 +339,14 @@ func TestSnapshotSessionTabsOverflow(tt *testing.T) {
 func TestSnapshotTabSearch(tt *testing.T) {
 	app := testApp()
 	openTabs(app, 12)
+	for _, s := range app.sessions.Peek() {
+		switch title := s.title.Peek(); title {
+		case "Untitled", "Request 09":
+		default:
+			s.file.Set("users/" + strings.ToLower(strings.ReplaceAll(title, " ", "-")) + ".posting.yaml")
+		}
+	}
 	app.current().dirty.Set(true)
 	app.openTabSearch()
-	t.AssertSnapshot(tt, app, snapW, snapH, "The open-tab search dropped down from the right end of the tab strip, on the active (unsaved) Request 12")
+	t.AssertSnapshot(tt, app, snapW, snapH, "The open-tab search dropped down from the right end of the tab strip, on the active Request 12 with unsaved changes. Saved tabs show their path on a second line; Untitled and Request 09 have no file and take one line")
 }
