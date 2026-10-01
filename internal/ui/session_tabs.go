@@ -279,7 +279,7 @@ func (c sessionChip) marker() string {
 func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	s := c.session
-	method := s.method.Get()
+	badge := s.badgeRequest()
 	title := truncate(s.title.Get(), 28)
 	bg := theme.Background
 	fg := theme.TextMuted
@@ -290,7 +290,7 @@ func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 	// The preview tab's title is in italics, as in VS Code, to show that
 	// the next request opened will replace it.
 	spans := []t.Span{
-		{Text: " " + method.Short() + " ", Style: t.SpanStyle{Foreground: methodColor(theme, method), Background: bg, Bold: true}},
+		{Text: " " + badge.Badge() + " ", Style: t.SpanStyle{Foreground: requestColor(theme, badge), Background: bg, Bold: true}},
 		{Text: title, Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: c.active, Italic: s.preview.Get()}},
 	}
 	if s.phase.Get() == exchangeSending {
@@ -368,8 +368,8 @@ func (a *App) tabSearchPalette(theme t.ThemeData) t.Widget {
 			if s.dirty.Peek() {
 				marker = "●"
 			}
-			method := s.method.Peek()
-			return renderMethodItem(theme, item, active, match, method, padRight(method.Short(), 4), marker)
+			badge := s.badgeRequest()
+			return renderMethodItem(theme, item, active, match, requestColor(theme, badge), padRight(badge.Badge(), 4), marker)
 		},
 	}
 }

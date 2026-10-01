@@ -23,21 +23,18 @@ func (p requestPanel) Keybinds() []t.Keybind {
 
 // requestTabs is the request panel's tab strip.
 func (s *Session) requestTabs() tabStrip {
+	list := s.requestTabList()
+	tabs := make([]tabItem, len(list))
+	for i, tab := range list {
+		tabs[i] = tab.item()
+	}
 	return tabStrip{
 		ID:     requestTabsID,
 		Active: s.requestTab,
 		View:   s.requestTabView,
 		Down:   func() { t.RequestFocus(s.contentFocusID(s.requestTab.Peek())) },
 		Up:     func() { t.RequestFocus(urlInputID) },
-		Tabs: []tabItem{
-			{Key: "headers", Label: "Headers", Badge: countBadge(s.headers.Count())},
-			{Key: "body", Label: "Body", Marked: s.bodyType.Get() != model.BodyNone},
-			{Key: "path", Label: "Path", Badge: countBadge(s.pathParams.Count())},
-			{Key: "query", Label: "Query", Badge: countBadge(s.query.Count())},
-			{Key: "auth", Label: "Auth", Marked: s.authType.Get() != model.AuthNone},
-			{Key: "info", Label: "Info"},
-			{Key: "options", Label: "Options"},
-		},
+		Tabs:   tabs,
 	}
 }
 
@@ -48,6 +45,41 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 	variables := variableHighlighter(theme, resolve)
 	choices := p.app.variableChoices()
 	gap := p.app.gap()
+	views := map[string]t.Widget{
+		"headers": kvEditorView{
+			Editor:           s.headers,
+			KeyPlaceholder:   "Add a header…",
+			ValuePlaceholder: "Value",
+			ValueHighlighter: variables,
+			Choices:          choices,
+		},
+		"body": bodyEditor{app: p.app, session: s},
+		"path": kvEditorView{
+			Editor:           s.pathParams,
+			ValuePlaceholder: "Value",
+			ValueHighlighter: variables,
+			Choices:          choices,
+			Empty: emptyState{
+				Title: "No path parameters",
+				Lines: []string{"Add [b]:name[/] segments to the URL to create them", "e.g. https://example.com/users/[b $Info]:id[/]"},
+			},
+		},
+		"query": kvEditorView{
+			Editor:           s.query,
+			KeyPlaceholder:   "Add a parameter…",
+			ValuePlaceholder: "Value",
+			ValueHighlighter: variables,
+			Choices:          choices,
+		},
+		"auth":    authEditor{session: s, variables: variables, choices: choices, gap: gap},
+		"info":    infoEditor{session: s, gap: gap},
+		"options": optionsEditor{session: s, variables: variables, choices: choices, gap: gap},
+	}
+	if e := s.payloads[s.kind.Get()]; e != nil {
+		for _, tab := range e.tabs() {
+			views[tab.key] = e.view(tab.key, p.app)
+		}
+	}
 	return section{
 		Prefix: "req-",
 		Title:  "Request",
@@ -59,38 +91,9 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 			Children: []t.Widget{
 				s.requestTabs(),
 				t.Switcher{
-					Active: s.requestTab.Get(),
-					Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
-					Children: map[string]t.Widget{
-						"headers": kvEditorView{
-							Editor:           s.headers,
-							KeyPlaceholder:   "Add a header…",
-							ValuePlaceholder: "Value",
-							ValueHighlighter: variables,
-							Choices:          choices,
-						},
-						"body": bodyEditor{app: p.app, session: s},
-						"path": kvEditorView{
-							Editor:           s.pathParams,
-							ValuePlaceholder: "Value",
-							ValueHighlighter: variables,
-							Choices:          choices,
-							Empty: emptyState{
-								Title: "No path parameters",
-								Lines: []string{"Add [b]:name[/] segments to the URL to create them", "e.g. https://example.com/users/[b $Info]:id[/]"},
-							},
-						},
-						"query": kvEditorView{
-							Editor:           s.query,
-							KeyPlaceholder:   "Add a parameter…",
-							ValuePlaceholder: "Value",
-							ValueHighlighter: variables,
-							Choices:          choices,
-						},
-						"auth":    authEditor{session: s, variables: variables, choices: choices, gap: gap},
-						"info":    infoEditor{session: s, gap: gap},
-						"options": optionsEditor{session: s, variables: variables, choices: choices, gap: gap},
-					},
+					Active:   s.requestTab.Get(),
+					Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
+					Children: views,
 				},
 			},
 		},
@@ -100,6 +103,9 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 // contentFocusID is the first field inside a request tab.
 func (s *Session) contentFocusID(tab string) string {
 	var id string
+	if e := s.payloads[s.kind.Peek()]; e != nil {
+		id = e.focusID(tab)
+	}
 	switch tab {
 	case "headers":
 		id = s.headers.FirstInputID()
@@ -213,6 +219,19 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 // bodyHighlighter combines syntax and variable highlighting for the request
 // body. Highlighters are cached so tokenising survives rebuilds.
 func (a *App) bodyHighlighter(theme t.ThemeData, language string, variables bool) t.Highlighter {
+	syntax := a.syntax(theme, language)
+	if !variables {
+		return syntax
+	}
+	resolve := a.resolver()
+	return t.HighlighterFunc(func(text string, graphemes []string) []t.TextHighlight {
+		out := syntax.Highlight(text, graphemes)
+		return append(out, variableHighlights(theme, text, byteToGrapheme(graphemes, len(text)), resolve)...)
+	})
+}
+
+// syntax is the cached highlighter for language in theme.
+func (a *App) syntax(theme t.ThemeData, language string) *syntaxHighlighter {
 	key := theme.Name + "/" + language
 	if a.highlighters == nil {
 		a.highlighters = map[string]*syntaxHighlighter{}
@@ -222,14 +241,7 @@ func (a *App) bodyHighlighter(theme t.ThemeData, language string, variables bool
 		syntax = newSyntaxHighlighter(theme, language)
 		a.highlighters[key] = syntax
 	}
-	if !variables {
-		return syntax
-	}
-	resolve := a.resolver()
-	return t.HighlighterFunc(func(text string, graphemes []string) []t.TextHighlight {
-		out := syntax.Highlight(text, graphemes)
-		return append(out, variableHighlights(theme, text, byteToGrapheme(graphemes, len(text)), resolve)...)
-	})
+	return syntax
 }
 
 // authEditor chooses an auth scheme and edits its credentials.

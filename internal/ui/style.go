@@ -26,12 +26,12 @@ func methodColor(theme t.ThemeData, m model.Method) t.Color {
 	}
 }
 
-// statusColors returns the foreground and background for a status code chip.
-func statusColors(theme t.ThemeData, code int) (fg, bg t.Color) {
-	switch model.ClassifyStatus(code) {
+// statusColors returns the foreground and background for a status chip.
+func statusColors(theme t.ThemeData, class model.StatusClass) (fg, bg t.Color) {
+	switch class {
 	case model.StatusClassSuccess:
 		return theme.SuccessText, theme.SuccessBg
-	case model.StatusClassRedirect:
+	case model.StatusClassRedirect, model.StatusClassWarning:
 		return theme.WarningText, theme.WarningBg
 	default:
 		return theme.ErrorText, theme.ErrorBg

@@ -228,14 +228,13 @@ func (a *App) restoreTheme() {
 	}
 }
 
-// renderMethodItem draws a palette row for a request: its method, in the
-// method's colour, then its name with the matched letters highlighted, an
-// optional marker after the name, and the item's hint on the right.
-func renderMethodItem(theme t.ThemeData, item t.CommandPaletteItem, active bool, match t.MatchResult, method model.Method, methodLabel, marker string) t.Widget {
+// renderMethodItem draws a palette row for a request: its badge in
+// methodFg, then its name with the matched letters highlighted, an optional
+// marker after the name, and the item's hint on the right.
+func renderMethodItem(theme t.ThemeData, item t.CommandPaletteItem, active bool, match t.MatchResult, methodFg t.Color, methodLabel, marker string) t.Widget {
 	style := t.Style{Width: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}
 	label := t.Style{ForegroundColor: theme.Text, Width: t.Flex(1)}
 	hint := t.Style{ForegroundColor: theme.TextMuted}
-	methodFg := methodColor(theme, method)
 	if active {
 		style.BackgroundColor = theme.ActiveCursor
 		label.ForegroundColor = theme.SelectionText
@@ -329,6 +328,7 @@ var helpSections = []helpSection{
 	}},
 	{"Method selector", [][2]string{
 		{"g p u a d h o", "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS"},
+		{"q", "GraphQL"},
 		{"enter", "Open the method menu"},
 	}},
 	{"Tabs", [][2]string{

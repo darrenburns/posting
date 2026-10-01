@@ -550,9 +550,22 @@ func (a *App) cancelSend() {
 	}
 }
 
+// setMethod makes the current request an HTTP request with method m.
 func (a *App) setMethod(m model.Method) {
-	if s := a.current(); s != nil && s.method.Peek() != m {
-		s.method.Set(m)
+	s := a.current()
+	if s == nil || (s.method.Peek() == m && s.kind.Peek() == model.KindHTTP) {
+		return
+	}
+	s.method.Set(m)
+	s.setKind(model.KindHTTP)
+	s.touch()
+}
+
+// setKind changes the kind of the current request. The URL, headers, auth
+// and options are shared by every kind, so they carry across.
+func (a *App) setKind(id model.KindID) {
+	if s := a.current(); s != nil && s.kind.Peek() != id {
+		s.setKind(id)
 		s.touch()
 	}
 }
@@ -567,10 +580,20 @@ func (a *App) closeMethodMenu() {
 	t.RequestFocus(methodSelectorID)
 }
 
+// methodMenuItems are the HTTP methods, then the other kinds of request.
 func (a *App) methodMenuItems() []t.MenuItem {
-	items := make([]t.MenuItem, 0, len(model.Methods))
+	items := make([]t.MenuItem, 0, len(model.Methods)+len(model.Kinds))
 	for _, m := range model.Methods {
-		items = append(items, t.MenuItem{Label: string(m), Shortcut: methodHotkeys[m]})
+		m := m
+		items = append(items, t.MenuItem{Label: string(m), Shortcut: methodHotkeys[m], Action: func() { a.setMethod(m) }})
+	}
+	items = append(items, t.MenuItem{})
+	for _, kind := range model.Kinds {
+		if kind == model.HTTPKind {
+			continue
+		}
+		id := kind.ID
+		items = append(items, t.MenuItem{Label: kind.Label, Shortcut: kindViews[id].hotkey, Action: func() { a.setKind(id) }})
 	}
 	return items
 }
@@ -763,11 +786,20 @@ func (a *App) jumpTargets() []t.JumpTarget {
 			a.focusSidebarList()
 		}})
 	}
-	targets = append(targets, tabJumps(requestTabsID, "qwertyu", []string{"headers", "body", "path", "query", "auth", "info", "options"}, func(key string) {
-		if s := a.current(); s != nil {
-			s.requestTabs().selectKey(key)
+	if s := a.current(); s != nil {
+		keys := "qwertyu"
+		var tabs []string
+		for _, tab := range s.requestTabList() {
+			if len(tabs) < len(keys) {
+				tabs = append(tabs, tab.key)
+			}
 		}
-	})...)
+		targets = append(targets, tabJumps(requestTabsID, keys, tabs, func(key string) {
+			if s := a.current(); s != nil {
+				s.requestTabs().selectKey(key)
+			}
+		})...)
+	}
 	targets = append(targets, tabJumps(responseTabsID, "asdf", []string{"body", "headers", "cookies", "trace"}, func(key string) {
 		if s := a.current(); s != nil && s.response.Peek() != nil {
 			s.responseTabs(s.response.Peek()).selectKey(key)

@@ -34,7 +34,10 @@ const (
 type Session struct {
 	id int
 
-	// Request editing state.
+	// Request editing state. kind is the kind of request being edited;
+	// method stays the HTTP method while it's another kind, so switching
+	// back to HTTP restores it.
+	kind              t.Signal[model.KindID]
 	method            t.Signal[model.Method]
 	url               *t.TextInputState
 	headers           *kvEditor
@@ -55,7 +58,10 @@ type Session struct {
 	file              t.Signal[string]
 	// scripts aren't edited in Posting 3, but are kept so saving a
 	// Posting 2 request doesn't drop them.
-	scripts    model.Scripts
+	scripts model.Scripts
+	// payloads edit the payload of each kind that has one, for the
+	// session's whole life, so switching kinds loses nothing.
+	payloads   map[model.KindID]payloadEditor
 	follow     *t.CheckboxState
 	verifySSL  *t.CheckboxState
 	cookies    *t.CheckboxState
@@ -91,6 +97,9 @@ type Session struct {
 	err      t.AnySignal[error]
 	trace    t.AnySignal[[]model.TraceEvent]
 	response t.AnySignal[*model.Response]
+	// sent is the request the shown response answers, which decides how
+	// its status reads (see model.StatusOf).
+	sent model.Request
 	// fromHistory is set when the response was loaded from history rather than sent.
 	fromHistory t.AnySignal[*model.HistoryEntry]
 	// responseBody holds the formatted response body for the read-only viewer.
@@ -116,6 +125,7 @@ type Session struct {
 func newSession(id int, req model.Request) *Session {
 	s := &Session{
 		id:                id,
+		kind:              t.NewSignal(model.KindHTTP),
 		method:            t.NewSignal(model.MethodGet),
 		url:               t.NewTextInputState(""),
 		headers:           newKVEditor(fmt.Sprintf("req-headers-%d", id), false, headerSuggestions()),
@@ -177,6 +187,12 @@ func newSession(id int, req model.Request) *Session {
 	toTabs := func() { t.RequestFocus(requestTabsID) }
 	s.headers.onLeaveTop, s.query.onLeaveTop, s.pathParams.onLeaveTop = toTabs, toTabs, toTabs
 	s.form.onLeaveTop = func() { t.RequestFocus("req-body-type") }
+	s.payloads = map[model.KindID]payloadEditor{}
+	for id, view := range kindViews {
+		if view.newEditor != nil {
+			s.payloads[id] = view.newEditor(s)
+		}
+	}
 	s.Load(req)
 	return s
 }
@@ -187,7 +203,7 @@ func (s *Session) Snapshot() model.Request {
 	if err != nil || timeout <= 0 {
 		timeout = model.DefaultOptions().TimeoutSeconds
 	}
-	return model.Request{
+	req := model.Request{
 		Name:        strings.TrimSpace(s.name.GetText()),
 		Description: s.description.GetText(),
 		Method:      s.method.Peek(),
@@ -218,6 +234,10 @@ func (s *Session) Snapshot() model.Request {
 		Scripts: s.scripts,
 		File:    s.file.Peek(),
 	}
+	if e := s.payloads[s.kind.Peek()]; e != nil {
+		req.Payload = e.payload()
+	}
+	return model.Normalize(req)
 }
 
 // Load replaces the editor contents with req.
@@ -228,6 +248,10 @@ func (s *Session) Load(req model.Request) {
 
 	if req.Method == "" {
 		req.Method = model.MethodGet
+	}
+	s.setKind(req.Kind().ID)
+	for _, e := range s.payloads {
+		e.load(req)
 	}
 	s.method.Set(req.Method)
 	s.url.SetText(req.URL)
@@ -279,6 +303,16 @@ func (s *Session) Load(req model.Request) {
 	s.description.CursorIndex.Set(0)
 	s.bodyScroll.SetOffset(0)
 	s.descriptionScroll.SetOffset(0)
+}
+
+// setKind changes the kind of request the session edits. The kind's first
+// tab is selected, so its own editor is what shows.
+func (s *Session) setKind(id model.KindID) {
+	if s.kind.Peek() == id {
+		return
+	}
+	s.kind.Set(id)
+	s.requestTab.Set(s.requestTabList()[0].key)
 }
 
 // touch marks the session as edited and refreshes its title.
@@ -463,6 +497,7 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, onDone
 				s.err.Set(err)
 				s.phase.Set(exchangeFailed)
 			default:
+				s.sent = req
 				s.showResponse(resp, nil)
 				s.phase.Set(exchangeDone)
 				if onDone != nil {
@@ -487,6 +522,9 @@ func (s *Session) Cancel() {
 
 // showResponse displays resp. entry is non-nil when it came from history.
 func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) {
+	if entry != nil {
+		s.sent = entry.Request
+	}
 	s.response.Set(resp)
 	s.fromHistory.Set(entry)
 	if resp == nil {
@@ -513,6 +551,11 @@ func mergeTrace(events []model.TraceEvent, event model.TraceEvent) []model.Trace
 		}
 	}
 	return append(out, event)
+}
+
+// status is the shown response's status, read reactively.
+func (s *Session) status() model.Status {
+	return model.StatusOf(s.sent, s.response.Get())
 }
 
 // historyEntry builds a history record for a completed exchange.

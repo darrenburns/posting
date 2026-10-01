@@ -208,7 +208,7 @@ func exampleHTTP() Request {
 	r.Method = MethodPost
 	r.URL = "${BASE_URL}/users/:team"
 	r.Headers = []KeyValue{{Name: "Content-Type", Value: "application/json", Enabled: true}}
-	r.Query = []KeyValue{{Name: "notify", Value: "true", Enabled: true}}
+	r.Query = []KeyValue{{Name: "notify", Value: "true", Enabled: false}}
 	r.PathParams = []KeyValue{{Name: "team", Value: "core", Enabled: true}}
 	r.Body = Body{Type: BodyRaw, Raw: "{\n  \"name\": \"Ada\"\n}", ContentType: "application/json"}
 	r.Auth = Auth{Type: AuthBearer, Token: "${API_TOKEN}"}

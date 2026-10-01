@@ -17,7 +17,8 @@ const treeSearchID = "side-tree-search"
 
 // treeQuery is a search of the collection split into lower-case terms. An
 // item matches when every term, in any order, is found in its name, starts
-// its method (so "post" and "po" find POST requests), or is found in the
+// its method or badge (so "post" and "po" find POST requests, and "gql"
+// GraphQL ones), or is found in the
 // folders it's in (so "users" finds everything in the users folder). What
 // matched is always on screen: in the row itself, or in a folder above it.
 type treeQuery []string
@@ -42,7 +43,11 @@ func containsFold(text, term string) bool {
 }
 
 func methodHasPrefix(i treeItem, term string) bool {
-	return i.Request != nil && strings.HasPrefix(strings.ToLower(string(i.Request.Method)), term)
+	if i.Request == nil {
+		return false
+	}
+	r := *i.Request
+	return strings.HasPrefix(strings.ToLower(requestLabel(r)), term) || strings.HasPrefix(strings.ToLower(r.Badge()), term)
 }
 
 // matchTreeItem is the tree's MatchNode. The rows draw their own highlights
