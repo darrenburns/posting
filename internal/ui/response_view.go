@@ -159,43 +159,70 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 		return emptyState{Title: "Empty body", Lines: []string{fmt.Sprintf("The server returned %d %s with no content", resp.StatusCode, resp.Reason)}}
 	}
 	contentType := resp.ContentType()
-	wrap := s.responseBody.WrapMode.Get() != t.WrapNone
-	wrapLabel := "wrap off"
-	if wrap {
-		wrapLabel = "wrap on"
-	}
-	lines := strings.Count(s.responseBody.GetText(), "\n") + 1
-	toggleWrap := func() { s.responseBody.ToggleWrap() }
-	copyBody := func() {
-		t.SetClipboard('c', s.responseBody.GetText())
-		b.app.notify("Copied response body", toastSuccess)
+	copyBody := func() { b.app.notify(s.copyBody(), toastSuccess) }
+	highlighter := b.app.bodyHighlighter(theme, languageFor(contentType), false)
+	if isFocusedID(ctx, "resp-body") {
+		highlighter = withBracketMatch(highlighter, s.responseBody)
 	}
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
 			scrollingArea("resp-body", s.responseBodyScroll, theme.Background, t.TextArea{
-				ID:          "resp-body",
-				State:       s.responseBody,
-				ScrollState: s.responseBodyScroll,
-				Highlighter: b.app.bodyHighlighter(theme, languageFor(contentType), false),
-				Style:       t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
-				ExtraKeybinds: append([]t.Keybind{
-					{Key: "w", Name: "Toggle wrap", Action: toggleWrap},
-					{Key: "y", Name: "Copy body", Action: copyBody},
-				}, b.app.externalKeybinds(s.responseBody, languageFor(contentType), nil)...),
+				ID:            "resp-body",
+				State:         s.responseBody,
+				ScrollState:   s.responseBodyScroll,
+				Highlighter:   highlighter,
+				Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
+				ExtraKeybinds: append(s.responseBodyKeybinds(copyBody, s.responseVisual.Get()), b.app.externalKeybinds(s.responseBody, languageFor(contentType), nil)...),
 			}),
-			t.Row{
-				Style:   t.Style{Width: t.Flex(1), Height: t.Cells(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
-				Spacing: 2,
-				Children: []t.Widget{
-					t.Text{Content: orDefault(contentType, "unknown type"), Style: t.Style{ForegroundColor: theme.AccentText}},
-					t.Text{Content: pluralize(lines, "line"), Style: t.Style{ForegroundColor: theme.TextMuted}},
-					t.Spacer{},
-					t.Text{Content: wrapLabel, Style: t.Style{ForegroundColor: theme.TextMuted}, Click: func(t.MouseEvent) { toggleWrap() }},
-					t.Text{Content: "copy", Style: t.Style{ForegroundColor: theme.TextMuted}, Click: func(t.MouseEvent) { copyBody() }},
-				},
-			},
+			responseBodyStatus{session: s, contentType: contentType, copyBody: copyBody},
 		},
+	}
+}
+
+// responseBodyStatus is the bar under the response body. It rebuilds as the
+// cursor moves, so the body above doesn't have to.
+type responseBodyStatus struct {
+	fillWidth
+	session     *Session
+	contentType string
+	copyBody    func()
+}
+
+func (r responseBodyStatus) Build(ctx t.BuildContext) t.Widget {
+	theme := ctx.Theme()
+	body := r.session.responseBody
+	graphemes := body.Content.Get()
+	wrapLabel := "wrap off"
+	if body.WrapMode.Get() != t.WrapNone {
+		wrapLabel = "wrap on"
+	}
+	children := []t.Widget{}
+	if r.session.responseVisual.Get() {
+		children = append(children, t.Text{Content: " VISUAL ", Style: t.Style{ForegroundColor: theme.TextOnAccent, BackgroundColor: theme.Accent, Bold: true}})
+	}
+	lines := 1
+	for _, g := range graphemes {
+		if g == "\n" {
+			lines++
+		}
+	}
+	children = append(children,
+		t.Text{Content: orDefault(r.contentType, "unknown type"), Style: t.Style{ForegroundColor: theme.AccentText}},
+		t.Text{Content: pluralize(lines, "line"), Style: t.Style{ForegroundColor: theme.TextMuted}},
+		t.Spacer{},
+	)
+	// The cursor is only drawn while the body has focus.
+	if isFocusedID(ctx, "resp-body") {
+		children = append(children, t.Text{Content: cursorPosition(graphemes, body.CursorIndex.Get()), Style: t.Style{ForegroundColor: theme.TextMuted}})
+	}
+	return t.Row{
+		Style:   t.Style{Width: t.Flex(1), Height: t.Cells(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+		Spacing: 2,
+		Children: append(children,
+			t.Text{Content: wrapLabel, Style: t.Style{ForegroundColor: theme.TextMuted}, Click: func(t.MouseEvent) { body.ToggleWrap() }},
+			t.Text{Content: "copy", Style: t.Style{ForegroundColor: theme.TextMuted}, Click: func(t.MouseEvent) { r.copyBody() }},
+		),
 	}
 }
 
