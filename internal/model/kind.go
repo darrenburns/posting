@@ -48,7 +48,6 @@ type Kind struct {
 	// decode reads a payload from history JSON.
 	decode  func(data []byte) (Payload, error)
 	example func() Request
-	rank    int
 }
 
 var (
@@ -63,13 +62,12 @@ var (
 		zero:    GraphQL{},
 		decode:  decodePayload[GraphQL],
 		example: exampleGraphQL,
-		rank:    1,
 	}
 )
 
-// Kinds lists every kind in menu order. Each layer that keeps a table keyed
-// by kind has a test ranging over this list, so a new kind added here turns
-// those tests red until every layer knows about it.
+// Kinds lists every kind in menu and sort order. Each layer that keeps a
+// table keyed by kind has a test ranging over this list, so a new kind added
+// here turns those tests red until every layer knows about it.
 var Kinds = []*Kind{HTTPKind, GraphQLKind}
 
 // KindByID finds a kind by its file name.

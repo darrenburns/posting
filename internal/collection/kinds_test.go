@@ -112,6 +112,7 @@ func TestParseRejectsFilesThatDontFitTheirKind(t *testing.T) {
 		{"graphql with a method", "kind: graphql\nmethod: PUT\nurl: https://x\n", "method"},
 		{"graphql with a body", "kind: graphql\nurl: https://x\nbody:\n  content: hi\n", "body"},
 		{"graphql block on http", "url: https://x\ngraphql:\n  query: '{ a }'\n", "graphql"},
+		{"unknown key in the graphql block", "kind: graphql\nurl: https://x\ngraphql:\n  query: '{ a }'\n  operationName: A\n", "operationName"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			req, err := ParseRequest([]byte(c.file), "")
@@ -129,6 +130,20 @@ func TestParseExplicitHTTPKind(t *testing.T) {
 	req, err := ParseRequest([]byte("kind: http\nmethod: POST\nurl: https://x\n"), "")
 	if err != nil || req.Kind() != model.HTTPKind || req.Method != model.MethodPost {
 		t.Fatalf("kind: http parsed as %+v, %v", req, err)
+	}
+}
+
+func TestParseKindIgnoresCase(t *testing.T) {
+	req, err := ParseRequest([]byte("kind: GraphQL\nurl: https://x\ngraphql:\n  query: '{ a }'\n"), "")
+	if err != nil || req.Payload != (model.GraphQL{Query: "{ a }"}) {
+		t.Fatalf("kind: GraphQL parsed as %+v, %v", req, err)
+	}
+}
+
+func TestParseKeepsIgnoringUnknownTopLevelKeys(t *testing.T) {
+	req, err := ParseRequest([]byte("url: https://x\nfuture_key: 1\n"), "")
+	if err != nil || req.URL != "https://x" {
+		t.Fatalf("a file with an unknown top-level key parsed as %+v, %v", req, err)
 	}
 }
 
