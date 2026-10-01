@@ -61,7 +61,7 @@ func TestSaveWritesThroughTheStore(tt *testing.T) {
 		tt.Fatal("the new request should appear in the collection")
 	}
 
-	app.deleteRequest("misc/brand-new.posting.yaml")
+	app.deleteRequests([]string{"misc/brand-new.posting.yaml"})
 	if len(store.deleted) != 1 || app.fileExists("misc/brand-new.posting.yaml") {
 		tt.Fatalf("deleted = %v", store.deleted)
 	}

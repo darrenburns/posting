@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -102,12 +104,39 @@ type collectionView struct {
 
 func (c collectionView) Keybinds() []t.Keybind {
 	a := c.app
+	duplicate, del := "Duplicate", "Delete"
+	if n := len(a.treeTargets()); n > 1 {
+		duplicate, del = fmt.Sprintf("Duplicate %d", n), fmt.Sprintf("Delete %d", n)
+	}
+	confirmDelete := func() { a.confirmDeleteRequests(a.treeTargets()) }
 	return []t.Keybind{
 		{Key: "/", Name: "Search", Action: a.focusTreeSearch},
-		{Key: "d", Name: "Duplicate", Action: a.duplicateAtCursor},
-		{Key: "backspace", Name: "Delete", Action: a.confirmDeleteAtCursor},
-		{Key: "delete", Name: "Delete", Action: a.confirmDeleteAtCursor, Hidden: true},
+		{Key: "d", Name: duplicate, Action: func() { a.duplicateRequests(a.treeTargets()) }},
+		{Key: "backspace", Name: del, Action: confirmDelete},
+		{Key: "delete", Name: del, Action: confirmDelete, Hidden: true},
 	}
+}
+
+// treeTargets are the requests the tree's operations act on: the selected
+// ones in the order the tree shows them or, with nothing selected, the one
+// under the cursor. Folders add nothing. Rows a search or a collapsed folder
+// hides are left out, so nothing out of sight is changed.
+func (a *App) treeTargets() []model.Request {
+	selection := a.tree.Selection.Peek()
+	if len(selection) == 0 {
+		if item, ok := a.tree.CursorNode(); ok && item.Request != nil {
+			return []model.Request{*item.Request}
+		}
+		return nil
+	}
+	var reqs []model.Request
+	for _, p := range a.visibleTreePaths() {
+		node, _ := a.tree.NodeAtPath(p)
+		if _, selected := selection[node.Data.key()]; selected && node.Data.Request != nil {
+			reqs = append(reqs, *node.Data.Request)
+		}
+	}
+	return reqs
 }
 
 func (c collectionView) Build(ctx t.BuildContext) t.Widget {
@@ -159,10 +188,13 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 					HasChildren: func(i treeItem) bool { return i.Folder != nil },
 					// As in Posting 2, a click opens a request or folder.
 					ActivateOnClick: true,
+					MultiSelect:     true,
 					OnCursorChange:  func(treeItem) { a.treeCursorMoved() },
-					OnSelect: func(i treeItem, _ []treeItem) {
+					OnSelect: func(i treeItem, selected []treeItem) {
 						a.dismissSummary()
-						if i.Request != nil {
+						if len(selected) > 0 {
+							a.openRequests(a.treeTargets())
+						} else if i.Request != nil {
 							a.openRequest(*i.Request)
 						} else if len(query) == 0 {
 							// Search results show every folder with a
@@ -182,7 +214,8 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 
 // renderTreeNode draws one row. The cursor is only emphasised while the tree
 // has focus; otherwise it is a quiet highlight so it doesn't compete with the
-// focused widget. Letters that match the search are highlighted.
+// focused widget, and gives way to the selection. Letters that match the
+// search are highlighted.
 //
 // A click opens a request in the preview tab (see App.openRequest), whose
 // request is in italics like the tab; a double-click keeps it open.
@@ -192,6 +225,8 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 	switch {
 	case cursor:
 		bg = theme.ActiveCursor
+	case node.Selected:
+		bg = theme.Selection
 	case node.Active:
 		bg = theme.Surface
 	}
@@ -260,9 +295,17 @@ type historyView struct {
 
 func (h historyView) Keybinds() []t.Keybind {
 	a := h.app
-	return []t.Keybind{
-		{Key: "backspace", Name: "Delete entry", Action: a.deleteHistoryAtCursor},
+	name := "Delete entry"
+	if n := len(a.historyTargets()); n > 1 {
+		name = fmt.Sprintf("Delete %d entries", n)
 	}
+	binds := []t.Keybind{
+		{Key: "backspace", Name: name, Action: func() { a.deleteHistory(a.historyTargets()) }},
+	}
+	if len(a.historyList.Selection.Peek()) > 0 {
+		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: a.clearHistorySelection})
+	}
+	return binds
 }
 
 func (h historyView) Build(ctx t.BuildContext) t.Widget {
@@ -282,15 +325,16 @@ func (h historyView) Build(ctx t.BuildContext) t.Widget {
 			OnSelect:    a.openHistory,
 			// Clicks open entries, like requests in the collection.
 			ActivateOnClick: true,
+			MultiSelect:     true,
 			RenderItem: func(entry model.HistoryEntry, active, selected bool) t.Widget {
-				return renderHistoryItem(theme, entry, active, focused)
+				return renderHistoryItem(theme, entry, active, selected, focused)
 			},
 			Style: t.Style{Width: t.Flex(1)},
 		},
 	}
 }
 
-func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focused bool) t.Widget {
+func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, selected, focused bool) t.Widget {
 	var bg t.Color
 	fg := theme.TextMuted
 	methodFg := requestColor(theme, entry.Request)
@@ -302,6 +346,8 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, focu
 	case active && focused:
 		bg = theme.ActiveCursor
 		fg, methodFg, statusFg = theme.SelectionText, theme.SelectionText, theme.SelectionText
+	case selected:
+		bg = theme.Selection
 	case active:
 		bg = theme.Surface
 	}
@@ -340,29 +386,42 @@ func (a *App) openHistory(entry model.HistoryEntry) {
 	s.responseTab.Set("body")
 }
 
-func (a *App) deleteHistoryAtCursor() {
-	entry, ok := a.historyList.SelectedItem()
-	if !ok {
+// historyTargets are the history entries backspace deletes: the selected
+// ones or, with nothing selected, the one under the cursor.
+func (a *App) historyTargets() []model.HistoryEntry {
+	if selected := a.historyList.SelectedItems(); len(selected) > 0 {
+		return selected
+	}
+	if entry, ok := a.historyList.SelectedItem(); ok {
+		return []model.HistoryEntry{entry}
+	}
+	return nil
+}
+
+// deleteHistory removes entries from the history, and the selection that
+// named them.
+func (a *App) deleteHistory(entries []model.HistoryEntry) {
+	if len(entries) == 0 {
 		return
 	}
-	var kept []model.HistoryEntry
-	for _, e := range a.history.Peek() {
-		if e.ID != entry.ID {
-			kept = append(kept, e)
-		}
+	ids := map[int64]bool{}
+	for _, e := range entries {
+		ids[e.ID] = true
 	}
-	a.setHistory(kept)
+	a.clearHistorySelection()
+	a.setHistory(slices.DeleteFunc(slices.Clone(a.history.Peek()), func(e model.HistoryEntry) bool { return ids[e.ID] }))
+}
+
+// clearHistorySelection drops the selection and the entry shift last
+// started it from, so the next shift+move starts a new range at the cursor.
+func (a *App) clearHistorySelection() {
+	a.historyList.ClearSelection()
+	a.historyList.ClearAnchor()
 }
 
 func (a *App) clearHistory() {
 	a.setHistory(nil)
 	a.notify("History cleared", toastInfo)
-}
-
-func (a *App) duplicateAtCursor() {
-	if item, ok := a.tree.CursorNode(); ok && item.Request != nil {
-		a.duplicateRequest(*item.Request)
-	}
 }
 
 func (a *App) fileExists(file string) bool {
@@ -373,10 +432,4 @@ func (a *App) fileExists(file string) bool {
 		}
 	})
 	return found
-}
-
-func (a *App) confirmDeleteAtCursor() {
-	if item, ok := a.tree.CursorNode(); ok && item.Request != nil {
-		a.confirmDelete(*item.Request)
-	}
 }

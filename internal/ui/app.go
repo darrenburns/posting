@@ -368,6 +368,24 @@ func (a *App) openRequest(req model.Request) {
 	a.focusOpenedRequest()
 }
 
+// openRequests opens each of reqs in a tab of its own, kept rather than
+// previewed since they were opened together, and shows the last. A request
+// already in a tab keeps that tab.
+func (a *App) openRequests(reqs []model.Request) {
+	var last *Session
+	for _, req := range reqs {
+		if last = a.sessionForFile(req.File); last != nil {
+			a.keepSession(last.id)
+		} else {
+			last = a.openSession(req)
+		}
+	}
+	if last != nil {
+		a.showSession(last.id)
+		a.focusOpenedRequest()
+	}
+}
+
 // sessionForFile is the tab holding the request saved in file, if any.
 func (a *App) sessionForFile(file string) *Session {
 	if file == "" {
@@ -661,32 +679,39 @@ func (a *App) storeRequest(req model.Request) bool {
 	return true
 }
 
-func (a *App) deleteRequest(file string) {
-	if err := a.store.Delete(file); err != nil {
-		a.notify("Couldn't delete "+file+": "+err.Error(), toastError)
-		return
-	}
-	root := a.collection.Peek()
-	folderPath, _ := splitFile(file)
-	folder := findFolder(root, folderPath)
-	if folder == nil {
-		return
-	}
-	kept := folder.Requests[:0]
-	for _, r := range folder.Requests {
-		if r.File != file {
-			kept = append(kept, r)
+// deleteRequests deletes files from the store and the collection, stopping
+// at the first that can't be deleted. A tab holding a deleted request keeps
+// it as an unsaved edit. The tree's selection named what was deleted, so it
+// goes too.
+func (a *App) deleteRequests(files []string) {
+	deleted := 0
+	for _, file := range files {
+		if err := a.store.Delete(file); err != nil {
+			a.notify("Couldn't delete "+file+": "+err.Error(), toastError)
+			break
 		}
-	}
-	folder.Requests = kept
-	for _, s := range a.sessions.Peek() {
-		if s.file.Peek() == file {
-			s.file.Set("")
-			s.markEdited()
+		folderPath, _ := splitFile(file)
+		if folder := findFolder(a.collection.Peek(), folderPath); folder != nil {
+			folder.Requests = slices.DeleteFunc(folder.Requests, func(r model.Request) bool { return r.File == file })
 		}
+		for _, s := range a.sessions.Peek() {
+			if s.file.Peek() == file {
+				s.file.Set("")
+				s.markEdited()
+			}
+		}
+		deleted++
 	}
+	a.tree.ClearSelection()
 	a.refreshTree()
-	a.notify("Deleted "+file, toastInfo)
+	switch {
+	case deleted < len(files):
+		return
+	case deleted == 1:
+		a.notify("Deleted "+files[0], toastInfo)
+	default:
+		a.notify(fmt.Sprintf("Deleted %d requests", deleted), toastInfo)
+	}
 }
 
 func (a *App) refreshTree() {
@@ -911,6 +936,10 @@ type footer struct {
 
 func (f footer) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
+	// The sidebar's hints count what is selected (see collectionView), and
+	// the keybind bar only rebuilds by itself when focus moves.
+	f.app.tree.Selection.Get()
+	f.app.historyList.Selection.Get()
 	style := t.Style{ForegroundColor: theme.TextMuted}
 	var hints t.Widget = t.KeybindBar{Style: style, FormatKey: t.FormatKeyCaret}
 	if f.app.jump.IsActive() {
