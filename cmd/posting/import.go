@@ -114,16 +114,33 @@ func importCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "posting import:", importDiagnostic(err.Error()))
 		return 1
 	}
-	printImportWarnings(stderr, result.Warnings)
+	printImportWarnings(stderr, append(result.Warnings, written.Warnings...))
 	fmt.Fprintf(stdout, "Imported %d %s request(s) into %q.\n", len(written.Files), format, output)
+	printImportedEnvironments(stdout, output, written.Environments)
+	return 0
+}
+
+func printImportedEnvironments(stdout io.Writer, output string, environments []importing.WrittenEnvironment) {
 	command := "posting -c " + curl.Quote(output)
-	if written.Environment != "" {
-		environment := filepath.Join(output, written.Environment)
-		fmt.Fprintf(stdout, "Collection variables: %q\n", environment)
-		command += " -e " + curl.Quote(environment)
+	var files []string
+	selected := ""
+	for _, e := range environments {
+		file := importDiagnostic(e.File)
+		if e.Base {
+			file += " (base)"
+		} else if selected == "" {
+			selected = e.Name
+		}
+		files = append(files, file)
+	}
+	if len(environments) > 0 {
+		if selected == "" {
+			selected = environments[0].Name
+		}
+		fmt.Fprintln(stdout, "Environments:", strings.Join(files, ", "))
+		command += " --env " + curl.Quote(selected)
 	}
 	fmt.Fprintln(stdout, "Open with:", command)
-	return 0
 }
 
 func printImportWarnings(out io.Writer, warnings []string) {
