@@ -3,6 +3,7 @@ package ui
 import (
 	"math"
 	"slices"
+	"sync"
 
 	t "github.com/darrenburns/terma"
 
@@ -157,8 +158,18 @@ func requestColor(theme t.ThemeData, r model.Request) t.Color {
 	if r.Payload == nil {
 		return methodColor(theme, r.Method)
 	}
-	return kindViews[r.Kind().ID].color(theme)
+	key := theme.Name + "/" + string(r.Kind().ID)
+	if color, ok := kindColors.Load(key); ok {
+		return color.(t.Color)
+	}
+	color := kindViews[r.Kind().ID].color(theme)
+	kindColors.Store(key, color)
+	return color
 }
+
+// kindColors caches kinds' badge colours by theme, since picking one
+// compares candidates with every method's colour.
+var kindColors sync.Map
 
 // unlikeMethods picks the candidate colour whose hue is furthest from every
 // method's, or failing that the one furthest in RGB. Themes often reuse

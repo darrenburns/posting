@@ -178,7 +178,9 @@ auth:
     token: ${API_TOKEN}
 ```
 
-Posting 2 doesn't know about GraphQL requests. It opens them as a `GET` of the URL with no body.
+Posting 2 doesn't know about GraphQL requests. It opens them as a `GET` of the URL with no body, and
+saving one in Posting 2 removes `kind` and the `graphql` section, which loses the query. Edit
+GraphQL requests only in Posting 3.
 
 ## Sending a request
 
@@ -334,7 +336,7 @@ Only settings that differ from the defaults are written, so most files are short
 | `headers`, `params` | Lists of `name` and `value`. `enabled: false` marks a disabled row. |
 | `path_params` | The values of the URL's `:name` placeholders. |
 | `body` | Either `content` (with `content_type`) for a raw body, or `form_data` (a list of `name` and `value`) for a form. |
-| `graphql` | A GraphQL request's `query`, `variables` and `operation_name`. |
+| `graphql` | A GraphQL request's `query`, `variables` and `operation_name`. Any other key in it is an error. |
 | `auth` | `type` is `basic`, `digest` or `bearer_token`, with credentials under a key of the same name (`basic: {username, password}`, `bearer_token: {token}`). |
 | `options` | Any of `follow_redirects`, `verify_ssl`, `attach_cookies`, `substitute_body_variables`, `proxy_url` and `timeout`. |
 | `scripts` | Posting 2 scripts. Posting 3 keeps them but doesn't run them; see [Scripting](./scripting.md). |
