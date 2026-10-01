@@ -63,6 +63,27 @@ func TestTrim(t *testing.T) {
 	}
 }
 
+func TestTrimCountsGraphQLPayloads(t *testing.T) {
+	gql := model.GraphQLKind.New()
+	gql.Payload = model.GraphQL{Query: strings.Repeat("x", MaxBytes+1)}
+	kept := Trim([]model.HistoryEntry{{ID: 1, Request: gql}, {ID: 2, Request: model.NewRequest()}})
+	if len(kept) != 1 || kept[0].ID != 2 {
+		t.Fatalf("a GraphQL query over the byte budget must be skipped, kept %d entries", len(kept))
+	}
+}
+
+func TestSaveAndLoadGraphQL(t *testing.T) {
+	store := ForCollection(t.TempDir(), "/c")
+	entries := []model.HistoryEntry{{ID: 1, Request: model.GraphQLKind.Example(), SentAt: time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC)}}
+	if err := store.Save(entries); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.Load()
+	if err != nil || !reflect.DeepEqual(got, entries) {
+		t.Fatalf("loaded %+v, %v", got, err)
+	}
+}
+
 func TestSaveOversizedExchangePreservesHistory(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/some/collection")
 	older := []model.HistoryEntry{

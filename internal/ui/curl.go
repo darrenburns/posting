@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -108,7 +109,11 @@ func (a *App) curlCommand(resolve bool) (string, error) {
 		}
 		req = resolved
 	}
-	return curl.Format(req, curl.FormatOptions{ExtraArgs: a.settings.CurlExportExtraArgs, Multiline: true}), nil
+	wire, ok := model.Lower(req)
+	if !ok {
+		return "", fmt.Errorf("%s requests can't be copied as curl", req.Kind().Label)
+	}
+	return curl.Format(wire, curl.FormatOptions{ExtraArgs: a.settings.CurlExportExtraArgs, Multiline: true}), nil
 }
 
 // copyAsCurl copies the request as a curl command and shows it.

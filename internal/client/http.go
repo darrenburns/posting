@@ -103,6 +103,10 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	req, ok := model.Lower(req)
+	if !ok {
+		return nil, fmt.Errorf("%s requests aren't sent over HTTP", call.Request.Kind().Label)
+	}
 	target, err := url.Parse(req.URL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid URL %q: %w", req.URL, err)
