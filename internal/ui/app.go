@@ -367,6 +367,24 @@ func (a *App) openRequest(req model.Request) {
 	a.focusOpenedRequest()
 }
 
+// openRequests opens each of reqs in a tab of its own, kept rather than
+// previewed since they were opened together, and shows the last. A request
+// already in a tab keeps that tab.
+func (a *App) openRequests(reqs []model.Request) {
+	var last *Session
+	for _, req := range reqs {
+		if last = a.sessionForFile(req.File); last != nil {
+			a.keepSession(last.id)
+		} else {
+			last = a.openSession(req)
+		}
+	}
+	if last != nil {
+		a.showSession(last.id)
+		a.focusOpenedRequest()
+	}
+}
+
 // sessionForFile is the tab holding the request saved in file, if any.
 func (a *App) sessionForFile(file string) *Session {
 	if file == "" {
