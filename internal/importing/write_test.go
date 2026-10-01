@@ -279,7 +279,7 @@ func TestLayersOrderReferencesAndReportCycles(t *testing.T) {
 	for _, v := range files[0] {
 		names = append(names, v.Name)
 	}
-	if want := []string{"SELF", "LATE", "USES_LATE", "A", "WAITS", "B"};!reflect.DeepEqual(names, want) {
+	if want := []string{"SELF", "LATE", "USES_LATE", "A", "WAITS", "B"}; !reflect.DeepEqual(names, want) {
 		t.Fatalf("order %v, want %v", names, want)
 	}
 	if len(warnings) != 1 || !strings.Contains(warnings[0], "A, B reference each other") {

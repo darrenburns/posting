@@ -33,7 +33,12 @@ func parseDocument(data []byte) (document, error) {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
-		p := strings.IndexByte(line, '{')
+		// Most blocks are dictionaries or text in braces. A list, such as an
+		// environment's vars:secret, is in square brackets.
+		p, closing := strings.IndexByte(line, '{'), "}"
+		if b := strings.IndexByte(line, '['); b >= 0 && (p < 0 || b < p) {
+			p, closing = b, "]"
+		}
 		if p < 1 {
 			return nil, fmt.Errorf("line %d: expected a Bruno block opening", i+1)
 		}
@@ -46,16 +51,17 @@ func parseDocument(data []byte) (document, error) {
 		start := i + 1
 		i++
 		// Triple-quoted dictionary values may themselves contain column-zero braces.
+		list := closing == "]"
 		textBlock := isText(name)
-		triple := !textBlock && opensMultiline(line[p+1:])
+		triple := !textBlock && !list && opensMultiline(line[p+1:])
 		for ; i < len(lines); i++ {
-			if !triple && strings.HasPrefix(lines[i], "}") {
-				if strings.TrimSpace(lines[i]) != "}" {
+			if !triple && strings.HasPrefix(lines[i], closing) {
+				if strings.TrimSpace(lines[i]) != closing {
 					return nil, fmt.Errorf("line %d: unexpected text after block", i+1)
 				}
 				break
 			}
-			if !textBlock {
+			if !textBlock && !list {
 				if triple {
 					triple = !strings.Contains(lines[i], "'''")
 				} else {
@@ -154,6 +160,23 @@ func (d document) pairs(name string) ([]model.KeyValue, error) {
 		result = append(result, rows...)
 	}
 	return result, nil
+}
+
+// list is the enabled items of a list block: comma or line separated, with
+// a ~ prefix marking an item disabled.
+func (d document) list(name string) []string {
+	var items []string
+	for _, b := range d {
+		if b.name != name {
+			continue
+		}
+		for _, item := range strings.FieldsFunc(b.text, func(r rune) bool { return r == ',' || r == '\n' }) {
+			if item = strings.TrimSpace(item); item != "" && !strings.HasPrefix(item, "~") {
+				items = append(items, item)
+			}
+		}
+	}
+	return items
 }
 
 var annotationLine = regexp.MustCompile(`^@[A-Za-z_][A-Za-z0-9_-]*(?:\(|$)`)
