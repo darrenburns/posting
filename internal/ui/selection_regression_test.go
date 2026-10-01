@@ -3,8 +3,12 @@ package ui
 import (
 	"context"
 	"slices"
+	"strings"
 	"testing"
 	"time"
+
+	uv "github.com/charmbracelet/ultraviolet"
+	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/client"
 	"github.com/darrenburns/posting/internal/history"
@@ -294,4 +298,38 @@ func TestHistoryTrimDropsRemovedSelectionAndAnchor(tt *testing.T) {
 	if len(selected) != 2 || selected[0].ID != 98 || selected[1].ID != 99 {
 		tt.Fatalf("range after trim = %+v", selected)
 	}
+}
+
+func TestReviewerMouseBeforeRebuild(tt *testing.T) {
+	app := testApp()
+	s := sidebarScreen(tt, app, treeID)
+	selectFrom(tt, s, "GET Get user", 2)
+	// Escape action changes app state, but Terma does not synchronously render on key dispatch.
+	app.clearTreeSelection()
+	tt.Logf("screen=\n%s", s.renderer.ScreenText())
+	lines := strings.Split(s.renderer.ScreenText(), "\n")
+	for y, line := range lines {
+		x := strings.Index(line, "Delete user")
+		if x < 0 {
+			continue
+		}
+		owner := s.renderer.PointerOwnerAt(x, y)
+		if owner == nil {
+			tt.Fatal("no owner")
+		}
+		down, ok := owner.EventWidget.(t.MouseDownHandler)
+		if !ok {
+			tt.Fatalf("owner %T lacks mouse", owner.EventWidget)
+		}
+		down.OnMouseDown(t.MouseEvent{X: x, Y: y, LocalX: x - owner.Bounds.X, LocalY: y - owner.Bounds.Y, Button: uv.MouseLeft, Mod: uv.ModShift, ClickCount: 1})
+		got := selectedRows(app)
+		tt.Logf("after shift click before render: selected=%q cursor=%v", got, app.tree.CursorPath.Peek())
+		if len(got) != 3 || got[0] != "POST Create user" || got[2] != "DELETE Delete user" {
+			tt.Errorf("wrong range from Escape cursor: %q", got)
+		}
+		s.render()
+		tt.Logf("after render selected=%q", selectedRows(app))
+		return
+	}
+	tt.Fatal("row absent")
 }
