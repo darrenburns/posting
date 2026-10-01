@@ -141,6 +141,10 @@ func FuzzEnvironmentRoundTrip(f *testing.F) {
 		if len(pairs) != 1 || pairs[0].Value != want {
 			t.Fatalf("%q encoded as %q loads as %q, want %q", template, data, pairs, want)
 		}
+		templates, skipped := env.Templates(string(data))
+		if len(templates) != 1 || len(skipped) != 0 || model.Substitute(templates[0].Value, lookup) != want {
+			t.Fatalf("%q encoded as %q reads back as template %q, skipped %q", template, data, templates, skipped)
+		}
 	})
 }
 
