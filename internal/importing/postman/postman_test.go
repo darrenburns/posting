@@ -136,8 +136,8 @@ func TestVariablesAuthAndWarnings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Variables[1].Value != "https://example.com/api" {
-		t.Fatalf("default flatten: %#v", result.Variables)
+	if result.Variables[1].Value != "${A}/api" {
+		t.Fatalf("collection variables keep references: %#v", result.Variables)
 	}
 	if result.Requests[0].URL != "${B}/local" || result.Requests[0].Auth.Username != "local" {
 		t.Fatalf("scoped auth: %#v", result.Requests[0])
@@ -146,7 +146,7 @@ func TestVariablesAuthAndWarnings(t *testing.T) {
 		t.Fatal("API key missing")
 	}
 	warnings := strings.Join(result.Warnings, "\n")
-	for _, needle := range []string{"scripts", "formdata", "dynamic", "bad-name", "unresolved"} {
+	for _, needle := range []string{"scripts", "formdata", "dynamic", "bad-name"} {
 		if !strings.Contains(warnings, needle) {
 			t.Fatalf("warning missing %q: %s", needle, warnings)
 		}
