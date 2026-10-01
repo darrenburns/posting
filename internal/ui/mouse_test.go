@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -20,6 +21,17 @@ func clickText(tt *testing.T, app *App, text string, nth int, clicks ...int) {
 	if len(clicks) > 0 {
 		count = clicks[0]
 	}
+	pressText(tt, app, text, nth, count, 0)
+}
+
+// shiftClickText is clickText with shift held.
+func shiftClickText(tt *testing.T, app *App, text string, nth int) {
+	tt.Helper()
+	pressText(tt, app, text, nth, 1, uv.ModShift)
+}
+
+func pressText(tt *testing.T, app *App, text string, nth, count int, mod uv.KeyMod) {
+	tt.Helper()
 	buf := uv.NewBuffer(snapW, snapH)
 	renderer := t.NewRenderer(buf, snapW, snapH, t.NewFocusManager(), t.NewAnySignal[t.Focusable](nil), t.NewAnySignal[t.Widget](nil))
 	renderer.Render(app)
@@ -47,7 +59,7 @@ func clickText(tt *testing.T, app *App, text string, nth int, clicks ...int) {
 				if entry == nil {
 					tt.Fatalf("nothing at %q (%d,%d)", text, x, y)
 				}
-				event := t.MouseEvent{X: x, Y: y, LocalX: x - entry.Bounds.X, LocalY: y - entry.Bounds.Y, Button: uv.MouseLeft, ClickCount: count}
+				event := t.MouseEvent{X: x, Y: y, LocalX: x - entry.Bounds.X, LocalY: y - entry.Bounds.Y, Button: uv.MouseLeft, Mod: mod, ClickCount: count}
 				handled := false
 				if down, ok := entry.EventWidget.(t.MouseDownHandler); ok {
 					down.OnMouseDown(event)
@@ -173,6 +185,23 @@ func TestClickTreeOpensRequest(tt *testing.T) {
 	clickText(tt, app, "Create user", 0)
 	if s := app.current(); s.file.Peek() != "users/create-user.posting.yaml" {
 		tt.Fatalf("clicking a request in the tree should open it; open file = %q", s.file.Peek())
+	}
+}
+
+func TestShiftClickSelectsARangeOfRequests(tt *testing.T) {
+	app := testApp()
+	clickText(tt, app, "Get user", 0)
+	opened := app.current().file.Peek()
+	shiftClickText(tt, app, "Create user", 0)
+	var names []string
+	for _, r := range app.treeTargets() {
+		names = append(names, r.Name)
+	}
+	if want := []string{"Get user", "List users", "Create user"}; !slices.Equal(names, want) {
+		tt.Fatalf("shift+click should select from the clicked request to this one; selected %q, want %q", names, want)
+	}
+	if got := app.current().file.Peek(); got != opened {
+		tt.Fatalf("shift+click should only select, but it opened %q", got)
 	}
 }
 
