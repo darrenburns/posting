@@ -35,8 +35,7 @@ type Session struct {
 	id int
 
 	// Request editing state. kind is the kind of request being edited;
-	// method stays the HTTP method while it's another kind, so switching
-	// back to HTTP restores it.
+	// method is only used while that is HTTP.
 	kind              t.Signal[model.KindID]
 	method            t.Signal[model.Method]
 	url               *t.TextInputState

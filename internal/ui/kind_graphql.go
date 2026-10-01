@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"slices"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -53,7 +54,7 @@ func (e *graphQLEditor) payload() model.Payload {
 	return model.GraphQL{
 		Query:         e.query.GetText(),
 		Variables:     e.variables.GetText(),
-		OperationName: strings.TrimSpace(e.operation.GetText()),
+		OperationName: e.operation.GetText(),
 	}
 }
 
@@ -84,7 +85,7 @@ func (e *graphQLEditor) focusID(tab string) string {
 // hasText reports reactively whether a text area holds more than whitespace.
 func hasText(area *t.TextAreaState) bool {
 	return t.SelectAny(area.Content, func(graphemes []string) bool {
-		return strings.TrimSpace(strings.Join(graphemes, "")) != ""
+		return slices.ContainsFunc(graphemes, func(g string) bool { return strings.TrimSpace(g) != "" })
 	})
 }
 

@@ -361,3 +361,14 @@ func TestEveryRequestTabHasAFixedJumpLabel(tt *testing.T) {
 		}
 	}
 }
+
+func TestGraphQLOperationNameSnapshotsAsLoaded(tt *testing.T) {
+	app := testApp()
+	s := app.current()
+	want := graphQLRequest(tt)
+	want.Payload = model.GraphQL{Query: "query User { a }", OperationName: "User "}
+	s.Load(want)
+	if got := s.Snapshot(); !reflect.DeepEqual(got, want) {
+		tt.Fatalf("Load then Snapshot changed the operation name: %q", got.Payload.(model.GraphQL).OperationName)
+	}
+}
