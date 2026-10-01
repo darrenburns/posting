@@ -201,3 +201,53 @@ func FuzzParse(f *testing.F) {
 		}
 	})
 }
+
+func TestGraphQLBodiesImportAsGraphQL(t *testing.T) {
+	var body string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, _ := io.ReadAll(r.Body)
+		body = r.Method + " " + string(data)
+	}))
+	defer server.Close()
+	data := wrap(fmt.Sprintf(`{"method":"POST","url":%q,"body":{"mode":"graphql","graphql":{"query":"query User($id: ID!) { user(id: $id, tag: \"{{TAG}}\") { name } }","variables":"{\"id\": \"{{USER_ID}}\"}"}}}`, server.URL+"/graphql"))
+	result, err := Parse(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Warnings) != 0 {
+		t.Fatalf("warnings: %v", result.Warnings)
+	}
+	imported := result.Requests[0]
+	want := model.GraphQL{Query: `query User($id: ID!) { user(id: $id, tag: "${TAG}") { name } }`, Variables: `{"id": "${USER_ID}"}`}
+	if imported.Payload != want || imported.Body.Type != model.BodyNone {
+		t.Fatalf("imported %+v", imported)
+	}
+	saved, err := collection.MarshalRequest(imported)
+	if err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := collection.ParseRequest(saved, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	vars := map[string]string{"TAG": "x", "USER_ID": "7", "id": "WRONG"}
+	if _, err := client.NewHTTP("test", client.TLSSettings{}).Send(context.Background(), client.Call{Request: loaded, Variables: vars}); err != nil {
+		t.Fatal(err)
+	}
+	if want := `POST {"query":"query User($id: ID!) { user(id: $id, tag: \"x\") { name } }","variables":{"id":"7"}}`; body != want {
+		t.Fatalf("server got %s\nwant %s", body, want)
+	}
+}
+
+func TestGraphQLOverGETWarns(t *testing.T) {
+	result, err := Parse(wrap(`{"method":"GET","url":"https://example.com/graphql","body":{"mode":"graphql","graphql":{"query":"{ a }","variables":{"x":1}}}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := result.Requests[0].Payload; got != (model.GraphQL{Query: "{ a }", Variables: `{"x":1}`}) {
+		t.Fatalf("payload = %+v", got)
+	}
+	if !strings.Contains(strings.Join(result.Warnings, " "), "POST") {
+		t.Fatalf("warnings: %v", result.Warnings)
+	}
+}

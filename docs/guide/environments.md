@@ -42,8 +42,10 @@ is sent as written.
 
 Write `$$` to send a single literal `$`: `price$$` is sent as `price$`.
 
-If a request body is full of dollar signs, as JSON schemas and GraphQL queries often are, turn
-off **Substitute body variables** in the request's [Options](./requests.md#options) tab instead.
+If a request body is full of dollar signs, as JSON schemas often are, turn off
+**Substitute body variables** in the request's [Options](./requests.md#options) tab instead.
+(A [GraphQL request](./requests.md#variables-in-graphql-requests) doesn't need this: only `${NAME}`
+is replaced in its query.)
 The body is then sent exactly as written, while variables in the URL, headers and auth still work.
 The setting is saved with the request.
 
