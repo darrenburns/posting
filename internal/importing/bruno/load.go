@@ -221,7 +221,7 @@ func sortEntries(entries []fs.DirEntry) {
 // Account for scoped values copied into each request, which need not be bounded
 // by source file bytes. Include conservative structural overhead for empty rows.
 func requestFootprint(r model.Request) int {
-	size := 512 + len(r.Name) + len(r.Description) + len(r.URL) + len(r.File) + len(r.Body.Raw) + len(r.Body.ContentType) + len(r.Auth.Username) + len(r.Auth.Password) + len(r.Auth.Token)
+	size := 512 + len(r.Name) + len(r.Description) + len(r.URL) + len(r.File) + r.PayloadSize() + len(r.Body.ContentType) + len(r.Auth.Username) + len(r.Auth.Password) + len(r.Auth.Token)
 	for _, rows := range [][]model.KeyValue{r.Headers, r.Query, r.PathParams, r.Body.Form} {
 		for _, row := range rows {
 			size += 64 + len(row.Name) + len(row.Value)
