@@ -21,23 +21,32 @@ The response body, syntax highlighted based on its `Content-Type`. JSON, HTML, X
 and YAML are highlighted. JSON is also indented to make it easier to read; to see JSON exactly as the
 server sent it, set `response.prettify_json: false` in your [configuration](./configuration.md).
 
-Move into the body with ++down++ (or jump to it with ++ctrl+o++ then ++a++, then ++down++) to scroll
-through it and select text. Below the body, Posting shows its content type and number of lines.
+Move into the body with ++down++ (or jump to it with ++ctrl+o++ then ++a++, then ++down++) to move
+through it and select text. The body is read-only, and supports the same Vim-style keys as Posting 2.
+Below the body, Posting shows its content type, number of lines and, while the body has focus, the
+cursor's line and column.
 
 | Key | Action |
 |-----|--------|
-| ++y++ | Copy the whole body to the clipboard |
-| ++w++ | Turn line wrapping on or off |
+| ++up++ ++down++ ++left++ ++right++ / ++k++ ++j++ ++h++ ++l++ | Move the cursor |
+| ++w++ / ++b++, ++ctrl+right++ / ++ctrl+left++ | Next / previous word |
+| ++0++ `^` ++home++ ++ctrl+a++ / `$` ++end++ ++ctrl+e++ | Start / end of the line |
+| ++g++ / ++shift+g++ | Top / bottom of the body |
+| `%` | The bracket matching the one under the cursor |
+| ++page-up++ / ++page-down++ | Up / down a page |
+| ++shift++ + movement, or ++shift+k++ ++shift+j++ ++shift+h++ ++shift+l++ ++shift+w++ ++shift+b++ | Select while moving |
+| ++v++ | Visual mode: moving the cursor selects, as if you were holding ++shift++. ++escape++ leaves it |
+| ++shift+v++ / ++f6++ | Select the line |
+| ++f7++ | Select the whole body |
+| ++y++ / ++c++ | Copy the selection, or the whole body if nothing is selected |
 | ++f3++ | Open the body in your [pager](./external_tools.md) |
 | ++f4++ | Open the body in your [editor](./external_tools.md) |
 
-You can also click **copy** or **wrap on**/**wrap off** below the body, or choose **Copy response body** in the
-command palette.
+You can also click and drag to select, double-click to select a word, and triple-click to select a
+line. In visual mode, the character under the cursor is part of the selection, as it is in Vim.
 
-!!! tip "Copying part of the body"
-
-    ++y++ copies the whole body. To copy part of it, select it with your terminal (in many terminals,
-    hold ++shift++ or ++alt++ while dragging), or open the body in your pager or editor.
+Click **copy** or **wrap on**/**wrap off** below the body to copy it or turn line wrapping on or off,
+or choose **Copy response body** or **Toggle response wrap** in the command palette.
 
 !!! tip "Searching a response"
 

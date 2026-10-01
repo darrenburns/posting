@@ -165,9 +165,17 @@ In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++esc
 
 | Key | Action |
 |-----|--------|
-| ++y++ | Copy the whole body |
-| ++w++ | Turn line wrapping on or off |
+| ++k++ ++j++ ++h++ ++l++, ++w++ / ++b++ | Move the cursor, by word |
+| ++0++ `^` / `$`, ++g++ / ++shift+g++ | Start / end of the line, top / bottom |
+| `%` | Matching bracket |
+| ++shift+k++ ++shift+j++ ++shift+h++ ++shift+l++ ++shift+w++ ++shift+b++ | Select while moving |
+| ++v++ | Visual mode (++escape++ to leave) |
+| ++shift+v++ / ++f6++, ++f7++ | Select the line, select all |
+| ++y++ / ++c++ | Copy the selection, or the whole body |
 | ++f3++ / ++f4++ | Open the body in your pager / editor |
+
+In the response body, ++ctrl+a++ goes to the start of the line rather than selecting all, as it did in
+Posting 2.
 
 ### Collection
 

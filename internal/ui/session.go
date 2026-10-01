@@ -94,8 +94,10 @@ type Session struct {
 	// fromHistory is set when the response was loaded from history rather than sent.
 	fromHistory t.AnySignal[*model.HistoryEntry]
 	// responseBody holds the formatted response body for the read-only viewer.
-	responseBody          *t.TextAreaState
-	responseBodyScroll    *t.ScrollState
+	responseBody       *t.TextAreaState
+	responseBodyScroll *t.ScrollState
+	// responseVisual is the body viewer's visual mode, where moving selects.
+	responseVisual        t.Signal[bool]
 	responseHeaders       *t.TableState[model.Header]
 	responseHeadersScroll *t.ScrollState
 	responseCookies       *t.TableState[model.Cookie]
@@ -160,6 +162,7 @@ func newSession(id int, req model.Request) *Session {
 		fromHistory:           t.NewAnySignal[*model.HistoryEntry](nil),
 		responseBody:          t.NewTextAreaState(""),
 		responseBodyScroll:    t.NewScrollState(),
+		responseVisual:        t.NewSignal(false),
 		responseHeaders:       t.NewTableState[model.Header](nil),
 		responseHeadersScroll: t.NewScrollState(),
 		responseCookies:       t.NewTableState[model.Cookie](nil),
@@ -497,6 +500,7 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 	s.responseBody.CursorIndex.Set(0)
 	s.responseBodyScroll.SetOffset(0)
 	s.responseBody.SelectionAnchor.Set(-1)
+	s.responseVisual.Set(false)
 	s.responseHeaders.SetRows(resp.Headers)
 	s.responseHeadersScroll.SetOffset(0)
 	s.responseCookies.SetRows(resp.Cookies)
