@@ -164,20 +164,42 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 	if isFocusedID(ctx, "resp-body") {
 		highlighter = withBracketMatch(highlighter, s.responseBody)
 	}
+	highlighter = s.withBodyVisualSelection(highlighter, theme.Selection)
+	area := t.TextArea{
+		ID:            "resp-body",
+		State:         s.responseBody,
+		ScrollState:   s.responseBodyScroll,
+		Highlighter:   highlighter,
+		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
+		MouseDown:     func(t.MouseEvent) { s.responseVisual.Set(false) },
+		ExtraKeybinds: append(s.responseBodyKeybinds(copyBody, s.responseVisual.Get()), b.app.externalKeybinds(s.responseBody, languageFor(contentType), nil)...),
+	}
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
-			scrollingArea("resp-body", s.responseBodyScroll, theme.Background, t.TextArea{
-				ID:            "resp-body",
-				State:         s.responseBody,
-				ScrollState:   s.responseBodyScroll,
-				Highlighter:   highlighter,
-				Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
-				ExtraKeybinds: append(s.responseBodyKeybinds(copyBody, s.responseVisual.Get()), b.app.externalKeybinds(s.responseBody, languageFor(contentType), nil)...),
-			}),
+			responseBodyViewport{
+				height: &s.responseBodyViewportHeight,
+				Column: t.Column{
+					Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+					Children: []t.Widget{scrollingArea("resp-body", s.responseBodyScroll, theme.Background, area)},
+				},
+			},
 			responseBodyStatus{session: s, contentType: contentType, copyBody: copyBody},
 		},
 	}
+}
+
+type responseBodyViewport struct {
+	t.Column
+	height *int
+}
+
+func (v responseBodyViewport) Build(t.BuildContext) t.Widget { return v }
+
+func (v responseBodyViewport) ChildWidgets() []t.Widget { return v.Children }
+
+func (v responseBodyViewport) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
+	*v.height = metrics.Box().ContentHeight()
 }
 
 // responseBodyStatus is the bar under the response body. It rebuilds as the
