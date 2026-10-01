@@ -67,8 +67,8 @@ func TestVisualModeCopiesTheCharacterUnderTheCursor(tt *testing.T) {
 func TestVisualModeCopiesWhatIsHighlightedWhenSelectingBackwards(tt *testing.T) {
 	app, s := bodyApp(tt, "text/plain", "hello world\nsecond line")
 	press(tt, app, "w", "v", "b")
-	if text, _ := s.bodyCopyText(); text != "hello " {
-		tt.Fatalf("w v b copies %q, want the highlighted %q", text, "hello ")
+	if text, _ := s.bodyCopyText(); text != "hello w" {
+		tt.Fatalf("w v b copies %q, want the highlighted %q", text, "hello w")
 	}
 }
 
