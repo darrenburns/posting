@@ -40,8 +40,8 @@ func persistedProbe(t *testing.T, data []byte) (model.Request, map[string]string
 		t.Fatal(err)
 	}
 	values := map[string]string{}
-	if written.Environment != "" {
-		raw, err := os.ReadFile(filepath.Join(dir, written.Environment))
+	for _, e := range written.Environments {
+		raw, err := os.ReadFile(filepath.Join(dir, e.File))
 		if err != nil {
 			t.Fatal(err)
 		}

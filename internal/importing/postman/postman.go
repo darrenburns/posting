@@ -106,7 +106,7 @@ func Parse(data []byte) (importing.Result, error) {
 		if reference.MatchString(value) {
 			p.warn("collection", "variable %q contains unresolved Postman references; provide a concrete value in the imported environment", name)
 		}
-		p.result.Variables = append(p.result.Variables, model.Variable{Name: name, Value: value, Source: "postman"})
+		p.result.Variables = append(p.result.Variables, model.Variable{Name: name, Value: strings.ReplaceAll(value, "$", "$$"), Source: "postman"})
 	}
 	if len(in.Event) > 0 {
 		p.warn("collection", "scripts and tests are not imported or executed")

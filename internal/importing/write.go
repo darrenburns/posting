@@ -10,14 +10,25 @@ import (
 	"unicode"
 
 	"github.com/darrenburns/posting/internal/collection"
+	"github.com/darrenburns/posting/internal/env"
 	"github.com/darrenburns/posting/internal/model"
 )
 
 // Written records the actual collection-relative filenames, including any
 // suffixes needed to avoid replacing existing files.
 type Written struct {
-	Files       []string
-	Environment string
+	Files []string
+	// Environments lists the environment files written, the base first.
+	Environments []WrittenEnvironment
+	Warnings     []string
+}
+
+// WrittenEnvironment is one environment file. Name is what posting --env
+// selects it by.
+type WrittenEnvironment struct {
+	Name string
+	File string
+	Base bool
 }
 
 // DirectoryName turns a source collection name into a portable directory name.
@@ -32,8 +43,9 @@ func Write(result Result, dir string) (written Written, err error) {
 		name        string
 		data        []byte
 		environment bool
+		base        bool
 	}
-	entries := make([]entry, 0, len(result.Requests)+1)
+	entries := make([]entry, 0, len(result.Requests)+1+len(result.Environments))
 	for _, req := range result.Requests {
 		name := req.File
 		if name == "" {
@@ -52,15 +64,23 @@ func Write(result Result, dir string) (written Written, err error) {
 		}
 		entries = append(entries, entry{name: name, data: data})
 	}
+	files, warnings := layers(result.Variables, result.Environments)
 	if len(result.Variables) > 0 {
-		data, encodeErr := environmentData(result.Variables)
+		data, encodeErr := environmentData(files[0])
 		if encodeErr != nil {
 			return Written{}, encodeErr
 		}
-		entries = append(entries, entry{name: "imported.env", data: data, environment: true})
+		entries = append(entries, entry{name: env.BaseFile, data: data, environment: true, base: true})
+	}
+	for i, e := range result.Environments {
+		data, encodeErr := environmentData(files[i+1])
+		if encodeErr != nil {
+			return Written{}, fmt.Errorf("environment %q: %w", e.Name, encodeErr)
+		}
+		entries = append(entries, entry{name: environmentFile(e.Name), data: data, environment: true})
 	}
 	if len(entries) == 0 {
-		return Written{}, fmt.Errorf("source contains no importable requests or variables")
+		return Written{}, fmt.Errorf("source contains no importable requests, variables or environments")
 	}
 	if err = os.MkdirAll(dir, 0o755); err != nil {
 		return Written{}, err
@@ -110,12 +130,31 @@ func Write(result Result, dir string) (written Written, err error) {
 			return written, fmt.Errorf("write %q: %w", name, err)
 		}
 		if item.environment {
-			written.Environment = name
+			written.Environments = append(written.Environments, WrittenEnvironment{Name: env.Name([]string{name}), File: name, Base: item.base})
+			if item.base && name != env.BaseFile {
+				warnings = append(warnings, fmt.Sprintf("%s already exists, so the imported base variables were written to %s; Posting loads that file as an environment named %s, not as the base", env.BaseFile, name, env.Name([]string{name})))
+			}
 		} else {
 			written.Files = append(written.Files, name)
 		}
 	}
+	written.Warnings = warnings
 	return written, nil
+}
+
+// environmentFile names an environment's file without stepping on the
+// layering convention: posting.env is the base, and a .local.env file is a
+// companion of another environment rather than an environment of its own.
+func environmentFile(name string) string {
+	name = safePart(name)
+	lower := strings.ToLower(name)
+	switch {
+	case lower == env.BaseName:
+		name += "-environment"
+	case strings.HasSuffix(lower, ".local"):
+		name = name[:len(name)-len(".local")] + "-local"
+	}
+	return name + ".env"
 }
 
 func numberedName(name string, n int) string {
@@ -165,16 +204,42 @@ func safePart(name string) string {
 
 func environmentData(variables []model.Variable) ([]byte, error) {
 	var out strings.Builder
-	out.WriteString("# Imported collection defaults. Load with posting -e <this file>.\n")
 	for _, v := range variables {
 		refs := model.FindVariables("${" + v.Name + "}")
 		if len(refs) != 1 || refs[0].Name != v.Name {
 			return nil, fmt.Errorf("cannot save environment variable named %q", v.Name)
 		}
-		// Single quotes preserve literal dollar expressions and host-independent
-		// values. Backslashes and quotes use dotenv's single-quoted escapes.
-		value := strings.NewReplacer(`\`, `\\`, `'`, `\'`).Replace(v.Value)
-		out.WriteString(v.Name + "='" + value + "'\n")
+		out.WriteString(v.Name + "=" + dotenvValue(v.Value) + "\n")
 	}
 	return []byte(out.String()), nil
+}
+
+var (
+	singleQuoted = strings.NewReplacer(`\`, `\\`, `'`, `\'`)
+	// Double quotes can't escape "${", so a literal one is written as an
+	// expansion of the empty name, which never has a value, defaulting to "$".
+	// Posting and python-dotenv both read ${:-$}{ as ${.
+	doubleQuoted = strings.NewReplacer(`\`, `\\`, `"`, `\"`, "\n", `\n`, "\r", `\r`, "${", "${:-$}{")
+)
+
+// dotenvValue encodes a template so that loading it gives what
+// model.Substitute would. Without references the value is single-quoted,
+// which dotenv reads literally. References need double quotes, where dotenv
+// expands ${NAME}.
+func dotenvValue(template string) string {
+	refs := model.FindVariables(template)
+	if len(refs) == 0 {
+		return "'" + singleQuoted.Replace(strings.ReplaceAll(template, "$$", "$")) + "'"
+	}
+	var b strings.Builder
+	b.WriteByte('"')
+	last := 0
+	for _, ref := range refs {
+		b.WriteString(doubleQuoted.Replace(strings.ReplaceAll(template[last:ref.Start], "$$", "$")))
+		b.WriteString("${" + ref.Name + "}")
+		last = ref.End
+	}
+	b.WriteString(doubleQuoted.Replace(strings.ReplaceAll(template[last:], "$$", "$")))
+	b.WriteByte('"')
+	return b.String()
 }

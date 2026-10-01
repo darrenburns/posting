@@ -148,7 +148,7 @@ func TestImportCLIEnvironmentInstructions(t *testing.T) {
 	if code := run([]string{"import", source, "-o", output}, &stdout, &stderr); code != 0 {
 		t.Fatal(stderr.String())
 	}
-	if !strings.Contains(stdout.String(), " -e ") || !strings.Contains(stdout.String(), "imported.env") {
+	if !strings.Contains(stdout.String(), "Environments: posting.env (base)\n") || !strings.Contains(stdout.String(), " --env posting\n") {
 		t.Fatalf("missing environment instructions: %s", stdout.String())
 	}
 }
