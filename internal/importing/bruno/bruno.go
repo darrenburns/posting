@@ -492,7 +492,11 @@ func environment(d document, name, where string, result *importing.Result) (impo
 	if expansion.err != nil {
 		return importing.Environment{}, expansion.err
 	}
-	if secrets := d.list("vars:secret"); len(secrets) > 0 {
+	switch secrets := d.list("vars:secret"); len(secrets) {
+	case 0:
+	case 1:
+		warn(result, where+": secret variable "+secrets[0]+" has no value on disk; set it in "+name+".local.env")
+	default:
 		warn(result, where+": secret variables "+strings.Join(secrets, ", ")+" have no values on disk; set them in "+name+".local.env")
 	}
 	for _, b := range d {

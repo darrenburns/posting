@@ -73,7 +73,7 @@ func TestEnvironmentsOverrideCollectionVariablesButNotFolderVariables(t *testing
 		t.Fatalf("environments: %+v", result.Environments)
 	}
 	warnings := strings.Join(result.Warnings, "\n")
-	if !strings.Contains(warnings, "secret variables token have no values on disk; set them in staging.local.env") || strings.Contains(warnings, "disabledSecret") {
+	if !strings.Contains(warnings, "secret variable token has no value on disk; set it in staging.local.env") || strings.Contains(warnings, "disabledSecret") {
 		t.Fatalf("warnings: %s", warnings)
 	}
 	for _, tc := range []struct{ environment, b string }{
