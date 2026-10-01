@@ -103,12 +103,39 @@ type collectionView struct {
 
 func (c collectionView) Keybinds() []t.Keybind {
 	a := c.app
+	duplicate, del := "Duplicate", "Delete"
+	if n := len(a.treeTargets()); n > 1 {
+		duplicate, del = fmt.Sprintf("Duplicate %d", n), fmt.Sprintf("Delete %d", n)
+	}
+	confirmDelete := func() { a.confirmDeleteRequests(a.treeTargets()) }
 	return []t.Keybind{
 		{Key: "/", Name: "Search", Action: a.focusTreeSearch},
-		{Key: "d", Name: "Duplicate", Action: a.duplicateAtCursor},
-		{Key: "backspace", Name: "Delete", Action: a.confirmDeleteAtCursor},
-		{Key: "delete", Name: "Delete", Action: a.confirmDeleteAtCursor, Hidden: true},
+		{Key: "d", Name: duplicate, Action: func() { a.duplicateRequests(a.treeTargets()) }},
+		{Key: "backspace", Name: del, Action: confirmDelete},
+		{Key: "delete", Name: del, Action: confirmDelete, Hidden: true},
 	}
+}
+
+// treeTargets are the requests the tree's operations act on: the selected
+// ones in the order the tree shows them or, with nothing selected, the one
+// under the cursor. Folders add nothing. Rows a search or a collapsed folder
+// hides are left out, so nothing out of sight is changed.
+func (a *App) treeTargets() []model.Request {
+	selection := a.tree.Selection.Peek()
+	if len(selection) == 0 {
+		if item, ok := a.tree.CursorNode(); ok && item.Request != nil {
+			return []model.Request{*item.Request}
+		}
+		return nil
+	}
+	var reqs []model.Request
+	for _, p := range a.visibleTreePaths() {
+		node, _ := a.tree.NodeAtPath(p)
+		if _, selected := selection[node.Data.key()]; selected && node.Data.Request != nil {
+			reqs = append(reqs, *node.Data.Request)
+		}
+	}
+	return reqs
 }
 
 func (c collectionView) Build(ctx t.BuildContext) t.Widget {
@@ -371,12 +398,6 @@ func (a *App) clearHistory() {
 	a.notify("History cleared", toastInfo)
 }
 
-func (a *App) duplicateAtCursor() {
-	if item, ok := a.tree.CursorNode(); ok && item.Request != nil {
-		a.duplicateRequest(*item.Request)
-	}
-}
-
 func (a *App) fileExists(file string) bool {
 	found := false
 	a.collection.Peek().Walk(func(_ *model.Collection, r model.Request) {
@@ -385,10 +406,4 @@ func (a *App) fileExists(file string) bool {
 		}
 	})
 	return found
-}
-
-func (a *App) confirmDeleteAtCursor() {
-	if item, ok := a.tree.CursorNode(); ok && item.Request != nil {
-		a.confirmDelete(*item.Request)
-	}
 }
