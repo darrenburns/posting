@@ -189,9 +189,11 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 					ActivateOnClick: true,
 					MultiSelect:     true,
 					OnCursorChange:  func(treeItem) { a.treeCursorMoved() },
-					OnSelect: func(i treeItem, _ []treeItem) {
+					OnSelect: func(i treeItem, selected []treeItem) {
 						a.dismissSummary()
-						if i.Request != nil {
+						if len(selected) > 0 {
+							a.openRequests(a.treeTargets())
+						} else if i.Request != nil {
 							a.openRequest(*i.Request)
 						} else if len(query) == 0 {
 							// Search results show every folder with a

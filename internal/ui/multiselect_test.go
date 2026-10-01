@@ -191,3 +191,17 @@ func TestSidebarOperationsWithoutASelectionActOnTheCursor(tt *testing.T) {
 		tt.Errorf("toast = %q", got)
 	}
 }
+
+func TestEnterOpensEachSelectedRequestInATab(tt *testing.T) {
+	app := testApp()
+	app.openRequest(sampleRequest(tt, "List users"))
+	s := sidebarScreen(tt, app, treeID)
+	selectFrom(tt, s, "users/", 3)
+	s.pressKey(tt, "enter")
+	assertTabs(tt, app, "List users, Get user, Create user")
+	assertActive(tt, app, "Create user")
+
+	s.pressKey(tt, "down")
+	s.pressKey(tt, "enter")
+	assertTabs(tt, app, "List users, Get user, Create user, /Update user/")
+}
