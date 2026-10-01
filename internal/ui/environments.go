@@ -68,12 +68,31 @@ type environments struct {
 // comes from and what it overrides. Reading it in Build subscribes to
 // environment and session changes.
 func (a *App) resolvedVariables() []model.Variable {
-	return a.layerVariables(a.env.active.Get().Variables, a.sessionVars.Get())
+	variables := a.layerVariables(a.env.active.Get().Variables, a.sessionVars.Get())
+	var scope *model.VariableScope
+	if s := a.session(); s != nil {
+		scope = s.variableScope
+	}
+	resolved, _ := model.ScopedVariables(variables, scope, os.LookupEnv)
+	return resolved
 }
 
 // variableList is resolvedVariables without subscribing (for actions).
 func (a *App) variableList() []model.Variable {
-	return a.layerVariables(a.env.active.Peek().Variables, a.sessionVars.Peek())
+	variables := a.layerVariables(a.env.active.Peek().Variables, a.sessionVars.Peek())
+	var scope *model.VariableScope
+	if s := a.current(); s != nil {
+		scope = s.variableScope
+	}
+	resolved, _ := model.ScopedVariables(variables, scope, os.LookupEnv)
+	return resolved
+}
+
+// requestVariableValues resolves the exact snapshot being sent or exported.
+func (a *App) requestVariableValues(req model.Request) (map[string]string, error) {
+	variables := a.layerVariables(a.env.active.Peek().Variables, a.sessionVars.Peek())
+	resolved, err := model.VariablesForRequest(req, variables, os.LookupEnv)
+	return model.Values(resolved), err
 }
 
 // variableValues is the value of every variable. Reading it in Build
@@ -86,7 +105,7 @@ func (a *App) variableValuesPeek() map[string]string { return model.Values(a.var
 func (a *App) layerVariables(envVars []model.Variable, session map[string]string) []model.Variable {
 	sessionVars := make([]model.Variable, 0, len(session))
 	for name, value := range session {
-		sessionVars = append(sessionVars, model.Variable{Name: name, Value: value, Source: "session"})
+		sessionVars = append(sessionVars, model.Variable{Name: name, Value: value, Source: "session", SessionOverride: true})
 	}
 	return model.Merge(a.env.host, envVars, sessionVars)
 }

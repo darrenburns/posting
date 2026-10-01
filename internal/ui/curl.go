@@ -103,7 +103,11 @@ func (a *App) curlCommand(resolve bool) (string, error) {
 	}
 	req := s.Snapshot()
 	if resolve {
-		resolved, err := model.Resolve(req, model.MapLookup(a.variableValuesPeek()))
+		variables, err := a.requestVariableValues(req)
+		if err != nil {
+			return "", err
+		}
+		resolved, err := model.Resolve(req, model.MapLookup(variables))
 		if err != nil {
 			return "", err
 		}

@@ -21,9 +21,8 @@ const FileSuffix = ".posting.yaml"
 
 // requestFile mirrors Posting 2's RequestModel. Field order is the order
 // Posting 2 writes them in, and fields at their default value are left out,
-// as Posting 2 does, so files stay short and diffs stay small. Kind and the
-// kind's own block (graphql) are Posting 3's; both are absent for HTTP, and
-// Posting 2 ignores them.
+// as Posting 2 does, so files stay short and diffs stay small. Kind, its block
+// (graphql), and variable_scope are Posting 3 fields that Posting 2 ignores.
 type requestFile struct {
 	Name        yamlString      `yaml:"name,omitempty"`
 	Description yamlString      `yaml:"description,omitempty"`
@@ -38,6 +37,8 @@ type requestFile struct {
 	PathParams  []pathParamFile `yaml:"path_params,omitempty"`
 	Scripts     *scriptsFile    `yaml:"scripts,omitempty"`
 	Options     *optionsFile    `yaml:"options,omitempty"`
+
+	VariableScope *model.VariableScope `yaml:"variable_scope,omitempty"`
 }
 
 type bodyFile struct {
@@ -101,6 +102,7 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 	}
 	req := model.NewRequest()
 	req.File = file
+	req.VariableScope = in.VariableScope
 	req.Name = string(in.Name)
 	req.Description = string(in.Description)
 	req.URL = string(in.URL)
@@ -168,11 +170,12 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 func MarshalRequest(req model.Request) ([]byte, error) {
 	req = model.Normalize(req)
 	out := requestFile{
-		Name:        yamlString(req.Name),
-		Description: yamlString(req.Description),
-		URL:         yamlString(req.URL),
-		Headers:     kvsToFile(req.Headers),
-		Params:      kvsToFile(req.Query),
+		VariableScope: req.VariableScope,
+		Name:          yamlString(req.Name),
+		Description:   yamlString(req.Description),
+		URL:           yamlString(req.URL),
+		Headers:       kvsToFile(req.Headers),
+		Params:        kvsToFile(req.Query),
 	}
 	// The editor keeps the enabled parameters in the URL as well as the
 	// table. Files keep them only in the table, as Posting 2 writes them, so

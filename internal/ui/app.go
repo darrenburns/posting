@@ -537,7 +537,16 @@ func (a *App) send() {
 	// Sending commits to the tab, so its response isn't lost to the next
 	// request opened.
 	s.preview.Set(false)
-	s.Send(a.sender, a.variableValuesPeek(), func(req model.Request, resp *model.Response, status model.Status) {
+	variables, err := a.requestVariableValues(s.Snapshot())
+	if err != nil {
+		s.Cancel()
+		s.err.Set(err)
+		s.trace.Set(nil)
+		s.phase.Set(exchangeFailed)
+		a.notify(err.Error(), toastWarning)
+		return
+	}
+	s.Send(a.sender, variables, func(req model.Request, resp *model.Response, status model.Status) {
 		a.nextHistoryID++
 		entry := historyEntry(a.nextHistoryID, req, resp, status)
 		a.setHistory(append([]model.HistoryEntry{entry}, a.history.Peek()...))

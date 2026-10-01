@@ -53,8 +53,14 @@ type HistoryEntry struct {
 
 // Variable is a named value available for ${NAME} substitution.
 type Variable struct {
-	Name  string
-	Value string
+	// SessionOverride gives an in-app override priority over request scope.
+	// Source is a display label and may also be an environment file name.
+	SessionOverride bool
+	// Template is retained only for deferred imported variables. Value is its
+	// evaluated value in the current scope. Ordinary dotenv values are literal.
+	Template *string
+	Name     string
+	Value    string
 	// Source describes where the value came from ("session", "host" or an
 	// env file name).
 	Source string

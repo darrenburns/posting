@@ -57,7 +57,8 @@ type Session struct {
 	file              t.Signal[string]
 	// scripts aren't edited in Posting 3, but are kept so saving a
 	// Posting 2 request doesn't drop them.
-	scripts model.Scripts
+	scripts       model.Scripts
+	variableScope *model.VariableScope
 	// payloads edit the payload of each kind that has one, for the
 	// session's whole life, so switching kinds loses nothing.
 	payloads   map[model.KindID]payloadEditor
@@ -237,8 +238,9 @@ func (s *Session) Snapshot() model.Request {
 			ProxyURL:                s.proxy.GetText(),
 			TimeoutSeconds:          timeout,
 		},
-		Scripts: s.scripts,
-		File:    s.file.Peek(),
+		Scripts:       s.scripts,
+		VariableScope: s.variableScope.Clone(),
+		File:          s.file.Peek(),
 	}
 	if e := s.payloads[s.kind.Peek()]; e != nil {
 		req.Payload = e.payload()
@@ -295,6 +297,7 @@ func (s *Session) Load(req model.Request) {
 	s.description.SetText(req.Description)
 	s.file.Set(req.File)
 	s.scripts = req.Scripts
+	s.variableScope = req.VariableScope.Clone()
 	s.follow.SetChecked(req.Options.FollowRedirects)
 	s.verifySSL.SetChecked(req.Options.VerifySSL)
 	s.cookies.SetChecked(req.Options.AttachCookies)

@@ -68,17 +68,26 @@ func Write(result Result, dir string) (written Written, err error) {
 	if len(base) == 0 && len(result.Environments) > 0 {
 		base, warnings = existingBase(dir)
 	}
-	files, layerWarnings := layers(base, result.Environments)
-	warnings = append(warnings, layerWarnings...)
+	var files [][]model.Variable
+	if result.DeferredVariables {
+		files = [][]model.Variable{base}
+		for _, e := range result.Environments {
+			files = append(files, e.Variables)
+		}
+	} else {
+		var layerWarnings []string
+		files, layerWarnings = layers(base, result.Environments)
+		warnings = append(warnings, layerWarnings...)
+	}
 	if len(result.Variables) > 0 {
-		data, encodeErr := environmentData(files[0])
+		data, encodeErr := environmentDataMode(files[0], result.DeferredVariables)
 		if encodeErr != nil {
 			return Written{}, encodeErr
 		}
 		entries = append(entries, entry{name: env.BaseFile, data: data, environment: true, base: true})
 	}
 	for i, e := range result.Environments {
-		data, encodeErr := environmentData(files[i+1])
+		data, encodeErr := environmentDataMode(files[i+1], result.DeferredVariables)
 		if encodeErr != nil {
 			return Written{}, fmt.Errorf("environment %q: %w", e.Name, encodeErr)
 		}
@@ -232,7 +241,14 @@ func safePart(name string) string {
 }
 
 func environmentData(variables []model.Variable) ([]byte, error) {
+	return environmentDataMode(variables, false)
+}
+
+func environmentDataMode(variables []model.Variable, deferred bool) ([]byte, error) {
 	var out strings.Builder
+	if deferred {
+		out.WriteString(env.TemplateHeader + "\n")
+	}
 	for _, v := range variables {
 		refs := model.FindVariables("${" + v.Name + "}")
 		if len(refs) != 1 || refs[0].Name != v.Name {

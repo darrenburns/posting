@@ -141,6 +141,8 @@ type Request struct {
 	// File is the collection-relative path of the saved request, or empty
 	// when the request has not been saved.
 	File string
+
+	VariableScope *VariableScope `json:",omitempty"`
 }
 
 // NewRequest returns an empty GET request with default options.
@@ -155,6 +157,7 @@ func NewRequest() Request {
 
 // Clone returns a deep copy so edits never alias another request's slices.
 func (r Request) Clone() Request {
+	r.VariableScope = r.VariableScope.Clone()
 	r.Headers = cloneKV(r.Headers)
 	r.Query = cloneKV(r.Query)
 	r.PathParams = cloneKV(r.PathParams)

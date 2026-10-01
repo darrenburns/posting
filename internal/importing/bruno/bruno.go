@@ -14,14 +14,14 @@ import (
 )
 
 type scope struct {
+	deferred       bool
 	headers, query []model.KeyValue
-	// vars are materialized into each request: folder variables, and
-	// collection variables whose names Posting cannot reference.
+	// vars holds folder variables and collection names Posting cannot
+	// reference. Deferred imports preserve representable names in the request.
 	vars map[string]string
 	// collection holds the other collection variables, unexpanded. They are
 	// written to the base environment, which Bruno ranks below environments.
 	collection map[string]string
-	referrers  map[string][]string
 	auth       model.Auth
 	authMode   string
 	authFields map[string]string
@@ -118,7 +118,6 @@ func applyScope(d document, parent scope, result *importing.Result, collection b
 		for _, v := range shared {
 			s.collection[v.Name] = v.Value
 		}
-		s.referrers = referrers(s.collection)
 		// Names Posting can't reference stay materialized, including inside
 		// the collection variables that use them.
 		expansion := expander{vars: s.vars, result: result}
@@ -243,8 +242,29 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 			vars[strings.TrimPrefix(v.Name, "@")] = v.Value
 		}
 	}
-	materializeAliases(vars, parent)
 	expansion := expander{vars: vars, result: result}
+	if parent.deferred {
+		r.VariableScope = &model.VariableScope{Variables: map[string]string{}}
+		unrepresentable := map[string]string{}
+		for name, value := range vars {
+			if !identifier.MatchString(name) {
+				unrepresentable[name] = value
+			}
+		}
+		expansion.vars = unrepresentable
+		for name, value := range vars {
+			if identifier.MatchString(name) {
+				r.VariableScope.Variables[name] = expansion.expand(value, nil)
+			}
+		}
+		if len(r.VariableScope.Variables) == 0 {
+			r.VariableScope = nil
+		}
+		expansion.vars = scopeConstants(vars)
+		for name, value := range unrepresentable {
+			expansion.vars[name] = value
+		}
+	}
 	headers, err := d.pairs("headers")
 	if err != nil {
 		return nil, err
@@ -434,32 +454,33 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 	return &r, nil
 }
 
-// materializeAliases adds to vars each collection variable that refers,
-// directly or not, to a folder or request variable. Bruno resolves it with
-// the narrower value, which a shared environment file can't hold.
-func materializeAliases(vars map[string]string, s scope) {
-	queue := make([]string, 0, len(vars))
-	for name := range vars {
-		queue = append(queue, name)
-	}
-	for len(queue) > 0 {
-		name := queue[0]
-		queue = queue[1:]
-		for _, alias := range s.referrers[name] {
-			if _, ok := vars[alias]; !ok {
-				vars[alias] = s.collection[alias]
-				queue = append(queue, alias)
+// scopeConstants can still be materialized with Bruno's JSON escaping. A
+// value that depends on an environment or host variable must wait until send.
+func scopeConstants(vars map[string]string) map[string]string {
+	state := map[string]uint8{}
+	var constant func(string, int) bool
+	constant = func(name string, depth int) bool {
+		if state[name] != 0 {
+			return state[name] == 2
+		}
+		value, ok := vars[name]
+		if !ok || depth >= 32 {
+			return false
+		}
+		state[name] = 1
+		for _, ref := range reference.FindAllStringSubmatch(value, -1) {
+			if !constant(strings.TrimSpace(ref[1]), depth+1) {
+				state[name] = 3
+				return false
 			}
 		}
+		state[name] = 2
+		return true
 	}
-}
-
-// referrers maps each name to the collection variables that reference it.
-func referrers(collection map[string]string) map[string][]string {
-	out := map[string][]string{}
-	for name, value := range collection {
-		for _, ref := range reference.FindAllStringSubmatch(value, -1) {
-			out[strings.TrimSpace(ref[1])] = append(out[strings.TrimSpace(ref[1])], name)
+	out := map[string]string{}
+	for name, value := range vars {
+		if constant(name, 0) {
+			out[name] = value
 		}
 	}
 	return out

@@ -698,7 +698,7 @@ func (a *App) dismissVariables() {
 
 func (a *App) revertVariable() {
 	v, ok := a.variables.table.SelectedRow()
-	if !ok || v.Source != "session" {
+	if !ok || !v.SessionOverride {
 		return
 	}
 	vars := map[string]string{}

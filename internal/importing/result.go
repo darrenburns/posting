@@ -17,15 +17,16 @@ import (
 // model.FindVariables and model.Substitute read them.
 //
 // Variables are the base layer that every environment builds on. Each of
-// Environments is a named layer on top of it. Scopes narrower than an
-// environment must be resolved by the format reader, so sibling requests
-// cannot change one another's values.
+// Environments is a named layer on top of it. DeferredVariables preserves
+// template evaluation until a request's VariableScope is available.
 type Result struct {
 	Name         string
 	Requests     []model.Request
 	Variables    []model.Variable
 	Environments []Environment
 	Warnings     []string
+
+	DeferredVariables bool
 }
 
 // Environment is a named set of variables layered over a Result's Variables.
