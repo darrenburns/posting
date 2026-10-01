@@ -35,7 +35,7 @@ func (a *App) actions() []action {
 		{id: "previous-tab", keys: []string{"alt+left"}, name: "Prev tab", help: "Previous request tab", hidden: true, run: func() { a.cycleSession(-1) }},
 		{id: "search-tabs", keys: []string{"alt+down"}, name: "Tabs", help: "Search the open request tabs", hidden: true, run: a.openTabSearch},
 		{id: "focus-url", keys: []string{"ctrl+l"}, name: "Focus URL", help: "Focus the URL bar", hidden: true, run: func() { t.RequestFocus(urlInputID) }},
-		{id: "focus-method", keys: []string{"ctrl+t"}, name: "Method", help: "Choose the HTTP method", hidden: true, run: a.openMethodMenu},
+		{id: "focus-method", keys: []string{"ctrl+t"}, name: "Method", help: "Choose the method or kind of request", hidden: true, run: a.openMethodMenu},
 		{id: "toggle-collection", keys: []string{"ctrl+h"}, name: "Sidebar", help: "Show or hide the collection", hidden: true, run: a.toggleSidebar},
 		{id: "expand-section", keys: []string{"alt+z"}, name: "Expand", help: "Expand the focused panel", hidden: true, run: func() { a.toggleExpand("request") }},
 		{id: "variables", keys: []string{"ctrl+shift+v"}, name: "Variables", help: "Variables", hidden: true, run: a.openVariables},

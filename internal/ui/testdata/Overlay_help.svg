@@ -2295,8 +2295,11 @@
   <text x="234.8" y="311.8" class="bold" fill="#F5F5F6">ctrl+t</text>
   <text x="419.6" y="311.8" fill="#9A96BE">Choose</text>
   <text x="478.4" y="311.8" fill="#9A96BE">the</text>
-  <text x="512.0" y="311.8" fill="#9A96BE">HTTP</text>
-  <text x="554.0" y="311.8" fill="#9A96BE">method</text>
+  <text x="512.0" y="311.8" fill="#9A96BE">method</text>
+  <text x="570.8" y="311.8" fill="#9A96BE">or</text>
+  <text x="596.0" y="311.8" fill="#9A96BE">kind</text>
+  <text x="638.0" y="311.8" fill="#9A96BE">of</text>
+  <text x="663.2" y="311.8" fill="#9A96BE">request</text>
   <path d="M 894.2000 302.0000 L 894.2000 321.6000" fill="none" stroke="#C45AFF" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <rect x="8.0" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>

@@ -580,20 +580,36 @@ func (a *App) closeMethodMenu() {
 	t.RequestFocus(methodSelectorID)
 }
 
-// methodMenuItems are the HTTP methods, then the other kinds of request.
-func (a *App) methodMenuItems() []t.MenuItem {
-	items := make([]t.MenuItem, 0, len(model.Methods)+len(model.Kinds))
+// methodChoice is a choice in the method selector: an HTTP method, or a kind
+// of request other than HTTP.
+type methodChoice struct {
+	label, hotkey string
+	choose        func()
+}
+
+// methodChoices are the HTTP methods, then the other kinds of request. The
+// menu lists them, and the selector and the open menu bind their hotkeys.
+func (a *App) methodChoices() []methodChoice {
+	choices := make([]methodChoice, 0, len(model.Methods)+len(model.Kinds))
 	for _, m := range model.Methods {
-		m := m
-		items = append(items, t.MenuItem{Label: string(m), Shortcut: methodHotkeys[m], Action: func() { a.setMethod(m) }})
+		choices = append(choices, methodChoice{label: string(m), hotkey: methodHotkeys[m], choose: func() { a.setMethod(m) }})
 	}
-	items = append(items, t.MenuItem{})
 	for _, kind := range model.Kinds {
-		if kind == model.HTTPKind {
-			continue
+		if kind != model.HTTPKind {
+			choices = append(choices, methodChoice{label: kind.Label, hotkey: kindViews[kind.ID].hotkey, choose: func() { a.setKind(kind.ID) }})
 		}
-		id := kind.ID
-		items = append(items, t.MenuItem{Label: kind.Label, Shortcut: kindViews[id].hotkey, Action: func() { a.setKind(id) }})
+	}
+	return choices
+}
+
+// methodMenuItems are the method choices, with a separator before the kinds.
+func (a *App) methodMenuItems() []t.MenuItem {
+	var items []t.MenuItem
+	for i, choice := range a.methodChoices() {
+		if i == len(model.Methods) {
+			items = append(items, t.MenuItem{})
+		}
+		items = append(items, t.MenuItem{Label: choice.label, Shortcut: choice.hotkey, Action: choice.choose})
 	}
 	return items
 }
