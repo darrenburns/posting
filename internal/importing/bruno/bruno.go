@@ -516,7 +516,7 @@ func environment(d document, name, where string, result *importing.Result) (impo
 		warn(result, where+": secret variables "+strings.Join(secrets, ", ")+" have no values on disk; set them in "+name+".local.env")
 	}
 	for _, b := range d {
-		if b.name != "vars" && b.name != "vars:secret" {
+		if b.name != "vars" && b.name != "vars:secret" && b.name != "color" {
 			warn(result, where+": unsupported environment block "+b.name)
 		}
 	}
