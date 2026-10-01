@@ -126,6 +126,9 @@ const (
 	StatusClassSuccess StatusClass = iota
 	StatusClassRedirect
 	StatusClassError
+	// StatusClassWarning is an exchange that succeeded at the HTTP level but
+	// reported errors of its own, such as a GraphQL 200 with errors.
+	StatusClassWarning
 )
 
 // ClassifyStatus maps a status code to success (<300), redirect (<400) or error.

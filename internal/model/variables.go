@@ -51,12 +51,16 @@ func FindVariables(s string) []VariableRef {
 // Substitute replaces variable references with values from lookup. Unknown
 // variables are left untouched and "$$" becomes "$".
 func Substitute(s string, lookup func(name string) (string, bool)) string {
+	return substitute(s, FindVariables(s), lookup)
+}
+
+func substitute(s string, refs []VariableRef, lookup func(name string) (string, bool)) string {
 	if !strings.Contains(s, "$") {
 		return s
 	}
 	var b strings.Builder
 	last := 0
-	for _, ref := range FindVariables(s) {
+	for _, ref := range refs {
 		b.WriteString(strings.ReplaceAll(s[last:ref.Start], "$$", "$"))
 		if value, ok := lookup(ref.Name); ok {
 			b.WriteString(value)
@@ -67,6 +71,25 @@ func Substitute(s string, lookup func(name string) (string, bool)) string {
 	}
 	b.WriteString(strings.ReplaceAll(s[last:], "$$", "$"))
 	return b.String()
+}
+
+// FindBracedVariables returns the ${NAME} references in s, skipping $NAME
+// ones, for text where a bare $name means something else (a GraphQL
+// variable).
+func FindBracedVariables(s string) []VariableRef {
+	var refs []VariableRef
+	for _, ref := range FindVariables(s) {
+		if s[ref.Start+1] == '{' {
+			refs = append(refs, ref)
+		}
+	}
+	return refs
+}
+
+// SubstituteBraced is Substitute for ${NAME} references only: $NAME is left
+// as written. "$$" still becomes "$".
+func SubstituteBraced(s string, lookup func(name string) (string, bool)) string {
+	return substitute(s, FindBracedVariables(s), lookup)
 }
 
 // IsSensitiveName reports whether a variable name looks like a secret whose

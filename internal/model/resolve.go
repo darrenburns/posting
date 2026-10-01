@@ -89,6 +89,10 @@ func Resolve(req Request, lookup func(string) (string, bool)) (Request, error) {
 			out.Body.Form[i].Value = sub(out.Body.Form[i].Value)
 		}
 	}
+	if req.Payload != nil {
+		braced := func(s string) string { return SubstituteBraced(s, lookup) }
+		out.Payload = req.Payload.resolve(braced, sub, req.Options)
+	}
 	return out, nil
 }
 
