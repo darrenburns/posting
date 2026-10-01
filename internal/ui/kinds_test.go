@@ -15,10 +15,6 @@ import (
 )
 
 func TestEveryKindIsWired(tt *testing.T) {
-	hotkeys := map[string]string{}
-	for method, key := range methodHotkeys {
-		hotkeys[key] = string(method)
-	}
 	for _, kind := range model.Kinds {
 		tt.Run(string(kind.ID), func(tt *testing.T) {
 			view, ok := kindViews[kind.ID]
@@ -34,10 +30,7 @@ func TestEveryKindIsWired(tt *testing.T) {
 				}
 				if view.hotkey == "" {
 					tt.Error("no hotkey in the method selector")
-				} else if other, taken := hotkeys[view.hotkey]; taken {
-					tt.Errorf("hotkey %q is already %s's", view.hotkey, other)
 				}
-				hotkeys[view.hotkey] = kind.Label
 			}
 
 			app := testApp()
@@ -51,6 +44,29 @@ func TestEveryKindIsWired(tt *testing.T) {
 				tt.Errorf("loading a %s request shows tab %q, want its first tab %q", kind.Label, s.requestTab.Peek(), got)
 			}
 		})
+	}
+}
+
+func TestMethodHotkeysAreUniqueAndLeaveTheMenuKeysAlone(tt *testing.T) {
+	// The method menu has no submenus, so HEAD can have h, which Terma's
+	// menu uses to close one.
+	menuKeys := map[string]bool{}
+	for _, bind := range (t.Menu{State: t.NewMenuState(nil)}).Keybinds() {
+		switch bind.Key {
+		case "h", "l", "left", "right":
+		default:
+			menuKeys[bind.Key] = true
+		}
+	}
+	taken := map[string]string{}
+	for _, choice := range testApp().methodChoices() {
+		if menuKeys[choice.hotkey] {
+			tt.Errorf("%s's hotkey %q is one of the menu's own keys", choice.label, choice.hotkey)
+		}
+		if other, ok := taken[choice.hotkey]; ok {
+			tt.Errorf("%s's hotkey %q is already %s's", choice.label, choice.hotkey, other)
+		}
+		taken[choice.hotkey] = choice.label
 	}
 }
 
@@ -261,5 +277,29 @@ func TestSendingGraphQLReadsItsStatusAndKeepsItsKindInHistory(tt *testing.T) {
 	history := app.history.Peek()
 	if len(history) != 1 || history[0].Request.Payload != graphQLRequest(tt).Payload {
 		tt.Fatalf("history keeps the GraphQL request as edited, got %+v", history)
+	}
+}
+
+func TestMethodMenuEnterChoosesTheItemUnderTheCursor(tt *testing.T) {
+	app := testApp()
+	s := app.current()
+	app.openMethodMenu()
+	pressOn(tt, app, methodMenuID, "down")
+	pressOn(tt, app, methodMenuID, "enter")
+	if s.method.Peek() != model.MethodPost || s.kind.Peek() != model.KindHTTP {
+		tt.Fatalf("enter on POST made the request %s %s", s.kind.Peek(), s.method.Peek())
+	}
+	if app.menuOpen.Peek() {
+		tt.Fatal("choosing a method left the menu open")
+	}
+
+	app.openMethodMenu()
+	pressOn(tt, app, methodMenuID, "end")
+	pressOn(tt, app, methodMenuID, "enter")
+	if s.kind.Peek() != model.KindGraphQL {
+		tt.Fatalf("enter on GraphQL made the request %s", s.kind.Peek())
+	}
+	if app.menuOpen.Peek() {
+		tt.Fatal("choosing GraphQL left the menu open")
 	}
 }

@@ -18,9 +18,9 @@ const treeSearchID = "side-tree-search"
 // treeQuery is a search of the collection split into lower-case terms. An
 // item matches when every term, in any order, is found in its name, starts
 // its method or badge (so "post" and "po" find POST requests, and "gql"
-// GraphQL ones), or is found in the
-// folders it's in (so "users" finds everything in the users folder). What
-// matched is always on screen: in the row itself, or in a folder above it.
+// GraphQL ones), or is found in the folders it's in (so "users" finds
+// everything in the users folder). What matched is always on screen: in the
+// row itself, or in a folder above it.
 type treeQuery []string
 
 func parseTreeQuery(s string) treeQuery { return strings.Fields(strings.ToLower(s)) }

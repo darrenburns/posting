@@ -100,8 +100,11 @@ func (a *App) methodMenuWidget() t.Widget {
 			ID:       methodMenuID,
 			State:    a.methodMenu,
 			AnchorID: methodSelectorID,
-			// Each item's Action makes the choice.
-			OnSelect:  func(t.MenuItem) { a.closeMethodMenu() },
+			// Terma runs OnSelect in place of the item's Action.
+			OnSelect: func(item t.MenuItem) {
+				item.Action()
+				a.closeMethodMenu()
+			},
 			OnDismiss: a.closeMethodMenu,
 		},
 		app: a,
@@ -129,19 +132,12 @@ func (m methodMenu) Keybinds() []t.Keybind {
 	return append(binds, m.Menu.Keybinds()...)
 }
 
-// methodHotkeyBinds pick each method, and each kind of request other than
-// HTTP, by its letter.
+// methodHotkeyBinds pick each method choice by its letter.
 func (a *App) methodHotkeyBinds() []t.Keybind {
-	var binds []t.Keybind
-	for _, method := range model.Methods {
-		method := method
-		binds = append(binds, t.Keybind{Key: methodHotkeys[method], Name: string(method), Action: func() { a.setMethod(method) }, Hidden: true})
-	}
-	for _, kind := range model.Kinds {
-		if hotkey := kindViews[kind.ID].hotkey; hotkey != "" {
-			id := kind.ID
-			binds = append(binds, t.Keybind{Key: hotkey, Name: kind.Label, Action: func() { a.setKind(id) }, Hidden: true})
-		}
+	choices := a.methodChoices()
+	binds := make([]t.Keybind, len(choices))
+	for i, choice := range choices {
+		binds[i] = t.Keybind{Key: choice.hotkey, Name: choice.label, Action: choice.choose, Hidden: true}
 	}
 	return binds
 }
