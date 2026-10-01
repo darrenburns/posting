@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-// requestFields is Request without its methods, so encoding/json handles
-// the shared fields as it always has.
+// requestFields is Request without its methods, so encoding/json doesn't
+// recurse into Request.MarshalJSON.
 type requestFields Request
 
 // requestJSON is how history stores a request. Its Payload field shadows
