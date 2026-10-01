@@ -66,6 +66,21 @@ request is shown in italics.
 Press ++ctrl+h++ to hide or show the sidebar. To put it on the right of the screen, or have it
 hidden when Posting starts, see the `collection_browser` settings in [Configuration](./configuration.md).
 
+### Selecting several requests
+
+Hold ++shift++ while you move the cursor with the arrow keys, ++home++ or ++end++ to select a range
+of rows. You can also shift-click a row to select everything up to it, or drag across rows with the
+mouse. Selected rows are highlighted.
+
+With a selection, these keys act on every selected request:
+
+- ++d++ duplicates each request. The copies become the new selection.
+- ++backspace++ deletes them all, after one confirmation.
+- ++enter++ opens each request in a tab of its own.
+
+Selected folders are skipped. Press ++escape++, move the cursor without ++shift++, or click a row
+to clear the selection.
+
 ### Folders
 
 Folders in the collection are ordinary directories. To put a request in a folder, type the
@@ -111,6 +126,8 @@ before variables were filled in, so sending it again uses your current variables
 To remove entries:
 
 - press ++backspace++ on an entry to delete it
+- select several entries, as you [select requests](#selecting-several-requests), and press
+  ++backspace++ to delete them together
 - choose **Clear history** from the command palette to delete them all
 
 In jump mode, ++4++ takes you straight to the history list.
