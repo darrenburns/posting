@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/darrenburns/posting/internal/client"
 	"github.com/darrenburns/posting/internal/collection"
+	"github.com/darrenburns/posting/internal/env"
+	"github.com/darrenburns/posting/internal/importing"
 	"github.com/darrenburns/posting/internal/model"
 	"io"
 	"net/http"
@@ -221,12 +223,15 @@ func TestProbeCollectionAggregateExpansionBound(t *testing.T) {
 		t.Fatal(err)
 	}
 	vars := "vars:pre-request {\n large: " + strings.Repeat("x", 1<<20) + "\n}\n"
-	if err := os.WriteFile(filepath.Join(dir, "collection.bru"), []byte(vars), 0600); err != nil {
+	if err := os.Mkdir(filepath.Join(dir, "folder"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "folder", "folder.bru"), []byte(vars), 0600); err != nil {
 		t.Fatal(err)
 	}
 	for i := 0; i < 129; i++ {
 		input := "post {\n url: https://example.test\n body: text\n}\nbody:text {\n  {{large}}\n}\n"
-		if err := os.WriteFile(filepath.Join(dir, fmt.Sprintf("%03d.bru", i)), []byte(input), 0600); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, "folder", fmt.Sprintf("%03d.bru", i)), []byte(input), 0600); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -275,14 +280,18 @@ func TestProbeScopedFormRequestOnWire(t *testing.T) {
 		t.Fatal(err)
 	}
 	target := collection.Dir{Root: t.TempDir()}
-	if err := target.Save(imported.Requests[0]); err != nil {
+	if _, err := importing.Write(imported, target.Root); err != nil {
 		t.Fatal(err)
 	}
 	loaded, errs := target.Load()
 	if len(errs) > 0 {
 		t.Fatal(errs)
 	}
-	_, err = client.NewHTTP("probe", client.TLSSettings{}).Send(context.Background(), client.Call{Request: loaded.Children[0].Requests[0]})
+	environment, err := env.Load(env.Stack(target.Root, env.BaseName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = client.NewHTTP("probe", client.TLSSettings{}).Send(context.Background(), client.Call{Request: loaded.Children[0].Requests[0], Variables: model.Values(environment.Variables)})
 	if err != nil {
 		t.Fatal(err)
 	}
