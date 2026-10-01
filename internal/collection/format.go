@@ -21,12 +21,16 @@ const FileSuffix = ".posting.yaml"
 
 // requestFile mirrors Posting 2's RequestModel. Field order is the order
 // Posting 2 writes them in, and fields at their default value are left out,
-// as Posting 2 does, so files stay short and diffs stay small.
+// as Posting 2 does, so files stay short and diffs stay small. Kind and the
+// kind's own block (graphql) are Posting 3's; both are absent for HTTP, and
+// Posting 2 ignores them.
 type requestFile struct {
 	Name        yamlString      `yaml:"name,omitempty"`
 	Description yamlString      `yaml:"description,omitempty"`
+	Kind        string          `yaml:"kind,omitempty"`
 	Method      string          `yaml:"method,omitempty"`
 	URL         yamlString      `yaml:"url,omitempty"`
+	GraphQL     *graphQLFile    `yaml:"graphql,omitempty"`
 	Body        *bodyFile       `yaml:"body,omitempty"`
 	Auth        *authFile       `yaml:"auth,omitempty"`
 	Headers     []kvFile        `yaml:"headers,omitempty"`
@@ -142,6 +146,11 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 	if s := in.Scripts; s != nil {
 		req.Scripts = model.Scripts{Setup: string(s.Setup), OnRequest: string(s.OnRequest), OnResponse: string(s.OnResponse)}
 	}
+	payload, err := decodePayload(in)
+	if err != nil {
+		return model.Request{}, err
+	}
+	req.Payload = payload
 	if o := in.Options; o != nil {
 		setBool(&req.Options.FollowRedirects, o.FollowRedirects)
 		setBool(&req.Options.VerifySSL, o.VerifySSL)
@@ -152,11 +161,12 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 			req.Options.TimeoutSeconds = *o.Timeout
 		}
 	}
-	return req, nil
+	return model.Normalize(req), nil
 }
 
 // MarshalRequest encodes req in Posting 2's format.
 func MarshalRequest(req model.Request) ([]byte, error) {
+	req = model.Normalize(req)
 	out := requestFile{
 		Name:        yamlString(req.Name),
 		Description: yamlString(req.Description),
@@ -224,6 +234,9 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 	}
 	if opts != (optionsFile{}) {
 		out.Options = &opts
+	}
+	if err := encodePayload(req, &out); err != nil {
+		return nil, err
 	}
 
 	var buf bytes.Buffer

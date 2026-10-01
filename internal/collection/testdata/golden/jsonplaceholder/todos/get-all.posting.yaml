@@ -1,0 +1,14 @@
+name: get all
+description: Retrieve all todos
+url: https://jsonplaceholder.typicode.com/todos
+headers:
+  - name: Content-Type
+    value: application/json
+  - name: Referer
+    value: https://example.com/
+  - name: Accept-Encoding
+    value: gzip
+  - name: Cache-Control
+    value: no-cache
+options:
+  follow_redirects: false
