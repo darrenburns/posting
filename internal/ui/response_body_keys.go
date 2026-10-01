@@ -56,6 +56,26 @@ func (s *Session) responseBodyKeybinds(copyBody func(), visual bool) []t.Keybind
 			binds = append(binds, t.Keybind{Key: key, Action: s.moveBodyCursor(motion.move, true), Hidden: true})
 		}
 	}
+	for _, page := range []struct {
+		keys               []string
+		direction, divisor int
+	}{
+		{[]string{"pgup", "ctrl+b"}, -1, 1},
+		{[]string{"pgdown", "ctrl+f"}, 1, 1},
+		{[]string{"ctrl+u"}, -1, 2},
+		{[]string{"ctrl+d"}, 1, 2},
+	} {
+		move := func(body *t.TextAreaState) {
+			lines := max(1, (s.responseBodyViewportHeight-1)/page.divisor)
+			body.CursorDownBy(page.direction * lines)
+		}
+		for _, key := range page.keys {
+			binds = append(binds, t.Keybind{Key: key, Action: s.moveBodyCursor(move, false), Hidden: true})
+		}
+		if page.divisor == 1 {
+			binds = append(binds, t.Keybind{Key: "shift+" + page.keys[0], Action: s.moveBodyCursor(move, true), Hidden: true})
+		}
+	}
 	return binds
 }
 
@@ -113,19 +133,13 @@ func (s *Session) selectAllBody() {
 }
 
 // bodyCopyText is what y copies: the selection, or the whole body when
-// nothing is selected. In visual mode the selection includes the character
-// under the cursor when the cursor is at its end, as it's drawn.
+// nothing is selected. Visual selections include both endpoint characters.
 func (s *Session) bodyCopyText() (text string, selected bool) {
 	body := s.responseBody
 	if s.responseVisual.Peek() && body.SelectionAnchor.Peek() >= 0 {
 		graphemes := body.Content.Peek()
-		anchor, cursor := body.SelectionAnchor.Peek(), body.CursorIndex.Peek()
-		start, end := min(anchor, cursor), max(anchor, cursor)
-		if cursor >= anchor {
-			end++
-		}
-		end = min(end, len(graphemes))
-		text = strings.Join(graphemes[min(start, end):end], "")
+		start, end := s.bodyVisualBounds()
+		text = strings.Join(graphemes[start:end], "")
 	} else {
 		text = body.GetSelectedText()
 	}
@@ -133,6 +147,48 @@ func (s *Session) bodyCopyText() (text string, selected bool) {
 		return body.GetText(), false
 	}
 	return text, true
+}
+
+func (s *Session) bodyVisualBounds() (start, end int) {
+	body := s.responseBody
+	anchor, cursor := body.SelectionAnchor.Peek(), body.CursorIndex.Peek()
+	length := len(body.Content.Peek())
+	return min(min(anchor, cursor), length), min(max(anchor, cursor)+1, length)
+}
+
+// Terma selects half-open ranges. Visual mode also highlights the upper
+// endpoint, including the anchor when selecting backwards or after blur.
+func (s *Session) withBodyVisualSelection(base t.Highlighter, color t.Color) t.Highlighter {
+	return t.HighlighterFunc(func(text string, graphemes []string) []t.TextHighlight {
+		out := base.Highlight(text, graphemes)
+		if s.responseVisual.Peek() && s.responseBody.SelectionAnchor.Peek() >= 0 {
+			start, end := s.bodyVisualBounds()
+			if start < end {
+				i := end - 1
+				style := t.SpanStyle{}
+				for _, h := range out {
+					if h.Start <= i && i < h.End {
+						style = h.Style
+					}
+				}
+				style.Background = color
+				out = append(out, t.TextHighlight{Start: i, End: end, Style: style})
+			}
+		}
+		return out
+	})
+}
+
+// Terma v0.19 has no indexed jump that updates its preferred column.
+// Finish with a public motion so the next vertical move uses this column.
+func setBodyCursor(body *t.TextAreaState, index int) {
+	if index == 0 {
+		body.CursorIndex.Set(0)
+		body.CursorHome()
+		return
+	}
+	body.CursorIndex.Set(index - 1)
+	body.CursorRight()
 }
 
 // copyBody copies bodyCopyText, leaves visual mode, and says what it copied.
@@ -163,12 +219,12 @@ func cursorLineStart(body *t.TextAreaState) {
 		first = start
 	}
 	if cursor == start || cursor > first {
-		body.CursorIndex.Set(first)
+		setBodyCursor(body, first)
 	}
 }
 
 func cursorTop(body *t.TextAreaState) {
-	body.CursorIndex.Set(0)
+	setBodyCursor(body, 0)
 }
 
 // cursorBottom goes to the start of the last line.
@@ -183,7 +239,7 @@ func cursorMatchingBracket(body *t.TextAreaState) {
 	graphemes := body.Content.Peek()
 	for i := body.CursorIndex.Peek(); i < len(graphemes) && graphemes[i] != "\n"; i++ {
 		if match := matchingBracket(graphemes, i); match >= 0 {
-			body.CursorIndex.Set(match)
+			setBodyCursor(body, match)
 			return
 		}
 	}

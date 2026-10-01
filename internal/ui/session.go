@@ -105,8 +105,9 @@ type Session struct {
 	// fromHistory is set when the response was loaded from history rather than sent.
 	fromHistory t.AnySignal[*model.HistoryEntry]
 	// responseBody holds the formatted response body for the read-only viewer.
-	responseBody       *t.TextAreaState
-	responseBodyScroll *t.ScrollState
+	responseBody               *t.TextAreaState
+	responseBodyScroll         *t.ScrollState
+	responseBodyViewportHeight int
 	// responseVisual is the body viewer's visual mode, where moving selects.
 	responseVisual        t.Signal[bool]
 	responseHeaders       *t.TableState[model.Header]
