@@ -1,6 +1,7 @@
 package bruno
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -36,18 +37,24 @@ func imported(t *testing.T, result importing.Result, environment string) (map[st
 		t.Fatal(err)
 	}
 	values := map[string]string{}
+	var variables []model.Variable
 	if files := env.Stack(dir, environment); files != nil {
 		loaded, err := env.Load(files)
 		if err != nil {
 			t.Fatal(err)
 		}
-		values = model.Values(loaded.Variables)
+		variables = loaded.Variables
+		values = model.Values(variables)
 	} else if environment != env.BaseName {
 		t.Fatalf("no environment %q", environment)
 	}
 	requests := map[string]model.Request{}
 	for _, req := range result.Requests {
-		resolved, err := model.Resolve(req, model.MapLookup(values))
+		scoped, err := model.VariablesForRequest(req, variables, os.LookupEnv)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resolved, err := model.Resolve(req, model.MapLookup(model.Values(scoped)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -144,5 +151,40 @@ func TestListBlocks(t *testing.T) {
 	}
 	if _, err := parseDocument([]byte("vars:secret [\n  a\n")); err == nil {
 		t.Fatal("accepted an unclosed list")
+	}
+}
+
+func TestScopedConstantsKeepBrunoJSONEscaping(t *testing.T) {
+	for _, value := range []string{"a\"b", `a\b`, "first\nsecond"} {
+		t.Run(value, func(t *testing.T) {
+			literal := value
+			if strings.Contains(literal, "\n") {
+				literal = "'''\n    " + strings.ReplaceAll(literal, "\n", "\n    ") + "\n  '''"
+			}
+			files := map[string]string{
+				"bruno.json":         `{}`,
+				"folder/folder.bru":  "vars:pre-request {\n value: " + literal + "\n alias: {{value}}\n}\n",
+				"folder/http.bru":    "post {\n url: https://example.test\n body: json\n}\nbody:json {\n {\"value\":\"{{alias}}\"}\n}\n",
+				"folder/graphql.bru": "post {\n url: https://example.test/graphql\n body: graphql\n}\nbody:graphql {\n query Q($id: ID!) { user(id: $id) { name } }\n}\nbody:graphql:vars {\n {\"value\":\"{{alias}}\"}\n}\n",
+			}
+			result, err := Load(writeCollection(t, files))
+			if err != nil {
+				t.Fatal(err)
+			}
+			requests, _ := imported(t, result, "posting")
+			for _, req := range requests {
+				body := req.Body.Raw
+				if g, ok := req.Payload.(model.GraphQL); ok {
+					body = g.Variables
+				}
+				var got map[string]string
+				if err := json.Unmarshal([]byte(body), &got); err != nil {
+					t.Fatalf("invalid JSON %q: %v", body, err)
+				}
+				if got["value"] != value {
+					t.Fatalf("JSON value %q, want %q", got["value"], value)
+				}
+			}
+		})
 	}
 }

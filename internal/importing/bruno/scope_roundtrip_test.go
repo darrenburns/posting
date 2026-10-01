@@ -53,7 +53,11 @@ func TestImportedVariableScopesRoundTrip(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			resolved, err := model.Resolve(req, model.MapLookup(model.Values(loaded.Variables)))
+			variables, err := model.VariablesForRequest(req, loaded.Variables, os.LookupEnv)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resolved, err := model.Resolve(req, model.MapLookup(model.Values(variables)))
 			if err != nil {
 				t.Fatal(err)
 			}

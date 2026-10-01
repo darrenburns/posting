@@ -3,6 +3,7 @@
 package env
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -242,19 +243,16 @@ func validName(name string) bool {
 	return true
 }
 
-// Load reads and layers the files: a variable in a later file overrides the
-// same variable in an earlier one, and a ${NAME} in a later file can use a
-// value from an earlier one. The environment is named after the files.
+// TemplateHeader opts imported files into request-time template resolution.
+const TemplateHeader = "# posting: templates"
+
+// Load layers ordinary dotenv assignments in file order. Files marked with
+// TemplateHeader retain templates and evaluate them after all layers load.
+// Missing or cyclic templates stay visible for later session overrides;
+// VariablesForRequest reports their errors before sending.
 func Load(files []string) (model.Environment, error) {
 	environment := model.Environment{Name: Name(files), Files: files}
-	loaded := map[string]string{}
-	lookup := func(name string) (string, bool) {
-		if v, ok := loaded[name]; ok {
-			return v, true
-		}
-		return os.LookupEnv(name)
-	}
-	layers := make([][]model.Variable, 0, len(files))
+	var variables []model.Variable
 	for _, file := range files {
 		data, err := os.ReadFile(file)
 		if err != nil {
@@ -262,15 +260,32 @@ func Load(files []string) (model.Environment, error) {
 		}
 		source := filepath.Base(file)
 		var layer []model.Variable
-		for _, pair := range Parse(string(data), lookup) {
-			layer = append(layer, model.Variable{Name: pair.Name, Value: pair.Value, Source: source})
+		header, _, _ := strings.Cut(string(data), "\n")
+		if strings.TrimSuffix(header, "\r") == TemplateHeader {
+			pairs, skipped := Templates(string(data))
+			if len(skipped) > 0 {
+				return model.Environment{}, fmt.Errorf("%s: unsupported template variables %s", source, strings.Join(skipped, ", "))
+			}
+			for _, pair := range pairs {
+				template := pair.Value
+				layer = append(layer, model.Variable{Name: pair.Name, Value: template, Template: &template, Source: source})
+			}
+		} else {
+			current, _ := model.ScopedVariables(variables, nil, os.LookupEnv)
+			values := model.Values(current)
+			lookup := func(name string) (string, bool) {
+				if value, ok := values[name]; ok {
+					return value, true
+				}
+				return os.LookupEnv(name)
+			}
+			for _, pair := range Parse(string(data), lookup) {
+				layer = append(layer, model.Variable{Name: pair.Name, Value: pair.Value, Source: source})
+			}
 		}
-		for _, v := range layer {
-			loaded[v.Name] = v.Value
-		}
-		layers = append(layers, layer)
+		variables = model.Merge(variables, layer)
 	}
-	environment.Variables = model.Merge(layers...)
+	environment.Variables, _ = model.ScopedVariables(variables, nil, os.LookupEnv)
 	return environment, nil
 }
 

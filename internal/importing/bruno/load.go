@@ -43,7 +43,7 @@ func Load(path string) (importing.Result, error) {
 		return importing.Result{}, err
 	}
 	defer root.Close()
-	result := importing.Result{Name: filepath.Base(filepath.Clean(path))}
+	result := importing.Result{Name: filepath.Base(filepath.Clean(path)), DeferredVariables: true}
 	count, total, visited := 0, 0, 0
 	materialized := 0
 	read := func(name string) ([]byte, error) {
@@ -229,7 +229,22 @@ func Load(path string) (importing.Result, error) {
 			}
 			if r != nil {
 				r.File = strings.TrimSuffix(rel, ".bru") + ".posting.yaml"
-				materialized += requestFootprint(*r)
+				// Keep the collection admission budget based on expanded content,
+				// even though saved requests now retain their variable templates.
+				materialScope := parent
+				materialScope.deferred = false
+				materialScope.vars = map[string]string{}
+				for name, value := range parent.collection {
+					materialScope.vars[name] = value
+				}
+				for name, value := range parent.vars {
+					materialScope.vars[name] = value
+				}
+				material, e := convert(doc, materialScope, &importing.Result{})
+				if e != nil {
+					return fmt.Errorf("%s: %w", rel, e)
+				}
+				materialized += max(requestFootprint(*r), requestFootprint(*material))
 				if materialized > 128<<20 {
 					return fmt.Errorf("materialized Bruno collection exceeds 128 MiB")
 				}
@@ -238,7 +253,9 @@ func Load(path string) (importing.Result, error) {
 		}
 		return nil
 	}
-	if err := walk(".", emptyScope(), 0); err != nil {
+	rootScope := emptyScope()
+	rootScope.deferred = true
+	if err := walk(".", rootScope, 0); err != nil {
 		return importing.Result{}, err
 	}
 	return result, nil
@@ -263,6 +280,11 @@ func sortEntries(entries []fs.DirEntry) {
 // by source file bytes. Include conservative structural overhead for empty rows.
 func requestFootprint(r model.Request) int {
 	size := 512 + len(r.Name) + len(r.Description) + len(r.URL) + len(r.File) + r.PayloadSize() + len(r.Body.ContentType) + len(r.Auth.Username) + len(r.Auth.Password) + len(r.Auth.Token)
+	if r.VariableScope != nil {
+		for name, value := range r.VariableScope.Variables {
+			size += 64 + len(name) + len(value)
+		}
+	}
 	for _, rows := range [][]model.KeyValue{r.Headers, r.Query, r.PathParams, r.Body.Form} {
 		for _, row := range rows {
 			size += 64 + len(row.Name) + len(row.Value)

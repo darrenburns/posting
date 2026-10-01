@@ -1,10 +1,14 @@
 package env
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/darrenburns/posting/internal/model"
 )
 
 func TestParse(t *testing.T) {
@@ -109,5 +113,66 @@ func TestTemplatesKeepReferences(t *testing.T) {
 	}
 	if !reflect.DeepEqual(skipped, []string{"D", "E"}) {
 		t.Fatalf("skipped = %q", skipped)
+	}
+}
+
+func TestDeferredTemplatesPreserveOrdinaryLocalValues(t *testing.T) {
+	dir := t.TempDir()
+	files := []string{filepath.Join(dir, "posting.env"), filepath.Join(dir, "staging.local.env")}
+	if err := os.WriteFile(files[0], []byte(TemplateHeader+"\nHOST='base.test'\nBASE=\"https://${HOST}/${TOKEN}\"\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(files[1], []byte("BEFORE=${HOST}\nHOST=local.test\nTOKEN='${literal}$cash'\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := Load(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := model.Values(loaded.Variables)
+	if got["BASE"] != "https://local.test/${literal}$cash" || got["BEFORE"] != "base.test" {
+		t.Fatal(got)
+	}
+	for _, variable := range loaded.Variables {
+		if variable.Name == "TOKEN" && variable.Template != nil {
+			t.Fatal("ordinary local value became a template")
+		}
+	}
+	if err := os.WriteFile(files[1], []byte("BASE='https://override.test/${literal}'\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err = Load(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, variable := range loaded.Variables {
+		if variable.Name == "BASE" && (variable.Template != nil || variable.Value != "https://override.test/${literal}") {
+			t.Fatal(variable)
+		}
+	}
+}
+
+func TestTemplateDirectiveAcceptsLFAndCRLF(t *testing.T) {
+	for _, newline := range []string{"\n", "\r\n"} {
+		t.Run(fmt.Sprintf("%q", newline), func(t *testing.T) {
+			dir := t.TempDir()
+			file := filepath.Join(dir, "posting.env")
+			text := strings.Join([]string{TemplateHeader, "BASE=\"https://${HOST}\"", "HOST='later.test'", ""}, newline)
+			if err := os.WriteFile(file, []byte(text), 0600); err != nil {
+				t.Fatal(err)
+			}
+			loaded, err := Load([]string{file})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := model.Values(loaded.Variables)["BASE"]; got != "https://later.test" {
+				t.Fatal(got)
+			}
+			for _, v := range loaded.Variables {
+				if v.Name == "BASE" && v.Template == nil {
+					t.Fatal("lost template metadata")
+				}
+			}
+		})
 	}
 }
