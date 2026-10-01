@@ -82,8 +82,9 @@ Posting imports Postman Collection v2.0 and v2.1 JSON files.
 - Folders become folders in the collection, and each request becomes a request.
 - URLs, headers and query parameters (including disabled ones), and enabled path variables, are
   imported.
-- Raw and URL-encoded bodies are imported. Multipart form data, file and GraphQL bodies are skipped
-  with a warning.
+- Raw and URL-encoded bodies are imported. GraphQL bodies become
+  [GraphQL requests](./requests.md#graphql-requests). Multipart form data and file bodies are
+  skipped with a warning.
 - Basic, Digest, Bearer and API key authentication are imported, including authentication inherited
   from folders and the collection.
 - Postman's `{{variable}}` references become Posting's `${variable}`. Collection variables are written
@@ -99,8 +100,9 @@ Posting imports a single `.bru` request file, or a whole Bruno collection direct
 - A collection's folders and requests are imported with the same layout, along with the headers,
   query parameters, variables and authentication that `collection.bru` and `folder.bru` files pass
   down to their requests.
-- JSON, text and XML bodies, and URL-encoded forms, are imported. Multipart, file and GraphQL bodies
-  are skipped with a warning.
+- JSON, text and XML bodies, and URL-encoded forms, are imported. GraphQL requests become
+  [GraphQL requests](./requests.md#graphql-requests), with their query and variables. Multipart and
+  file bodies are skipped with a warning.
 - Basic, Digest, Bearer and API key authentication are imported.
 - Bruno variables are filled into each request. References that can't be resolved when importing
   become Posting variables.

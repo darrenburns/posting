@@ -292,3 +292,58 @@ func TestExpansionBombRejected(t *testing.T) {
 		t.Fatal("accepted expansion bomb")
 	}
 }
+func TestGraphQLBodiesImportAsGraphQL(t *testing.T) {
+	input := `meta {
+  name: Get user
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{base}}/graphql
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:graphql {
+  query User($id: ID!) {
+    user(id: $id) { name }
+  }
+}
+
+body:graphql:vars {
+  {
+    "id": "{{userId}}"
+  }
+}
+`
+	result, err := Parse([]byte(input))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, w := range result.Warnings {
+		if strings.Contains(w, "graphql") || strings.Contains(w, "skipped") || strings.Contains(w, "unsupported") {
+			t.Fatalf("GraphQL request imported with warning %q", w)
+		}
+	}
+	r := result.Requests[0]
+	want := model.GraphQL{Query: "query User($id: ID!) {\n  user(id: $id) { name }\n}", Variables: "{\n  \"id\": \"${userId}\"\n}"}
+	if r.Payload != want {
+		t.Fatalf("payload = %#v\nwant      %#v", r.Payload, want)
+	}
+	if r.URL != "${base}/graphql" || r.Auth.Token != "${token}" || r.Body.Type != model.BodyNone {
+		t.Fatalf("request: %+v", r)
+	}
+	data, err := collection.MarshalRequest(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	back, err := collection.ParseRequest(data, r.File)
+	if err != nil || back.Payload != want {
+		t.Fatalf("saved file didn't load back: %v\n%s", err, data)
+	}
+}

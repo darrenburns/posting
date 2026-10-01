@@ -45,8 +45,12 @@ type request struct {
 		Mode       string
 		Raw        string
 		URLEncoded []pair `json:"urlencoded"`
-		Disabled   bool
-		Options    struct{ Raw struct{ Language string } }
+		GraphQL    struct {
+			Query     string
+			Variables json.RawMessage
+		}
+		Disabled bool
+		Options  struct{ Raw struct{ Language string } }
 	}
 	Proxy       json.RawMessage
 	Certificate json.RawMessage
@@ -293,8 +297,16 @@ func (p *parser) convert(raw, inherited json.RawMessage, scope map[string]string
 			}
 		case "urlencoded":
 			req.Body = model.Body{Type: model.BodyForm, Form: convertPairs(in.Body.URLEncoded, transform, false), ContentType: "application/x-www-form-urlencoded"}
+		case "graphql":
+			if req.Method != model.MethodPost {
+				p.warn(where, "GraphQL request uses %s; Posting sends GraphQL requests as POST", req.Method)
+			}
+			req.Payload = model.GraphQL{
+				Query:     importing.BracedOnly(transform(in.Body.GraphQL.Query)),
+				Variables: transform(graphQLVariables(in.Body.GraphQL.Variables)),
+			}
 		default:
-			p.warn(where, "body mode %q is unsupported; body omitted (multipart/files and GraphQL require manual conversion)", in.Body.Mode)
+			p.warn(where, "body mode %q is unsupported; body omitted (multipart/files require manual conversion)", in.Body.Mode)
 		}
 	}
 	a := inherited
@@ -320,7 +332,17 @@ func (p *parser) convert(raw, inherited json.RawMessage, scope map[string]string
 	if present(in.Certificate) {
 		p.warn(where, "client certificate configuration is not imported")
 	}
-	return req, nil
+	return model.Normalize(req), nil
+}
+
+// graphQLVariables is a GraphQL body's variables as text. Postman writes them
+// as a JSON string, but an object is accepted too.
+func graphQLVariables(raw json.RawMessage) string {
+	var text string
+	if json.Unmarshal(raw, &text) == nil || !present(raw) {
+		return text
+	}
+	return string(raw)
 }
 
 func convertPairs(in []pair, transform func(string) string, encoded bool) []model.KeyValue {

@@ -107,6 +107,7 @@ rebound yet.
 |-----|--------|
 | ++enter++ / ++space++ | Open the method menu |
 | ++g++ ++p++ ++u++ ++a++ ++d++ ++h++ ++o++ | Choose `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` or `OPTIONS` (these also work in the open menu) |
+| ++q++ | Make the request a [GraphQL request](./requests.md#graphql-requests) (this also works in the open menu) |
 
 ### URL bar
 

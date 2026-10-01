@@ -59,7 +59,7 @@ func warn(result *importing.Result, s string) {
 }
 func diagnostics(d document, result *importing.Result) {
 	for _, b := range d {
-		if b.name == "body:multipart-form" || b.name == "body:file" || b.name == "body:graphql" || b.name == "body:graphql:vars" {
+		if b.name == "body:multipart-form" || b.name == "body:file" {
 			warn(result, b.name+" is not imported")
 		}
 		if strings.HasPrefix(b.name, "script:") || b.name == "tests" || b.name == "assert" || b.name == "vars:post-response" || b.name == "example" || b.name == "app" {
@@ -153,7 +153,7 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 		return nil, err
 	}
 	m := values(meta)
-	if t := m["type"]; t != "" && t != "http" {
+	if t := m["type"]; t != "" && t != "http" && t != "graphql" {
 		warn(result, "skipped unsupported Bruno request type "+t)
 		return nil, nil
 	}
@@ -321,6 +321,9 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 		if err != nil {
 			return nil, err
 		}
+	case "graphql":
+		// Variables in both are expanded below, with the other fields.
+		r.Payload = model.GraphQL{Query: d.text("body:graphql"), Variables: d.text("body:graphql:vars")}
 	default:
 		warn(result, "unsupported body mode "+bodyMode+"; body was not imported")
 	}
@@ -382,9 +385,16 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 		warn(result, "unresolved Content-Type uses import-time body escaping; check body variables after setting the header")
 	}
 	r.Body.Raw = expansion.expandMode(r.Body.Raw, nil, strings.Contains(contentType, "json"))
+	if g, ok := r.Payload.(model.GraphQL); ok {
+		r.Payload = model.GraphQL{
+			Query:     importing.BracedOnly(expansion.expand(g.Query, nil)),
+			Variables: expansion.expandMode(g.Variables, nil, true),
+		}
+	}
 	if expansion.err != nil {
 		return nil, expansion.err
 	}
+	r = model.Normalize(r)
 	return &r, nil
 }
 

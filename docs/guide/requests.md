@@ -112,6 +112,74 @@ hover over the request in the collection browser, and supports `code` in backtic
 | **Proxy URL** | Empty | Send the request through this proxy, e.g. `http://proxy.example.com:8080`. When it's empty, the standard `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment variables apply. |
 | **Timeout** | 5 | How many seconds to wait for the whole request, including redirects and reading the response. |
 
+## GraphQL requests
+
+To make a GraphQL request, open the method selector with ++ctrl+t++ and choose **GraphQL**, or press
+++q++ while the method selector has focus. The selector shows `GraphQL`, and the collection browser,
+request tabs and history show a `GQL` badge where an HTTP request shows its method. Choose a method
+to turn it back into an HTTP request. The URL, headers, auth and options stay as they are when you
+switch, and so does the query, so you can switch back and forth without losing anything.
+
+A GraphQL request has two tabs of its own, before the usual ones:
+
+- **Query** holds the GraphQL document, with syntax highlighting. If the document defines more than
+  one operation, type the name of the one to run in **Operation**, above the document.
+- **Variables** holds the operation's variables as a JSON object, such as `{"id": "${USER_ID}"}`.
+
+The other tabs work as they do for an HTTP request. There's no **Body** tab, and the URL's query
+parameters are in the **Params** tab, because **Query** is the document. Press ++f4++ in the
+document or the variables to edit them in your own editor.
+
+Posting sends a GraphQL request as a `POST` with `Content-Type: application/json` and a JSON body
+of `query`, `variables` and `operationName`. Empty variables and an empty operation name are left
+out. Unless you've set an `Accept` header, Posting also sends
+`Accept: application/graphql-response+json, application/json`.
+
+### Variables in GraphQL requests
+
+In the **Variables** tab, Posting variables work as they do in a raw body: `$NAME` and `${NAME}` are
+both replaced, and typing `$` suggests the variables you can use.
+
+In the query, only `${NAME}` is replaced. A bare `$name` there is a GraphQL variable, so
+`query User($id: ID!)` is sent as written, even if your environment defines `id`.
+
+Turn off **Substitute body variables** in the **Options** tab to send the query and the variables
+exactly as written.
+
+### GraphQL responses
+
+GraphQL servers often answer `200 OK` when an operation fails, and put the failure in an `errors`
+list in the response body. When a `2xx` response has errors, Posting shows its status in the
+warning colour, in the URL bar, the response panel and the history, and the response panel counts
+the errors, for example `200 1 error`.
+
+### GraphQL request files
+
+A saved GraphQL request has `kind: graphql` and a `graphql` section instead of a method and a body:
+
+```yaml
+name: Get user
+kind: graphql
+url: ${BASE_URL}/graphql
+graphql:
+  query: |
+    query User($id: ID!) {
+      user(id: $id) {
+        name
+        email
+      }
+    }
+  variables: |
+    {"id": "${USER_ID}"}
+  operation_name: User
+auth:
+  type: bearer_token
+  bearer_token:
+    token: ${API_TOKEN}
+```
+
+Posting 2 doesn't know about GraphQL requests. It opens them as a `GET` of the URL with no body.
+
 ## Sending a request
 
 Press ++ctrl+j++ (or ++alt+enter++) from anywhere to send the request in the current tab, or press
@@ -260,13 +328,15 @@ Only settings that differ from the defaults are written, so most files are short
 | Key | Description |
 |-----|-------------|
 | `name`, `description` | Shown in the collection browser and the **Info** tab. |
+| `kind` | `graphql` for a [GraphQL request](#graphql-requests). Left out for an HTTP request. |
 | `method` | The HTTP method. Left out for `GET`. |
 | `url` | The URL, without its query string. |
 | `headers`, `params` | Lists of `name` and `value`. `enabled: false` marks a disabled row. |
 | `path_params` | The values of the URL's `:name` placeholders. |
 | `body` | Either `content` (with `content_type`) for a raw body, or `form_data` (a list of `name` and `value`) for a form. |
+| `graphql` | A GraphQL request's `query`, `variables` and `operation_name`. |
 | `auth` | `type` is `basic`, `digest` or `bearer_token`, with credentials under a key of the same name (`basic: {username, password}`, `bearer_token: {token}`). |
 | `options` | Any of `follow_redirects`, `verify_ssl`, `attach_cookies`, `substitute_body_variables`, `proxy_url` and `timeout`. |
 | `scripts` | Posting 2 scripts. Posting 3 keeps them but doesn't run them; see [Scripting](./scripting.md). |
 
-The format is the same as Posting 2's, so request files can be shared between the two.
+The format is the same as Posting 2's, so HTTP request files can be shared between the two.
