@@ -2,11 +2,13 @@ package ui
 
 import (
 	"context"
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/model"
 	"slices"
 	"testing"
 	"time"
+
+	"github.com/darrenburns/posting/internal/client"
+	"github.com/darrenburns/posting/internal/history"
+	"github.com/darrenburns/posting/internal/model"
 )
 
 func TestReviewEscapeStartsNewTreeRange(tt *testing.T) {
@@ -173,5 +175,123 @@ func TestHTTPBodyReloadClearsSelection(tt *testing.T) {
 	pressOn(tt, app, "req-body-text", "backspace")
 	if got := s.body.GetText(); got != "short" {
 		tt.Fatalf("reload left a stale body selection: %q", got)
+	}
+}
+
+func TestTreeResetPreservesFilteredCollapsedView(tt *testing.T) {
+	app := testApp()
+	moveTreeCursor(tt, app, "Get user")
+	folder := slices.Clone(app.tree.CursorPath.Peek()[:1])
+	s := sidebarScreen(tt, app, treeID)
+	app.tree.Collapse(folder)
+	app.searchTree("user")
+	s.render()
+	selectFrom(tt, s, "GET Get user", 2)
+	s.pressKey(tt, "escape")
+	if !app.tree.IsCollapsed(folder) {
+		tt.Fatal("reset expanded a collapsed folder")
+	}
+	if app.treeFilter.Query.Peek() != "user" {
+		tt.Fatal("reset changed search")
+	}
+	shiftClickText(tt, app, "Update user", 0)
+	if got, want := selectedRows(app), []string{"POST Create user", "PATCH Update user"}; !slices.Equal(got, want) {
+		tt.Fatalf("new pointer range = %q, want %q", got, want)
+	}
+	s.render()
+	s.pressKey(tt, "escape")
+	s.pressKey(tt, "escape")
+	s.pressKey(tt, "left")
+	s.pressKey(tt, "left")
+	if !app.tree.IsCollapsed(folder) {
+		tt.Fatal("collapse after reset did not use stable folder identity")
+	}
+	s.pressKey(tt, "right")
+	if app.tree.IsCollapsed(folder) {
+		tt.Fatal("expand after reset failed")
+	}
+}
+
+func TestHorizontalTreeMovesClearSelection(tt *testing.T) {
+	for _, key := range []string{"left", "h", "right", "l"} {
+		tt.Run(key, func(tt *testing.T) {
+			app := testApp()
+			s := sidebarScreen(tt, app, treeID)
+			if key == "right" || key == "l" {
+				selectFrom(tt, s, "GET Get user", 1)
+				parent := slices.Clone(app.tree.CursorPath.Peek()[:1])
+				app.tree.CursorPath.Set(parent)
+				s.render()
+			} else {
+				selectFrom(tt, s, "GET Get user", 1)
+			}
+			s.pressKey(tt, key)
+			if got := selectedRows(app); len(got) != 0 {
+				tt.Fatalf("%s left selected rows %q", key, got)
+			}
+			s.pressKey(tt, "shift+down")
+			if got := selectedRows(app); len(got) != 2 {
+				tt.Fatalf("new range after %s = %q", key, got)
+			}
+		})
+	}
+}
+
+func TestHistoryReplacementPreservesAnchorByID(tt *testing.T) {
+	app, s := historyScreen(tt)
+	s.pressKey(tt, "shift+down")
+	entries := append([]model.HistoryEntry{{ID: 5}}, app.history.Peek()...)
+	app.setHistory(entries)
+	s.render()
+	s.pressKey(tt, "shift+down")
+	var ids []int64
+	for _, entry := range app.historyList.SelectedItems() {
+		ids = append(ids, entry.ID)
+	}
+	if !slices.Equal(ids, []int64{1, 2, 3}) {
+		tt.Fatalf("range after prepend = %v", ids)
+	}
+	app.setHistory([]model.HistoryEntry{entries[0], entries[3], entries[4]})
+	if app.historyList.HasAnchor() {
+		tt.Fatal("removed anchor survived replacement")
+	}
+	if entry, ok := app.historyList.SelectedItem(); !ok || entry.ID != 3 {
+		tt.Fatalf("cursor lost surviving ID 3: %+v", entry)
+	}
+	if got := app.historyList.SelectedItems(); len(got) != 1 || got[0].ID != 3 {
+		tt.Fatalf("selection lost surviving ID 3: %+v", got)
+	}
+	app.setHistory(nil)
+	if app.historyList.HasAnchor() || len(app.historyList.SelectedItems()) != 0 {
+		tt.Fatal("empty history retained selection state")
+	}
+}
+
+func TestHistoryTrimDropsRemovedSelectionAndAnchor(tt *testing.T) {
+	app, screen := historyScreen(tt)
+	entries := make([]model.HistoryEntry, history.MaxEntries)
+	for i := range entries {
+		entries[i] = model.HistoryEntry{ID: int64(i + 1)}
+	}
+	app.setHistory(entries)
+	screen.render()
+	screen.pressKey(tt, "end")
+	screen.pressKey(tt, "shift+up")
+	app.setHistory(append([]model.HistoryEntry{{ID: 101}}, entries...))
+	screen.render()
+	selected := app.historyList.SelectedItems()
+	if len(selected) != 1 || selected[0].ID != 99 {
+		tt.Fatalf("trim selected wrong entries: %+v", selected)
+	}
+	if app.historyList.HasAnchor() {
+		tt.Fatal("trim retained removed anchor")
+	}
+	if cursor, ok := app.historyList.SelectedItem(); !ok || cursor.ID != 99 {
+		tt.Fatalf("trim moved cursor from ID 99: %+v", cursor)
+	}
+	screen.pressKey(tt, "shift+up")
+	selected = app.historyList.SelectedItems()
+	if len(selected) != 2 || selected[0].ID != 98 || selected[1].ID != 99 {
+		tt.Fatalf("range after trim = %+v", selected)
 	}
 }

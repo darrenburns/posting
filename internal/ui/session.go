@@ -304,6 +304,8 @@ func (s *Session) Load(req model.Request) {
 	s.dirty.Set(false)
 	// Show a newly loaded body from its start. (Unfocused inputs already
 	// show the start of their text.)
+	s.body.ClearSelection()
+	s.description.ClearSelection()
 	s.body.CursorIndex.Set(0)
 	s.description.CursorIndex.Set(0)
 	s.bodyScroll.SetOffset(0)

@@ -44,6 +44,8 @@ func (e *graphQLEditor) load(req model.Request) {
 	e.query.SetText(g.Query)
 	e.operation.SetText(g.OperationName)
 	e.variables.SetText(g.Variables)
+	e.query.ClearSelection()
+	e.variables.ClearSelection()
 	e.query.CursorIndex.Set(0)
 	e.variables.CursorIndex.Set(0)
 	e.queryScroll.SetOffset(0)

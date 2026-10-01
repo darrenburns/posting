@@ -271,10 +271,37 @@ func (c collectionTree) Keybinds() []t.Keybind {
 		binds = append(binds, t.Keybind{Key: "up", Name: "Search", Action: func() { t.RequestFocus(treeSearchID) }, Hidden: true})
 	}
 	if len(a.tree.Selection.Peek()) > 0 {
-		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: a.tree.ClearSelection})
+		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: a.clearTreeSelection})
 	}
 	if a.treeFilter.PeekQuery() != "" {
 		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear search", Action: a.clearTreeSearch})
 	}
-	return append(binds, c.Tree.Keybinds()...)
+	for _, bind := range c.Tree.Keybinds() {
+		switch bind.Key {
+		case "left", "right", "h", "l":
+			action := bind.Action
+			bind.Action = func() {
+				cursor := slices.Clone(a.tree.CursorPath.Peek())
+				action()
+				if !slices.Equal(cursor, a.tree.CursorPath.Peek()) {
+					a.clearTreeSelection()
+				}
+			}
+		}
+		binds = append(binds, bind)
+	}
+	return binds
+}
+
+// Terma 0.19 keeps the range anchor private. Replace its transient state
+// while retaining the signals that describe the current collection view.
+func (a *App) clearTreeSelection() {
+	old := a.tree
+	state := t.NewTreeState(old.Nodes.Peek())
+	state.Nodes, state.CursorPath, state.Collapsed = old.Nodes, old.CursorPath, old.Collapsed
+	state.Selection = old.Selection
+	a.tree = state
+	state.ClearSelection()
+	// Rebuild the collection so its widgets and handlers use the new state.
+	state.Nodes.Set(state.Nodes.Peek())
 }
