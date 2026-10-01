@@ -51,11 +51,11 @@ func TestDuplicateAndDeleteFromThePalette(tt *testing.T) {
 	store := &recordingStore{}
 	app := storeApp(store)
 	app.openRequest(sampleRequest(tt, "Get user"))
-	app.duplicateRequest(app.current().Snapshot())
+	app.duplicateRequests([]model.Request{app.current().Snapshot()})
 	if got := app.current().file.Peek(); got != "users/get-user-copy.posting.yaml" || !app.fileExists(got) {
 		tt.Fatalf("duplicate = %q", got)
 	}
-	app.confirmDelete(app.current().Snapshot())
+	app.confirmDeleteRequests([]model.Request{app.current().Snapshot()})
 	if app.overlay.Peek() != "confirm" {
 		tt.Fatal("deleting should ask first")
 	}
@@ -65,7 +65,7 @@ func TestDuplicateAndDeleteFromThePalette(tt *testing.T) {
 	}
 
 	app.newTab()
-	app.duplicateRequest(app.current().Snapshot())
+	app.duplicateRequests([]model.Request{app.current().Snapshot()})
 	if app.toast.Peek().kind != toastWarning {
 		tt.Fatal("duplicating an unsaved request should explain why it can't")
 	}

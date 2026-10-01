@@ -109,12 +109,12 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Divider: "Request"},
 		{Label: "Duplicate request", Description: "Save a copy beside this request", Action: a.run(func() {
 			if s := a.current(); s != nil {
-				a.duplicateRequest(s.Snapshot())
+				a.duplicateRequests([]model.Request{s.Snapshot()})
 			}
 		})},
 		{Label: "Delete request", Description: "Remove this request's file from the collection", Action: a.run(func() {
 			if s := a.current(); s != nil {
-				a.confirmDelete(s.Snapshot())
+				a.confirmDeleteRequests([]model.Request{s.Snapshot()})
 			}
 		})},
 		{Label: "Copy response body", Action: a.run(a.copyResponseBody)},
