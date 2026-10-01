@@ -15,14 +15,20 @@ import (
 
 type scope struct {
 	headers, query []model.KeyValue
-	vars           map[string]string
-	auth           model.Auth
-	authMode       string
-	authFields     map[string]string
+	// vars are materialized into each request: folder variables, and
+	// collection variables whose names Posting cannot reference.
+	vars map[string]string
+	// collection holds the other collection variables, unexpanded. They are
+	// written to the base environment, which Bruno ranks below environments.
+	collection map[string]string
+	referrers  map[string][]string
+	auth       model.Auth
+	authMode   string
+	authFields map[string]string
 }
 
 func emptyScope() scope {
-	return scope{vars: map[string]string{}, auth: model.Auth{Type: model.AuthNone}}
+	return scope{vars: map[string]string{}, collection: map[string]string{}, auth: model.Auth{Type: model.AuthNone}}
 }
 
 // Parse imports one standalone .bru request. Parent collection/folder settings
@@ -74,12 +80,16 @@ func diagnostics(d document, result *importing.Result) {
 		}
 	}
 }
-func applyScope(d document, parent scope, result *importing.Result) (scope, error) {
+
+// applyScope layers a collection.bru (collection is true) or folder.bru over
+// its parent scope. Collection variables are added to result.Variables.
+func applyScope(d document, parent scope, result *importing.Result, collection bool) (scope, error) {
 	s := parent
 	s.vars = map[string]string{}
 	for k, v := range parent.vars {
 		s.vars[k] = v
 	}
+	var shared []model.KeyValue
 	for _, name := range []string{"headers", "query", "vars:pre-request"} {
 		rows, err := d.pairs(name)
 		if err != nil {
@@ -92,10 +102,29 @@ func applyScope(d document, parent scope, result *importing.Result) (scope, erro
 			s.query = mergeQuery(parent.query, rows)
 		default:
 			for _, v := range rows {
-				if v.Enabled {
-					s.vars[strings.TrimPrefix(v.Name, "@")] = v.Value
+				name := strings.TrimPrefix(v.Name, "@")
+				switch {
+				case !v.Enabled:
+				case collection && identifier.MatchString(name):
+					shared = append(shared, model.KeyValue{Name: name, Value: v.Value, Enabled: true})
+				default:
+					s.vars[name] = v.Value
 				}
 			}
+		}
+	}
+	if collection {
+		s.collection = map[string]string{}
+		for _, v := range shared {
+			s.collection[v.Name] = v.Value
+		}
+		s.referrers = referrers(s.collection)
+		// Names Posting can't reference stay materialized, including inside
+		// the collection variables that use them.
+		expansion := expander{vars: s.vars, result: result}
+		result.Variables = postingVariables(shared, &expansion)
+		if expansion.err != nil {
+			return s, expansion.err
 		}
 	}
 	if d.has("auth") {
@@ -214,6 +243,7 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 			vars[strings.TrimPrefix(v.Name, "@")] = v.Value
 		}
 	}
+	materializeAliases(vars, parent)
 	expansion := expander{vars: vars, result: result}
 	headers, err := d.pairs("headers")
 	if err != nil {
@@ -402,6 +432,95 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 	}
 	r = model.Normalize(r)
 	return &r, nil
+}
+
+// materializeAliases adds to vars each collection variable that refers,
+// directly or not, to a folder or request variable. Bruno resolves it with
+// the narrower value, which a shared environment file can't hold.
+func materializeAliases(vars map[string]string, s scope) {
+	queue := make([]string, 0, len(vars))
+	for name := range vars {
+		queue = append(queue, name)
+	}
+	for len(queue) > 0 {
+		name := queue[0]
+		queue = queue[1:]
+		for _, alias := range s.referrers[name] {
+			if _, ok := vars[alias]; !ok {
+				vars[alias] = s.collection[alias]
+				queue = append(queue, alias)
+			}
+		}
+	}
+}
+
+// referrers maps each name to the collection variables that reference it.
+func referrers(collection map[string]string) map[string][]string {
+	out := map[string][]string{}
+	for name, value := range collection {
+		for _, ref := range reference.FindAllStringSubmatch(value, -1) {
+			out[strings.TrimSpace(ref[1])] = append(out[strings.TrimSpace(ref[1])], name)
+		}
+	}
+	return out
+}
+
+// postingVariables converts enabled variables with identifier names. A
+// repeated name keeps its last value.
+func postingVariables(rows []model.KeyValue, expansion *expander) []model.Variable {
+	var out []model.Variable
+	index := map[string]int{}
+	for _, row := range rows {
+		if !row.Enabled {
+			continue
+		}
+		value := expansion.expand(row.Value, nil)
+		if i, ok := index[row.Name]; ok {
+			out[i].Value = value
+			continue
+		}
+		index[row.Name] = len(out)
+		out = append(out, model.Variable{Name: row.Name, Value: value, Source: "bruno"})
+	}
+	return out
+}
+
+// environment converts an environments/<name>.bru file. Secret values live
+// only in Bruno's app storage, so they are reported rather than imported.
+func environment(d document, name, where string, result *importing.Result) (importing.Environment, error) {
+	rows, err := d.pairs("vars")
+	if err != nil {
+		return importing.Environment{}, err
+	}
+	var usable []model.KeyValue
+	for _, row := range rows {
+		if !row.Enabled {
+			continue
+		}
+		if !identifier.MatchString(row.Name) {
+			warn(result, where+": variable "+row.Name+" cannot be represented as a Posting variable and was not imported")
+			continue
+		}
+		usable = append(usable, row)
+	}
+	expansion := expander{vars: map[string]string{}, result: result}
+	out := importing.Environment{Name: name, Variables: postingVariables(usable, &expansion)}
+	if expansion.err != nil {
+		return importing.Environment{}, expansion.err
+	}
+	switch secrets := d.list("vars:secret"); len(secrets) {
+	case 0:
+	case 1:
+		warn(result, where+": secret variable "+secrets[0]+" has no value on disk; set it in "+name+".local.env")
+	default:
+		warn(result, where+": secret variables "+strings.Join(secrets, ", ")+" have no values on disk; set them in "+name+".local.env")
+	}
+	for _, b := range d {
+		if b.name != "vars" && b.name != "vars:secret" {
+			warn(result, where+": unsupported environment block "+b.name)
+		}
+	}
+	return out, nil
 }
 
 var reference = regexp.MustCompile(`\{\{\s*([^{}]+?)\s*\}\}`)

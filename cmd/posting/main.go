@@ -60,7 +60,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 	fs.Usage = func() {
 		fmt.Fprint(stderr, `Usage: posting [options]
        posting locate config|collection|themes
-       posting import [--type FORMAT] [-o DIR] SOURCE
+       posting import [--type FORMAT] [-o DIR] SOURCE [ENVIRONMENT...]
 
 A terminal HTTP client.
 

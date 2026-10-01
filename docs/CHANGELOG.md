@@ -4,6 +4,10 @@
 
 Posting 3 is a rewrite of Posting in Go, distributed as a single binary. It reads the same collections, configuration and `.env` files as Posting 2. See [Coming from Posting 2](guide/migrating.md) for what's new, what's changed, and what isn't supported yet.
 
+### Added
+
+- `posting import` imports environments. Give Postman environment exports after the collection, or on their own with `--output` to add them to an existing collection. A Bruno collection's `environments` directory is imported too. Collection variables go in `posting.env` and each environment in its own `<name>.env` on top of it. References between variables are kept, so a `BASE_URL` built from `HOST` follows the selected environment (#270).
+
 ## 2.11.0 [26th September 2026]
 
 ### Added

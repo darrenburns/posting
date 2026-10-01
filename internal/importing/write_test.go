@@ -26,7 +26,7 @@ func TestWritePreservesBodiesVariablesAndExistingFiles(t *testing.T) {
 	}
 	r := sampleRequest("example.posting.yaml")
 	r.Body = model.Body{Type: model.BodyRaw, ContentType: "text/plain", Raw: "keep spaces  \n\tand tabs\t\n"}
-	vars := []model.Variable{{Name: "TOKEN", Value: "it's \\ ${HOME} \"quoted\"\nwith\r\nnewlines"}, {Name: "EMPTY"}}
+	vars := []model.Variable{{Name: "TOKEN", Value: "it's \\ $${HOME} \"quoted\"\nwith\r\nnewlines"}, {Name: "EMPTY"}}
 	result, err := Write(Result{Requests: []model.Request{r, r}, Variables: vars}, dir)
 	if err != nil {
 		t.Fatal(err)
@@ -51,22 +51,23 @@ func TestWritePreservesBodiesVariablesAndExistingFiles(t *testing.T) {
 			t.Fatalf("body changed: %q", req.Body.Raw)
 		}
 	}
-	loaded, err := env.Load([]string{filepath.Join(dir, result.Environment)})
-	if err != nil {
-		t.Fatal(err)
+	if !reflect.DeepEqual(result.Environments, []WrittenEnvironment{{Name: "posting", File: "posting.env", Base: true}}) {
+		t.Fatalf("environments: %+v", result.Environments)
 	}
-	values := map[string]string{}
-	for _, v := range loaded.Variables {
-		values[v.Name] = v.Value
-	}
-	for _, v := range vars {
-		if values[v.Name] != v.Value {
-			t.Fatalf("variable %s changed: %q != %q", v.Name, values[v.Name], v.Value)
-		}
+	values := loadEnvironment(t, dir, "posting")
+	want := map[string]string{"TOKEN": "it's \\ ${HOME} \"quoted\"\nwith\r\nnewlines", "EMPTY": ""}
+	if !reflect.DeepEqual(values, want) {
+		t.Fatalf("loaded %q, want %q", values, want)
 	}
 	again, err := Write(Result{Variables: vars}, dir)
-	if err != nil || again.Environment != "imported-2.env" {
+	if err != nil || len(again.Environments) != 1 || again.Environments[0].File != "posting-2.env" {
 		t.Fatalf("repeat import: %+v %v", again, err)
+	}
+	if !strings.Contains(strings.Join(again.Warnings, "\n"), "posting.env already exists") {
+		t.Fatalf("no warning that the base moved: %q", again.Warnings)
+	}
+	if got := loadEnvironment(t, dir, "posting"); !reflect.DeepEqual(got, want) {
+		t.Fatalf("repeat import changed the base: %q", got)
 	}
 }
 
@@ -124,19 +125,170 @@ func TestWriteValidatesBeforeCreatingOutput(t *testing.T) {
 }
 
 func FuzzEnvironmentRoundTrip(f *testing.F) {
-	for _, s := range []string{"", "normal", "'quote'", `C:\files\`, "${HOME}", "line\r\nnext", "x\x00y"} {
+	for _, s := range []string{"", "normal", "'quote'", `C:\files\`, "${HOME}", "$${HOME}", "line\r\nnext", "x\x00y", `${A}/$${B}/"q"\`, "${A}${:-x}$", "$$${A}{", "${A}$${", "${A} ${a b} ${", "$A$B", "${A}\n# not a comment"} {
 		f.Add(s)
 	}
-	f.Fuzz(func(t *testing.T, value string) {
-		data, err := environmentData([]model.Variable{{Name: "VALUE", Value: value}})
+	f.Fuzz(func(t *testing.T, template string) {
+		data, err := environmentData([]model.Variable{{Name: "VALUE", Value: template}})
 		if err != nil {
 			t.Fatal(err)
 		}
-		pairs := env.Parse(string(data), func(string) (string, bool) { return "unexpected host value", true })
-		if len(pairs) != 1 || pairs[0].Value != value {
-			t.Fatalf("roundtrip %q => %q", value, pairs)
+		// No variable can have the empty name, which the literal "${" encoding
+		// relies on.
+		lookup := func(name string) (string, bool) { return "<" + name + " ${x} $$ \\\">", name != "" }
+		pairs := env.Parse(string(data), lookup)
+		want := model.Substitute(template, lookup)
+		if len(pairs) != 1 || pairs[0].Value != want {
+			t.Fatalf("%q encoded as %q loads as %q, want %q", template, data, pairs, want)
+		}
+		templates, skipped := env.Templates(string(data))
+		if len(templates) != 1 || len(skipped) != 0 || model.Substitute(templates[0].Value, lookup) != want {
+			t.Fatalf("%q encoded as %q reads back as template %q, skipped %q", template, data, templates, skipped)
 		}
 	})
+}
+
+func loadEnvironment(t *testing.T, dir, name string) map[string]string {
+	t.Helper()
+	files := env.Stack(dir, name)
+	if files == nil {
+		t.Fatalf("no environment %q in %s", name, dir)
+	}
+	loaded, err := env.Load(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return model.Values(loaded.Variables)
+}
+
+func TestWriteLayersReferencesAcrossEnvironments(t *testing.T) {
+	dir := t.TempDir()
+	result := Result{
+		Variables: []model.Variable{
+			{Name: "API", Value: "${BASE_URL}/v1"},
+			{Name: "BASE_URL", Value: "${SCHEME}://${HOST}/api"},
+			{Name: "SCHEME", Value: "https"},
+			{Name: "HOST", Value: "prod.test"},
+			{Name: "UNRELATED", Value: "${SCHEME}"},
+		},
+		Environments: []Environment{
+			{Name: "staging", Variables: []model.Variable{{Name: "DOCS", Value: "${API}/docs"}, {Name: "HOST", Value: "staging.test"}}},
+			{Name: "production", Variables: []model.Variable{{Name: "EXTRA", Value: "x"}}},
+		},
+	}
+	written, err := Write(result, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(written.Warnings) > 0 {
+		t.Fatalf("warnings: %q", written.Warnings)
+	}
+	want := []WrittenEnvironment{{Name: "posting", File: "posting.env", Base: true}, {Name: "staging", File: "staging.env"}, {Name: "production", File: "production.env"}}
+	if !reflect.DeepEqual(written.Environments, want) {
+		t.Fatalf("environments: %+v", written.Environments)
+	}
+	base := map[string]string{"API": "https://prod.test/api/v1", "BASE_URL": "https://prod.test/api", "SCHEME": "https", "HOST": "prod.test", "UNRELATED": "https"}
+	if got := loadEnvironment(t, dir, "posting"); !reflect.DeepEqual(got, base) {
+		t.Fatalf("base: %q", got)
+	}
+	staging := map[string]string{"API": "https://staging.test/api/v1", "BASE_URL": "https://staging.test/api", "SCHEME": "https", "HOST": "staging.test", "UNRELATED": "https", "DOCS": "https://staging.test/api/v1/docs"}
+	if got := loadEnvironment(t, dir, "staging"); !reflect.DeepEqual(got, staging) {
+		t.Fatalf("staging: %q", got)
+	}
+	production := map[string]string{"EXTRA": "x"}
+	for k, v := range base {
+		production[k] = v
+	}
+	if got := loadEnvironment(t, dir, "production"); !reflect.DeepEqual(got, production) {
+		t.Fatalf("production: %q", got)
+	}
+}
+
+func TestWriteRoundTripsAwkwardValuesBesideReferences(t *testing.T) {
+	t.Setenv("IMPORT_TEST_HOST", "host value must not leak")
+	dir := t.TempDir()
+	value := "a $$ b $${x} c ${IMPORT_TEST_HOST} 'single' \"double\" back\\slash\\\nline\r\n$${ $$${IMPORT_TEST_HOST}"
+	_, err := Write(Result{
+		Variables:    []model.Variable{{Name: "IMPORT_TEST_HOST", Value: "base"}, {Name: "V", Value: value}},
+		Environments: []Environment{{Name: "staging", Variables: []model.Variable{{Name: "IMPORT_TEST_HOST", Value: "${x"}}}},
+	}, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, host := range map[string]string{"posting": "base", "staging": "${x"} {
+		got := loadEnvironment(t, dir, name)["V"]
+		want := model.Substitute(value, model.MapLookup(map[string]string{"IMPORT_TEST_HOST": host}))
+		if got != want {
+			t.Fatalf("%s: got %q, want %q", name, got, want)
+		}
+	}
+}
+
+func TestWriteKeepsReservedEnvironmentNamesOutOfTheBase(t *testing.T) {
+	dir := t.TempDir()
+	result := Result{
+		Variables: []model.Variable{{Name: "WHO", Value: "base"}},
+		Environments: []Environment{
+			{Name: "Posting", Variables: []model.Variable{{Name: "WHO", Value: "posting env"}}},
+			{Name: "staging.local", Variables: []model.Variable{{Name: "WHO", Value: "staging.local env"}}},
+			{Name: "staging", Variables: []model.Variable{{Name: "WHO", Value: "staging env"}}},
+		},
+	}
+	written, err := Write(result, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []WrittenEnvironment{{Name: "posting", File: "posting.env", Base: true}, {Name: "Posting-environment", File: "Posting-environment.env"}, {Name: "staging-local", File: "staging-local.env"}, {Name: "staging", File: "staging.env"}}
+	if !reflect.DeepEqual(written.Environments, want) {
+		t.Fatalf("environments: %+v", written.Environments)
+	}
+	for name, who := range map[string]string{"posting": "base", "Posting-environment": "posting env", "staging-local": "staging.local env", "staging": "staging env"} {
+		if got := loadEnvironment(t, dir, name)["WHO"]; got != who {
+			t.Fatalf("%s: WHO = %q, want %q", name, got, who)
+		}
+	}
+}
+
+func TestWriteEnvironmentsWithoutRequestsOrBase(t *testing.T) {
+	dir := t.TempDir()
+	written, err := Write(Result{Environments: []Environment{{Name: "staging", Variables: []model.Variable{{Name: "HOST", Value: "staging.test"}}}, {Name: "empty"}}}, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(written.Files) != 0 || len(written.Environments) != 2 {
+		t.Fatalf("written: %+v", written)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "posting.env")); !os.IsNotExist(err) {
+		t.Fatalf("wrote a base without base variables: %v", err)
+	}
+	if got := loadEnvironment(t, dir, "staging"); !reflect.DeepEqual(got, map[string]string{"HOST": "staging.test"}) {
+		t.Fatalf("staging: %q", got)
+	}
+	if got := loadEnvironment(t, dir, "empty"); len(got) != 0 {
+		t.Fatalf("empty: %q", got)
+	}
+}
+
+func TestLayersOrderReferencesAndReportCycles(t *testing.T) {
+	vars := []model.Variable{
+		{Name: "WAITS", Value: "${A}"},
+		{Name: "A", Value: "${B}"},
+		{Name: "B", Value: "${A}"},
+		{Name: "SELF", Value: "${SELF}"},
+		{Name: "LATE", Value: "x"},
+		{Name: "USES_LATE", Value: "${LATE}"},
+	}
+	files, warnings := layers(vars, nil)
+	var names []string
+	for _, v := range files[0] {
+		names = append(names, v.Name)
+	}
+	if want := []string{"SELF", "LATE", "USES_LATE", "A", "WAITS", "B"}; !reflect.DeepEqual(names, want) {
+		t.Fatalf("order %v, want %v", names, want)
+	}
+	if len(warnings) != 1 || !strings.Contains(warnings[0], "A, B reference each other") {
+		t.Fatalf("warnings: %q", warnings)
+	}
 }
 
 func FuzzImportPathsStayLocal(f *testing.F) {
