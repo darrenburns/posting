@@ -47,6 +47,28 @@ func (p ProtoSet) Abs(root string) ProtoSet {
 	return abs
 }
 
+// IsDescriptorSet reports whether path is a serialized FileDescriptorSet
+// rather than .proto source.
+func IsDescriptorSet(path string) bool {
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".protoset", ".binpb", ".pb":
+		return true
+	}
+	return false
+}
+
+// ImportName is path relative to the first of imports it is under, which is
+// the name a .proto file is imported by. It reports false when path is
+// under none of them.
+func ImportName(path string, imports []string) (string, bool) {
+	for _, dir := range imports {
+		if rel, err := filepath.Rel(dir, path); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return filepath.ToSlash(rel), true
+		}
+	}
+	return "", false
+}
+
 func absPaths(root string, paths []string) []string {
 	var out []string
 	for _, p := range paths {
