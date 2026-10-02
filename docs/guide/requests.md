@@ -265,9 +265,9 @@ The line under the **Method** field shows how many methods Posting found, and wh
 message types, such as `server stream · ListBooksRequest → Book`. If Posting couldn't find the
 methods, the line says why. Before Posting has asked the server, the line says so.
 
-The **Method** field lists the methods while it has focus, and opens the list when they arrive. Type to filter them, and press
-++enter++ to choose one. You can also type a method yourself as `package.Service/Method` or
-`package.Service.Method`.
+The **Method** field lists the methods while it has focus, and opens the list when they arrive.
+Type to filter them, and press ++enter++ to choose one. You can also type a method yourself as
+`package.Service/Method` or `package.Service.Method`.
 
 ### Messages and streams
 
@@ -334,8 +334,8 @@ TLS, `-H` for metadata and auth, `-d` for the message, `-max-time` for the timeo
 runs from any directory. Basic and bearer auth replace an `authorization` metadata row, as they do
 when Posting sends the request. If the address still has a variable in it, the command keeps the
 address as written. Only a `grpc://` or `http://` scheme then makes the command `-plaintext`, so
-without a scheme grpcurl uses TLS. grpcurl reads a stream
-as JSON objects one after another, so an array message is written that way.
+without a scheme grpcurl uses TLS. grpcurl reads a stream as JSON objects one after another, so an
+array message is written that way.
 
 ### gRPC request files
 
