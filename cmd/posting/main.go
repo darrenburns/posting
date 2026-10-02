@@ -168,6 +168,7 @@ func appConfig(opts options) (ui.Config, error) {
 	if settings.WatchCollectionFiles {
 		watch = store
 	}
+	rpc := client.NewGRPC("posting/"+version, tlsSettings, dir)
 	return ui.Config{
 		Watch:            watch,
 		Reload:           store,
@@ -178,7 +179,8 @@ func appConfig(opts options) (ui.Config, error) {
 		NerdFonts:        settings.UseNerdFonts(os.LookupEnv),
 		HostVariables:    host,
 		UserThemes:       userThemes,
-		Sender:           client.NewHTTP("posting/"+version, tlsSettings),
+		Sender:           client.ByKind{HTTP: client.NewHTTP("posting/"+version, tlsSettings), GRPC: rpc},
+		Describer:        rpc,
 		Collection:       root,
 		Store:            store,
 		Environments:     env.Source{Dirs: envDirs},

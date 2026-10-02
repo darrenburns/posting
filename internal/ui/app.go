@@ -27,8 +27,11 @@ import (
 
 // Config is everything the UI needs from the outside world.
 type Config struct {
-	Version    string
-	Sender     client.Sender
+	Version string
+	Sender  client.Sender
+	// Describer lists the methods gRPC requests can call. Nil uses
+	// client.Fake, as a nil Sender does.
+	Describer  client.Describer
 	Collection *model.Collection
 	// Store saves and deletes requests. Nil keeps changes in memory only.
 	Store collection.Store
@@ -85,6 +88,7 @@ type App struct {
 	userThemes []string
 	icons      iconSet
 	sender     client.Sender
+	describer  client.Describer
 	store      collection.Store
 	host       string // markup
 
@@ -151,6 +155,9 @@ func New(cfg Config) *App {
 	if cfg.Sender == nil {
 		cfg.Sender = client.Fake{}
 	}
+	if cfg.Describer == nil {
+		cfg.Describer = client.Fake{}
+	}
 	if cfg.Environments == nil {
 		cfg.Environments = StaticEnvironments(nil)
 	}
@@ -187,6 +194,7 @@ func New(cfg Config) *App {
 		watcher:        cfg.Reload,
 		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
+		describer:      cfg.Describer,
 		store:          cfg.Store,
 		host:           host,
 		collection:     t.NewAnySignal(cfg.Collection),
