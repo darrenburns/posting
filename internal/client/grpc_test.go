@@ -280,6 +280,9 @@ func TestGRPCDeadlineKeepsTheMessagesThatArrived(t *testing.T) {
 	if err := json.Unmarshal(resp.Body, &books); err != nil || len(books) != 2 {
 		t.Fatalf("body = %s, %v; want the two books sent before the deadline", resp.Body, err)
 	}
+	if len(resp.Trailers) != 0 {
+		t.Fatalf("the server sent no trailers, but the response shows %+v", resp.Trailers)
+	}
 }
 
 func TestGRPCTimeoutBeforeTheServerAnswersIsAnError(t *testing.T) {
