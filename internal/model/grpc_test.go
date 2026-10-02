@@ -125,6 +125,8 @@ func TestParseGRPCTarget(t *testing.T) {
 		{"127.0.0.1:9000", GRPCTarget{"127.0.0.1:9000", false}},
 		{"127.4.5.6:9000", GRPCTarget{"127.4.5.6:9000", false}},
 		{"[::1]:9000", GRPCTarget{"[::1]:9000", false}},
+		{"0.0.0.0:50051", GRPCTarget{"0.0.0.0:50051", false}},
+		{"[::]:50051", GRPCTarget{"[::]:50051", false}},
 		{"localhost", GRPCTarget{"localhost:80", false}},
 		{"api.example.com:8443", GRPCTarget{"api.example.com:8443", true}},
 		{"api.example.com", GRPCTarget{"api.example.com:443", true}},
@@ -249,5 +251,13 @@ func TestGRPCPayloadSize(t *testing.T) {
 	r.Payload = GRPC{Method: "a/b", Message: "{}", Protos: ProtoSet{Files: []string{"x.proto"}, ImportPaths: []string{"p"}}}
 	if got := r.PayloadSize(); got != 3+2+7+1 {
 		t.Fatalf("PayloadSize = %d", got)
+	}
+
+	files := make([]string, 1, 2)
+	files[0] = "x.proto"
+	r.Payload = GRPC{Protos: ProtoSet{Files: files, ImportPaths: []string{"p"}}}
+	r.PayloadSize()
+	if spare := files[:2][1]; spare != "" {
+		t.Fatalf("PayloadSize wrote %q into the files' spare capacity", spare)
 	}
 }
