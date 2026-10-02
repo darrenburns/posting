@@ -423,6 +423,24 @@ func TestGRPCDescribeProtoFilesNeverDials(t *testing.T) {
 	}
 }
 
+func TestGRPCDescribeProtoFilesIgnoresTheAddressAndMetadata(t *testing.T) {
+	for name, edit := range map[string]func(*model.Request){
+		"undefined address variable": func(r *model.Request) { r.URL = "${HOST}" },
+		"digest auth":                func(r *model.Request) { r.Auth = model.Auth{Type: model.AuthDigest, Username: "ada"} },
+		"reserved metadata": func(r *model.Request) {
+			r.Headers = []model.KeyValue{{Name: "grpc-timeout", Value: "1S", Enabled: true}}
+		},
+	} {
+		req := grpcRequest("localhost:1", "", "")
+		req.Payload = model.GRPC{Protos: model.ProtoSet{Files: []string{"library.proto"}}}
+		edit(&req)
+		schema, err := NewGRPC("posting-test", TLSSettings{}, "testdata").Describe(context.Background(), Call{Request: req})
+		if err != nil || len(schema.Methods) != 4 {
+			t.Errorf("%s: Describe = %d methods, %v; proto files need neither", name, len(schema.Methods), err)
+		}
+	}
+}
+
 func TestGRPCDescriptorSetFiles(t *testing.T) {
 	files, _ := librarySchema(t)
 	set := &descriptorpb.FileDescriptorSet{}
