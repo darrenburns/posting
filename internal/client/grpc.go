@@ -155,6 +155,9 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 		trace.end(model.TraceFailed)
 		return nil, c.describe(ctx, ex.status.Err())
 	}
+	if ex.status.Code() == codes.Canceled && c.atDeadline(ex.status.Err()) {
+		ex.status = status.FromContextError(context.DeadlineExceeded)
+	}
 	resp := responseOf(md, ex, files)
 	resp.Elapsed = time.Since(started)
 	resp.ReceivedAt = time.Now()
@@ -530,13 +533,24 @@ func (c *grpcCall) describe(ctx context.Context, err error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	if errors.Is(c.deadline.Err(), context.DeadlineExceeded) {
+	if errors.Is(c.deadline.Err(), context.DeadlineExceeded) || c.atDeadline(err) {
 		return fmt.Errorf("request timed out after %gs", c.timeout)
 	}
 	if s, ok := status.FromError(err); ok {
 		return errors.New(s.Message())
 	}
 	return err
+}
+
+// atDeadline reports whether err ended the call as its deadline arrived.
+// The server enforces the deadline Posting sends it, so it may reset the
+// call a moment before Posting's own deadline passes.
+func (c *grpcCall) atDeadline(err error) bool {
+	if code := status.Code(err); code != codes.Canceled && code != codes.DeadlineExceeded {
+		return false
+	}
+	deadline, _ := c.deadline.Deadline()
+	return time.Until(deadline) < 100*time.Millisecond
 }
 
 // exchange is what came back from one call.
