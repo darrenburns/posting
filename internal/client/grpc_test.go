@@ -16,6 +16,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/reflection"
+	reflectionv1 "google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -410,6 +412,29 @@ func TestGRPCDescribeByReflection(t *testing.T) {
 				t.Fatalf("the dotted method form works too: %s", resp.Body)
 			}
 		})
+	}
+}
+
+func TestGRPCDescribeSkipsAServiceReflectionCantDescribe(t *testing.T) {
+	files, svc := librarySchema(t)
+	server := grpc.NewServer()
+	server.RegisterService(libraryService(svc), struct{}{})
+	server.RegisterService(&grpc.ServiceDesc{ServiceName: "hidden.v1.Hidden", HandlerType: (*any)(nil)}, struct{}{})
+	reflectionv1.RegisterServerReflectionServer(server, reflection.NewServerV1(reflection.ServerOptions{Services: server, DescriptorResolver: files}))
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	go func() { _ = server.Serve(lis) }()
+	t.Cleanup(server.Stop)
+
+	schema, err := NewGRPC("posting-test", TLSSettings{}, "").Describe(context.Background(), Call{Request: grpcRequest(lis.Addr().String(), "", "")})
+	if err != nil || len(schema.Methods) != 4 {
+		t.Fatalf("Describe = %+v, %v; want the library's 4 methods", schema.Methods, err)
+	}
+	_, err = callGRPC(t, grpcRequest(lis.Addr().String(), "hidden.v1.Hidden/Peek", `{}`))
+	if err == nil || !strings.Contains(err.Error(), "doesn't know hidden.v1.Hidden") {
+		t.Fatalf("calling the service reflection can't describe: %v", err)
 	}
 }
 
