@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -132,12 +131,15 @@ func protoArgs(set model.ProtoSet, root string) [][]string {
 	set = set.Abs(root)
 	var args, sources [][]string
 	for _, file := range set.Files {
-		switch strings.ToLower(filepath.Ext(file)) {
-		case ".protoset", ".binpb", ".pb":
+		if model.IsDescriptorSet(file) {
 			args = append(args, []string{"-protoset", curl.Quote(file)})
-		default:
-			sources = append(sources, []string{"-proto", curl.Quote(importName(file, set.ImportPaths))})
+			continue
 		}
+		name, ok := model.ImportName(file, set.ImportPaths)
+		if !ok {
+			name = file
+		}
+		sources = append(sources, []string{"-proto", curl.Quote(name)})
 	}
 	if len(sources) == 0 {
 		return args
@@ -146,14 +148,4 @@ func protoArgs(set model.ProtoSet, root string) [][]string {
 		args = append(args, []string{"-import-path", curl.Quote(dir)})
 	}
 	return append(args, sources...)
-}
-
-// importName is file relative to the first import path it is under.
-func importName(file string, imports []string) string {
-	for _, dir := range imports {
-		if rel, err := filepath.Rel(dir, file); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-			return filepath.ToSlash(rel)
-		}
-	}
-	return file
 }

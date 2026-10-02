@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
@@ -213,16 +212,16 @@ func compileProtos(files, imports []string) (*protoregistry.Files, []string, err
 	var mu sync.Mutex
 	var sources, names []string
 	for _, path := range files {
-		if isDescriptorSet(path) {
+		if model.IsDescriptorSet(path) {
 			if err := registerDescriptorSet(registry, path); err != nil {
 				return nil, nil, err
 			}
 			sources = append(sources, path)
 			continue
 		}
-		name, err := importName(path, imports)
-		if err != nil {
-			return nil, nil, err
+		name, ok := model.ImportName(path, imports)
+		if !ok {
+			return nil, nil, fmt.Errorf("%s isn't under any of the import paths", path)
 		}
 		names = append(names, name)
 	}
@@ -252,14 +251,6 @@ func compileProtos(files, imports []string) (*protoregistry.Files, []string, err
 	}
 	sort.Strings(sources)
 	return registry, slices.Compact(sources), nil
-}
-
-func isDescriptorSet(path string) bool {
-	switch strings.ToLower(filepath.Ext(path)) {
-	case ".protoset", ".binpb", ".pb":
-		return true
-	}
-	return false
 }
 
 func registerDescriptorSet(registry *protoregistry.Files, path string) error {
@@ -300,17 +291,6 @@ func registerFile(registry *protoregistry.Files, fd protoreflect.FileDescriptor)
 		return nil
 	}
 	return registry.RegisterFile(fd)
-}
-
-// importName is path relative to the first import path it is under, which
-// is the name protocompile finds it by.
-func importName(path string, imports []string) (string, error) {
-	for _, dir := range imports {
-		if rel, err := filepath.Rel(dir, path); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-			return filepath.ToSlash(rel), nil
-		}
-	}
-	return "", fmt.Errorf("%s isn't under any of the import paths", path)
 }
 
 // stamp identifies the current content of files by size and modification
