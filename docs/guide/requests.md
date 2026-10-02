@@ -277,8 +277,10 @@ Variables work as they do in a raw body: `$NAME` and `${NAME}` are both replaced
 suggests the variables you can use. Turn off **Substitute body variables** to send the message
 exactly as written. Press ++f4++ in the message to edit it in your own editor.
 
-Posting sends every message, closes its side of the call, and then waits for the server to finish.
-It doesn't show messages as they arrive, and you can't send more messages while a call is running.
+Posting sends every message and closes its side of the call while it reads the server's replies, so
+a server that answers each message as it arrives works too. The response shows the replies when
+the call ends. Posting doesn't show messages as they arrive, and you can't send more messages while
+a call is running.
 
 ### gRPC responses
 
@@ -301,6 +303,10 @@ server sent one, `grpc-message`.
 When a call runs past its timeout, the response shows the messages that arrived before the deadline,
 with the status `DEADLINE_EXCEEDED`. When Posting can't reach the server, or the server sends
 nothing before the deadline, the response panel shows an error, as it does for an HTTP request.
+
+Posting keeps up to 64 MB of messages from a call, the same limit as an HTTP response body. When a
+stream sends more, Posting cancels the call. The response shows the messages that arrived before
+the limit, with the status `CANCELLED` and the message `response truncated at 64.00 MB`.
 
 Each send opens a new connection to the server. Without proto files, it also asks the server for
 the method's schema again, so a changed server is picked up straight away.
