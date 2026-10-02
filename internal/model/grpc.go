@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -69,8 +70,8 @@ func absPath(root, path string) string {
 func (g GRPC) Kind() *Kind { return GRPCKind }
 
 func (g GRPC) clone() Payload {
-	g.Protos.Files = cloneStrings(g.Protos.Files)
-	g.Protos.ImportPaths = cloneStrings(g.Protos.ImportPaths)
+	g.Protos.Files = slices.Clone(g.Protos.Files)
+	g.Protos.ImportPaths = slices.Clone(g.Protos.ImportPaths)
 	return g
 }
 
@@ -211,13 +212,6 @@ func isLoopback(host string) bool {
 	}
 	ip := net.ParseIP(host)
 	return ip != nil && (ip.IsLoopback() || ip.IsUnspecified())
-}
-
-func cloneStrings(in []string) []string {
-	if in == nil {
-		return nil
-	}
-	return append([]string(nil), in...)
 }
 
 func exampleGRPC() Request {

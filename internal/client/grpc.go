@@ -307,7 +307,7 @@ func parseMessages(md protoreflect.MethodDescriptor, text string, files *protore
 		return nil, fmt.Errorf("the message isn't valid JSON: %v", json.Unmarshal([]byte(text), &probe))
 	case text[0] == '[':
 		if !streaming.clientStreams() {
-			return nil, fmt.Errorf("%s is %s and takes one message, not an array", md.Name(), withArticle(streaming))
+			return nil, fmt.Errorf("%s is a %s method and takes one message, not an array", md.Name(), streaming)
 		}
 		if err := json.Unmarshal([]byte(text), &raws); err != nil {
 			return nil, fmt.Errorf("the message isn't an array of objects: %v", err)
@@ -328,13 +328,6 @@ func parseMessages(md protoreflect.MethodDescriptor, text string, files *protore
 		out[i] = msg
 	}
 	return out, nil
-}
-
-func withArticle(s Streaming) string {
-	if s == Unary {
-		return "a unary method"
-	}
-	return "a " + s.String() + " method"
 }
 
 // typesOf resolves message types from files, then from the types compiled
@@ -447,7 +440,7 @@ func (g *GRPC) dial(ctx context.Context, c *grpcCall, target model.GRPCTarget, t
 			trace.begin(model.TraceConnect)
 			conn, err := dialer.DialContext(ctx, "tcp", addr)
 			if err != nil {
-				failure.set(err)
+				failure.record(err, false)
 				return nil, err
 			}
 			trace.end(model.TraceComplete)
@@ -487,8 +480,6 @@ type dialFailure struct {
 	cause     error
 	handshake bool
 }
-
-func (f *dialFailure) set(err error) { f.record(err, false) }
 
 func (f *dialFailure) failed() bool {
 	f.mu.Lock()
