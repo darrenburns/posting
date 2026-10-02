@@ -65,7 +65,10 @@ type grpcCall struct {
 	req     model.Request
 	payload model.GRPC
 	md      metadata.MD
-	timeout float64
+	// userAgent is the request's user-agent metadata, which grpc-go would
+	// replace with its own, so it goes to the dialer instead. "" is unset.
+	userAgent string
+	timeout   float64
 	// deadline carries the call's metadata and its timeout, once started.
 	deadline context.Context
 }
@@ -83,11 +86,13 @@ func prepare(call Call) (*grpcCall, error) {
 	if err != nil {
 		return nil, err
 	}
+	userAgent := strings.Join(md.Get("user-agent"), " ")
+	md.Delete("user-agent")
 	timeout := req.Options.TimeoutSeconds
 	if timeout <= 0 {
 		timeout = model.DefaultOptions().TimeoutSeconds
 	}
-	return &grpcCall{req: req, payload: payload, md: md, timeout: timeout}, nil
+	return &grpcCall{req: req, payload: payload, md: md, userAgent: userAgent, timeout: timeout}, nil
 }
 
 // start begins the call's timeout.
@@ -136,7 +141,7 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	trace := newGRPCTrace(call.OnTrace, target.TLS)
 	trace.method = "/" + method.service + "/" + method.name
 	started := time.Now()
-	conn, err := g.dial(c.deadline, c.req.Options.VerifySSL, target, trace)
+	conn, err := g.dial(c.deadline, c, target, trace)
 	if err != nil {
 		trace.end(model.TraceFailed)
 		return nil, c.describe(ctx, err)
@@ -194,7 +199,7 @@ func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
 	}
 	dialCtx, cancelDial := context.WithTimeout(c.deadline, describeDialTimeout)
 	defer cancelDial()
-	conn, err := g.dial(dialCtx, c.req.Options.VerifySSL, target, newGRPCTrace(nil, target.TLS))
+	conn, err := g.dial(dialCtx, c, target, newGRPCTrace(nil, target.TLS))
 	if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == nil {
 		return Schema{}, fmt.Errorf("couldn't connect to %s within %v", target.Authority, describeDialTimeout)
 	}
@@ -401,6 +406,10 @@ func outgoingMetadata(headers []model.KeyValue, auth model.Auth) (metadata.MD, e
 
 // checkMetadataKey rejects keys gRPC reserves for itself or can't carry.
 func checkMetadataKey(key string) error {
+	switch key {
+	case "connection", "keep-alive", "proxy-connection", "transfer-encoding", "upgrade", "host":
+		return fmt.Errorf("metadata %s is an HTTP/1 header, which gRPC can't send", key)
+	}
 	switch {
 	case key == "content-type" || key == "te" || strings.HasPrefix(key, "grpc-") || strings.HasPrefix(key, ":"):
 		return fmt.Errorf("metadata %s is set by gRPC itself", key)
@@ -414,7 +423,7 @@ func checkMetadataKey(key string) error {
 // ready, so a server that can't be reached fails here, with the reason,
 // rather than as a status on the call. The TLS settings' files are read
 // afresh for each TLS connection, so fixing them needs no restart.
-func (g *GRPC) dial(ctx context.Context, verify bool, target model.GRPCTarget, trace *grpcTrace) (*grpc.ClientConn, error) {
+func (g *GRPC) dial(ctx context.Context, c *grpcCall, target model.GRPCTarget, trace *grpcTrace) (*grpc.ClientConn, error) {
 	failure := &dialFailure{}
 	creds := insecure.NewCredentials()
 	if target.TLS {
@@ -422,7 +431,11 @@ func (g *GRPC) dial(ctx context.Context, verify bool, target model.GRPCTarget, t
 		if err != nil {
 			return nil, err
 		}
-		creds = &tracedTLS{TransportCredentials: credentials.NewTLS(material.config(verify)), trace: trace, failure: failure}
+		creds = &tracedTLS{TransportCredentials: credentials.NewTLS(material.config(c.req.Options.VerifySSL)), trace: trace, failure: failure}
+	}
+	userAgent := g.UserAgent
+	if c.userAgent != "" {
+		userAgent = c.userAgent
 	}
 	dialer := &net.Dialer{}
 	conn, err := grpc.NewClient("passthrough:///"+target.Authority,
@@ -438,7 +451,7 @@ func (g *GRPC) dial(ctx context.Context, verify bool, target model.GRPCTarget, t
 			return conn, nil
 		}),
 		grpc.WithStatsHandler(trace),
-		grpc.WithUserAgent(g.UserAgent),
+		grpc.WithUserAgent(userAgent),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxBodyBytes)),
 	)
 	if err != nil {
