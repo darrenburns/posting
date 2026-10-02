@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -15,9 +16,11 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 	reflectionv1 "google.golang.org/grpc/reflection/grpc_reflection_v1"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -728,6 +731,79 @@ func TestGRPCUserAgentMetadataReplacesTheDefault(t *testing.T) {
 	req.Headers = []model.KeyValue{{Name: "User-Agent", Value: "my-agent/1.0", Enabled: true}}
 	if got := headerValues(mustCallGRPC(t, req).Headers, "echo-user-agent"); len(got) != 1 || !strings.HasPrefix(got[0], "my-agent/1.0 ") {
 		t.Errorf("with a user-agent row the server got %q, want my-agent/1.0", got)
+	}
+}
+
+func TestGRPCHandshakeFailureSuggestsPlaintextOnlyForAPlaintextServer(t *testing.T) {
+	lis, err := tls.Listen("tcp", "127.0.0.1:0", &tls.Config{Certificates: []tls.Certificate{selfSigned(t)}, MaxVersion: tls.VersionTLS11})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer lis.Close()
+	go func() {
+		for {
+			conn, err := lis.Accept()
+			if err != nil {
+				return
+			}
+			go func() {
+				defer conn.Close()
+				_ = conn.(*tls.Conn).Handshake()
+			}()
+		}
+	}()
+	req := grpcRequest("grpcs://"+lis.Addr().String(), "library.v1.Library/GetBook", `{}`)
+	req.Options.VerifySSL = false
+	_, err = callGRPC(t, req)
+	if err == nil || !strings.Contains(err.Error(), "TLS handshake") || strings.Contains(err.Error(), "grpc://") {
+		t.Fatalf("err = %v; a TLS server on an old version isn't a plaintext one", err)
+	}
+}
+
+func TestGRPCDescribeTimeoutNamesTheBudgetThatRanOut(t *testing.T) {
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer lis.Close()
+	go func() {
+		// Accept and say nothing, so the TLS handshake never finishes.
+		for {
+			conn, err := lis.Accept()
+			if err != nil {
+				return
+			}
+			defer conn.Close()
+		}
+	}()
+	req := grpcRequest("grpcs://"+lis.Addr().String(), "", "")
+	req.Options.TimeoutSeconds = 0.3
+	_, err = NewGRPC("posting-test", TLSSettings{}, "").Describe(context.Background(), Call{Request: req})
+	if want := "couldn't connect to " + lis.Addr().String() + " within 300ms"; err == nil || err.Error() != want {
+		t.Fatalf("err = %v, want %q", err, want)
+	}
+}
+
+func TestGRPCDiscoveryErrorNamesTheStatusCode(t *testing.T) {
+	files, svc := librarySchema(t)
+	server := grpc.NewServer(grpc.StreamInterceptor(func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		if strings.HasPrefix(info.FullMethod, "/grpc.reflection.") {
+			return status.Error(codes.PermissionDenied, "reflection is for staff")
+		}
+		return handler(srv, ss)
+	}))
+	server.RegisterService(libraryService(svc), struct{}{})
+	reflectionv1.RegisterServerReflectionServer(server, reflection.NewServerV1(reflection.ServerOptions{Services: server, DescriptorResolver: files}))
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	go func() { _ = server.Serve(lis) }()
+	t.Cleanup(server.Stop)
+
+	_, err = NewGRPC("posting-test", TLSSettings{}, "").Describe(context.Background(), Call{Request: grpcRequest(lis.Addr().String(), "", "")})
+	if want := "PERMISSION_DENIED: reflection is for staff"; err == nil || err.Error() != want {
+		t.Fatalf("err = %v, want %q", err, want)
 	}
 }
 
