@@ -182,6 +182,183 @@ Posting 2 doesn't know about GraphQL requests. It opens them as a `GET` of the U
 saving one in Posting 2 removes `kind` and the `graphql` section, which loses the query. Edit
 GraphQL requests only in Posting 3.
 
+## gRPC requests
+
+To make a gRPC request, open the method selector with ++ctrl+t++ and choose **gRPC**, or press
+++r++ while the method selector has focus. The selector shows `gRPC`, and the collection browser,
+request tabs and history show an `RPC` badge where an HTTP request shows its method. Choose a
+method to turn it back into an HTTP request. The address, metadata, auth and options stay as they
+are when you switch, and so do the gRPC method and message.
+
+### The server's address
+
+Type the server's address in the URL bar, for example `localhost:50051`. The address is a host and
+a port, with no path. The method goes in the **Method** field. The address's scheme decides whether
+Posting connects with TLS:
+
+| Address | Connection |
+|---------|------------|
+| `grpc://host:port` or `http://host:port` | Plaintext |
+| `grpcs://host:port` or `https://host:port` | TLS |
+| `localhost:50051`, `127.0.0.1:50051` or `[::1]:50051` | Plaintext, because the host is a loopback address |
+| Any other address without a scheme, such as `api.example.com:8443` | TLS |
+
+Without a port, TLS uses port 443 and plaintext uses port 80. If a TLS connection fails because the
+server only speaks plaintext, the error suggests `grpc://`. If a plaintext connection fails because
+the server wants TLS, the error suggests `grpcs://`.
+
+**Verify SSL certificates** in the **Options** tab, and the [SSL settings](./configuration.md#configuring-ssl)
+in your configuration, apply as they do to HTTP requests.
+
+### The Message and Proto tabs
+
+A gRPC request has two tabs of its own, before the usual ones:
+
+- **Message** has the **Method** field, and the message to send below it.
+- **Proto** lists the `.proto` files that describe the server, for servers that don't offer
+  reflection. Leave it empty to ask the server.
+
+The other tabs work as they do for an HTTP request, with these differences:
+
+- There's no **Body**, **Path** or **Query** tab.
+- The **Headers** tab is called **Metadata**. Each enabled row is sent as gRPC metadata, with its
+  name in lower case. A name that ends in `-bin` takes a base64 value, which Posting decodes before
+  sending. Names that gRPC sets itself (`content-type`, `te`, and names that start with `grpc-` or
+  `:`) are errors.
+- Basic and bearer auth are sent as `authorization` metadata. Digest auth needs an HTTP challenge,
+  so a gRPC request with Digest auth fails with an error.
+- The **Options** tab has **Verify SSL certificates**, **Substitute body variables** and
+  **Timeout**. The timeout is the deadline for the whole call, including connecting.
+
+### Finding methods
+
+Posting finds the server's methods when the **Message** tab opens, and when the **Method** field
+takes focus, if the address or the proto files have changed since it last looked. Press ++ctrl+r++
+in the **Method** field, or choose **Refresh gRPC methods** in the command palette, to look again.
+
+When the **Proto** tab is empty, Posting asks the server's reflection service. When the server has
+no reflection service, add its `.proto` files on the **Proto** tab instead:
+
+- **Files** lists the files, one per line, relative to the collection directory. A file ending in
+  `.protoset`, `.binpb` or `.pb` is a compiled descriptor set, such as `protoc --descriptor_set_out`
+  or `buf build -o` writes. Any other file is `.proto` source, which Posting compiles itself, so you
+  don't need `protoc`.
+- **Import paths** lists the directories that `import` statements are relative to. With none, the
+  collection directory is the only one. Each `.proto` file must be inside one of them.
+
+With proto files, Posting lists the methods without connecting to the server.
+
+The line under the **Method** field shows how many methods Posting found, and where, for example
+`4 methods via reflection · plaintext`. Once you choose a method, it shows the method's kind and its
+message types, such as `server stream · ListBooksRequest → Book`. If Posting couldn't find the
+methods, the line says why.
+
+The **Method** field lists the methods while it has focus. Type to filter them, and press
+++enter++ to choose one. You can also type a method yourself as `package.Service/Method` or
+`package.Service.Method`.
+
+### Messages and streams
+
+Write the message as JSON, in protobuf's JSON format: field names in `lowerCamelCase` or as they're
+written in the `.proto` file, enum values by name, and well-known types such as `Timestamp` in their
+JSON form. When you choose a method and the message is empty, or still holds the previous method's
+template, Posting fills it in with a template that has every field of the method's input. Choose
+**Insert gRPC message template** in the command palette to replace the message with a template at
+any time.
+
+What you write depends on the method:
+
+- A unary or server-streaming method takes one JSON object.
+- A client-streaming or bidirectional method takes a JSON array of objects, and Posting sends each
+  one as a message, in order. A single object is sent as a stream of one message.
+- An empty message is sent as one empty message, for any method.
+
+Variables work as they do in a raw body: `$NAME` and `${NAME}` are both replaced, and typing `$`
+suggests the variables you can use. Turn off **Substitute body variables** to send the message
+exactly as written. Press ++f4++ in the message to edit it in your own editor.
+
+Posting sends every message, closes its side of the call, and then waits for the server to finish.
+It doesn't show messages as they arrive, and you can't send more messages while a call is running.
+
+### gRPC responses
+
+The response panel shows the call's status by name, such as `OK` or `NOT_FOUND`, with the server's
+status message beside it. Only `OK` is shown in the success colour.
+
+The **Body** tab shows the server's messages as JSON, with fields at their default values included:
+
+- An object for a unary or client-streaming method.
+- An array for a server-streaming or bidirectional method, even when the server sent one message or
+  none.
+- When the call fails and the server sent no messages, an object with the status's `code`,
+  `message` and `details`. Posting decodes the details whose types it knows, such as the
+  `google.rpc` error details. It shows the others as their type URL and base64 value.
+
+The **Headers** tab shows the response metadata. A gRPC response has a **Trailers** tab instead of
+**Cookies**. Trailers arrive when the call ends, and they start with `grpc-status` and, when the
+server sent one, `grpc-message`.
+
+When a call runs past its timeout, the response shows the messages that arrived before the deadline,
+with the status `DEADLINE_EXCEEDED`. When Posting can't reach the server, or the server sends
+nothing before the deadline, the response panel shows an error, as it does for an HTTP request.
+
+Each send opens a new connection to the server. Without proto files, it also asks the server for
+the method's schema again, so a changed server is picked up straight away.
+
+### Exporting as grpcurl
+
+For a gRPC request, the command palette offers **Export as grpcurl** in place of **Export as curl**.
+The command uses `-plaintext` or `-insecure` to match the connection, `-H` for metadata and auth,
+`-d` for the message, `-max-time` for the timeout, and `-import-path`, `-proto` and `-protoset` for
+the proto files, with absolute paths so the command runs from any directory. grpcurl reads a stream
+as JSON objects one after another, so an array message is written that way.
+
+### gRPC request files
+
+A saved gRPC request has `kind: grpc` and a `grpc` section instead of a method and a body:
+
+```yaml
+name: Get user
+kind: grpc
+url: localhost:50051
+grpc:
+  method: acme.users.v1.UserService/GetUser
+  message: |
+    {"id": "${USER_ID}"}
+  proto:
+    files:
+      - protos/acme/users/v1/users.proto
+    import_paths:
+      - protos
+auth:
+  type: bearer_token
+  bearer_token:
+    token: ${API_TOKEN}
+headers:
+  - name: x-tenant
+    value: core
+options:
+  timeout: 10
+```
+
+Leave out the `proto` section to use reflection. A gRPC request file can't have `method`, `body`,
+`params` or `path_params`, and its `options` can't have `follow_redirects`, `attach_cookies` or
+`proxy_url`. Any other key in the `grpc` or `proto` sections is an error.
+
+Posting 2 doesn't know about gRPC requests. Edit them only in Posting 3.
+
+### What gRPC requests don't do yet
+
+- Show a stream's messages as they arrive, or send messages during a bidirectional call.
+- gRPC-Web and Connect.
+- Compressed messages.
+- Proxies.
+- Client certificates for a single request. The client certificate in your
+  [SSL settings](./configuration.md#configuring-ssl) applies to every request.
+- Importing gRPC requests from Postman, Bruno or grpcurl.
+- Completing proto file paths.
+- Reusing a connection from one send to the next.
+
 ## Sending a request
 
 Press ++ctrl+j++ (or ++alt+enter++) from anywhere to send the request in the current tab, or press
@@ -334,13 +511,14 @@ Only settings that differ from the defaults are written, so most files are short
 | Key | Description |
 |-----|-------------|
 | `name`, `description` | Shown in the collection browser and the **Info** tab. |
-| `kind` | `graphql` for a [GraphQL request](#graphql-requests). Left out for an HTTP request. |
+| `kind` | `graphql` for a [GraphQL request](#graphql-requests), `grpc` for a [gRPC request](#grpc-requests). Left out for an HTTP request. |
 | `method` | The HTTP method. Left out for `GET`. |
 | `url` | The URL, without its query string. |
 | `headers`, `params` | Lists of `name` and `value`. `enabled: false` marks a disabled row. |
 | `path_params` | The values of the URL's `:name` placeholders. |
 | `body` | Either `content` (with `content_type`) for a raw body, or `form_data` (a list of `name` and `value`) for a form. |
 | `graphql` | A GraphQL request's `query`, `variables` and `operation_name`. Any other key in it is an error. |
+| `grpc` | A gRPC request's `method`, `message` and `proto` (`files` and `import_paths`). Any other key in it is an error. |
 | `auth` | `type` is `basic`, `digest` or `bearer_token`, with credentials under a key of the same name (`basic: {username, password}`, `bearer_token: {token}`). |
 | `options` | Any of `follow_redirects`, `verify_ssl`, `attach_cookies`, `substitute_body_variables`, `proxy_url` and `timeout`. |
 | `scripts` | Posting 2 scripts. Posting 3 keeps them but doesn't run them; see [Scripting](./scripting.md). |

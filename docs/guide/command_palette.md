@@ -54,6 +54,8 @@ their name to say what they'll do, like **Layout: side by side** and **Layout: s
 | Delete request | Remove this request's file from the collection |
 | Copy response body | Copy the response body to the clipboard |
 | Reload collection | Read the collection from disk again |
+| Refresh gRPC methods | Look for the server's methods again. Only for a [gRPC request](./requests.md#finding-methods) |
+| Insert gRPC message template | Replace the message with a template for the chosen method. Only for a [gRPC request](./requests.md#messages-and-streams) |
 
 ### Import and export
 
@@ -61,7 +63,7 @@ their name to say what they'll do, like **Layout: side by side** and **Layout: s
 |---------|-------------|
 | Import curl command… | Paste a curl command to load it into this tab. See [Importing curl commands](./requests.md#importing-curl-commands) |
 | Import curl from clipboard | Import the curl command on your clipboard (needs a terminal that lets apps read the clipboard) |
-| Export as curl | Copy the request as a curl command. See [Exporting as curl](./requests.md#exporting-as-curl) |
+| Export as curl | Copy the request as a curl command. See [Exporting as curl](./requests.md#exporting-as-curl). For a gRPC request, this is **Export as grpcurl**. See [Exporting as grpcurl](./requests.md#exporting-as-grpcurl) |
 | Export as YAML | Copy the request as a Posting request file |
 
 ### View

@@ -14,6 +14,8 @@ you can press ++escape++ to cancel it. If a request fails, for example because t
 found or the connection times out, the Response panel explains what went wrong.
 
 The response has four tabs. Jump to them with ++ctrl+o++ followed by ++a++ ++s++ ++d++ ++f++.
+A gRPC response has a **Trailers** tab in place of **Cookies**. See
+[gRPC responses](./requests.md#grpc-responses).
 
 ## Body
 
