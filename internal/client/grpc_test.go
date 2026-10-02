@@ -15,10 +15,12 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/dynamicpb"
 
 	"github.com/darrenburns/posting/internal/model"
 )
@@ -142,6 +144,40 @@ func TestGRPCServerStreamIsAnArray(t *testing.T) {
 
 	resp = mustCallGRPC(t, grpcRequest(addr, "library.v1.Library/ListBooks", `{"author": "Ursula K. Le Guin"}`))
 	assertJSON(t, resp.Body, `[]`)
+}
+
+func TestGRPCEndlessStreamIsTruncatedAtTheResponseCap(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	g := NewGRPC("posting-test", TLSSettings{}, "")
+	g.maxResponse = 10 << 10
+	req := grpcRequest(addr, "library.v1.Library/ListBooks", `{"author": "forever"}`)
+	req.Options.TimeoutSeconds = 5
+	started := time.Now()
+	resp, err := g.Send(context.Background(), Call{Request: req})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if elapsed := time.Since(started); elapsed > 2*time.Second {
+		t.Errorf("the call ran %v; it should stop at the cap, not the deadline", elapsed)
+	}
+	if status := model.StatusOf(req, resp); status.Code != "CANCELLED" || status.Text != "response truncated at 10.00 KB" {
+		t.Errorf("status = %+v, want one saying the response was truncated", status)
+	}
+	var books []map[string]any
+	if err := json.Unmarshal(resp.Body, &books); err != nil {
+		t.Fatal(err)
+	}
+	if len(books) == 0 || books[0]["title"] != "Dune" {
+		t.Fatalf("the messages before the cap are kept: %d books", len(books))
+	}
+	_, svc := librarySchema(t)
+	book := dynamicpb.NewMessage(svc.Methods().ByName("ListBooks").Output())
+	if err := protojson.Unmarshal([]byte(libraryBooks[0]), book); err != nil {
+		t.Fatal(err)
+	}
+	if most := g.maxResponse / proto.Size(book); len(books) > most {
+		t.Errorf("kept %d books, more than the %d that fit under the cap", len(books), most)
+	}
 }
 
 func TestGRPCStreamThatFailsWithoutMessagesShowsItsStatus(t *testing.T) {
