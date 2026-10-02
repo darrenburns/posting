@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"reflect"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -219,6 +220,52 @@ func TestChoosingAGRPCMethodFillsInItsMessage(tt *testing.T) {
 	}
 	if !e.insertTemplate() || e.message.GetText() != methods[1].Template {
 		tt.Fatalf("inserting the template on demand gave %q", e.message.GetText())
+	}
+}
+
+func TestEnterInTheGRPCMethodKeepsAMethodChosenInAnotherTab(tt *testing.T) {
+	app := testApp()
+	app.describer = &recordingDescriber{}
+	updates := make(chan func(), 8)
+	open := func(method string) {
+		req := grpcRequest()
+		req.Payload = model.GRPC{Method: method}
+		app.openSession(req).dispatch = func(fn func()) { updates <- fn }
+	}
+	open("posting.example.v1.Greeter/SayHello")
+	sc := newScreen(app, snapW, snapH)
+	(<-updates)()
+	open("posting.example.v1.Greeter/StreamGreetings")
+	sc.render()
+	(<-updates)()
+	sc.focusID(tt, grpcMethodID)
+
+	app.cycleSession(-1)
+	sc.render()
+	if sc.focus.FocusedID() != grpcMethodID {
+		tt.Fatalf("switching tabs moved focus to %s", sc.focus.FocusedID())
+	}
+	// A listed method is a row naming the method and its signature.
+	row := regexp.MustCompile(`(posting\.example\.v1\.Greeter/\w+) .* → `)
+	listed := func() (methods []string) {
+		for _, line := range strings.Split(sc.renderer.ScreenText(), "\n") {
+			if m := row.FindStringSubmatch(line); m != nil {
+				methods = append(methods, m[1])
+			}
+		}
+		return methods
+	}
+	e := app.current().payloads[model.KindGRPC].(*grpcEditor)
+	for _, at := range []int{0, len("posting.example.v1.Greeter/")} {
+		e.method.CursorIndex.Set(at)
+		sc.render()
+		if got := listed(); !reflect.DeepEqual(got, []string{"posting.example.v1.Greeter/SayHello"}) {
+			tt.Errorf("with the cursor at %d the method list shows %q, want just the field's SayHello:\n%s", at, got, sc.renderer.ScreenText())
+		}
+	}
+	sc.pressKey(tt, "enter")
+	if got := app.current().Snapshot().Payload.(model.GRPC).Method; got != "posting.example.v1.Greeter/SayHello" {
+		tt.Fatalf("enter replaced the tab's method with %s", got)
 	}
 }
 
