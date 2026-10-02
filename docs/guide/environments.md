@@ -85,3 +85,13 @@ Since all Posting configuration options can also be specified as environment var
 For example, if you wanted to use a light theme in the prod environment (as a subtle reminder that you're in production!), you could set the environment variable `POSTING_THEME=solarized-light` inside the `prod.env` file.
 
 Note that configuration files take precedence over environment variables, so if you set a value in both a `.env` file and a `config.yaml`, the value from the `config.yaml` file will be used.
+
+
+### Sending literal dollar signs in a body
+
+For JSON schemas, query languages, or other payloads that use literal dollar
+signs, turn off **Substitute body variables** in the request's **Options** tab.
+This setting is saved with the request as `options.substitute_body_variables: false`.
+Raw bodies and form field names/values are sent unchanged, including `$name`,
+`${name}`, and `$$`. URL, header, and authentication variables continue to work.
+Substitution is enabled by default for existing and new requests.

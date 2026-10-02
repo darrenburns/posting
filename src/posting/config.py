@@ -113,6 +113,11 @@ class CollectionBrowserSettings(BaseModel):
     """If enabled, the collection browser will be shown on startup."""
 
 
+class HistorySettings(BaseModel):
+    enabled: bool = Field(default=True)
+    """Save responses locally for later viewing in the History tab."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -159,6 +164,9 @@ class Settings(BaseSettings):
 
     animation: AnimationLevel = Field(default="none")
     """Controls the amount of animation permitted."""
+
+    history: HistorySettings = Field(default_factory=HistorySettings)
+    """Configuration for local response history."""
 
     response: ResponseSettings = Field(default_factory=ResponseSettings)
     """Configuration for the response viewer."""

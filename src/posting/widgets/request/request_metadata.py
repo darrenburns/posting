@@ -6,6 +6,7 @@ from textual.widgets import Input, Label
 from posting.collection import RequestModel
 from posting.widgets.text_area import PostingTextArea, ReadOnlyTextArea
 from posting.widgets.variable_input import VariableInput
+from posting.widgets.variable_text_area import VariableTextArea
 
 
 class RequestMetadata(VerticalScroll):
@@ -29,7 +30,7 @@ class RequestMetadata(VerticalScroll):
         yield Label("Name [dim]optional[/dim]")
         yield VariableInput(placeholder="Enter a name…", id="name-input")
         yield Label("Description [dim]optional[/dim]")
-        yield PostingTextArea(id="description-textarea")
+        yield VariableTextArea(id="description-textarea")
         yield Label("Path [dim]read-only[/dim]")
         yield ReadOnlyTextArea(
             "Request not saved to disk.", select_on_focus=True, id="request-path"
