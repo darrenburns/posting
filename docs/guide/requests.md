@@ -318,9 +318,14 @@ the method's schema again, so a changed server is picked up straight away.
 ### Exporting as grpcurl
 
 For a gRPC request, the command palette offers **Export as grpcurl** in place of **Export as curl**.
-The command uses `-plaintext` or `-insecure` to match the connection, `-H` for metadata and auth,
-`-d` for the message, `-max-time` for the timeout, and `-import-path`, `-proto` and `-protoset` for
-the proto files, with absolute paths so the command runs from any directory. grpcurl reads a stream
+The command uses `-plaintext` or `-insecure` to match the connection, `-cacert`, `-cert` and `-key`
+for the files in your [SSL settings](./configuration.md#configuring-ssl) when the connection uses
+TLS, `-H` for metadata and auth, `-d` for the message, `-max-time` for the timeout, and
+`-import-path`, `-proto` and `-protoset` for the proto files, with absolute paths so the command
+runs from any directory. Basic and bearer auth replace an `authorization` metadata row, as they do
+when Posting sends the request. If the address still has a variable in it, the command keeps the
+address as written. Only a `grpc://` or `http://` scheme then makes the command `-plaintext`, so
+without a scheme grpcurl uses TLS. grpcurl reads a stream
 as JSON objects one after another, so an array message is written that way.
 
 ### gRPC request files

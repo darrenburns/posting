@@ -184,11 +184,8 @@ type protoEntry struct {
 // load reads set, relative to root: .proto sources compiled with their
 // imports (the standard ones built in), and descriptor sets as they are.
 func (c *protoCache) load(root string, set model.ProtoSet) (*protoregistry.Files, error) {
-	files := absPaths(root, set.Files)
-	imports := absPaths(root, set.ImportPaths)
-	if len(imports) == 0 {
-		imports = []string{absPath(root, ".")}
-	}
+	abs := set.Abs(root)
+	files, imports := abs.Files, abs.ImportPaths
 	key := strings.Join(files, "\x00") + "\x01" + strings.Join(imports, "\x00")
 	c.mu.Lock()
 	entry, ok := c.entries[key]
@@ -329,26 +326,6 @@ func stamp(files []string) string {
 		fmt.Fprintf(&b, "%s %d %d\n", path, info.Size(), info.ModTime().UnixNano())
 	}
 	return b.String()
-}
-
-func absPaths(root string, paths []string) []string {
-	out := make([]string, 0, len(paths))
-	for _, p := range paths {
-		if strings.TrimSpace(p) != "" {
-			out = append(out, absPath(root, p))
-		}
-	}
-	return out
-}
-
-func absPath(root, path string) string {
-	if !filepath.IsAbs(path) {
-		path = filepath.Join(root, path)
-	}
-	if abs, err := filepath.Abs(path); err == nil {
-		return abs
-	}
-	return path
 }
 
 // schemaOf lists every method of every service in files.
