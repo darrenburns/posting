@@ -229,13 +229,13 @@ func libraryService(svc protoreflect.ServiceDescriptor) *grpc.ServiceDesc {
 	}
 }
 
-// echoMetadata sends each incoming x-* and authorization entry back as an
-// echo-* header, so tests can see what metadata arrived.
+// echoMetadata sends each incoming x-*, authorization and user-agent entry
+// back as an echo-* header, so tests can see what metadata arrived.
 func echoMetadata(ctx context.Context) {
 	in, _ := metadata.FromIncomingContext(ctx)
 	out := metadata.Pairs("x-library-branch", "central")
 	for k, vs := range in {
-		if strings.HasPrefix(k, "x-") || k == "authorization" {
+		if strings.HasPrefix(k, "x-") || k == "authorization" || k == "user-agent" {
 			for _, v := range vs {
 				out.Append("echo-"+k, v)
 			}
