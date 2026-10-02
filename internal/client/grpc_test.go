@@ -716,6 +716,18 @@ func TestGRPCLoadsTheCABundleOnlyForTLSAndWhenItIsFixed(t *testing.T) {
 	}
 }
 
+func TestGRPCUserAgentMetadataReplacesTheDefault(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	req := grpcRequest(addr, "library.v1.Library/GetBook", `{"isbn": "1"}`)
+	if got := headerValues(mustCallGRPC(t, req).Headers, "echo-user-agent"); len(got) != 1 || !strings.HasPrefix(got[0], "posting-test ") {
+		t.Errorf("without a user-agent row the server got %q, want Posting's", got)
+	}
+	req.Headers = []model.KeyValue{{Name: "User-Agent", Value: "my-agent/1.0", Enabled: true}}
+	if got := headerValues(mustCallGRPC(t, req).Headers, "echo-user-agent"); len(got) != 1 || !strings.HasPrefix(got[0], "my-agent/1.0 ") {
+		t.Errorf("with a user-agent row the server got %q, want my-agent/1.0", got)
+	}
+}
+
 func TestOutgoingMetadata(t *testing.T) {
 	md, err := outgoingMetadata([]model.KeyValue{
 		{Name: " X-Trace-Bin ", Value: "AQID", Enabled: true},
@@ -741,6 +753,12 @@ func TestOutgoingMetadata(t *testing.T) {
 		{model.KeyValue{Name: "grpc-timeout", Value: "1S", Enabled: true}, model.Auth{}, "grpc-timeout"},
 		{model.KeyValue{Name: ":authority", Value: "x", Enabled: true}, model.Auth{}, ":authority"},
 		{model.KeyValue{Name: "x tenant", Value: "x", Enabled: true}, model.Auth{}, "x tenant"},
+		{model.KeyValue{Name: "Connection", Value: "close", Enabled: true}, model.Auth{}, "connection"},
+		{model.KeyValue{Name: "keep-alive", Value: "5", Enabled: true}, model.Auth{}, "keep-alive"},
+		{model.KeyValue{Name: "proxy-connection", Value: "close", Enabled: true}, model.Auth{}, "proxy-connection"},
+		{model.KeyValue{Name: "transfer-encoding", Value: "chunked", Enabled: true}, model.Auth{}, "transfer-encoding"},
+		{model.KeyValue{Name: "upgrade", Value: "h2c", Enabled: true}, model.Auth{}, "upgrade"},
+		{model.KeyValue{Name: "Host", Value: "example.com", Enabled: true}, model.Auth{}, "host"},
 	} {
 		if _, err := outgoingMetadata([]model.KeyValue{c.header}, c.auth); err == nil || !strings.Contains(strings.ToLower(err.Error()), strings.ToLower(c.wantInError)) {
 			t.Errorf("%+v %+v: err = %v, want one naming %q", c.header, c.auth, err, c.wantInError)
