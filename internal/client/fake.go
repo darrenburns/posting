@@ -12,9 +12,9 @@ import (
 	"github.com/darrenburns/posting/internal/model"
 )
 
-// Fake is a Sender that never touches the network. It walks through every
-// trace stage with small delays and returns a response echoing the request,
-// so the whole UI can be exercised before a real client exists.
+// Fake is a Sender and Describer that never touches the network. It walks
+// through every trace stage with small delays and returns a response
+// echoing the request, so the whole UI can be exercised without a server.
 type Fake struct {
 	// StageDelay is how long each trace stage takes. Zero means no delay.
 	StageDelay time.Duration
@@ -22,6 +22,9 @@ type Fake struct {
 
 // Send simulates a request.
 func (f Fake) Send(ctx context.Context, call Call) (*model.Response, error) {
+	if call.Request.Kind() == model.GRPCKind {
+		return f.sendGRPC(ctx, call)
+	}
 	started := time.Now()
 	req, ok := model.Lower(call.Request)
 	if !ok {
@@ -32,25 +35,9 @@ func (f Fake) Send(ctx context.Context, call Call) (*model.Response, error) {
 	if err != nil || parsed.Host == "" {
 		return nil, fmt.Errorf("invalid URL %q", resolvedURL)
 	}
-
-	var trace []model.TraceEvent
-	for _, stage := range model.TraceStages {
-		if stage == model.TraceTLS && parsed.Scheme != "https" {
-			trace = append(trace, model.TraceEvent{Stage: stage, State: model.TraceSkipped})
-			f.report(call, trace[len(trace)-1])
-			continue
-		}
-		f.report(call, model.TraceEvent{Stage: stage, State: model.TraceStarted})
-		stageStart := time.Now()
-		select {
-		case <-ctx.Done():
-			f.report(call, model.TraceEvent{Stage: stage, State: model.TraceFailed})
-			return nil, ctx.Err()
-		case <-time.After(f.StageDelay):
-		}
-		event := model.TraceEvent{Stage: stage, State: model.TraceComplete, Duration: time.Since(stageStart)}
-		trace = append(trace, event)
-		f.report(call, event)
+	trace, err := f.walk(ctx, call, parsed.Scheme == "https")
+	if err != nil {
+		return nil, err
 	}
 
 	headers := map[string]string{}
@@ -127,6 +114,89 @@ func (f Fake) Send(ctx context.Context, call Call) (*model.Response, error) {
 		URL:        resolvedURL,
 		Method:     req.Method,
 	}, nil
+}
+
+// walk reports every trace stage in turn, skipping TLS without it.
+func (f Fake) walk(ctx context.Context, call Call, tls bool) ([]model.TraceEvent, error) {
+	var trace []model.TraceEvent
+	for _, stage := range model.TraceStages {
+		if stage == model.TraceTLS && !tls {
+			trace = append(trace, model.TraceEvent{Stage: stage, State: model.TraceSkipped})
+			f.report(call, trace[len(trace)-1])
+			continue
+		}
+		f.report(call, model.TraceEvent{Stage: stage, State: model.TraceStarted})
+		stageStart := time.Now()
+		select {
+		case <-ctx.Done():
+			f.report(call, model.TraceEvent{Stage: stage, State: model.TraceFailed})
+			return nil, ctx.Err()
+		case <-time.After(f.StageDelay):
+		}
+		event := model.TraceEvent{Stage: stage, State: model.TraceComplete, Duration: time.Since(stageStart)}
+		trace = append(trace, event)
+		f.report(call, event)
+	}
+	return trace, nil
+}
+
+// sendGRPC answers a gRPC call with its own message, or NOT_FOUND for a
+// method whose name has "Missing" in it.
+func (f Fake) sendGRPC(ctx context.Context, call Call) (*model.Response, error) {
+	started := time.Now()
+	req, err := model.Resolve(call.Request, call.Lookup)
+	if err != nil {
+		return nil, err
+	}
+	target, err := model.ParseGRPCTarget(req.URL)
+	if err != nil {
+		return nil, err
+	}
+	payload := req.Payload.(model.GRPC)
+	if _, err := findMethodName(payload.Method); err != nil {
+		return nil, err
+	}
+	trace, err := f.walk(ctx, call, target.TLS)
+	if err != nil {
+		return nil, err
+	}
+	status := &model.GRPCStatus{}
+	body := []byte(strings.TrimSpace(payload.Message))
+	if len(body) == 0 {
+		body = []byte("{}")
+	}
+	if strings.Contains(payload.Method, "Missing") {
+		status = &model.GRPCStatus{Code: 5, Message: "no such thing"}
+		body = []byte(`{"code": "NOT_FOUND", "message": "no such thing"}`)
+	}
+	return &model.Response{
+		Proto:           "gRPC",
+		Headers:         []model.Header{{Name: "content-type", Value: "application/grpc"}, {Name: "server", Value: "posting-fake/3.0"}},
+		Trailers:        []model.Header{{Name: "grpc-status", Value: fmt.Sprint(status.Code)}},
+		Body:            body,
+		BodyContentType: "application/json",
+		GRPC:            status,
+		Elapsed:         time.Since(started),
+		ReceivedAt:      time.Now(),
+		Trace:           trace,
+		URL:             req.URL,
+	}, nil
+}
+
+// Describe returns the same schema whatever is asked: a greeter service
+// with one method of each shape.
+func (f Fake) Describe(ctx context.Context, call Call) (Schema, error) {
+	if err := ctx.Err(); err != nil {
+		return Schema{}, err
+	}
+	const service = "posting.example.v1.Greeter/"
+	hello := "{\n  \"name\": \"\"\n}"
+	return Schema{Methods: []Method{
+		{Name: service + "Chat", Streaming: BidiStream, Input: "posting.example.v1.ChatMessage", Output: "posting.example.v1.ChatMessage", Template: "[\n  {\n    \"text\": \"\"\n  }\n]"},
+		{Name: service + "CollectNames", Streaming: ClientStream, Input: "posting.example.v1.HelloRequest", Output: "posting.example.v1.NameCount", Template: "[\n" + indent(hello) + "\n]"},
+		{Name: service + "SayHello", Streaming: Unary, Input: "posting.example.v1.HelloRequest", Output: "posting.example.v1.HelloReply", Template: hello},
+		{Name: service + "StreamGreetings", Streaming: ServerStream, Input: "posting.example.v1.HelloRequest", Output: "posting.example.v1.HelloReply", Template: hello},
+	}}, nil
 }
 
 func (f Fake) report(call Call, event model.TraceEvent) {

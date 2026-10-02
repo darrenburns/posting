@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package library.v1;
+
+import "google/protobuf/timestamp.proto";
+
+service Library {
+  rpc GetBook(GetBookRequest) returns (Book);
+  rpc ListBooks(ListBooksRequest) returns (stream Book);
+  rpc ShelveBooks(stream Book) returns (ShelveSummary);
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage);
+}
+
+message GetBookRequest {
+  string isbn = 1;
+}
+
+message ListBooksRequest {
+  string author = 1;
+  int32 page_size = 2;
+}
+
+enum Genre {
+  GENRE_UNSPECIFIED = 0;
+  GENRE_FICTION = 1;
+  GENRE_SCIENCE = 2;
+}
+
+message Author {
+  string name = 1;
+  int32 born = 2;
+}
+
+message Shelf {
+  string name = 1;
+  Shelf parent = 2;
+}
+
+message Book {
+  string isbn = 1;
+  string title = 2;
+  Author author = 3;
+  Genre genre = 4;
+  repeated string tags = 5;
+  google.protobuf.Timestamp published = 6;
+  map<string, string> labels = 7;
+  oneof format {
+    bool hardback = 8;
+    string ebook_url = 9;
+  }
+  optional string note = 10;
+  Shelf shelf = 11;
+  map<int32, Author> editors = 12;
+}
+
+message ShelveSummary {
+  int32 shelved = 1;
+  repeated string titles = 2;
+}
+
+message ChatMessage {
+  string text = 1;
+}

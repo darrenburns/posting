@@ -7,7 +7,6 @@ import (
 	"compress/zlib"
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -16,7 +15,6 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptrace"
 	"net/url"
-	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -27,16 +25,6 @@ import (
 
 // maxBodyBytes caps how much of a response body is read into memory.
 const maxBodyBytes = 64 << 20
-
-// TLSSettings configure certificates for every request.
-type TLSSettings struct {
-	// CABundle is a PEM file of extra certificate authorities to trust.
-	CABundle string
-	// CertFile and KeyFile are a client certificate and its private key, in
-	// PEM. KeyFile may be empty when the certificate file also holds the key.
-	CertFile string
-	KeyFile  string
-}
 
 // HTTP sends requests over the network with net/http.
 //
@@ -49,9 +37,8 @@ type HTTP struct {
 
 	once   sync.Once
 	jar    http.CookieJar
+	tls    tlsMaterial
 	tlsErr error
-	roots  *x509.CertPool
-	certs  []tls.Certificate
 }
 
 // NewHTTP returns a client that identifies itself as userAgent.
@@ -62,34 +49,7 @@ func NewHTTP(userAgent string, settings TLSSettings) *HTTP {
 func (h *HTTP) init() {
 	h.once.Do(func() {
 		h.jar, _ = cookiejar.New(nil)
-		if h.TLS.CABundle != "" {
-			pem, err := os.ReadFile(h.TLS.CABundle)
-			if err != nil {
-				h.tlsErr = fmt.Errorf("reading CA bundle: %w", err)
-				return
-			}
-			roots, err := x509.SystemCertPool()
-			if err != nil || roots == nil {
-				roots = x509.NewCertPool()
-			}
-			if !roots.AppendCertsFromPEM(pem) {
-				h.tlsErr = fmt.Errorf("no certificates found in CA bundle %s", h.TLS.CABundle)
-				return
-			}
-			h.roots = roots
-		}
-		if h.TLS.CertFile != "" {
-			keyFile := h.TLS.KeyFile
-			if keyFile == "" {
-				keyFile = h.TLS.CertFile
-			}
-			cert, err := tls.LoadX509KeyPair(h.TLS.CertFile, keyFile)
-			if err != nil {
-				h.tlsErr = fmt.Errorf("loading client certificate: %w", err)
-				return
-			}
-			h.certs = []tls.Certificate{cert}
-		}
+		h.tls, h.tlsErr = loadTLS(h.TLS)
 	})
 }
 
@@ -260,11 +220,7 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 
 func (h *HTTP) transport(req model.Request) (*http.Transport, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.TLSClientConfig = &tls.Config{
-		InsecureSkipVerify: !req.Options.VerifySSL, //nolint:gosec // The user's choice, per request.
-		RootCAs:            h.roots,
-		Certificates:       h.certs,
-	}
+	transport.TLSClientConfig = h.tls.config(req.Options.VerifySSL)
 	// Bodies are decompressed below, whatever Accept-Encoding the user
 	// sent, so the transport's own gzip handling isn't needed.
 	transport.DisableCompression = true
