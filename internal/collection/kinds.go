@@ -102,9 +102,9 @@ func decodePayload(in requestFile) (model.Payload, error) {
 	if err := checkFields(in, kind); err != nil {
 		return nil, err
 	}
-	for other, block := range kindBlocks {
-		if other != kind.ID && block.present(in) {
-			return nil, fmt.Errorf("a %s block needs kind: %s", block.key, other)
+	for _, other := range model.Kinds {
+		if block, ok := kindBlocks[other.ID]; ok && other != kind && block.present(in) {
+			return nil, fmt.Errorf("a %s block needs kind: %s", block.key, other.ID)
 		}
 	}
 	if kind == model.HTTPKind {
