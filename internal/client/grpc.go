@@ -161,6 +161,7 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	if ex.status.Code() == codes.Canceled && c.atDeadline(ex.status.Err()) {
 		ex.status = status.FromContextError(context.DeadlineExceeded)
 	}
+	trace.end(model.TraceComplete)
 	resp := responseOf(md, ex, files)
 	resp.Elapsed = time.Since(started)
 	resp.ReceivedAt = time.Now()
