@@ -145,6 +145,13 @@ func libraryService(svc protoreflect.ServiceDescriptor) *grpc.ServiceDesc {
 					}
 					echoMetadata(stream.Context())
 					author := field(in, "author").String()
+					if author == "forever" {
+						for {
+							if err := stream.SendMsg(book(libraryBooks[0])); err != nil {
+								return err
+							}
+						}
+					}
 					sent := 0
 					for _, raw := range libraryBooks {
 						b := book(raw)

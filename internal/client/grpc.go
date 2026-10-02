@@ -47,6 +47,9 @@ type GRPC struct {
 	// Root is the directory proto paths are relative to: the collection's.
 	Root string
 
+	// maxResponse caps the bytes of messages kept from one call.
+	maxResponse int
+
 	once   sync.Once
 	tls    tlsMaterial
 	tlsErr error
@@ -56,7 +59,7 @@ type GRPC struct {
 // NewGRPC returns a client that identifies itself as userAgent and finds
 // proto files relative to root.
 func NewGRPC(userAgent string, settings TLSSettings, root string) *GRPC {
-	return &GRPC{UserAgent: userAgent, TLS: settings, Root: root}
+	return &GRPC{UserAgent: userAgent, TLS: settings, Root: root, maxResponse: maxBodyBytes}
 }
 
 func (g *GRPC) init() error {
