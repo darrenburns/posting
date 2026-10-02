@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Security
+
+- Reject Python object tags when loading request YAML files, preventing code execution from crafted collections.
+
 ## 2.11.0 [26th September 2026]
 
 ### Added
