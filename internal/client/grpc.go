@@ -558,8 +558,10 @@ type exchange struct {
 	status          *status.Status
 }
 
-// invoke runs a call of any shape: it sends every message, closes its side,
-// then reads until the server ends the call.
+// invoke runs a call of any shape. It sends every message and closes its
+// side on another goroutine while it reads until the server ends the call,
+// so a server that replies as it reads, filling the flow-control window,
+// never waits on Posting.
 func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDescriptor, in []proto.Message, trace *grpcTrace) exchange {
 	desc := &grpc.StreamDesc{StreamName: string(md.Name()), ServerStreams: md.IsStreamingServer(), ClientStreams: md.IsStreamingClient()}
 	ctx, cancel := context.WithCancel(ctx)
@@ -570,36 +572,47 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 		ex.status = status.Convert(err)
 		return ex
 	}
-	finish := func(err error) exchange {
-		ex.header, _ = stream.Header()
-		ex.trailer = stream.Trailer()
-		ex.status = status.Convert(err)
-		return ex
-	}
-	for _, msg := range in {
-		if err := stream.SendMsg(msg); err != nil {
-			if err == io.EOF {
-				// The server ended the call early; RecvMsg has its status.
-				break
-			}
-			return finish(err)
-		}
-	}
-	if err := stream.CloseSend(); err != nil {
-		return finish(err)
-	}
-	trace.begin(model.TraceReceiveHeaders)
-	for {
-		out := dynamicpb.NewMessage(md.Output())
-		err := stream.RecvMsg(out)
-		if err == io.EOF {
-			return finish(nil)
-		}
+	sent := make(chan error, 1)
+	go func() {
+		err := sendAll(stream, in)
 		if err != nil {
-			return finish(err)
+			cancel()
 		}
-		ex.messages = append(ex.messages, out)
+		trace.begin(model.TraceReceiveHeaders)
+		sent <- err
+	}()
+	err = nil
+	for err == nil {
+		out := dynamicpb.NewMessage(md.Output())
+		if err = stream.RecvMsg(out); err == nil {
+			ex.messages = append(ex.messages, out)
+		}
 	}
+	if err == io.EOF {
+		err = nil
+	}
+	// A failed send cancels the call, so the status the read ends with may
+	// say only that.
+	if sendErr := <-sent; sendErr != nil && (err == nil || status.Code(err) == codes.Canceled) {
+		err = sendErr
+	}
+	ex.header, _ = stream.Header()
+	ex.trailer = stream.Trailer()
+	ex.status = status.Convert(err)
+	return ex
+}
+
+// sendAll sends every message and closes the client's side. io.EOF from
+// SendMsg means the server ended the call early, and RecvMsg has its status.
+func sendAll(stream grpc.ClientStream, in []proto.Message) error {
+	for _, msg := range in {
+		if err := stream.SendMsg(msg); err == io.EOF {
+			return nil
+		} else if err != nil {
+			return err
+		}
+	}
+	return stream.CloseSend()
 }
 
 // responseOf shows an exchange the server answered: its status, metadata
