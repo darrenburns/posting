@@ -27,6 +27,10 @@ const (
 	FieldPathParams
 	FieldHeaders
 	FieldAuth
+	// FieldDigestAuth is digest auth, which answers an HTTP challenge. A kind
+	// without it has digest auth reset by Normalize, rejected in its files
+	// and left out of its Auth tab.
+	FieldDigestAuth
 	// Options that only mean something over HTTP. A kind without them has
 	// them reset by Normalize, rejected in its files and hidden from its
 	// Options tab.
@@ -168,7 +172,7 @@ func Normalize(r Request) Request {
 	if !fields.Has(FieldHeaders) {
 		r.Headers = nil
 	}
-	if !fields.Has(FieldAuth) {
+	if !fields.Has(FieldAuth) || !fields.Has(FieldDigestAuth) && r.Auth.Type == AuthDigest {
 		r.Auth = defaults.Auth
 	}
 	if !fields.Has(FieldRedirects) {

@@ -52,6 +52,6 @@ func (r *Request) UnmarshalJSON(data []byte) error {
 			req.Payload = payload
 		}
 	}
-	*r = req
+	*r = Normalize(req)
 	return nil
 }

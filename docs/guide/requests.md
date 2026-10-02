@@ -226,7 +226,7 @@ The other tabs work as they do for an HTTP request, with these differences:
   sending. Names that gRPC sets itself (`content-type`, `te`, and names that start with `grpc-` or
   `:`) are errors.
 - Basic and bearer auth are sent as `authorization` metadata. Digest auth needs an HTTP challenge,
-  so a gRPC request with Digest auth fails with an error.
+  so the **Auth** tab doesn't offer it, and a request file with `type: digest` doesn't load.
 - The **Options** tab has **Verify SSL certificates**, **Substitute body variables** and
   **Timeout**. The timeout is the deadline for the whole call, including connecting.
 

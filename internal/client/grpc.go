@@ -388,8 +388,6 @@ func outgoingMetadata(headers []model.KeyValue, auth model.Auth) (metadata.MD, e
 		md.Set("authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth.Username+":"+auth.Password)))
 	case model.AuthBearer:
 		md.Set("authorization", "Bearer "+auth.Token)
-	case model.AuthDigest:
-		return nil, errors.New("digest auth isn't supported for gRPC")
 	}
 	return md, nil
 }
