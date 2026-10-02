@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from io import StringIO
 import json
 import re
 from urllib.parse import urlparse, urlunparse
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from dotenv import dotenv_values
 
 from rich.console import Console
 
@@ -29,6 +31,31 @@ class Variable(BaseModel):
     filesNotInWorkingDirectory: list[str] | None = None
     type: str | None = None
     disabled: bool | None = None
+
+
+class EnvironmentVariable(BaseModel):
+    key: str
+    value: str | None = None
+    enabled: bool = True
+
+    @field_validator("key")
+    @classmethod
+    def validate_key(cls, key: str) -> str:
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", sanitize_variables(key)):
+            raise ValueError("Environment variable keys must be valid identifiers")
+        return key
+
+
+class PostmanEnvironment(BaseModel):
+    name: str = "environment"
+    values: list[EnvironmentVariable]
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, name: str) -> str:
+        if not name.strip() or any(char in name for char in "/\\\0"):
+            raise ValueError("Environment names must be valid filenames")
+        return name
 
 
 class RawRequestOptions(BaseModel):
@@ -232,3 +259,34 @@ def import_postman_spec(
         process_item(item, main_collection, base_dir)
 
     return main_collection, spec
+
+
+def import_postman_env(
+    spec_path: str | Path, output_path: str | Path | None
+) -> Path:
+    """Import a Postman environment into an output directory as a .env file."""
+    spec = PostmanEnvironment.model_validate_json(
+        Path(spec_path).read_text(encoding="utf-8")
+    )
+    env_content: list[str] = []
+    expected: dict[str, str] = {}
+    for variable in spec.values:
+        if not variable.enabled:
+            continue
+        key = sanitize_variables(variable.key)
+        if key in expected:
+            raise ValueError("Environment variable keys collide after normalization")
+        expected[key] = variable.value or ""
+        value = expected[key].replace("\\", "\\\\").replace('"', '\\"')
+        value = value.replace("\n", "\\n").replace("\r", "\\r")
+        env_content.append(f'{key}="{value}"')
+
+    content = "\n".join(env_content) + "\n"
+    if dotenv_values(stream=StringIO(content)) != expected:
+        raise ValueError("Environment values cannot be represented without data loss")
+
+    output_dir = Path(output_path) if output_path is not None else Path.cwd()
+    env_file = output_dir / f"{spec.name}.env"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    env_file.write_text(content, encoding="utf-8")
+    return env_file

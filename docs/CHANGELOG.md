@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Added
+
+- Added support for importing Postman environment files via `posting import --type postman-env <path>`.
+
 ## 2.11.0 [26th September 2026]
 
 ### Added
