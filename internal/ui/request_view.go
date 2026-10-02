@@ -121,7 +121,7 @@ func (s *Session) contentFocusID(tab string) string {
 	case "auth":
 		id = "req-auth-type"
 	case "options":
-		id = "req-opt-follow"
+		id = optionRows(s.requestKind().Fields)[0]
 	case "body":
 		switch s.bodyType.Peek() {
 		case model.BodyRaw:
@@ -397,15 +397,39 @@ func (e optionsEditor) Build(ctx t.BuildContext) t.Widget {
 	gap := func(w t.Widget) t.Widget {
 		return t.Column{Style: t.Style{Width: t.Flex(1), Margin: t.EdgeInsetsTRBL(e.gap, 0, 0, 0)}, Children: []t.Widget{w}}
 	}
-	return scrollForm{
-		State: s.optionsScroll,
-		Rows: []formField{
-			field(check("req-opt-follow", s.follow, "Follow redirects", "Follow 3xx responses to their destination"), "req-opt-follow"),
-			field(check("req-opt-verify", s.verifySSL, "Verify SSL certificates", "Reject servers with invalid certificates"), "req-opt-verify"),
-			field(check("req-opt-cookies", s.cookies, "Attach cookies", "Send cookies stored from earlier responses"), "req-opt-cookies"),
-			field(check("req-opt-substitute", s.substitute, "Substitute body variables", "Replace ${VAR} references in the body"), "req-opt-substitute"),
-			field(gap(formRow(ctx, "Proxy URL", "", input{ID: "req-opt-proxy", State: s.proxy, Placeholder: "http://proxy.example.com:8080", Highlighter: e.variables, OnChange: touch, Completion: s.proxyVars, Choices: e.choices})), "req-opt-proxy"),
-			field(gap(formRow(ctx, "Timeout", "", input{ID: "req-opt-timeout", State: s.timeout, Placeholder: "seconds", Width: t.Cells(12), OnChange: touch})), "req-opt-timeout"),
-		},
+	fields := map[string]formField{
+		"req-opt-follow":     field(check("req-opt-follow", s.follow, "Follow redirects", "Follow 3xx responses to their destination"), "req-opt-follow"),
+		"req-opt-verify":     field(check("req-opt-verify", s.verifySSL, "Verify SSL certificates", "Reject servers with invalid certificates"), "req-opt-verify"),
+		"req-opt-cookies":    field(check("req-opt-cookies", s.cookies, "Attach cookies", "Send cookies stored from earlier responses"), "req-opt-cookies"),
+		"req-opt-substitute": field(check("req-opt-substitute", s.substitute, "Substitute body variables", "Replace ${VAR} references in the body"), "req-opt-substitute"),
+		"req-opt-proxy":      field(gap(formRow(ctx, "Proxy URL", "", input{ID: "req-opt-proxy", State: s.proxy, Placeholder: "http://proxy.example.com:8080", Highlighter: e.variables, OnChange: touch, Completion: s.proxyVars, Choices: e.choices})), "req-opt-proxy"),
+		"req-opt-timeout":    field(gap(formRow(ctx, "Timeout", "", input{ID: "req-opt-timeout", State: s.timeout, Placeholder: "seconds", Width: t.Cells(12), OnChange: touch})), "req-opt-timeout"),
 	}
+	var rows []formField
+	for _, id := range optionRows(s.requestKind().Fields) {
+		rows = append(rows, fields[id])
+	}
+	return scrollForm{State: s.optionsScroll, Rows: rows}
+}
+
+// optionRows are the IDs of the Options tab's rows for a kind that uses
+// fields, in order. Rows for options the kind doesn't have are left out.
+func optionRows(fields model.Fields) []string {
+	var ids []string
+	for _, row := range []struct {
+		id    string
+		needs model.Fields
+	}{
+		{"req-opt-follow", model.FieldRedirects},
+		{"req-opt-verify", 0},
+		{"req-opt-cookies", model.FieldCookies},
+		{"req-opt-substitute", 0},
+		{"req-opt-proxy", model.FieldProxy},
+		{"req-opt-timeout", 0},
+	} {
+		if fields.Has(row.needs) {
+			ids = append(ids, row.id)
+		}
+	}
+	return ids
 }

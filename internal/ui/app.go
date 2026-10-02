@@ -857,11 +857,14 @@ func (a *App) jumpTargets() []t.JumpTarget {
 			}
 		})...)
 	}
-	targets = append(targets, tabJumps(responseTabsID, "asdf", []string{"body", "headers", "cookies", "trace"}, func(key string) {
-		if s := a.current(); s != nil && s.response.Peek() != nil {
-			s.responseTabs(s.response.Peek()).selectKey(key)
-		}
-	})...)
+	// Which tabs a response has depends on the request it answers.
+	if s := a.current(); s != nil && s.response.Get() != nil {
+		targets = append(targets, tabJumps(responseTabsID, "asdf", responseTabKeys(s.sent), func(key string) {
+			if s := a.current(); s != nil && s.response.Peek() != nil {
+				s.responseTabs(s.response.Peek()).selectKey(key)
+			}
+		})...)
+	}
 	return targets
 }
 

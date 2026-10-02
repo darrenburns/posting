@@ -1,12 +1,16 @@
 package ui
 
 import (
+	"fmt"
 	"math"
 	"slices"
 	"sync"
 
 	t "github.com/darrenburns/terma"
 
+	"github.com/darrenburns/posting/internal/collection"
+	"github.com/darrenburns/posting/internal/curl"
+	"github.com/darrenburns/posting/internal/grpcurl"
 	"github.com/darrenburns/posting/internal/model"
 )
 
@@ -24,23 +28,78 @@ type kindView struct {
 	// newEditor makes a session's editor for the kind's payload. Nil for
 	// HTTP, whose editing state is the session's own fields.
 	newEditor func(s *Session) payloadEditor
+	// responseTabs are the response panel's tabs, in order.
+	responseTabs []string
+	// export writes a request as a command for another tool.
+	export exporter
+	// commands are the palette's commands for the kind's requests.
+	commands func(a *App, s *Session) []t.CommandPaletteItem
 }
+
+// exporter writes a request as a command line.
+type exporter struct {
+	tool   string // "curl"
+	format func(a *App, req model.Request) (string, error)
+}
+
+var (
+	httpResponseTabs = []string{"body", "headers", "cookies", "trace"}
+
+	curlExporter = exporter{tool: "curl", format: func(a *App, req model.Request) (string, error) {
+		wire, ok := model.Lower(req)
+		if !ok {
+			return "", fmt.Errorf("%s requests can't be copied as curl", req.Kind().Label)
+		}
+		return curl.Format(wire, curl.FormatOptions{ExtraArgs: a.settings.CurlExportExtraArgs, Multiline: true}), nil
+	}}
+)
 
 var kindViews = map[model.KindID]kindView{
 	model.KindHTTP: {
 		urlPlaceholder: "Enter a URL or paste a curl command…",
+		responseTabs:   httpResponseTabs,
+		export:         curlExporter,
 	},
 	model.KindGraphQL: {
-		hotkey: "q",
-		color: func(theme t.ThemeData) t.Color {
-			return unlikeMethods(theme, theme.AccentText, theme.SecondaryText, theme.Link)
-		},
+		hotkey:         "q",
+		color:          graphQLColor,
 		urlPlaceholder: "Enter a GraphQL endpoint, e.g. ${BASE_URL}/graphql",
 		// "Query" is the GraphQL document, so the URL's query string
 		// parameters are "Params".
-		rename:    map[string]string{"query": "Params"},
-		newEditor: newGraphQLEditor,
+		rename:       map[string]string{"query": "Params"},
+		newEditor:    newGraphQLEditor,
+		responseTabs: httpResponseTabs,
+		export:       curlExporter,
 	},
+	model.KindGRPC: {
+		hotkey:         "r",
+		color:          grpcColor,
+		urlPlaceholder: "Enter a server address, e.g. localhost:50051 or grpcs://api.example.com",
+		// gRPC sends headers as metadata, and calls them that.
+		rename:    map[string]string{"headers": "Metadata"},
+		newEditor: newGRPCEditor,
+		// A gRPC server sets no cookies, and ends every call with trailers.
+		responseTabs: []string{"body", "headers", "trailers", "trace"},
+		export: exporter{tool: "grpcurl", format: func(a *App, req model.Request) (string, error) {
+			// Proto paths are relative to the collection; the command
+			// should run from anywhere.
+			var root string
+			if dir, ok := a.store.(collection.Dir); ok {
+				root = dir.Root
+			}
+			return grpcurl.Format(req, grpcurl.FormatOptions{Multiline: true, Root: root}), nil
+		}},
+		commands: grpcCommands,
+	},
+}
+
+func graphQLColor(theme t.ThemeData) t.Color {
+	return unlikeMethods(theme, nil, theme.AccentText, theme.SecondaryText, theme.Link)
+}
+
+// grpcColor stays apart from GraphQL's colour as well as the methods'.
+func grpcColor(theme t.ThemeData) t.Color {
+	return unlikeMethods(theme, []t.Color{graphQLColor(theme)}, theme.SecondaryText, theme.Link, theme.AccentText, theme.Secondary, theme.Accent)
 }
 
 // payloadEditor holds the editing state of one kind's payload. A session
@@ -172,15 +231,22 @@ func requestColor(theme t.ThemeData, r model.Request) t.Color {
 var kindColors sync.Map
 
 // unlikeMethods picks the candidate colour whose hue is furthest from every
-// method's, or failing that the one furthest in RGB. Themes often reuse
-// their accent or secondary colour for a method, so no single theme colour
-// stays distinct in every theme.
-func unlikeMethods(theme t.ThemeData, candidates ...t.Color) t.Color {
+// method's and from the colours in taken, or failing that the one furthest
+// in RGB. Themes often reuse their accent or secondary colour for a method,
+// so no single theme colour stays distinct in every theme. A candidate in
+// taken is never picked.
+func unlikeMethods(theme t.ThemeData, taken []t.Color, candidates ...t.Color) t.Color {
+	avoid := slices.Clone(taken)
+	for _, method := range model.Methods {
+		avoid = append(avoid, methodColor(theme, method))
+	}
 	best, bestHue, bestRGB := candidates[0], -1.0, -1
 	for _, candidate := range candidates {
+		if slices.Contains(taken, candidate) {
+			continue
+		}
 		hue, rgb := 180.0, math.MaxInt
-		for _, method := range model.Methods {
-			color := methodColor(theme, method)
+		for _, color := range avoid {
 			hue, rgb = min(hue, hueDistance(candidate, color)), min(rgb, rgbDistance(candidate, color))
 		}
 		if hue > bestHue || (hue == bestHue && rgb > bestRGB) {

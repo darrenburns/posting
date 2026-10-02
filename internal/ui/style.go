@@ -196,6 +196,13 @@ type input struct {
 	Keybinds    []t.Keybind
 	// Suggestions, when set, shows a completion popup while typing.
 	Suggestions *t.AutocompleteState
+	// SuggestAlways shows the suggestions as soon as the input has focus,
+	// before anything is typed.
+	SuggestAlways bool
+	// SuggestWidth is the popup's width. Unset is 64 cells.
+	SuggestWidth t.Dimension
+	// OnSuggestion runs when a suggestion is chosen, after OnChange.
+	OnSuggestion func(t.Suggestion)
 	// DisableFocus takes the input out of the focus order.
 	DisableFocus bool
 	// Completion, when set, completes ${VARIABLES} from Choices.
@@ -238,22 +245,32 @@ func (i input) Build(ctx t.BuildContext) t.Widget {
 		field = i.Completion.wrap(theme, field, i.Choices, t.Flex(1))
 	}
 	if i.Suggestions != nil {
+		minChars, popupWidth := 1, i.SuggestWidth
+		if i.SuggestAlways {
+			minChars = 0
+		}
+		if popupWidth.IsUnset() {
+			popupWidth = t.Cells(64)
+		}
 		field = t.Autocomplete{
 			State:                 i.Suggestions,
 			Child:                 field,
 			Width:                 t.Flex(1),
 			MatchMode:             t.FilterFuzzy,
 			Insert:                t.InsertReplace,
-			MinChars:              1,
+			MinChars:              minChars,
 			MaxVisible:            8,
 			DismissWhenEmpty:      true,
 			DisableKeysWhenHidden: true,
-			PopupWidth:            t.Cells(64),
+			PopupWidth:            popupWidth,
 			PopupStyle:            t.Style{BackgroundColor: theme.Surface2},
 			RenderSuggestion:      renderSuggestion,
-			OnSelect: func(t.Suggestion) {
+			OnSelect: func(choice t.Suggestion) {
 				if i.OnChange != nil {
 					i.OnChange(i.State.GetText())
+				}
+				if i.OnSuggestion != nil {
+					i.OnSuggestion(choice)
 				}
 			},
 		}

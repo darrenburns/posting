@@ -38,7 +38,7 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	if resp != nil {
 		status := s.responseStatus
 		fg, bg := statusColors(theme, status.Class)
-		title = fmt.Sprintf(" [b %s on %s] %s %s [/]", fg.Hex(), bg.Hex(), status.Code, status.Text)
+		title = fmt.Sprintf(" [b %s on %s] %s [/]", fg.Hex(), bg.Hex(), statusText(status))
 		if p.app.settings.Response.ShowSizeAndTime {
 			subtitle = fmt.Sprintf("[$Text]%s[/] [$TextMuted]in[/] [$TextMuted]%s[/][$Text]%s[/]", model.FormatBytes(resp.Size()), p.app.icons.elapsed, model.FormatDuration(resp.Elapsed))
 		}
@@ -90,26 +90,46 @@ type responseTabs struct {
 	response *model.Response
 }
 
-// responseTabs is the response panel's tab strip for resp.
+// statusText is a status as the response title and history show it:
+// "200 OK", "NOT_FOUND no book 42", or just "OK" for a gRPC success.
+func statusText(status model.Status) string {
+	return strings.TrimSpace(status.Code + " " + status.Text)
+}
+
+// responseTabKeys are the response tabs for a response to req.
+func responseTabKeys(req model.Request) []string {
+	return kindViews[req.Kind().ID].responseTabs
+}
+
+// responseTabs is the response panel's tab strip for resp, the response to
+// the request the session sent.
 func (s *Session) responseTabs(resp *model.Response) tabStrip {
+	tabs := map[string]struct {
+		item    tabItem
+		focusID string
+		empty   bool
+	}{
+		"body":     {tabItem{Key: "body", Label: "Body"}, "resp-body", len(resp.Body) == 0},
+		"headers":  {tabItem{Key: "headers", Label: "Headers", Badge: countBadge(len(resp.Headers))}, "resp-headers", len(resp.Headers) == 0},
+		"cookies":  {tabItem{Key: "cookies", Label: "Cookies", Badge: countBadge(len(resp.Cookies))}, "resp-cookies", len(resp.Cookies) == 0},
+		"trailers": {tabItem{Key: "trailers", Label: "Trailers", Badge: countBadge(len(resp.Trailers))}, "resp-trailers", len(resp.Trailers) == 0},
+		"trace":    {tabItem{Key: "trace", Label: "Trace"}, "resp-trace-scroll", false},
+	}
+	var items []tabItem
+	for _, key := range responseTabKeys(s.sent) {
+		items = append(items, tabs[key].item)
+	}
 	return tabStrip{
 		ID:     responseTabsID,
 		Active: s.responseTab,
 		View:   s.responseTabView,
 		Down: func() {
-			id := map[string]string{"body": "resp-body", "headers": "resp-headers", "cookies": "resp-cookies", "trace": "resp-trace-scroll"}[s.responseTab.Peek()]
-			if (id == "resp-body" && len(resp.Body) == 0) || (id == "resp-headers" && len(resp.Headers) == 0) || (id == "resp-cookies" && len(resp.Cookies) == 0) {
-				return
+			if tab := tabs[s.responseTab.Peek()]; !tab.empty {
+				t.RequestFocus(tab.focusID)
 			}
-			t.RequestFocus(id)
 		},
-		Up: func() { t.RequestFocus(requestTabsID) },
-		Tabs: []tabItem{
-			{Key: "body", Label: "Body"},
-			{Key: "headers", Label: "Headers", Badge: countBadge(len(resp.Headers))},
-			{Key: "cookies", Label: "Cookies", Badge: countBadge(len(resp.Cookies))},
-			{Key: "trace", Label: "Trace"},
-		},
+		Up:   func() { t.RequestFocus(requestTabsID) },
+		Tabs: items,
 	}
 }
 
@@ -134,10 +154,11 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 			Active: s.responseTab.Get(),
 			Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
 			Children: map[string]t.Widget{
-				"body":    responseBody{app: r.app, session: s, response: resp},
-				"headers": responseHeaders{session: s},
-				"cookies": responseCookies{session: s},
-				"trace":   responseTrace{session: s},
+				"body":     responseBody{app: r.app, session: s, response: resp},
+				"headers":  responseHeaders{id: "resp-headers", state: s.responseHeaders, scroll: s.responseHeadersScroll, empty: "No headers"},
+				"cookies":  responseCookies{session: s},
+				"trailers": responseHeaders{id: "resp-trailers", state: s.responseTrailers, scroll: s.responseTrailersScroll, empty: "No trailers"},
+				"trace":    responseTrace{session: s},
 			},
 		},
 	)
@@ -156,7 +177,7 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	s, resp := b.session, b.response
 	if len(resp.Body) == 0 {
-		return emptyState{Title: "Empty body", Lines: []string{fmt.Sprintf("The server returned %d %s with no content", resp.StatusCode, resp.Reason)}}
+		return emptyState{Title: "Empty body", Lines: []string{"The server returned " + statusText(s.responseStatus) + " with no content"}}
 	}
 	contentType := resp.ContentType()
 	copyBody := func() { b.app.notify(s.copyBody(), toastSuccess) }
@@ -248,22 +269,27 @@ func (r responseBodyStatus) Build(ctx t.BuildContext) t.Widget {
 	}
 }
 
+// responseHeaders is a table of headers, or of trailers.
 type responseHeaders struct {
 	fillParent
-	session *Session
+	id     string
+	state  *t.TableState[model.Header]
+	scroll *t.ScrollState
+	empty  string
 }
 
 func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
-	if len(h.session.responseHeaders.Rows.Get()) == 0 {
-		return emptyState{Title: "No headers"}
+	rows := h.state.Rows.Get()
+	if len(rows) == 0 {
+		return emptyState{Title: h.empty}
 	}
-	focused := isFocusedID(ctx, "resp-headers")
-	return scrollingTable(h.session.responseHeadersScroll, t.Table[model.Header]{
-		ID:            "resp-headers",
-		State:         h.session.responseHeaders,
+	focused := isFocusedID(ctx, h.id)
+	return scrollingTable(h.scroll, t.Table[model.Header]{
+		ID:            h.id,
+		State:         h.state,
 		SelectionMode: t.TableSelectionRow,
-		Columns:       []t.TableColumn{{Width: t.Cells(nameColumnWidth(h.session.responseHeaders.Rows.Get(), func(h model.Header) string { return h.Name }))}, {Width: t.Flex(1)}},
+		Columns:       []t.TableColumn{{Width: t.Cells(nameColumnWidth(rows, func(h model.Header) string { return h.Name }))}, {Width: t.Flex(1)}},
 		RenderCell: func(row model.Header, rowIndex, col int, active, selected bool) t.Widget {
 			return tableCell(theme, active, focused, col == 0, []string{row.Name, row.Value}[col])
 		},

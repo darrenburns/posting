@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -95,7 +94,17 @@ func (a *App) submitURL(text string) {
 	}
 }
 
-// curlCommand is the current request as a curl command.
+// exportTool is the tool the current request is exported for: "curl", or
+// "grpcurl" for gRPC.
+func (a *App) exportTool() string {
+	if s := a.current(); s != nil {
+		return kindViews[s.kind.Peek()].export.tool
+	}
+	return "curl"
+}
+
+// curlCommand is the current request as a command for its kind's tool:
+// curl, or grpcurl for gRPC.
 func (a *App) curlCommand(resolve bool) (string, error) {
 	s := a.current()
 	if s == nil {
@@ -113,19 +122,15 @@ func (a *App) curlCommand(resolve bool) (string, error) {
 		}
 		req = resolved
 	}
-	wire, ok := model.Lower(req)
-	if !ok {
-		return "", fmt.Errorf("%s requests can't be copied as curl", req.Kind().Label)
-	}
-	return curl.Format(wire, curl.FormatOptions{ExtraArgs: a.settings.CurlExportExtraArgs, Multiline: true}), nil
+	return kindViews[req.Kind().ID].export.format(a, req)
 }
 
-// copyAsCurl copies the request as a curl command and shows it.
+// copyAsCurl copies the request as a command and shows it.
 func (a *App) copyAsCurl() {
 	a.openCurlExport()
 	if text := a.curlDialog.text.GetText(); text != "" {
 		t.SetClipboard(t.SystemClipboard, text)
-		a.notify("Copied curl command to clipboard", toastSuccess)
+		a.notify("Copied "+a.exportTool()+" command to clipboard", toastSuccess)
 	}
 }
 
@@ -183,7 +188,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 	a := o.app
 	f := a.curlDialog
 	importing := f.mode.Get() == "import"
-	title := "Export as curl"
+	title := "Export as " + a.exportTool()
 	hint := "The command has been copied to the clipboard. Select text with your terminal to copy part of it."
 	buttons := []t.Widget{
 		t.Button{ID: "curl-close", Label: "Close", OnPress: a.closeOverlay, Click: func(t.MouseEvent) { a.closeOverlay() }},
@@ -245,7 +250,11 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 
 func (a *App) copyCurlText() {
 	t.SetClipboard(t.SystemClipboard, a.curlDialog.text.GetText())
-	a.notify("Copied curl command to clipboard", toastSuccess)
+	what := "request YAML"
+	if a.curlDialog.mode.Peek() != "yaml" {
+		what = a.exportTool() + " command"
+	}
+	a.notify("Copied "+what+" to clipboard", toastSuccess)
 }
 
 // curlKeys lets ctrl+j (the send key) import from inside the text area,

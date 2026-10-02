@@ -236,7 +236,7 @@ func TestSnapshotGraphQL(tt *testing.T) {
 	t.AssertSnapshotNamed(tt, "GraphQL_variables", app, snapW, snapH, "The GraphQL Variables tab: JSON with a ${USER_ID} reference")
 
 	app.openMethodMenu()
-	t.AssertSnapshotNamed(tt, "GraphQL_method_menu", app, snapW, snapH, "The method menu: HTTP methods, a separator, then GraphQL on q")
+	t.AssertSnapshotNamed(tt, "GraphQL_method_menu", app, snapW, snapH, "The method menu: HTTP methods, a separator, then GraphQL on q and gRPC on r")
 }
 
 func TestSnapshotGraphQLResponseWithErrors(tt *testing.T) {
@@ -310,11 +310,11 @@ func TestMethodMenuEnterChoosesTheItemUnderTheCursor(tt *testing.T) {
 	app.openMethodMenu()
 	pressOn(tt, app, methodMenuID, "end")
 	pressOn(tt, app, methodMenuID, "enter")
-	if s.kind.Peek() != model.KindGraphQL {
-		tt.Fatalf("enter on GraphQL made the request %s", s.kind.Peek())
+	if last := model.Kinds[len(model.Kinds)-1]; s.kind.Peek() != last.ID {
+		tt.Fatalf("enter on %s, the last item, made the request %s", last.Label, s.kind.Peek())
 	}
 	if app.menuOpen.Peek() {
-		tt.Fatal("choosing GraphQL left the menu open")
+		tt.Fatal("choosing a kind left the menu open")
 	}
 }
 
