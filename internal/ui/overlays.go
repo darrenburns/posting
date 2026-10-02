@@ -139,7 +139,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "Import curl from clipboard", Description: "Needs a terminal that lets apps read the clipboard", Action: a.run(a.importCurlFromClipboard)},
 		{Label: "Export as " + a.exportTool(), Description: "Copy the request as a " + a.exportTool() + " command", Action: func() {
 			a.palette.SetNextFocusIDOnClose("curl-text")
-			a.run(a.copyAsCurl)()
+			a.run(a.copyExport)()
 		}},
 		{Label: "Export as YAML", Description: "Copy the request as a Posting request file", Action: func() {
 			a.palette.SetNextFocusIDOnClose("curl-text")

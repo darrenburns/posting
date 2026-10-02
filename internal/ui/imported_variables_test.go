@@ -64,7 +64,7 @@ func TestImportedAliasesReachSenderAndCurlWithRequestScope(t *testing.T) {
 		t.Fatal(app.variableValuesPeek())
 	}
 	app.sessionVars.Set(map[string]string{"host": "session.test"})
-	command, err := app.curlCommand(true)
+	command, err := app.exportCommand(true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +120,7 @@ func TestInvalidImportedAliasStopsSendAndCurl(t *testing.T) {
 		if app.current().err.Peek() == nil {
 			t.Fatal("send did not show alias error")
 		}
-		if _, err := app.curlCommand(true); err == nil {
+		if _, err := app.exportCommand(true); err == nil {
 			t.Fatal("curl accepted invalid alias")
 		}
 	}

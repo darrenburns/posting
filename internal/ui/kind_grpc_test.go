@@ -449,7 +449,7 @@ func TestCopyGRPCAsGrpcurl(tt *testing.T) {
 	req := grpcRequest()
 	req.Payload = model.GRPC{Method: "posting.example.v1.Greeter/SayHello", Message: `{"name": "Ada"}`}
 	app.openRequest(req)
-	command, err := app.curlCommand(true)
+	command, err := app.exportCommand(true)
 	if err != nil {
 		tt.Fatal(err)
 	}
@@ -458,7 +458,7 @@ func TestCopyGRPCAsGrpcurl(tt *testing.T) {
 			tt.Errorf("grpcurl command lacks %q:\n%s", want, command)
 		}
 	}
-	app.openCurlExport()
+	app.openExport()
 	if sc := newScreen(app, snapW, snapH); !sc.shows("Export as grpcurl") {
 		tt.Fatalf("the export dialog should name grpcurl:\n%s", sc.renderer.ScreenText())
 	}

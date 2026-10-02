@@ -89,7 +89,7 @@ func TestGenerateHomepageScenes(tt *testing.T) {
 		"curlexport": func(th string) *App {
 			app := homeApp(th)
 			app.openRequest(sampleRequest(tt, "Create user"))
-			app.copyAsCurl()
+			app.copyExport()
 			return app
 		},
 		"history": func(th string) *App {
