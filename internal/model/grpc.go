@@ -44,7 +44,10 @@ func (g GRPC) clone() Payload {
 
 func (g GRPC) size() int {
 	n := len(g.Method) + len(g.Message)
-	for _, path := range append(g.Protos.Files, g.Protos.ImportPaths...) {
+	for _, path := range g.Protos.Files {
+		n += len(path)
+	}
+	for _, path := range g.Protos.ImportPaths {
 		n += len(path)
 	}
 	return n
@@ -119,7 +122,7 @@ type GRPCTarget struct {
 
 // ParseGRPCTarget reads a resolved gRPC server address. A scheme decides the
 // transport: grpc:// and http:// are plaintext, grpcs:// and https:// are
-// TLS. A bare host:port is TLS unless the host is a loopback address, so
+// TLS. A bare host:port is TLS unless the host is this machine, so
 // "localhost:50051" works as typed and a remote server never gets
 // credentials in plaintext by accident. Without a port, TLS uses 443 and
 // plaintext 80.
@@ -167,12 +170,15 @@ func ParseGRPCTarget(address string) (GRPCTarget, error) {
 	return GRPCTarget{Authority: net.JoinHostPort(host, port), TLS: tls}, nil
 }
 
+// isLoopback reports whether host is this machine. That includes the
+// unspecified addresses, 0.0.0.0 and ::, which servers print when they
+// listen on every interface.
 func isLoopback(host string) bool {
 	if strings.EqualFold(host, "localhost") {
 		return true
 	}
 	ip := net.ParseIP(host)
-	return ip != nil && ip.IsLoopback()
+	return ip != nil && (ip.IsLoopback() || ip.IsUnspecified())
 }
 
 func cloneStrings(in []string) []string {
