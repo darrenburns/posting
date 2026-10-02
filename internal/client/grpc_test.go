@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"net"
 	"os"
@@ -626,6 +627,38 @@ func TestGRPCTLSTargets(t *testing.T) {
 	}
 	if _, err := send(plainAddr, true); err != nil {
 		t.Errorf("a bare loopback address is plaintext: %v", err)
+	}
+}
+
+func TestGRPCLoadsTheCABundleOnlyForTLSAndWhenItIsFixed(t *testing.T) {
+	cert := selfSigned(t)
+	plainAddr := startLibrary(t, libraryOptions{})
+	tlsAddr := startLibrary(t, libraryOptions{tls: true, cert: cert})
+	bundle := filepath.Join(t.TempDir(), "ca.pem")
+	g := NewGRPC("posting-test", TLSSettings{CABundle: bundle}, "testdata")
+	send := func(url string) (*model.Response, error) {
+		req := grpcRequest(url, "library.v1.Library/GetBook", `{"isbn": "1"}`)
+		req.Options.VerifySSL = true
+		return g.Send(context.Background(), Call{Request: req})
+	}
+
+	if _, err := send(plainAddr); err != nil {
+		t.Fatalf("a plaintext call has no use for the CA bundle: %v", err)
+	}
+	protos := grpcRequest(plainAddr, "", "")
+	protos.Payload = model.GRPC{Protos: model.ProtoSet{Files: []string{"library.proto"}}}
+	if _, err := g.Describe(context.Background(), Call{Request: protos}); err != nil {
+		t.Fatalf("listing proto files has no use for the CA bundle: %v", err)
+	}
+	if _, err := send("grpcs://" + tlsAddr); err == nil || !strings.Contains(err.Error(), "CA bundle") {
+		t.Fatalf("a TLS call with a missing CA bundle: %v", err)
+	}
+
+	if err := os.WriteFile(bundle, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Certificate[0]}), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := send("grpcs://" + tlsAddr); err != nil {
+		t.Fatalf("once the CA bundle is fixed, the server's certificate is trusted: %v", err)
 	}
 }
 

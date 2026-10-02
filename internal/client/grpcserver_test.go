@@ -54,6 +54,8 @@ type libraryOptions struct {
 	// v1alphaOnly serves only the older reflection service.
 	v1alphaOnly bool
 	tls         bool
+	// cert is the TLS server's certificate. Unset is a new self-signed one.
+	cert tls.Certificate
 }
 
 // startLibrary serves the library service on a free loopback port and
@@ -63,7 +65,11 @@ func startLibrary(t *testing.T, opts libraryOptions) string {
 	files, svc := librarySchema(t)
 	var serverOpts []grpc.ServerOption
 	if opts.tls {
-		serverOpts = append(serverOpts, grpc.Creds(credentials.NewTLS(&tls.Config{Certificates: []tls.Certificate{selfSigned(t)}})))
+		cert := opts.cert
+		if cert.Certificate == nil {
+			cert = selfSigned(t)
+		}
+		serverOpts = append(serverOpts, grpc.Creds(credentials.NewTLS(&tls.Config{Certificates: []tls.Certificate{cert}})))
 	}
 	server := grpc.NewServer(serverOpts...)
 	server.RegisterService(libraryService(svc), struct{}{})
