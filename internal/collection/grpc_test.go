@@ -124,6 +124,16 @@ func TestParseRejectsGRPCFilesWithHTTPFields(t *testing.T) {
 	}
 }
 
+func TestParseNamesTheFirstForeignBlockEveryTime(t *testing.T) {
+	file := []byte("url: https://x\ngraphql:\n  query: '{ a }'\ngrpc:\n  method: a.B/C\n")
+	for range 50 {
+		_, err := ParseRequest(file, "")
+		if err == nil || err.Error() != "a graphql block needs kind: graphql" {
+			t.Fatalf("err = %v, want the graphql block named, as GraphQL comes first among the kinds", err)
+		}
+	}
+}
+
 func TestParseKeepsHTTPOnlyOptionsForGraphQL(t *testing.T) {
 	req, err := ParseRequest([]byte("kind: graphql\nurl: https://x\noptions:\n  attach_cookies: false\n  proxy_url: http://p:1\n"), "")
 	if err != nil || req.Options.AttachCookies || req.Options.ProxyURL != "http://p:1" {
