@@ -235,12 +235,19 @@ The other tabs work as they do for an HTTP request, with these differences:
 
 ### Finding methods
 
-Posting finds the server's methods when the **Message** tab opens, and when the **Method** field
-takes focus, if the address or the proto files have changed since it last looked. Press ++ctrl+r++
-in the **Method** field, or choose **Refresh gRPC methods** in the command palette, to look again.
+Posting contacts a server only when you ask it to. Opening a gRPC request, or showing its tabs,
+never contacts the server.
 
-When the **Proto** tab is empty, Posting asks the server's reflection service. When the server has
-no reflection service, add its `.proto` files on the **Proto** tab instead:
+When the **Proto** tab is empty, Posting asks the server's reflection service for its methods. It
+asks when:
+
+- The **Method** field takes focus. Posting asks again only if the address, the metadata or the
+  auth has changed since it last asked, or if that attempt failed.
+- You press ++ctrl+r++ in the **Method** field, or choose **Refresh gRPC methods** in the command
+  palette.
+- A send of the request gets a response.
+
+When the server has no reflection service, add its `.proto` files on the **Proto** tab instead:
 
 - **Files** lists the files, one per line, relative to the collection directory. A file ending in
   `.protoset`, `.binpb` or `.pb` is a compiled descriptor set, such as `protoc --descriptor_set_out`
@@ -249,14 +256,16 @@ no reflection service, add its `.proto` files on the **Proto** tab instead:
 - **Import paths** lists the directories that `import` statements are relative to. With none, the
   collection directory is the only one. Each `.proto` file must be inside one of them.
 
-With proto files, Posting lists the methods without connecting to the server.
+With proto files, Posting lists the methods without connecting to the server, so it lists them as
+soon as the request opens. It reads the files again each time the **Method** field takes focus, and
+on ++ctrl+r++ or **Refresh gRPC methods**, so an edited file is picked up.
 
 The line under the **Method** field shows how many methods Posting found, and where, for example
 `4 methods via reflection · plaintext`. Once you choose a method, it shows the method's kind and its
 message types, such as `server stream · ListBooksRequest → Book`. If Posting couldn't find the
-methods, the line says why.
+methods, the line says why. Before Posting has asked the server, the line says so.
 
-The **Method** field lists the methods while it has focus. Type to filter them, and press
+The **Method** field lists the methods while it has focus, and opens the list when they arrive. Type to filter them, and press
 ++enter++ to choose one. You can also type a method yourself as `package.Service/Method` or
 `package.Service.Method`.
 

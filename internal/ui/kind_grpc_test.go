@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -49,10 +50,12 @@ func grpcScreen(tt *testing.T, req model.Request) (*screen, *grpcEditor, *record
 	app := testApp()
 	describer := &recordingDescriber{}
 	app.describer = describer
+	updates := make(chan func(), 8)
+	// The request loads into the app's blank tab, which already sends
+	// discovery results to updates.
+	app.current().dispatch = func(fn func()) { updates <- fn }
 	app.openRequest(req)
 	s := app.current()
-	updates := make(chan func(), 8)
-	s.dispatch = func(fn func()) { updates <- fn }
 	return newScreen(app, snapW, snapH), s.payloads[model.KindGRPC].(*grpcEditor), describer, updates
 }
 
@@ -115,11 +118,16 @@ func TestGRPCOptionsHaveNoHTTPOnlyRows(tt *testing.T) {
 
 func TestGRPCDiscoveryListsTheServersMethods(tt *testing.T) {
 	sc, e, describer, updates := grpcScreen(tt, grpcRequest())
+	sc.focusID(tt, grpcMethodID)
 	if !sc.shows("Loading methods from localhost:50051…") {
-		tt.Fatalf("showing the Message tab should start discovery:\n%s", sc.renderer.ScreenText())
+		tt.Fatalf("moving to the method field should start discovery:\n%s", sc.renderer.ScreenText())
 	}
 	(<-updates)()
 	sc.render()
+	if !e.methods.Visible.Peek() || !sc.shows("server stream · HelloRequest → HelloReply") {
+		tt.Fatalf("the method list should open once the methods arrive:\n%s", sc.renderer.ScreenText())
+	}
+	sc.focusID(tt, urlInputID)
 	if !sc.shows("4 methods via reflection · plaintext") {
 		tt.Fatalf("no method count on screen:\n%s", sc.renderer.ScreenText())
 	}
@@ -138,9 +146,8 @@ func TestGRPCDiscoveryListsTheServersMethods(tt *testing.T) {
 	}
 
 	sc.focusID(tt, grpcMethodID)
-	sc.render()
 	if got := describer.calls(); !reflect.DeepEqual(got, []string{"localhost:50051"}) {
-		tt.Fatalf("redrawing and focusing the method asked again for the same server: %v", got)
+		tt.Fatalf("redrawing and focusing the method again asked again for the same server: %v", got)
 	}
 	sc.pressKey(tt, "ctrl+r")
 	(<-updates)()
@@ -165,7 +172,7 @@ func TestOpeningAGRPCRequestNeverContactsTheServer(tt *testing.T) {
 }
 
 func TestGRPCDiscoveryRunsOnExplicitEvents(tt *testing.T) {
-	sc, _, describer, updates := grpcScreen(tt, grpcRequest())
+	sc, e, describer, updates := grpcScreen(tt, grpcRequest())
 	s := sc.app.current()
 	asked := func(want int, why string) {
 		tt.Helper()
@@ -173,9 +180,15 @@ func TestGRPCDiscoveryRunsOnExplicitEvents(tt *testing.T) {
 			tt.Fatalf("%s: the server was asked %d times, want %d", why, got, want)
 		}
 	}
+	// A discovery's result arrives after it asks, so the count is final
+	// once the result is in.
+	discovered := func(want int, why string) {
+		tt.Helper()
+		(<-updates)()
+		asked(want, why)
+	}
 	sc.focusID(tt, grpcMethodID)
-	asked(1, "the method field gaining focus")
-	(<-updates)()
+	discovered(1, "the method field gaining focus")
 	sc.focusID(tt, urlInputID)
 	sc.focusID(tt, grpcMethodID)
 	asked(1, "focusing the method again with nothing changed")
@@ -183,45 +196,43 @@ func TestGRPCDiscoveryRunsOnExplicitEvents(tt *testing.T) {
 	s.token.SetText("fixed-token")
 	sc.focusID(tt, urlInputID)
 	sc.focusID(tt, grpcMethodID)
-	asked(2, "focusing the method after fixing the token")
-	(<-updates)()
+	discovered(2, "focusing the method after fixing the token")
 
 	sc.pressKey(tt, "ctrl+r")
-	asked(3, "ctrl+r in the method field")
-	(<-updates)()
+	discovered(3, "ctrl+r in the method field")
 
 	for _, item := range sc.app.paletteItems() {
 		if item.Label == "Refresh gRPC methods" {
 			item.Action()
 		}
 	}
-	asked(4, "the palette's Refresh gRPC methods")
-	(<-updates)()
+	discovered(4, "the palette's Refresh gRPC methods")
 
+	e.method.SetText("posting.example.v1.Greeter/SayHello")
 	sc.app.send()
 	for s.phase.Peek() == exchangeSending {
 		(<-updates)()
 	}
-	asked(5, "a send of the request completing")
+	discovered(5, "a send of the request getting its response")
 }
 
 func TestGRPCProtoFilesAreListedOnOpenAndReadAgainOnEachTrigger(tt *testing.T) {
 	req := grpcRequest()
 	req.Payload = model.GRPC{Protos: model.ProtoSet{Files: []string{"protos/greeter.proto"}}}
 	sc, e, describer, updates := grpcScreen(tt, req)
+	(<-updates)()
 	if got := len(describer.calls()); got != 1 {
 		tt.Fatalf("proto files never contact the server, so opening the request should list them: asked %d times", got)
 	}
-	(<-updates)()
 	sc.render()
 	if !sc.shows("4 methods from 1 proto file") {
 		tt.Fatalf("no method count on screen:\n%s", sc.renderer.ScreenText())
 	}
 	sc.focusID(tt, grpcMethodID)
+	(<-updates)()
 	if got := len(describer.calls()); got != 2 {
 		tt.Fatalf("each trigger should read the proto files again, so an edited one is seen: asked %d times", got)
 	}
-	(<-updates)()
 	if c := e.catalog.Peek(); c.phase != catalogReady {
 		tt.Fatalf("catalog = %+v", c)
 	}
@@ -230,18 +241,23 @@ func TestGRPCProtoFilesAreListedOnOpenAndReadAgainOnEachTrigger(tt *testing.T) {
 func TestGRPCDiscoveryFollowsTheAddressAndDropsStaleResults(tt *testing.T) {
 	sc, e, describer, updates := grpcScreen(tt, grpcRequest())
 	s := sc.app.current()
+	sc.focusID(tt, grpcMethodID)
+	sc.focusID(tt, urlInputID)
 	s.url.SetText("localhost:${PORT}")
 	sc.app.sessionVars.Set(map[string]string{"PORT": "6000"})
 	sc.focusID(tt, grpcMethodID)
-	if got := describer.calls(); !reflect.DeepEqual(got, []string{"localhost:50051", "localhost:6000"}) {
+	(<-updates)()
+	(<-updates)()
+	got := describer.calls()
+	slices.Sort(got)
+	if !reflect.DeepEqual(got, []string{"localhost:50051", "localhost:6000"}) {
 		tt.Fatalf("focusing the method after changing the address should ask the new server: %v", got)
 	}
-	(<-updates)()
-	(<-updates)()
 	sc.render()
 	if c := e.catalog.Peek(); c.phase != catalogReady || c.source.address != "localhost:6000" {
 		tt.Fatalf("catalog = %+v; the first server's late answer must not replace the second's", c)
 	}
+	sc.focusID(tt, urlInputID)
 	if !sc.shows("4 methods via reflection · plaintext") {
 		tt.Fatalf("no method count on screen:\n%s", sc.renderer.ScreenText())
 	}
@@ -251,6 +267,7 @@ func TestGRPCDiscoveryProblemsShowUnderTheMethod(tt *testing.T) {
 	req := grpcRequest()
 	req.URL = "${GRPC_HOST}:50051"
 	sc, _, describer, _ := grpcScreen(tt, req)
+	sc.focusID(tt, grpcMethodID)
 	if !sc.shows("Variable not defined: $GRPC_HOST. Press ctrl+r to try again") {
 		tt.Fatalf("an address that can't be resolved should say why:\n%s", sc.renderer.ScreenText())
 	}
@@ -260,6 +277,7 @@ func TestGRPCDiscoveryProblemsShowUnderTheMethod(tt *testing.T) {
 
 	req.URL = ""
 	sc, _, _, _ = grpcScreen(tt, req)
+	sc.focusID(tt, grpcMethodID)
 	if !sc.shows("Enter the server's address to list its methods") {
 		tt.Fatalf("a blank address should say how to get methods:\n%s", sc.renderer.ScreenText())
 	}
@@ -267,8 +285,9 @@ func TestGRPCDiscoveryProblemsShowUnderTheMethod(tt *testing.T) {
 
 func TestChoosingAGRPCMethodFillsInItsMessage(tt *testing.T) {
 	sc, e, _, updates := grpcScreen(tt, grpcRequest())
-	(<-updates)()
 	sc.focusID(tt, grpcMethodID)
+	(<-updates)()
+	sc.render()
 	if !e.methods.Visible.Peek() || !sc.shows("server stream · HelloRequest → HelloReply") {
 		tt.Fatalf("the method list should open as soon as the method field has focus:\n%s", sc.renderer.ScreenText())
 	}
@@ -312,11 +331,11 @@ func TestEnterInTheGRPCMethodKeepsAMethodChosenInAnotherTab(tt *testing.T) {
 	}
 	open("posting.example.v1.Greeter/SayHello")
 	sc := newScreen(app, snapW, snapH)
+	sc.focusID(tt, grpcMethodID)
 	(<-updates)()
 	open("posting.example.v1.Greeter/StreamGreetings")
-	sc.render()
-	(<-updates)()
 	sc.focusID(tt, grpcMethodID)
+	(<-updates)()
 
 	app.cycleSession(-1)
 	sc.render()
@@ -516,7 +535,7 @@ func grpcSnapshotApp(tt *testing.T) *App {
 	s := app.current()
 	updates := make(chan func(), 1)
 	s.dispatch = func(fn func()) { updates <- fn }
-	newScreen(app, snapW, snapH)
+	s.payloads[model.KindGRPC].(*grpcEditor).describe(app, true)
 	(<-updates)()
 	return app
 }
