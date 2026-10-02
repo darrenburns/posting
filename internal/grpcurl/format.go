@@ -20,6 +20,9 @@ type FormatOptions struct {
 	// Root is the collection directory. Proto paths, which are relative to
 	// it, are written as absolute paths so the command runs from anywhere.
 	Root string
+	// CACert, Cert and Key are the TLS settings' files: a CA bundle, and a
+	// client certificate and its key. An empty Key means Cert holds both.
+	CACert, Cert, Key string
 }
 
 // Format writes a gRPC request as a grpcurl command. Pass a resolved request
