@@ -231,17 +231,16 @@ func (e *grpcEditor) setCatalog(c catalog) {
 	e.offerMethods()
 }
 
-// offerMethods lists the methods matching the whole of the method field:
-// the one it names, or those it fuzzily matches. The list itself filters
-// only by the text before the cursor, which sits at the start of a loaded
-// method, so on its own it would offer every method and enter would swap
-// the method for the first.
+// offerMethods lists the methods the whole of the method field fuzzily
+// matches, or none while it names one, so the list hides and the method's
+// signature under the field shows. The list itself filters only by the text
+// before the cursor, which sits at the start of a loaded method, so on its
+// own it would offer every method and enter would swap the method for the
+// first.
 func (e *grpcEditor) offerMethods() {
 	schema, text := e.catalog.Peek().schema, e.method.GetText()
 	var methods []client.Method
-	if m, ok := e.chosen(schema, text); ok {
-		methods = append(methods, m)
-	} else {
+	if _, ok := e.chosen(schema, text); !ok {
 		for _, m := range schema.Methods {
 			if t.MatchString(m.Name, text, t.FilterOptions{Mode: t.FilterFuzzy}).Matched {
 				methods = append(methods, m)
