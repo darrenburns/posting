@@ -50,9 +50,6 @@ type GRPC struct {
 	// maxResponse caps the bytes of messages kept from one call.
 	maxResponse int
 
-	once   sync.Once
-	tls    tlsMaterial
-	tlsErr error
 	protos protoCache
 }
 
@@ -60,11 +57,6 @@ type GRPC struct {
 // proto files relative to root.
 func NewGRPC(userAgent string, settings TLSSettings, root string) *GRPC {
 	return &GRPC{UserAgent: userAgent, TLS: settings, Root: root, maxResponse: maxBodyBytes}
-}
-
-func (g *GRPC) init() error {
-	g.once.Do(func() { g.tls, g.tlsErr = loadTLS(g.TLS) })
-	return g.tlsErr
 }
 
 // grpcCall is a resolved gRPC request, checked as far as it can be without
@@ -78,10 +70,7 @@ type grpcCall struct {
 	deadline context.Context
 }
 
-func (g *GRPC) prepare(call Call) (*grpcCall, error) {
-	if err := g.init(); err != nil {
-		return nil, err
-	}
+func prepare(call Call) (*grpcCall, error) {
 	req, err := model.Resolve(call.Request, call.Lookup)
 	if err != nil {
 		return nil, err
@@ -113,7 +102,7 @@ func (c *grpcCall) start(ctx context.Context) context.CancelFunc {
 // UNAVAILABLE for a refused connection, is an error, as a failed HTTP
 // request is.
 func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
-	c, err := g.prepare(call)
+	c, err := prepare(call)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +181,7 @@ func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
 		}
 		return schemaOf(files), nil
 	}
-	c, err := g.prepare(call)
+	c, err := prepare(call)
 	if err != nil {
 		return Schema{}, err
 	}
@@ -422,12 +411,17 @@ func checkMetadataKey(key string) error {
 
 // dial connects to the call's target and waits until the connection is
 // ready, so a server that can't be reached fails here, with the reason,
-// rather than as a status on the call.
+// rather than as a status on the call. The TLS settings' files are read
+// afresh for each TLS connection, so fixing them needs no restart.
 func (g *GRPC) dial(ctx context.Context, verify bool, target model.GRPCTarget, trace *grpcTrace) (*grpc.ClientConn, error) {
 	failure := &dialFailure{}
 	creds := insecure.NewCredentials()
 	if target.TLS {
-		creds = &tracedTLS{TransportCredentials: credentials.NewTLS(g.tls.config(verify)), trace: trace, failure: failure}
+		material, err := loadTLS(g.TLS)
+		if err != nil {
+			return nil, err
+		}
+		creds = &tracedTLS{TransportCredentials: credentials.NewTLS(material.config(verify)), trace: trace, failure: failure}
 	}
 	dialer := &net.Dialer{}
 	conn, err := grpc.NewClient("passthrough:///"+target.Authority,
