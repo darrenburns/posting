@@ -74,7 +74,8 @@ func reflectWith(ctx context.Context, conn *grpc.ClientConn, method string, symb
 		return resp, nil
 	}
 
-	if len(symbols) == 0 {
+	listed := len(symbols) == 0
+	if listed {
 		resp, err := ask(&reflectionpb.ServerReflectionRequest{MessageRequest: &reflectionpb.ServerReflectionRequest_ListServices{}})
 		if err != nil {
 			return nil, err
@@ -97,17 +98,26 @@ func reflectWith(ctx context.Context, conn *grpc.ClientConn, method string, symb
 		}
 		return nil
 	}
+	// A listed service the server can't describe is left out, so the
+	// others can still be listed.
+	var unknown []string
 	for _, symbol := range symbols {
 		resp, err := ask(&reflectionpb.ServerReflectionRequest{MessageRequest: &reflectionpb.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: symbol}})
-		if err != nil {
-			if status.Code(err) == codes.NotFound {
-				return nil, fmt.Errorf("the server doesn't know %s", symbol)
-			}
+		switch {
+		case status.Code(err) == codes.NotFound && listed:
+			unknown = append(unknown, symbol)
+			continue
+		case status.Code(err) == codes.NotFound:
+			return nil, fmt.Errorf("the server doesn't know %s", symbol)
+		case err != nil:
 			return nil, err
 		}
 		if err := add(resp); err != nil {
 			return nil, err
 		}
+	}
+	if len(unknown) == len(symbols) && len(unknown) > 0 {
+		return nil, fmt.Errorf("the server can't describe any of its services%s", listing("services", unknown))
 	}
 	// Servers usually send every import along with a file, but needn't.
 	for {
