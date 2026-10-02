@@ -15,6 +15,7 @@ import (
 // messages in and trailers from the call's stats. Stages only move forward,
 // so events from a redial or from the reflection call before the traced one
 // can't rewind it. It also records whether the server answered at all.
+// Send ends the last stage, since only it knows whether the call failed.
 type grpcTrace struct {
 	report func(model.TraceEvent)
 	tls    bool
@@ -127,8 +128,6 @@ func (g *grpcTrace) HandleRPC(ctx context.Context, s stats.RPCStats) {
 	case *stats.InTrailer:
 		g.hear()
 		g.begin(model.TraceClosed)
-	case *stats.End:
-		g.end(model.TraceComplete)
 	}
 }
 
