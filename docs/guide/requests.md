@@ -201,6 +201,7 @@ Posting connects with TLS:
 | `grpc://host:port` or `http://host:port` | Plaintext |
 | `grpcs://host:port` or `https://host:port` | TLS |
 | `localhost:50051`, `127.0.0.1:50051` or `[::1]:50051` | Plaintext, because the host is a loopback address |
+| `0.0.0.0:50051` or `[::]:50051` | Plaintext, because a server that prints this address is listening on this machine |
 | Any other address without a scheme, such as `api.example.com:8443` | TLS |
 
 Without a port, TLS uses port 443 and plaintext uses port 80. If a TLS connection fails because the
