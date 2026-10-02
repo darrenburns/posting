@@ -159,8 +159,8 @@ func (s schemaSource) String() string {
 	return s.address
 }
 
-// describe discovers the request's methods. Only an event the user caused
-// calls it, such as moving to the method field, so opening a request never
+// describe discovers the request's methods. Events call it, such as moving
+// to the method field, and never a Build, so opening a request never
 // contacts its server. The server is asked again when force is set, when
 // the request would ask it differently, or when asking it failed; proto
 // files are read every time, which is cheap, so an edited file is seen.
