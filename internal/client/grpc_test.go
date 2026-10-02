@@ -166,6 +166,36 @@ func TestGRPCBidiStream(t *testing.T) {
 	assertJSON(t, resp.Body, `[{"text": "HI"}, {"text": "THERE"}]`)
 }
 
+// An echo server blocks once its replies fill the flow-control window, so a
+// client that sends everything before reading never finishes sending.
+func TestGRPCBidiStreamLargerThanTheFlowControlWindow(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	const count, size = 200, 8 << 10
+	text := strings.Repeat("a", size)
+	messages := make([]string, count)
+	for i := range messages {
+		messages[i] = `{"text": "` + text + `"}`
+	}
+	req := grpcRequest(addr, "library.v1.Library/Chat", "["+strings.Join(messages, ",")+"]")
+	req.Options.TimeoutSeconds = 5
+	resp := mustCallGRPC(t, req)
+	if status := model.StatusOf(req, resp); status.Code != "OK" {
+		t.Fatalf("status = %+v", status)
+	}
+	var echoes []struct{ Text string }
+	if err := json.Unmarshal(resp.Body, &echoes); err != nil {
+		t.Fatal(err)
+	}
+	if len(echoes) != count {
+		t.Fatalf("got %d echoes, want %d", len(echoes), count)
+	}
+	for i, echo := range echoes {
+		if echo.Text != strings.ToUpper(text) {
+			t.Fatalf("echo %d is %d bytes of %.10q…", i, len(echo.Text), echo.Text)
+		}
+	}
+}
+
 func TestGRPCMetadataGoesOutAndHeadersComeBack(t *testing.T) {
 	addr := startLibrary(t, libraryOptions{})
 	req := grpcRequest(addr, "library.v1.Library/GetBook", `{"isbn": "1"}`)
