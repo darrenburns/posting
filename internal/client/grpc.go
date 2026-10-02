@@ -144,13 +144,13 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	conn, err := g.dial(c.deadline, c, target, trace)
 	if err != nil {
 		trace.end(model.TraceFailed)
-		return nil, c.describe(ctx, err)
+		return nil, c.explain(ctx, err)
 	}
 	defer conn.Close()
 	if files == nil {
 		if files, err = reflectFiles(c.deadline, conn, []string{method.service}); err != nil {
 			trace.end(model.TraceFailed)
-			return nil, c.describe(ctx, err)
+			return nil, c.explain(ctx, err)
 		}
 		if md, in, err = c.messages(files, method); err != nil {
 			trace.end(model.TraceFailed)
@@ -161,7 +161,7 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	ex := invoke(c.deadline, conn, md, in, trace, g.maxResponse)
 	if !trace.answered() || ctx.Err() != nil {
 		trace.end(model.TraceFailed)
-		return nil, c.describe(ctx, ex.status.Err())
+		return nil, c.explain(ctx, ex.status.Err())
 	}
 	if ex.status.Code() == codes.Canceled && c.atDeadline(ex.status.Err()) {
 		ex.status = status.FromContextError(context.DeadlineExceeded)
@@ -197,19 +197,20 @@ func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
 	if err != nil {
 		return Schema{}, err
 	}
-	dialCtx, cancelDial := context.WithTimeout(c.deadline, describeDialTimeout)
+	budget := min(describeDialTimeout, time.Duration(c.timeout*float64(time.Second)))
+	dialCtx, cancelDial := context.WithTimeout(c.deadline, budget)
 	defer cancelDial()
 	conn, err := g.dial(dialCtx, c, target, newGRPCTrace(nil, target.TLS))
 	if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == nil {
-		return Schema{}, fmt.Errorf("couldn't connect to %s within %v", target.Authority, describeDialTimeout)
+		return Schema{}, fmt.Errorf("couldn't connect to %s within %v", target.Authority, budget)
 	}
 	if err != nil {
-		return Schema{}, c.describe(ctx, err)
+		return Schema{}, c.explain(ctx, err)
 	}
 	defer conn.Close()
 	files, err := reflectFiles(c.deadline, conn, nil)
 	if err != nil {
-		return Schema{}, c.describe(ctx, err)
+		return Schema{}, c.explain(ctx, err)
 	}
 	return schemaOf(files), nil
 }
@@ -516,7 +517,12 @@ func (f *dialFailure) err(target model.GRPCTarget) error {
 		if errors.As(f.cause, &certErr) {
 			return fmt.Errorf("SSL certificate verification failed: %v (turn off Verify SSL in Options to skip it)", certErr.Err)
 		}
-		return fmt.Errorf("TLS handshake with %s failed: %v; if the server is plaintext, use grpc://%s", target.Authority, f.cause, target.Authority)
+		// A record that isn't TLS at all is a plaintext server answering.
+		var recordErr tls.RecordHeaderError
+		if errors.As(f.cause, &recordErr) {
+			return fmt.Errorf("TLS handshake with %s failed: %v; if the server is plaintext, use grpc://%s", target.Authority, f.cause, target.Authority)
+		}
+		return fmt.Errorf("TLS handshake with %s failed: %v", target.Authority, f.cause)
 	}
 	var dnsErr *net.DNSError
 	if errors.As(f.cause, &dnsErr) {
@@ -551,8 +557,8 @@ func (t *tracedTLS) Clone() credentials.TransportCredentials {
 	return &tracedTLS{TransportCredentials: t.TransportCredentials.Clone(), trace: t.trace, failure: t.failure}
 }
 
-// describe turns an error from dialing or calling into one worth showing.
-func (c *grpcCall) describe(ctx context.Context, err error) error {
+// explain turns an error from dialing or calling into one worth showing.
+func (c *grpcCall) explain(ctx context.Context, err error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -560,7 +566,7 @@ func (c *grpcCall) describe(ctx context.Context, err error) error {
 		return fmt.Errorf("request timed out after %gs", c.timeout)
 	}
 	if s, ok := status.FromError(err); ok {
-		return errors.New(s.Message())
+		return fmt.Errorf("%s: %s", model.GRPCCodeName(int(s.Code())), s.Message())
 	}
 	return err
 }
