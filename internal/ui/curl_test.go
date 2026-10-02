@@ -62,7 +62,7 @@ func TestExportThenImportIsLossless(tt *testing.T) {
 	app.openRequest(sampleRequest(tt, "Create user"))
 	before := app.current().Snapshot()
 	app.curlDialog.resolve.Set(false)
-	command, err := app.curlCommand(false)
+	command, err := app.exportCommand(false)
 	if err != nil {
 		tt.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func TestExportThenImportIsLossless(tt *testing.T) {
 	}
 
 	// Resolved, variables are replaced by the environment's values.
-	resolved, err := app.curlCommand(true)
+	resolved, err := app.exportCommand(true)
 	if err != nil {
 		tt.Fatal(err)
 	}
@@ -88,7 +88,7 @@ func TestExportThenImportIsLossless(tt *testing.T) {
 func TestSnapshotCurlExport(tt *testing.T) {
 	app := testApp()
 	app.openRequest(sampleRequest(tt, "Create user"))
-	app.copyAsCurl()
+	app.copyExport()
 	t.AssertSnapshot(tt, app, snapW, snapH, "Export as curl dialog showing the resolved, multi-line command")
 }
 

@@ -12,6 +12,7 @@ type KindID string
 const (
 	KindHTTP    KindID = "http"
 	KindGraphQL KindID = "graphql"
+	KindGRPC    KindID = "grpc"
 )
 
 // Fields is a set of the shared Request fields a kind uses. Normalize resets
@@ -26,8 +27,18 @@ const (
 	FieldPathParams
 	FieldHeaders
 	FieldAuth
+	// FieldDigestAuth is digest auth, which answers an HTTP challenge. A kind
+	// without it has digest auth reset by Normalize, rejected in its files
+	// and left out of its Auth tab.
+	FieldDigestAuth
+	// Options that only mean something over HTTP. A kind without them has
+	// them reset by Normalize, rejected in its files and hidden from its
+	// Options tab.
+	FieldRedirects
+	FieldCookies
+	FieldProxy
 
-	AllFields = FieldAuth<<1 - 1
+	AllFields = FieldProxy<<1 - 1
 )
 
 // Has reports whether f includes every field in field.
@@ -38,7 +49,7 @@ func (f Fields) Has(field Fields) bool { return f&field == field }
 // the kind's Payload type instead, where the compiler checks it is all there.
 type Kind struct {
 	ID    KindID
-	Label string // "HTTP", "GraphQL"
+	Label string // "HTTP", "GraphQL", "gRPC"
 	// Badge is the three letter label lists show. HTTP shows the method instead.
 	Badge  string
 	Fields Fields
@@ -63,12 +74,20 @@ var (
 		decode:  decodePayload[GraphQL],
 		example: exampleGraphQL,
 	}
+	GRPCKind = &Kind{
+		ID: KindGRPC, Label: "gRPC", Badge: "RPC",
+		// Headers are sent as metadata, and auth as authorization metadata.
+		Fields:  FieldHeaders | FieldAuth,
+		zero:    GRPC{},
+		decode:  decodePayload[GRPC],
+		example: exampleGRPC,
+	}
 )
 
 // Kinds lists every kind in menu and sort order. Each layer that keeps a
 // table keyed by kind has a test ranging over this list, so a new kind added
 // here turns those tests red until every layer knows about it.
-var Kinds = []*Kind{HTTPKind, GraphQLKind}
+var Kinds = []*Kind{HTTPKind, GraphQLKind, GRPCKind}
 
 // KindByID finds a kind by its file name.
 func KindByID(id KindID) (*Kind, bool) {
@@ -115,6 +134,9 @@ type Payload interface {
 	status(resp *Response) Status
 	// size is the payload's size in bytes, for the history budget.
 	size() int
+	// label names a request that has no name of its own, ahead of its URL:
+	// GraphQL's operation, gRPC's "Service/Method". "" is no label.
+	label() string
 }
 
 // HTTPCarried is a payload sent as an HTTP request. Lower builds that
@@ -126,8 +148,9 @@ type HTTPCarried interface {
 
 // Normalize resets the shared fields r's kind doesn't use to NewRequest's
 // defaults, so a GraphQL request never carries a method or an HTTP body into
-// a file, the sender or history. It is the identity for HTTP requests, which
-// keeps Posting 2 files byte-identical, and it is idempotent.
+// a file, the sender or history, nor a gRPC request a proxy. It is the
+// identity for HTTP requests, which keeps Posting 2 files byte-identical, and
+// it is idempotent.
 func Normalize(r Request) Request {
 	fields := r.Kind().Fields
 	if fields == AllFields {
@@ -149,8 +172,17 @@ func Normalize(r Request) Request {
 	if !fields.Has(FieldHeaders) {
 		r.Headers = nil
 	}
-	if !fields.Has(FieldAuth) {
+	if !fields.Has(FieldAuth) || !fields.Has(FieldDigestAuth) && r.Auth.Type == AuthDigest {
 		r.Auth = defaults.Auth
+	}
+	if !fields.Has(FieldRedirects) {
+		r.Options.FollowRedirects = defaults.Options.FollowRedirects
+	}
+	if !fields.Has(FieldCookies) {
+		r.Options.AttachCookies = defaults.Options.AttachCookies
+	}
+	if !fields.Has(FieldProxy) {
+		r.Options.ProxyURL = defaults.Options.ProxyURL
 	}
 	return r
 }

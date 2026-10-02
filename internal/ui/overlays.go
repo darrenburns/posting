@@ -124,15 +124,22 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			}
 		})},
 		{Label: "Reload collection", Description: "Read the collection from disk again", Action: a.run(a.reloadCollection)},
+	}...)
+	if s := a.current(); s != nil {
+		if commands := kindViews[s.kind.Peek()].commands; commands != nil {
+			items = append(items, commands(a, s)...)
+		}
+	}
+	items = append(items, []t.CommandPaletteItem{
 		{Divider: "Import and export"},
 		{Label: "Import curl command…", Description: "Paste a curl command to load it into this tab", Action: func() {
 			a.palette.SetNextFocusIDOnClose("curl-text")
 			a.run(a.openCurlImport)()
 		}},
 		{Label: "Import curl from clipboard", Description: "Needs a terminal that lets apps read the clipboard", Action: a.run(a.importCurlFromClipboard)},
-		{Label: "Export as curl", Description: "Copy the request as a curl command", Action: func() {
+		{Label: "Export as " + a.exportTool(), Description: "Copy the request as a " + a.exportTool() + " command", Action: func() {
 			a.palette.SetNextFocusIDOnClose("curl-text")
-			a.run(a.copyAsCurl)()
+			a.run(a.copyExport)()
 		}},
 		{Label: "Export as YAML", Description: "Copy the request as a Posting request file", Action: func() {
 			a.palette.SetNextFocusIDOnClose("curl-text")

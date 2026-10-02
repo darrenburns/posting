@@ -22,6 +22,30 @@ func (f *graphQLFile) UnmarshalYAML(node *yaml.Node) error {
 	return decodeStrict(node, "graphql", (*plain)(f))
 }
 
+// grpcFile is a gRPC request's `grpc:` block.
+type grpcFile struct {
+	Method  yamlString    `yaml:"method,omitempty"`
+	Message yamlString    `yaml:"message,omitempty"`
+	Proto   *protoSetFile `yaml:"proto,omitempty"`
+}
+
+func (f *grpcFile) UnmarshalYAML(node *yaml.Node) error {
+	type plain grpcFile
+	return decodeStrict(node, "grpc", (*plain)(f))
+}
+
+// protoSetFile is the `proto:` block of a gRPC request that names its schema
+// files instead of asking the server for it.
+type protoSetFile struct {
+	Files       []string `yaml:"files,omitempty"`
+	ImportPaths []string `yaml:"import_paths,omitempty"`
+}
+
+func (f *protoSetFile) UnmarshalYAML(node *yaml.Node) error {
+	type plain protoSetFile
+	return decodeStrict(node, "grpc.proto", (*plain)(f))
+}
+
 // kindBlocks are the kinds' own blocks in a request file: the key, whether
 // the file has it, and the payload it holds.
 var kindBlocks = map[model.KindID]struct {
@@ -40,6 +64,28 @@ var kindBlocks = map[model.KindID]struct {
 			return g
 		},
 	},
+	model.KindGRPC: {
+		key:     "grpc",
+		present: func(in requestFile) bool { return in.GRPC != nil },
+		decode: func(in requestFile) model.Payload {
+			var g model.GRPC
+			if f := in.GRPC; f != nil {
+				g = model.GRPC{Method: string(f.Method), Message: string(f.Message)}
+				if p := f.Proto; p != nil {
+					g.Protos = model.ProtoSet{Files: nonEmpty(p.Files), ImportPaths: nonEmpty(p.ImportPaths)}
+				}
+			}
+			return g
+		},
+	},
+}
+
+// nonEmpty is nil for an empty list, so `files: []` reads like no files.
+func nonEmpty(list []string) []string {
+	if len(list) == 0 {
+		return nil
+	}
+	return list
 }
 
 // decodePayload reads the file's kind and that kind's block. A file whose
@@ -56,9 +102,9 @@ func decodePayload(in requestFile) (model.Payload, error) {
 	if err := checkFields(in, kind); err != nil {
 		return nil, err
 	}
-	for other, block := range kindBlocks {
-		if other != kind.ID && block.present(in) {
-			return nil, fmt.Errorf("a %s block needs kind: %s", block.key, other)
+	for _, other := range model.Kinds {
+		if block, ok := kindBlocks[other.ID]; ok && other != kind && block.present(in) {
+			return nil, fmt.Errorf("a %s block needs kind: %s", block.key, other.ID)
 		}
 	}
 	if kind == model.HTTPKind {
@@ -93,6 +139,10 @@ func decodeStrict(node *yaml.Node, name string, out any) error {
 
 // checkFields rejects keys for shared fields the kind doesn't use.
 func checkFields(in requestFile, kind *model.Kind) error {
+	var opts optionsFile
+	if in.Options != nil {
+		opts = *in.Options
+	}
 	for _, key := range []struct {
 		name    string
 		field   model.Fields
@@ -104,6 +154,10 @@ func checkFields(in requestFile, kind *model.Kind) error {
 		{"path_params", model.FieldPathParams, in.PathParams != nil},
 		{"headers", model.FieldHeaders, in.Headers != nil},
 		{"auth", model.FieldAuth, in.Auth != nil},
+		{"digest auth", model.FieldDigestAuth, in.Auth != nil && model.AuthType(in.Auth.Type) == model.AuthDigest},
+		{"follow_redirects option", model.FieldRedirects, opts.FollowRedirects != nil},
+		{"attach_cookies option", model.FieldCookies, opts.AttachCookies != nil},
+		{"proxy_url option", model.FieldProxy, opts.ProxyURL != ""},
 	} {
 		if key.present && !kind.Fields.Has(key.field) {
 			return fmt.Errorf("%s requests don't have a %s", kind.Label, key.name)
@@ -119,6 +173,12 @@ func encodePayload(req model.Request, out *requestFile) error {
 	case model.GraphQL:
 		out.Kind = string(model.KindGraphQL)
 		out.GraphQL = &graphQLFile{Query: yamlString(p.Query), Variables: yamlString(p.Variables), OperationName: yamlString(p.OperationName)}
+	case model.GRPC:
+		out.Kind = string(model.KindGRPC)
+		out.GRPC = &grpcFile{Method: yamlString(p.Method), Message: yamlString(p.Message)}
+		if len(p.Protos.Files) > 0 || len(p.Protos.ImportPaths) > 0 {
+			out.GRPC.Proto = &protoSetFile{Files: p.Protos.Files, ImportPaths: p.Protos.ImportPaths}
+		}
 	default:
 		return fmt.Errorf("no file format for %s requests", req.Kind().Label)
 	}

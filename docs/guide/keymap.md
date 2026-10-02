@@ -108,6 +108,7 @@ rebound yet.
 | ++enter++ / ++space++ | Open the method menu |
 | ++g++ ++p++ ++u++ ++a++ ++d++ ++h++ ++o++ | Choose `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` or `OPTIONS` (these also work in the open menu) |
 | ++q++ | Make the request a [GraphQL request](./requests.md#graphql-requests) (this also works in the open menu) |
+| ++r++ | Make the request a [gRPC request](./requests.md#grpc-requests) (this also works in the open menu) |
 
 ### URL bar
 
@@ -159,6 +160,7 @@ The Path table's names come from the URL, so only its values can be edited.
 | ++ctrl+d++ / ++delete++ | Delete the character after the cursor |
 | ++f3++ | Open the text in your [pager](./external_tools.md) (request and response bodies) |
 | ++f4++ | Open the text in your [editor](./external_tools.md) (request and response bodies) |
+| ++ctrl+r++ | Look for the server's methods again (a gRPC request's **Method** field) |
 
 In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++escape++ dismisses it.
 

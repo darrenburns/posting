@@ -27,8 +27,11 @@ import (
 
 // Config is everything the UI needs from the outside world.
 type Config struct {
-	Version    string
-	Sender     client.Sender
+	Version string
+	Sender  client.Sender
+	// Describer lists the methods gRPC requests can call. Nil uses
+	// client.Fake, as a nil Sender does.
+	Describer  client.Describer
 	Collection *model.Collection
 	// Store saves and deletes requests. Nil keeps changes in memory only.
 	Store collection.Store
@@ -85,6 +88,7 @@ type App struct {
 	userThemes []string
 	icons      iconSet
 	sender     client.Sender
+	describer  client.Describer
 	store      collection.Store
 	host       string // markup
 
@@ -125,6 +129,8 @@ type App struct {
 	// compact drops the blank rows between parts of the layout when the
 	// terminal is too short to spare them (see heightProbe).
 	compact t.Signal[bool]
+	// focus is where focus was when focusProbe last reported it.
+	focus focusAt
 
 	jump               *t.JumpState
 	palette            *t.CommandPaletteState
@@ -150,6 +156,9 @@ type App struct {
 func New(cfg Config) *App {
 	if cfg.Sender == nil {
 		cfg.Sender = client.Fake{}
+	}
+	if cfg.Describer == nil {
+		cfg.Describer = client.Fake{}
 	}
 	if cfg.Environments == nil {
 		cfg.Environments = StaticEnvironments(nil)
@@ -187,6 +196,7 @@ func New(cfg Config) *App {
 		watcher:        cfg.Reload,
 		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
+		describer:      cfg.Describer,
 		store:          cfg.Store,
 		host:           host,
 		collection:     t.NewAnySignal(cfg.Collection),
@@ -354,6 +364,7 @@ func (a *App) createSession(req model.Request) *Session {
 	a.nextSessionID++
 	s := newSession(a.nextSessionID, req)
 	s.prettifyJSON = a.settings.Response.PrettifyJSON
+	a.listProtoMethods(s)
 	return s
 }
 
@@ -419,6 +430,7 @@ func (a *App) openPreview(req model.Request) *Session {
 	old := a.previewSession()
 	if s := a.current(); s != nil && s.isPristine() {
 		s.Load(req)
+		a.listProtoMethods(s)
 		s.preview.Set(true)
 		if old != nil && old != s {
 			a.closeSession(old.id)
@@ -547,6 +559,11 @@ func (a *App) send() {
 		return
 	}
 	s.Send(a.sender, variables, func(req model.Request, resp *model.Response, status model.Status) {
+		if req.Kind() == model.GRPCKind {
+			// The call has just reached the server, so asking it for its
+			// methods contacts no one new.
+			s.payloads[model.KindGRPC].(*grpcEditor).describe(a, true)
+		}
 		a.nextHistoryID++
 		entry := historyEntry(a.nextHistoryID, req, resp, status)
 		a.setHistory(append([]model.HistoryEntry{entry}, a.history.Peek()...))
@@ -781,6 +798,7 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 			Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 			Children: []t.Widget{
 				heightProbe{app: a},
+				focusProbe{app: a},
 				t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Right: 1}}, Children: []t.Widget{workspace{app: a}}},
 			},
 		},
@@ -849,11 +867,14 @@ func (a *App) jumpTargets() []t.JumpTarget {
 			}
 		})...)
 	}
-	targets = append(targets, tabJumps(responseTabsID, "asdf", []string{"body", "headers", "cookies", "trace"}, func(key string) {
-		if s := a.current(); s != nil && s.response.Peek() != nil {
-			s.responseTabs(s.response.Peek()).selectKey(key)
-		}
-	})...)
+	// Which tabs a response has depends on the request it answers.
+	if s := a.current(); s != nil && s.response.Get() != nil {
+		targets = append(targets, tabJumps(responseTabsID, "asdf", responseTabKeys(s.sent), func(key string) {
+			if s := a.current(); s != nil && s.response.Peek() != nil {
+				s.responseTabs(s.response.Peek()).selectKey(key)
+			}
+		})...)
+	}
 	return targets
 }
 
@@ -924,6 +945,45 @@ func (p heightProbe) Render(*t.RenderContext)                          {}
 func (p heightProbe) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
 	if compact := metrics.Box().Height < compactHeight; compact != p.app.compact.Peek() {
 		t.Dispatch(func() { p.app.compact.Set(compact) })
+	}
+}
+
+// focusAt is a focused widget: its ID, in the tab it belongs to. Tabs reuse
+// IDs, so switching tabs can move focus without changing the ID.
+type focusAt struct {
+	session int
+	id      string
+}
+
+// focusProbe reports focus moving, which Terma has no callback for. It reads
+// the focused widget while it is laid out, so its layout reruns whenever
+// focus moves, and reports the move on the next frame, like heightProbe.
+type focusProbe struct{ app *App }
+
+func (p focusProbe) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), t.Flex(1) }
+func (p focusProbe) Build(t.BuildContext) t.Widget                    { return p }
+func (p focusProbe) Render(*t.RenderContext)                          {}
+
+func (p focusProbe) OnLayout(ctx t.BuildContext, _ t.LayoutMetrics) {
+	signal := ctx.FocusedSignal()
+	if !signal.IsValid() {
+		return
+	}
+	at := focusAt{session: p.app.active.Get(), id: t.SelectAny(signal, focusedIDOf)}
+	if at != p.app.focus {
+		t.Dispatch(func() { p.app.focusMoved(at) })
+	}
+}
+
+// focusMoved acts on focus arriving somewhere. Moving to the gRPC method
+// field asks for the methods it lists.
+func (a *App) focusMoved(at focusAt) {
+	if at == a.focus {
+		return
+	}
+	a.focus = at
+	if s := a.current(); s != nil && at.id == grpcMethodID {
+		s.payloads[model.KindGRPC].(*grpcEditor).describe(a, false)
 	}
 }
 

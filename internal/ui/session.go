@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -115,9 +116,12 @@ type Session struct {
 	responseHeadersScroll *t.ScrollState
 	responseCookies       *t.TableState[model.Cookie]
 	responseCookiesScroll *t.ScrollState
-	spinner               *t.SpinnerState
-	generation            uint64
-	cancel                context.CancelFunc
+	// responseTrailers are a gRPC response's trailers.
+	responseTrailers       *t.TableState[model.Header]
+	responseTrailersScroll *t.ScrollState
+	spinner                *t.SpinnerState
+	generation             uint64
+	cancel                 context.CancelFunc
 	// dispatch schedules exchange updates on the UI goroutine.
 	dispatch func(func())
 
@@ -169,20 +173,22 @@ func newSession(id int, req model.Request) *Session {
 		optionsScroll: newFormScroll(),
 		traceScroll:   t.NewScrollState(),
 
-		phase:                 t.NewSignal(exchangeIdle),
-		err:                   t.NewAnySignal[error](nil),
-		trace:                 t.NewAnySignal[[]model.TraceEvent](nil),
-		response:              t.NewAnySignal[*model.Response](nil),
-		fromHistory:           t.NewAnySignal[*model.HistoryEntry](nil),
-		responseBody:          t.NewTextAreaState(""),
-		responseBodyScroll:    t.NewScrollState(),
-		responseVisual:        t.NewSignal(false),
-		responseHeaders:       t.NewTableState[model.Header](nil),
-		responseHeadersScroll: t.NewScrollState(),
-		responseCookies:       t.NewTableState[model.Cookie](nil),
-		responseCookiesScroll: t.NewScrollState(),
-		spinner:               t.NewSpinnerState(t.SpinnerDots),
-		dispatch:              t.Dispatch,
+		phase:                  t.NewSignal(exchangeIdle),
+		err:                    t.NewAnySignal[error](nil),
+		trace:                  t.NewAnySignal[[]model.TraceEvent](nil),
+		response:               t.NewAnySignal[*model.Response](nil),
+		fromHistory:            t.NewAnySignal[*model.HistoryEntry](nil),
+		responseBody:           t.NewTextAreaState(""),
+		responseBodyScroll:     t.NewScrollState(),
+		responseVisual:         t.NewSignal(false),
+		responseHeaders:        t.NewTableState[model.Header](nil),
+		responseHeadersScroll:  t.NewScrollState(),
+		responseCookies:        t.NewTableState[model.Cookie](nil),
+		responseCookiesScroll:  t.NewScrollState(),
+		responseTrailers:       t.NewTableState[model.Header](nil),
+		responseTrailersScroll: t.NewScrollState(),
+		spinner:                t.NewSpinnerState(t.SpinnerDots),
+		dispatch:               t.Dispatch,
 	}
 	s.urlVars, s.usernameVars, s.passwordVars = newCompletion(), newCompletion(), newCompletion()
 	s.tokenVars, s.proxyVars, s.bodyVars = newCompletion(), newCompletion(), newCompletion()
@@ -317,12 +323,15 @@ func (s *Session) Load(req model.Request) {
 }
 
 // setKind changes the kind of request the session edits. The kind's first
-// tab is selected, so its own editor is what shows.
+// tab is selected, so its own editor is what shows. The auth type becomes
+// the one Snapshot sends, so auth the kind can't send, such as digest for
+// gRPC, isn't left showing.
 func (s *Session) setKind(id model.KindID) {
 	if s.kind.Peek() == id {
 		return
 	}
 	s.kind.Set(id)
+	s.authType.Set(s.Snapshot().Auth.Type)
 	s.requestTab.Set(s.requestTabList()[0].key)
 }
 
@@ -332,14 +341,11 @@ func (s *Session) touch() {
 		return
 	}
 	s.markEdited()
-	name := strings.TrimSpace(s.name.GetText())
-	if name == "" {
-		name = s.url.GetText()
+	titled := model.Request{Name: strings.TrimSpace(s.name.GetText()), URL: s.url.GetText()}
+	if e := s.payloads[s.kind.Peek()]; e != nil {
+		titled.Payload = e.payload()
 	}
-	if name == "" {
-		name = "Untitled"
-	}
-	s.title.Set(name)
+	s.title.Set(titled.DisplayName())
 }
 
 // markEdited records that the request has unsaved changes. An edited tab is
@@ -553,6 +559,11 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 	s.responseHeadersScroll.SetOffset(0)
 	s.responseCookies.SetRows(resp.Cookies)
 	s.responseCookiesScroll.SetOffset(0)
+	s.responseTrailers.SetRows(resp.Trailers)
+	s.responseTrailersScroll.SetOffset(0)
+	if !slices.Contains(responseTabKeys(s.sent), s.responseTab.Peek()) {
+		s.responseTab.Set("body")
+	}
 }
 
 // mergeTrace replaces the event for the same stage or appends it.

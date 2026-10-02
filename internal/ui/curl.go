@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -95,8 +94,17 @@ func (a *App) submitURL(text string) {
 	}
 }
 
-// curlCommand is the current request as a curl command.
-func (a *App) curlCommand(resolve bool) (string, error) {
+// exportTool is the tool the current request is exported for: "curl", or
+// "grpcurl" for gRPC.
+func (a *App) exportTool() string {
+	if s := a.current(); s != nil {
+		return kindViews[s.kind.Peek()].export.tool
+	}
+	return "curl"
+}
+
+// exportCommand is the current request as an exportTool command.
+func (a *App) exportCommand(resolve bool) (string, error) {
 	s := a.current()
 	if s == nil {
 		return "", nil
@@ -113,37 +121,33 @@ func (a *App) curlCommand(resolve bool) (string, error) {
 		}
 		req = resolved
 	}
-	wire, ok := model.Lower(req)
-	if !ok {
-		return "", fmt.Errorf("%s requests can't be copied as curl", req.Kind().Label)
-	}
-	return curl.Format(wire, curl.FormatOptions{ExtraArgs: a.settings.CurlExportExtraArgs, Multiline: true}), nil
+	return kindViews[req.Kind().ID].export.format(a, req)
 }
 
-// copyAsCurl copies the request as a curl command and shows it.
-func (a *App) copyAsCurl() {
-	a.openCurlExport()
+// copyExport copies the request as a command and shows it.
+func (a *App) copyExport() {
+	a.openExport()
 	if text := a.curlDialog.text.GetText(); text != "" {
 		t.SetClipboard(t.SystemClipboard, text)
-		a.notify("Copied curl command to clipboard", toastSuccess)
+		a.notify("Copied "+a.exportTool()+" command to clipboard", toastSuccess)
 	}
 }
 
-func (a *App) openCurlExport() {
+func (a *App) openExport() {
 	f := a.curlDialog
 	f.mode.Set("export")
-	a.refreshCurlExport()
+	a.refreshExport()
 	a.overlay.Set("curl")
 	t.RequestFocus("curl-text")
 }
 
-func (a *App) refreshCurlExport() {
+func (a *App) refreshExport() {
 	f := a.curlDialog
-	command, err := a.curlCommand(f.resolve.Peek())
+	command, err := a.exportCommand(f.resolve.Peek())
 	f.err.Set("")
 	if err != nil {
 		f.err.Set(err.Error() + " — showing the command with variables left in")
-		command, _ = a.curlCommand(false)
+		command, _ = a.exportCommand(false)
 	}
 	f.text.SetText(command)
 	f.text.CursorIndex.Set(0)
@@ -183,7 +187,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 	a := o.app
 	f := a.curlDialog
 	importing := f.mode.Get() == "import"
-	title := "Export as curl"
+	title := "Export as " + a.exportTool()
 	hint := "The command has been copied to the clipboard. Select text with your terminal to copy part of it."
 	buttons := []t.Widget{
 		t.Button{ID: "curl-close", Label: "Close", OnPress: a.closeOverlay, Click: func(t.MouseEvent) { a.closeOverlay() }},
@@ -208,7 +212,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 			Selected: map[bool]string{true: "resolved", false: "variables"}[f.resolve.Get()],
 			OnChange: func(value string) {
 				f.resolve.Set(value == "resolved")
-				a.refreshCurlExport()
+				a.refreshExport()
 			},
 		}
 	}
@@ -245,7 +249,11 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 
 func (a *App) copyCurlText() {
 	t.SetClipboard(t.SystemClipboard, a.curlDialog.text.GetText())
-	a.notify("Copied curl command to clipboard", toastSuccess)
+	what := "request YAML"
+	if a.curlDialog.mode.Peek() != "yaml" {
+		what = a.exportTool() + " command"
+	}
+	a.notify("Copied "+what+" to clipboard", toastSuccess)
 }
 
 // curlKeys lets ctrl+j (the send key) import from inside the text area,

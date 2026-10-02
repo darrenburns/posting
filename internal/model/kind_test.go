@@ -46,6 +46,8 @@ func TestKindsAreComplete(t *testing.T) {
 				if !ok || wire.Payload != nil || wire.Method == "" {
 					t.Errorf("Lower(example) = %+v, %v; want a plain HTTP request", wire, ok)
 				}
+			} else if _, ok := Lower(example); ok {
+				t.Errorf("Lower lowered a %s request, which has its own transport", k.Label)
 			}
 			resolved, err := Resolve(example, MapLookup(map[string]string{"BASE_URL": "http://x", "API_TOKEN": "t", "USER_ID": "7"}))
 			if err != nil || resolved.Kind() != k {
