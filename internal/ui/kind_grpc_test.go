@@ -68,6 +68,19 @@ func (s *screen) shows(text string) bool {
 	return strings.Contains(s.renderer.ScreenText(), text)
 }
 
+// methodRow is a listed method: a row naming the method and its signature.
+var methodRow = regexp.MustCompile(`(posting\.example\.v1\.Greeter/\w+) .* → `)
+
+// listedMethods are the methods the method list shows, top to bottom.
+func (s *screen) listedMethods() (methods []string) {
+	for _, line := range strings.Split(s.renderer.ScreenText(), "\n") {
+		if m := methodRow.FindStringSubmatch(line); m != nil {
+			methods = append(methods, m[1])
+		}
+	}
+	return methods
+}
+
 func TestGRPCRequestTabs(tt *testing.T) {
 	app := testApp()
 	app.openRequest(grpcRequest())
@@ -377,6 +390,51 @@ func TestEnterInTheGRPCMethodKeepsAMethodChosenInAnotherTab(tt *testing.T) {
 	sc.pressKey(tt, "enter")
 	if got := app.current().Snapshot().Payload.(model.GRPC).Method; got != "posting.example.v1.Greeter/SayHello" {
 		tt.Fatalf("enter replaced the tab's method with %s", got)
+	}
+}
+
+func TestTheGRPCMethodListHidesWhileTheFieldNamesAMethod(tt *testing.T) {
+	sc, e, _, updates := grpcScreen(tt, grpcRequest())
+	sc.focusID(tt, grpcMethodID)
+	(<-updates)()
+	write := func(text string) {
+		sc.pressKey(tt, "ctrl+u")
+		sc.focus.Focused().(t.PasteHandler).HandlePaste(text)
+		sc.render()
+	}
+	named := func(how string) {
+		tt.Helper()
+		if got := sc.listedMethods(); len(got) > 0 || !sc.shows("unary · HelloRequest → HelloReply") {
+			tt.Errorf("%s, the method list shows %q over the signature:\n%s", how, got, sc.renderer.ScreenText())
+		}
+	}
+
+	write("sayhel")
+	sc.pressKey(tt, "enter")
+	named("after choosing SayHello")
+	// Proto files are read again each time the field takes focus.
+	sc.pressKey(tt, "ctrl+r")
+	(<-updates)()
+	sc.render()
+	named("once the methods are listed again")
+
+	for _, method := range []string{"posting.example.v1.Greeter.SayHello", "posting.example.v1.Greeter/SayHello"} {
+		write(method)
+		named("with " + method + " typed")
+		sc.pressKey(tt, "enter")
+		named("after enter on " + method)
+		if got := e.method.GetText(); got != method {
+			tt.Errorf("enter on %s made the method %q", method, got)
+		}
+	}
+
+	sc.pressKey(tt, "backspace")
+	if got := sc.listedMethods(); !reflect.DeepEqual(got, []string{"posting.example.v1.Greeter/SayHello"}) {
+		tt.Errorf("editing the method lists %q, want SayHello:\n%s", got, sc.renderer.ScreenText())
+	}
+	write("")
+	if got := sc.listedMethods(); len(got) != len(e.catalog.Peek().schema.Methods) {
+		tt.Errorf("a cleared method lists %q, want every method:\n%s", got, sc.renderer.ScreenText())
 	}
 }
 
