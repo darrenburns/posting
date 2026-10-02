@@ -149,6 +149,84 @@ func TestGRPCDiscoveryListsTheServersMethods(tt *testing.T) {
 	}
 }
 
+func TestOpeningAGRPCRequestNeverContactsTheServer(tt *testing.T) {
+	sc, _, describer, _ := grpcScreen(tt, grpcRequest())
+	s := sc.app.current()
+	for _, tab := range []string{"grpc-proto", "headers", "grpc-message"} {
+		s.selectRequestTab(tab)
+		sc.render()
+	}
+	if got := describer.calls(); got != nil {
+		tt.Fatalf("opening the request and showing its tabs asked the server for its methods: %v", got)
+	}
+	if !sc.shows("Move to this field to list the server's methods") {
+		tt.Fatalf("the line under the method should say how to list the methods:\n%s", sc.renderer.ScreenText())
+	}
+}
+
+func TestGRPCDiscoveryRunsOnExplicitEvents(tt *testing.T) {
+	sc, _, describer, updates := grpcScreen(tt, grpcRequest())
+	s := sc.app.current()
+	asked := func(want int, why string) {
+		tt.Helper()
+		if got := len(describer.calls()); got != want {
+			tt.Fatalf("%s: the server was asked %d times, want %d", why, got, want)
+		}
+	}
+	sc.focusID(tt, grpcMethodID)
+	asked(1, "the method field gaining focus")
+	(<-updates)()
+	sc.focusID(tt, urlInputID)
+	sc.focusID(tt, grpcMethodID)
+	asked(1, "focusing the method again with nothing changed")
+
+	s.token.SetText("fixed-token")
+	sc.focusID(tt, urlInputID)
+	sc.focusID(tt, grpcMethodID)
+	asked(2, "focusing the method after fixing the token")
+	(<-updates)()
+
+	sc.pressKey(tt, "ctrl+r")
+	asked(3, "ctrl+r in the method field")
+	(<-updates)()
+
+	for _, item := range sc.app.paletteItems() {
+		if item.Label == "Refresh gRPC methods" {
+			item.Action()
+		}
+	}
+	asked(4, "the palette's Refresh gRPC methods")
+	(<-updates)()
+
+	sc.app.send()
+	for s.phase.Peek() == exchangeSending {
+		(<-updates)()
+	}
+	asked(5, "a send of the request completing")
+}
+
+func TestGRPCProtoFilesAreListedOnOpenAndReadAgainOnEachTrigger(tt *testing.T) {
+	req := grpcRequest()
+	req.Payload = model.GRPC{Protos: model.ProtoSet{Files: []string{"protos/greeter.proto"}}}
+	sc, e, describer, updates := grpcScreen(tt, req)
+	if got := len(describer.calls()); got != 1 {
+		tt.Fatalf("proto files never contact the server, so opening the request should list them: asked %d times", got)
+	}
+	(<-updates)()
+	sc.render()
+	if !sc.shows("4 methods from 1 proto file") {
+		tt.Fatalf("no method count on screen:\n%s", sc.renderer.ScreenText())
+	}
+	sc.focusID(tt, grpcMethodID)
+	if got := len(describer.calls()); got != 2 {
+		tt.Fatalf("each trigger should read the proto files again, so an edited one is seen: asked %d times", got)
+	}
+	(<-updates)()
+	if c := e.catalog.Peek(); c.phase != catalogReady {
+		tt.Fatalf("catalog = %+v", c)
+	}
+}
+
 func TestGRPCDiscoveryFollowsTheAddressAndDropsStaleResults(tt *testing.T) {
 	sc, e, describer, updates := grpcScreen(tt, grpcRequest())
 	s := sc.app.current()
