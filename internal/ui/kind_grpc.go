@@ -5,8 +5,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strings"
-	"unicode"
-	"unicode/utf8"
 
 	t "github.com/darrenburns/terma"
 
@@ -428,7 +426,7 @@ func (l grpcCatalogLine) Build(ctx t.BuildContext) t.Widget {
 	case catalogLoading:
 		text = "Loading methods from " + c.source.String() + "…"
 	case catalogFailed:
-		color, text = theme.ErrorText, upperFirst(c.err.Error())+". Press ctrl+r to try again"
+		color, text = theme.ErrorText, c.err.Error()+". Press ctrl+r to try again"
 	case catalogReady:
 		if m, ok := e.chosen(c.schema, method); ok {
 			text = signature(m)
@@ -449,11 +447,6 @@ func (l grpcCatalogLine) Build(ctx t.BuildContext) t.Widget {
 		Wrap:    t.WrapSoft,
 		Style:   t.Style{Width: t.Flex(1), ForegroundColor: color, Padding: t.EdgeInsets{Left: formLabelWidth + 1}},
 	}
-}
-
-func upperFirst(s string) string {
-	r, size := utf8.DecodeRuneInString(s)
-	return string(unicode.ToUpper(r)) + s[size:]
 }
 
 // grpcProtoView is the Proto tab: the schema's files and import paths, one
