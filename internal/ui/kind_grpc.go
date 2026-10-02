@@ -72,6 +72,7 @@ func (e *grpcEditor) load(req model.Request) {
 	}
 	e.messageScroll.SetOffset(0)
 	e.template = ""
+	e.offerMethods()
 }
 
 func (e *grpcEditor) payload() model.Payload {
@@ -206,7 +207,27 @@ func (e *grpcEditor) describe(a *App, force bool) {
 
 func (e *grpcEditor) setCatalog(c catalog) {
 	e.catalog.Set(c)
-	e.methods.SetSuggestions(methodSuggestions(c.schema))
+	e.offerMethods()
+}
+
+// offerMethods lists the methods matching the whole of the method field:
+// the one it names, or those it fuzzily matches. The list itself filters
+// only by the text before the cursor, which sits at the start of a loaded
+// method, so on its own it would offer every method and enter would swap
+// the method for the first.
+func (e *grpcEditor) offerMethods() {
+	schema, text := e.catalog.Peek().schema, e.method.GetText()
+	var methods []client.Method
+	if m, ok := e.chosen(schema, text); ok {
+		methods = append(methods, m)
+	} else {
+		for _, m := range schema.Methods {
+			if t.MatchString(m.Name, text, t.FilterOptions{Mode: t.FilterFuzzy}).Matched {
+				methods = append(methods, m)
+			}
+		}
+	}
+	e.methods.SetSuggestions(methodSuggestions(methods))
 }
 
 // catalogKey names the source req's schema comes from: its proto set, or the
@@ -280,11 +301,11 @@ func (e *grpcEditor) chosen(schema client.Schema, text string) (client.Method, b
 	return client.Method{}, false
 }
 
-// methodSuggestions offer a schema's methods, each described by its shape
-// and types: "unary · GetUserRequest → User".
-func methodSuggestions(schema client.Schema) []t.Suggestion {
-	out := make([]t.Suggestion, len(schema.Methods))
-	for i, m := range schema.Methods {
+// methodSuggestions offer methods, each described by its shape and types:
+// "unary · GetUserRequest → User".
+func methodSuggestions(methods []client.Method) []t.Suggestion {
+	out := make([]t.Suggestion, len(methods))
+	for i, m := range methods {
 		out[i] = t.Suggestion{Label: m.Name, Value: m.Name, Description: signature(m), Data: m}
 	}
 	return out
@@ -332,7 +353,7 @@ func (v grpcMessageView) Build(ctx t.BuildContext) t.Widget {
 		ID:            grpcMethodID,
 		State:         e.method,
 		Placeholder:   "package.Service/Method",
-		OnChange:      func(string) { s.touch() },
+		OnChange:      func(string) { e.offerMethods(); s.touch() },
 		Suggestions:   e.methods,
 		SuggestAlways: true,
 		SuggestWidth:  t.Cells(96),
