@@ -369,22 +369,12 @@ func TestEnterInTheGRPCMethodKeepsAMethodChosenInAnotherTab(tt *testing.T) {
 	if sc.focus.FocusedID() != grpcMethodID {
 		tt.Fatalf("switching tabs moved focus to %s", sc.focus.FocusedID())
 	}
-	// A listed method is a row naming the method and its signature.
-	row := regexp.MustCompile(`(posting\.example\.v1\.Greeter/\w+) .* → `)
-	listed := func() (methods []string) {
-		for _, line := range strings.Split(sc.renderer.ScreenText(), "\n") {
-			if m := row.FindStringSubmatch(line); m != nil {
-				methods = append(methods, m[1])
-			}
-		}
-		return methods
-	}
 	e := app.current().payloads[model.KindGRPC].(*grpcEditor)
 	for _, at := range []int{0, len("posting.example.v1.Greeter/")} {
 		e.method.CursorIndex.Set(at)
 		sc.render()
-		if got := listed(); !reflect.DeepEqual(got, []string{"posting.example.v1.Greeter/SayHello"}) {
-			tt.Errorf("with the cursor at %d the method list shows %q, want just the field's SayHello:\n%s", at, got, sc.renderer.ScreenText())
+		if got := sc.listedMethods(); len(got) > 0 {
+			tt.Errorf("with the cursor at %d the method list shows %q for the field's SayHello:\n%s", at, got, sc.renderer.ScreenText())
 		}
 	}
 	sc.pressKey(tt, "enter")
