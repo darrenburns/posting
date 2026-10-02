@@ -41,6 +41,29 @@ func TestNormalizeClearsFieldsGRPCDoesNotUse(t *testing.T) {
 	}
 }
 
+func TestDigestAuthIsDroppedOnlyFromGRPC(t *testing.T) {
+	digest := Auth{Type: AuthDigest, Username: "ada", Password: "secret"}
+	for _, k := range Kinds {
+		r := k.Example()
+		r.Auth = digest
+		want := digest
+		if k == GRPCKind {
+			want = Auth{Type: AuthNone}
+		}
+		if got := Normalize(r).Auth; got != want {
+			t.Errorf("%s: Normalize made digest auth %+v, want %+v", k.Label, got, want)
+		}
+		data, err := json.Marshal(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var loaded Request
+		if err := json.Unmarshal(data, &loaded); err != nil || loaded.Auth != want {
+			t.Errorf("%s: a history entry with digest auth loaded with %+v, %v; want %+v", k.Label, loaded.Auth, err, want)
+		}
+	}
+}
+
 func TestNormalizeKeepsHTTPOnlyOptionsForGraphQL(t *testing.T) {
 	r := GraphQLKind.Example()
 	r.Options.AttachCookies = false

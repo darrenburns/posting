@@ -269,6 +269,33 @@ func TestEnterInTheGRPCMethodKeepsAMethodChosenInAnotherTab(tt *testing.T) {
 	}
 }
 
+func TestGRPCAuthOffersNoDigest(tt *testing.T) {
+	digest := model.HTTPKind.Example()
+	digest.Auth = model.Auth{Type: model.AuthDigest, Username: "ada", Password: "secret"}
+	for _, c := range []struct {
+		name   string
+		open   func(*App)
+		digest bool
+		hint   string
+		auth   model.AuthType
+	}{
+		{"HTTP", func(a *App) { a.openRequest(digest) }, true, "The Authorization header is generated when the request is sent.", model.AuthDigest},
+		{"gRPC", func(a *App) { a.openRequest(grpcRequest()) }, false, "The authorization metadata is generated when the request is sent.", model.AuthBearer},
+		{"HTTP with digest made gRPC", func(a *App) { a.openRequest(digest); a.setKind(model.KindGRPC) }, false, "No authentication", model.AuthNone},
+	} {
+		app := testApp()
+		c.open(app)
+		app.current().selectRequestTab("auth")
+		sc := newScreen(app, snapW, snapH)
+		if sc.shows("Digest") != c.digest || !sc.shows(c.hint) {
+			tt.Errorf("%s: Digest offered = %v, want %v; want %q on screen:\n%s", c.name, sc.shows("Digest"), c.digest, c.hint, sc.renderer.ScreenText())
+		}
+		if got := app.current().Snapshot().Auth.Type; got != c.auth {
+			tt.Errorf("%s: auth sent is %s, want %s", c.name, got, c.auth)
+		}
+	}
+}
+
 func TestGRPCPaletteCommands(tt *testing.T) {
 	labels := func(app *App) []string {
 		var out []string
