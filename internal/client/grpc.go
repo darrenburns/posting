@@ -201,7 +201,9 @@ func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
 	dialCtx, cancelDial := context.WithTimeout(c.deadline, budget)
 	defer cancelDial()
 	conn, err := g.dial(dialCtx, c, target, newGRPCTrace(nil, target.TLS))
-	if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == nil {
+	// The budget running out fails whatever step the dial was on, such as
+	// the TLS handshake, so the dial's error needn't say it was the budget.
+	if err != nil && errors.Is(dialCtx.Err(), context.DeadlineExceeded) && ctx.Err() == nil {
 		return Schema{}, fmt.Errorf("couldn't connect to %s within %v", target.Authority, budget)
 	}
 	if err != nil {
