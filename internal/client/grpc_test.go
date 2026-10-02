@@ -618,6 +618,35 @@ func TestGRPCTraceCoversTheCall(t *testing.T) {
 	}
 }
 
+func TestGRPCTraceFailsTheStageACallTimesOutIn(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	req := grpcRequest(addr, "library.v1.Library/GetBook", `{"isbn": "hang"}`)
+	req.Options.TimeoutSeconds = 0.3
+	var mu sync.Mutex
+	var reported []model.TraceEvent
+	_, err := NewGRPC("posting-test", TLSSettings{}, "").Send(context.Background(), Call{
+		Request: req,
+		OnTrace: func(e model.TraceEvent) {
+			mu.Lock()
+			reported = append(reported, e)
+			mu.Unlock()
+		},
+	})
+	if err == nil {
+		t.Fatal("the call should time out")
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	for _, e := range reported {
+		if e.Stage == model.TraceReceiveHeaders && e.State == model.TraceComplete {
+			t.Fatalf("the server never answered, but the trace says %s completed: %+v", e.Stage, reported)
+		}
+	}
+	if last := reported[len(reported)-1]; last != (model.TraceEvent{Stage: model.TraceReceiveHeaders, State: model.TraceFailed}) {
+		t.Fatalf("trace ends %+v", last)
+	}
+}
+
 func TestGRPCTLSTargets(t *testing.T) {
 	tlsAddr := startLibrary(t, libraryOptions{tls: true})
 	plainAddr := startLibrary(t, libraryOptions{})
