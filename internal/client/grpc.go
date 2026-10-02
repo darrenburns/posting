@@ -153,7 +153,7 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 		return nil, err
 	}
 
-	ex := invoke(c.deadline, conn, md, in, trace)
+	ex := invoke(c.deadline, conn, md, in, trace, g.maxResponse)
 	if !trace.answered() || ctx.Err() != nil {
 		trace.end(model.TraceFailed)
 		return nil, c.describe(ctx, ex.status.Err())
@@ -564,8 +564,9 @@ type exchange struct {
 // invoke runs a call of any shape. It sends every message and closes its
 // side on another goroutine while it reads until the server ends the call,
 // so a server that replies as it reads, filling the flow-control window,
-// never waits on Posting.
-func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDescriptor, in []proto.Message, trace *grpcTrace) exchange {
+// never waits on Posting. Once the messages read pass limit bytes, it keeps
+// those before and cancels the call.
+func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDescriptor, in []proto.Message, trace *grpcTrace, limit int) exchange {
 	desc := &grpc.StreamDesc{StreamName: string(md.Name()), ServerStreams: md.IsStreamingServer(), ClientStreams: md.IsStreamingClient()}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -584,24 +585,36 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 		trace.begin(model.TraceReceiveHeaders)
 		sent <- err
 	}()
-	err = nil
-	for err == nil {
+	var truncated *status.Status
+	received := 0
+	for {
 		out := dynamicpb.NewMessage(md.Output())
-		if err = stream.RecvMsg(out); err == nil {
-			ex.messages = append(ex.messages, out)
+		if err = stream.RecvMsg(out); err != nil {
+			break
 		}
+		if received += proto.Size(out); received > limit {
+			truncated = status.Newf(codes.Canceled, "response truncated at %s", model.FormatBytes(limit))
+			cancel()
+			break
+		}
+		ex.messages = append(ex.messages, out)
 	}
 	if err == io.EOF {
 		err = nil
 	}
-	// A failed send cancels the call, so the status the read ends with may
-	// say only that.
-	if sendErr := <-sent; sendErr != nil && (err == nil || status.Code(err) == codes.Canceled) {
-		err = sendErr
-	}
+	sendErr := <-sent
 	ex.header, _ = stream.Header()
 	ex.trailer = stream.Trailer()
-	ex.status = status.Convert(err)
+	switch {
+	case truncated != nil:
+		ex.status = truncated
+	case sendErr != nil && (err == nil || status.Code(err) == codes.Canceled):
+		// A failed send cancels the call, so the read may end saying only
+		// that.
+		ex.status = status.Convert(sendErr)
+	default:
+		ex.status = status.Convert(err)
+	}
 	return ex
 }
 
@@ -630,11 +643,16 @@ func responseOf(md protoreflect.MethodDescriptor, ex exchange, files *protoregis
 	case ex.status.Code() != codes.OK && len(ex.messages) == 0:
 		body = statusBody(ex.status, marshal)
 	case md.IsStreamingServer():
-		parts := make([][]byte, len(ex.messages))
+		var b bytes.Buffer
+		b.WriteByte('[')
 		for i, msg := range ex.messages {
-			parts[i] = marshalJSON(marshal, msg)
+			if i > 0 {
+				b.WriteByte(',')
+			}
+			b.Write(marshalJSON(marshal, msg))
 		}
-		body = append(append([]byte("["), bytes.Join(parts, []byte(","))...), ']')
+		b.WriteByte(']')
+		body = b.Bytes()
 	case len(ex.messages) > 0:
 		body = marshalJSON(marshal, ex.messages[0])
 	}
