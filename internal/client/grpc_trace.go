@@ -27,8 +27,17 @@ type grpcTrace struct {
 	running bool
 	began   time.Time
 	events  []model.TraceEvent
-	heard   bool
+	heard   serverAnswer
 }
+
+// serverAnswer is how much of the traced call's answer the server sent.
+type serverAnswer uint8
+
+const (
+	heardNothing serverAnswer = iota
+	heardHeaders
+	heardTrailers
+)
 
 func newGRPCTrace(report func(model.TraceEvent), tls bool) *grpcTrace {
 	return &grpcTrace{report: report, tls: tls, current: -1}
@@ -101,7 +110,15 @@ func (g *grpcTrace) trace() []model.TraceEvent {
 func (g *grpcTrace) answered() bool {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	return g.heard
+	return g.heard >= heardHeaders
+}
+
+// trailed reports whether the server ended the traced call with trailers,
+// which carry the status it sent.
+func (g *grpcTrace) trailed() bool {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.heard == heardTrailers
 }
 
 type tracedCall struct{}
@@ -123,17 +140,17 @@ func (g *grpcTrace) HandleRPC(ctx context.Context, s stats.RPCStats) {
 	case *stats.OutHeader:
 		g.begin(model.TraceSendBody)
 	case *stats.InHeader:
-		g.hear()
+		g.hear(heardHeaders)
 		g.begin(model.TraceReceiveBody)
 	case *stats.InTrailer:
-		g.hear()
+		g.hear(heardTrailers)
 		g.begin(model.TraceClosed)
 	}
 }
 
-func (g *grpcTrace) hear() {
+func (g *grpcTrace) hear(answer serverAnswer) {
 	g.mu.Lock()
-	g.heard = true
+	g.heard = max(g.heard, answer)
 	g.mu.Unlock()
 }
 

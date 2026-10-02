@@ -581,6 +581,8 @@ type exchange struct {
 	header, trailer metadata.MD
 	messages        []proto.Message
 	status          *status.Status
+	// trailed is whether the server sent trailers, and so status.
+	trailed bool
 }
 
 // invoke runs a call of any shape. It sends every message and closes its
@@ -627,6 +629,7 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 	sendErr := <-sent
 	ex.header, _ = stream.Header()
 	ex.trailer = stream.Trailer()
+	ex.trailed = trace.trailed()
 	switch {
 	case truncated != nil:
 		ex.status = truncated
@@ -682,9 +685,12 @@ func responseOf(md protoreflect.MethodDescriptor, ex exchange, files *protoregis
 	if json.Indent(&pretty, body, "", "  ") == nil {
 		body = pretty.Bytes()
 	}
-	trailers := []model.Header{{Name: "grpc-status", Value: fmt.Sprint(int(ex.status.Code()))}}
-	if msg := ex.status.Message(); msg != "" {
-		trailers = append(trailers, model.Header{Name: "grpc-message", Value: msg})
+	var trailers []model.Header
+	if ex.trailed {
+		trailers = append(trailers, model.Header{Name: "grpc-status", Value: fmt.Sprint(int(ex.status.Code()))})
+		if msg := ex.status.Message(); msg != "" {
+			trailers = append(trailers, model.Header{Name: "grpc-message", Value: msg})
+		}
 	}
 	return &model.Response{
 		Proto:           "gRPC",

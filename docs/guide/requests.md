@@ -299,8 +299,9 @@ The **Body** tab shows the server's messages as JSON, with fields at their defau
   `google.rpc` error details. It shows the others as their type URL and base64 value.
 
 The **Headers** tab shows the response metadata. A gRPC response has a **Trailers** tab instead of
-**Cookies**. Trailers arrive when the call ends, and they start with `grpc-status` and, when the
-server sent one, `grpc-message`.
+**Cookies**. Trailers arrive when the server ends the call, and they start with `grpc-status` and,
+when the server sent one, `grpc-message`. A call that ends without the server's trailers, such as
+one that times out, has none.
 
 When a call runs past its timeout, the response shows the messages that arrived before the deadline,
 with the status `DEADLINE_EXCEEDED`. When Posting can't reach the server, or the server sends
