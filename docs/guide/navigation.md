@@ -59,9 +59,9 @@ Some labels are always the same, so they soon become muscle memory:
 | ++2++ | The URL bar |
 | ++3++ | The requests in the collection |
 | ++4++ | The history list |
-| ++q++ ++w++ ++e++ ++r++ ++t++ ++y++ ++u++ | The request tabs: Headers, Body, Path, Query, Auth, Info and Options. A GraphQL request has no Body tab, and ++r++ jumps to its Params tab. |
-| ++i++ ++o++ | A GraphQL request's Query and Variables tabs |
-| ++a++ ++s++ ++d++ ++f++ | The response tabs: Body, Headers, Cookies and Trace |
+| ++q++ ++w++ ++e++ ++r++ ++t++ ++y++ ++u++ | The request tabs: Headers, Body, Path, Query, Auth, Info and Options. A GraphQL request has no Body tab, and ++r++ jumps to its Params tab. A gRPC request has no Body, Path or Query tab, and ++q++ jumps to its Metadata tab. |
+| ++i++ ++o++ | A GraphQL request's Query and Variables tabs, or a gRPC request's Message and Proto tabs |
+| ++a++ ++s++ ++d++ ++f++ | The response tabs: Body, Headers, Cookies and Trace. A gRPC response has Trailers in place of Cookies. |
 
 The request and response tabs follow the rows of a QWERTY keyboard, so their labels sit roughly
 where the tabs are on screen.
