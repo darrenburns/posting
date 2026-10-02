@@ -168,7 +168,7 @@ func appConfig(opts options) (ui.Config, error) {
 	if settings.WatchCollectionFiles {
 		watch = store
 	}
-	rpc := client.NewGRPC("posting/"+version, tlsSettings, dir)
+	rpc := client.NewGRPC("posting/"+version, tlsSettings, store.Root)
 	return ui.Config{
 		Watch:            watch,
 		Reload:           store,

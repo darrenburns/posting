@@ -30,19 +30,28 @@ type FormatOptions struct {
 func Format(req model.Request, opts FormatOptions) string {
 	g, _ := req.Payload.(model.GRPC)
 	var args [][]string
-	address := strings.TrimSpace(req.URL)
-	if target, err := model.ParseGRPCTarget(req.URL); err == nil {
-		address = target.Authority
-		switch {
-		case !target.TLS:
-			args = append(args, []string{"-plaintext"})
-		case !req.Options.VerifySSL:
-			args = append(args, []string{"-insecure"})
-		}
+	address, tls := target(req.URL)
+	switch {
+	case !tls:
+		args = append(args, []string{"-plaintext"})
+	case !req.Options.VerifySSL:
+		args = append(args, []string{"-insecure"})
 	}
+	if tls && opts.CACert != "" {
+		args = append(args, []string{"-cacert", curl.Quote(opts.CACert)})
+	}
+	if tls && opts.Cert != "" {
+		key := opts.Key
+		if key == "" {
+			key = opts.Cert
+		}
+		args = append(args, []string{"-cert", curl.Quote(opts.Cert)}, []string{"-key", curl.Quote(key)})
+	}
+	authorized := req.Auth.Type == model.AuthBasic || req.Auth.Type == model.AuthBearer
 	for _, h := range req.Headers {
-		if h.Enabled && strings.TrimSpace(h.Name) != "" {
-			args = append(args, []string{"-H", curl.Quote(strings.ToLower(strings.TrimSpace(h.Name)) + ": " + h.Value)})
+		name := strings.ToLower(strings.TrimSpace(h.Name))
+		if h.Enabled && name != "" && !(authorized && name == "authorization") {
+			args = append(args, []string{"-H", curl.Quote(name + ": " + h.Value)})
 		}
 	}
 	switch req.Auth.Type {
@@ -71,6 +80,24 @@ func Format(req model.Request, opts FormatOptions) string {
 	return strings.Join(parts, " \\\n  ")
 }
 
+// target is the address grpcurl takes, and whether to use TLS. An address
+// with a variable left in is kept as written, without a guessed port, and
+// only an explicit scheme says it is plaintext: grpcurl's default is TLS.
+func target(url string) (address string, tls bool) {
+	address = strings.TrimSpace(url)
+	if len(model.FindVariables(address)) > 0 {
+		if scheme, rest, ok := strings.Cut(address, "://"); ok {
+			scheme = strings.ToLower(scheme)
+			return rest, scheme != "grpc" && scheme != "http"
+		}
+		return address, true
+	}
+	if t, err := model.ParseGRPCTarget(address); err == nil {
+		return t.Authority, t.TLS
+	}
+	return address, true
+}
+
 // messageData is the message as grpcurl's -d takes it. grpcurl reads a
 // stream as JSON objects one after another, so an array's elements are
 // written that way.
@@ -96,35 +123,27 @@ func messageData(message string) string {
 
 // protoArgs are the flags for a proto set: descriptor sets as -protoset,
 // sources as -proto named relative to the import paths, which default to
-// the collection root as they do when Posting sends the request.
+// the collection root as they do when Posting sends the request. Paths are
+// made absolute first, as Posting does, so they match however written.
 func protoArgs(set model.ProtoSet, root string) [][]string {
 	if set.Reflection() {
 		return nil
 	}
-	abs := func(path string) string {
-		if root == "" || filepath.IsAbs(path) {
-			return path
-		}
-		return filepath.Join(root, path)
-	}
-	imports := set.ImportPaths
-	if len(imports) == 0 {
-		imports = []string{"."}
-	}
+	set = set.Abs(root)
 	var args, sources [][]string
 	for _, file := range set.Files {
 		switch strings.ToLower(filepath.Ext(file)) {
 		case ".protoset", ".binpb", ".pb":
-			args = append(args, []string{"-protoset", curl.Quote(abs(file))})
+			args = append(args, []string{"-protoset", curl.Quote(file)})
 		default:
-			sources = append(sources, []string{"-proto", curl.Quote(importName(file, imports))})
+			sources = append(sources, []string{"-proto", curl.Quote(importName(file, set.ImportPaths))})
 		}
 	}
 	if len(sources) == 0 {
 		return args
 	}
-	for _, dir := range imports {
-		args = append(args, []string{"-import-path", curl.Quote(abs(dir))})
+	for _, dir := range set.ImportPaths {
+		args = append(args, []string{"-import-path", curl.Quote(dir)})
 	}
 	return append(args, sources...)
 }

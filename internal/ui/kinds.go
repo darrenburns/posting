@@ -81,13 +81,14 @@ var kindViews = map[model.KindID]kindView{
 		// A gRPC server sets no cookies, and ends every call with trailers.
 		responseTabs: []string{"body", "headers", "trailers", "trace"},
 		export: exporter{tool: "grpcurl", format: func(a *App, req model.Request) (string, error) {
-			// Proto paths are relative to the collection; the command
-			// should run from anywhere.
-			var root string
+			ssl := a.settings.SSL
+			opts := grpcurl.FormatOptions{Multiline: true, CACert: ssl.CABundle, Cert: ssl.CertificatePath, Key: ssl.KeyFile}
+			// Proto paths are relative to the collection, which is the
+			// gRPC client's root too; the command should run from anywhere.
 			if dir, ok := a.store.(collection.Dir); ok {
-				root = dir.Root
+				opts.Root = dir.Root
 			}
-			return grpcurl.Format(req, grpcurl.FormatOptions{Multiline: true, Root: root}), nil
+			return grpcurl.Format(req, opts), nil
 		}},
 		commands: grpcCommands,
 	},

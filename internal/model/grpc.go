@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -33,6 +34,37 @@ type ProtoSet struct {
 
 // Reflection reports whether the schema is asked of the server.
 func (p ProtoSet) Reflection() bool { return len(p.Files) == 0 }
+
+// Abs is the set with blank paths dropped and the rest made absolute
+// against root, the collection directory, which is the import path when
+// there are none.
+func (p ProtoSet) Abs(root string) ProtoSet {
+	abs := ProtoSet{Files: absPaths(root, p.Files), ImportPaths: absPaths(root, p.ImportPaths)}
+	if len(abs.ImportPaths) == 0 {
+		abs.ImportPaths = []string{absPath(root, ".")}
+	}
+	return abs
+}
+
+func absPaths(root string, paths []string) []string {
+	var out []string
+	for _, p := range paths {
+		if strings.TrimSpace(p) != "" {
+			out = append(out, absPath(root, p))
+		}
+	}
+	return out
+}
+
+func absPath(root, path string) string {
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(root, path)
+	}
+	if abs, err := filepath.Abs(path); err == nil {
+		return abs
+	}
+	return path
+}
 
 func (g GRPC) Kind() *Kind { return GRPCKind }
 
