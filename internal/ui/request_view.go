@@ -260,21 +260,26 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	s := e.session
 	authType := s.authType.Get()
+	kind := s.requestKind()
 	touch := func(string) { s.touch() }
+	options := []choice{{Value: string(model.AuthNone), Label: "None"}, {Value: string(model.AuthBasic), Label: "Basic"}}
+	if kind.Fields.Has(model.FieldDigestAuth) {
+		options = append(options, choice{Value: string(model.AuthDigest), Label: "Digest"})
+	}
+	options = append(options, choice{Value: string(model.AuthBearer), Label: "Bearer token"})
+	generated := "The Authorization header is generated when the request is sent."
+	if !kind.OverHTTP() {
+		generated = "The authorization metadata is generated when the request is sent."
+	}
 	rows := []formField{
 		field(t.Column{Children: []t.Widget{
 			segmented{
-				ID: "req-auth-type",
-				Options: []choice{
-					{Value: string(model.AuthNone), Label: "None"},
-					{Value: string(model.AuthBasic), Label: "Basic"},
-					{Value: string(model.AuthDigest), Label: "Digest"},
-					{Value: string(model.AuthBearer), Label: "Bearer token"},
-				},
+				ID:       "req-auth-type",
+				Options:  options,
 				Selected: string(authType),
 				OnChange: func(value string) { s.authType.Set(model.AuthType(value)); s.touch() },
 			},
-			t.Text{Content: "The Authorization header is generated when the request is sent.", Style: t.Style{ForegroundColor: theme.TextMuted, Margin: t.EdgeInsetsTRBL(e.gap, 0, 0, 0), Padding: inset}},
+			t.Text{Content: generated, Style: t.Style{ForegroundColor: theme.TextMuted, Margin: t.EdgeInsetsTRBL(e.gap, 0, 0, 0), Padding: inset}},
 		}}, "req-auth-type"),
 	}
 	switch authType {

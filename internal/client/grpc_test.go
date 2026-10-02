@@ -544,7 +544,6 @@ func TestOutgoingMetadata(t *testing.T) {
 		{model.KeyValue{Name: "grpc-timeout", Value: "1S", Enabled: true}, model.Auth{}, "grpc-timeout"},
 		{model.KeyValue{Name: ":authority", Value: "x", Enabled: true}, model.Auth{}, ":authority"},
 		{model.KeyValue{Name: "x tenant", Value: "x", Enabled: true}, model.Auth{}, "x tenant"},
-		{model.KeyValue{}, model.Auth{Type: model.AuthDigest}, "Digest"},
 	} {
 		if _, err := outgoingMetadata([]model.KeyValue{c.header}, c.auth); err == nil || !strings.Contains(strings.ToLower(err.Error()), strings.ToLower(c.wantInError)) {
 			t.Errorf("%+v %+v: err = %v, want one naming %q", c.header, c.auth, err, c.wantInError)

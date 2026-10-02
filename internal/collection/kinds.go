@@ -154,6 +154,7 @@ func checkFields(in requestFile, kind *model.Kind) error {
 		{"path_params", model.FieldPathParams, in.PathParams != nil},
 		{"headers", model.FieldHeaders, in.Headers != nil},
 		{"auth", model.FieldAuth, in.Auth != nil},
+		{"digest auth", model.FieldDigestAuth, in.Auth != nil && model.AuthType(in.Auth.Type) == model.AuthDigest},
 		{"follow_redirects option", model.FieldRedirects, opts.FollowRedirects != nil},
 		{"attach_cookies option", model.FieldCookies, opts.AttachCookies != nil},
 		{"proxy_url option", model.FieldProxy, opts.ProxyURL != ""},
