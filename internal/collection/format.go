@@ -22,7 +22,8 @@ const FileSuffix = ".posting.yaml"
 // requestFile mirrors Posting 2's RequestModel. Field order is the order
 // Posting 2 writes them in, and fields at their default value are left out,
 // as Posting 2 does, so files stay short and diffs stay small. Kind, its block
-// (graphql), and variable_scope are Posting 3 fields that Posting 2 ignores.
+// (graphql, grpc), and variable_scope are Posting 3 fields that Posting 2
+// ignores.
 type requestFile struct {
 	Name        yamlString      `yaml:"name,omitempty"`
 	Description yamlString      `yaml:"description,omitempty"`
@@ -30,6 +31,7 @@ type requestFile struct {
 	Method      string          `yaml:"method,omitempty"`
 	URL         yamlString      `yaml:"url,omitempty"`
 	GraphQL     *graphQLFile    `yaml:"graphql,omitempty"`
+	GRPC        *grpcFile       `yaml:"grpc,omitempty"`
 	Body        *bodyFile       `yaml:"body,omitempty"`
 	Auth        *authFile       `yaml:"auth,omitempty"`
 	Headers     []kvFile        `yaml:"headers,omitempty"`
