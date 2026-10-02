@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -288,6 +290,30 @@ func TestGRPCDiscoveryWithoutReflection(t *testing.T) {
 	resp := mustCallGRPC(t, req)
 	if !strings.Contains(string(resp.Body), `"Dune"`) {
 		t.Fatalf("with proto files the call works without reflection: %s", resp.Body)
+	}
+}
+
+// A server without reflection can end the reflection call before Posting
+// sends its first request. Waiting for the server's headers first makes that
+// order certain, as a busy machine sometimes does.
+func TestGRPCReflectionEndedBeforeTheFirstRequestIsNoReflection(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{noReflection: true})
+	conn, err := grpc.NewClient("passthrough:///"+addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithStreamInterceptor(func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+			stream, err := streamer(ctx, desc, cc, method, opts...)
+			if err == nil {
+				_, _ = stream.Header()
+			}
+			return stream, err
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	if _, err := reflectFiles(context.Background(), conn, nil); !errors.Is(err, ErrNoReflection) {
+		t.Fatalf("reflectFiles err = %v, want the no-reflection hint", err)
 	}
 }
 
