@@ -105,6 +105,7 @@ func TestParseRejectsGRPCFilesWithHTTPFields(t *testing.T) {
 		{"follow redirects", "kind: grpc\nurl: localhost:1\noptions:\n  follow_redirects: false\n", "follow_redirects"},
 		{"attach cookies", "kind: grpc\nurl: localhost:1\noptions:\n  attach_cookies: true\n", "attach_cookies"},
 		{"proxy", "kind: grpc\nurl: localhost:1\noptions:\n  proxy_url: http://p:1\n", "proxy_url"},
+		{"digest auth", "kind: grpc\nurl: localhost:1\nauth:\n  type: digest\n  digest:\n    username: a\n    password: b\n", "digest"},
 		{"grpc block on http", "url: https://x\ngrpc:\n  method: a.B/C\n", "grpc"},
 		{"grpc block on graphql", "kind: graphql\nurl: https://x\ngrpc:\n  method: a.B/C\n", "grpc"},
 		{"graphql block on grpc", "kind: grpc\nurl: localhost:1\ngraphql:\n  query: '{ a }'\n", "graphql"},
@@ -127,5 +128,9 @@ func TestParseKeepsHTTPOnlyOptionsForGraphQL(t *testing.T) {
 	req, err := ParseRequest([]byte("kind: graphql\nurl: https://x\noptions:\n  attach_cookies: false\n  proxy_url: http://p:1\n"), "")
 	if err != nil || req.Options.AttachCookies || req.Options.ProxyURL != "http://p:1" {
 		t.Fatalf("GraphQL options parsed as %+v, %v", req.Options, err)
+	}
+	req, err = ParseRequest([]byte("kind: graphql\nurl: https://x\nauth:\n  type: digest\n  digest:\n    username: a\n    password: b\n"), "")
+	if want := (model.Auth{Type: model.AuthDigest, Username: "a", Password: "b"}); err != nil || req.Auth != want {
+		t.Fatalf("GraphQL digest auth parsed as %+v, %v", req.Auth, err)
 	}
 }
