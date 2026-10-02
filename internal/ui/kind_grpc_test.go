@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"regexp"
 	"slices"
@@ -15,17 +16,21 @@ import (
 	"github.com/darrenburns/posting/internal/model"
 )
 
-// recordingDescriber describes with the fake, recording each address it was
-// asked about.
+// recordingDescriber describes with the fake, or fails with err when it is
+// set, recording each address it was asked about.
 type recordingDescriber struct {
 	mu    sync.Mutex
 	asked []string
+	err   error
 }
 
 func (d *recordingDescriber) Describe(ctx context.Context, call client.Call) (client.Schema, error) {
 	d.mu.Lock()
 	d.asked = append(d.asked, model.Substitute(call.Request.URL, call.Lookup))
 	d.mu.Unlock()
+	if d.err != nil {
+		return client.Schema{}, d.err
+	}
 	return client.Fake{}.Describe(ctx, call)
 }
 
@@ -280,6 +285,15 @@ func TestGRPCDiscoveryProblemsShowUnderTheMethod(tt *testing.T) {
 	sc.focusID(tt, grpcMethodID)
 	if !sc.shows("Enter the server's address to list its methods") {
 		tt.Fatalf("a blank address should say how to get methods:\n%s", sc.renderer.ScreenText())
+	}
+
+	sc, _, describer, updates := grpcScreen(tt, grpcRequest())
+	describer.err = errors.New("localhost:50051 closed the connection")
+	sc.focusID(tt, grpcMethodID)
+	(<-updates)()
+	sc.render()
+	if !sc.shows("localhost:50051 closed the connection. Press ctrl+r to try again") {
+		tt.Fatalf("a failed discovery should show its error as written:\n%s", sc.renderer.ScreenText())
 	}
 }
 
