@@ -203,10 +203,16 @@ func (r Request) PayloadSize() int {
 	return r.Payload.size()
 }
 
-// DisplayName is the name shown in tabs and lists.
+// DisplayName is the name shown in tabs and lists: the request's name, its
+// payload's label, its URL, or "Untitled".
 func (r Request) DisplayName() string {
 	if r.Name != "" {
 		return r.Name
+	}
+	if r.Payload != nil {
+		if label := r.Payload.label(); label != "" {
+			return label
+		}
 	}
 	if r.URL != "" {
 		return r.URL

@@ -82,13 +82,22 @@ type TraceEvent struct {
 
 // Response is the result of sending a Request.
 type Response struct {
+	// StatusCode and Reason are the HTTP status. A gRPC response has none:
+	// its status is GRPC. Displays read either through StatusOf.
 	StatusCode int
 	Reason     string
 	Proto      string
 	Headers    []Header
-	Cookies    []Cookie
-	Body       []byte
-	Elapsed    time.Duration
+	// Trailers arrive after the body. A gRPC server ends a call with its
+	// status in them.
+	Trailers []Header `json:",omitempty"`
+	Cookies  []Cookie
+	Body     []byte
+	// BodyContentType is the media type of Body when Body isn't what came
+	// over the wire, as when gRPC messages are decoded to JSON.
+	BodyContentType string      `json:",omitempty"`
+	GRPC            *GRPCStatus `json:",omitempty"`
+	Elapsed         time.Duration
 	// ReceivedAt is when the response finished arriving.
 	ReceivedAt time.Time
 	Trace      []TraceEvent
@@ -107,9 +116,13 @@ func (r *Response) Header(name string) string {
 	return ""
 }
 
-// ContentType returns the media type without parameters (e.g. "application/json").
+// ContentType returns the body's media type without parameters (e.g.
+// "application/json"): BodyContentType, or else the Content-Type header.
 func (r *Response) ContentType() string {
-	ct := r.Header("Content-Type")
+	ct := r.BodyContentType
+	if ct == "" {
+		ct = r.Header("Content-Type")
+	}
 	if i := strings.IndexByte(ct, ';'); i >= 0 {
 		ct = ct[:i]
 	}

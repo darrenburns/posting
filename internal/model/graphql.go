@@ -28,6 +28,8 @@ func (g GraphQL) clone() Payload { return g }
 
 func (g GraphQL) size() int { return len(g.Query) + len(g.Variables) + len(g.OperationName) }
 
+func (g GraphQL) label() string { return g.OperationName }
+
 func (g GraphQL) resolve(braced, all func(string) string, opts Options) Payload {
 	if opts.SubstituteBodyVariables {
 		g.Query = braced(g.Query)

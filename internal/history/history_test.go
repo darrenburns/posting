@@ -68,7 +68,7 @@ func TestSaveWritesTheFileAsBefore(t *testing.T) {
 
 func TestEntriesThisBuildCantReadSurviveASave(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/c")
-	newer := `{"ID":2,"Request":{"Name":"Stream","Kind":"grpc","Payload":{"Service":"chat"}},"Response":null,"SentAt":"2026-09-29T01:02:03Z"}`
+	newer := `{"ID":2,"Request":{"Name":"Stream","Kind":"websocket","Payload":{"Channel":"chat"}},"Response":null,"SentAt":"2026-09-29T01:02:03Z"}`
 	http, _ := json.Marshal(model.HistoryEntry{ID: 1, Request: model.NewRequest(), SentAt: time.Date(2026, 9, 29, 1, 0, 0, 0, time.UTC)})
 	if err := os.WriteFile(store.Path(), []byte(`{"version":1,"entries":[`+newer+`,`+string(http)+`]}`), 0o600); err != nil {
 		t.Fatal(err)
@@ -82,7 +82,7 @@ func TestEntriesThisBuildCantReadSurviveASave(t *testing.T) {
 	}
 	data, _ := os.ReadFile(store.Path())
 	if !strings.Contains(string(data), newer) {
-		t.Fatalf("saving dropped or changed the grpc entry:\n%s", data)
+		t.Fatalf("saving dropped or changed the websocket entry:\n%s", data)
 	}
 	if again, err := store.Load(); err != nil || len(again) != 2 || again[0].ID != 3 || again[1].ID != 1 {
 		t.Fatalf("reloaded %+v, %v", again, err)
@@ -125,6 +125,30 @@ func TestSaveAndLoadGraphQL(t *testing.T) {
 	got, err := store.Load()
 	if err != nil || !reflect.DeepEqual(got, entries) {
 		t.Fatalf("loaded %+v, %v", got, err)
+	}
+}
+
+func TestSaveAndLoadGRPC(t *testing.T) {
+	store := ForCollection(t.TempDir(), "/c")
+	entries := []model.HistoryEntry{{
+		ID: 1, Request: model.GRPCKind.Example(),
+		Response: &model.Response{
+			Proto: "gRPC", Body: []byte(`[{"title": "Dune"}]`), BodyContentType: "application/json",
+			Headers:  []model.Header{{Name: "content-type", Value: "application/grpc"}},
+			Trailers: []model.Header{{Name: "grpc-status", Value: "4"}, {Name: "grpc-message", Value: "deadline exceeded"}},
+			GRPC:     &model.GRPCStatus{Code: 4, Message: "deadline exceeded"},
+		},
+		SentAt: time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC),
+	}}
+	if err := store.Save(entries); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.Load()
+	if err != nil || !reflect.DeepEqual(got, entries) {
+		t.Fatalf("loaded %+v, %v", got, err)
+	}
+	if status := model.StatusOf(got[0].Request, got[0].Response); status != (model.Status{Code: "DEADLINE_EXCEEDED", Text: "deadline exceeded", Class: model.StatusClassError}) {
+		t.Fatalf("a loaded gRPC entry reads %+v", status)
 	}
 }
 

@@ -26,8 +26,8 @@ func (e UndefinedVariablesError) Error() string {
 
 // Resolve returns req as it goes on the wire: variables substituted, path
 // parameters filled in, the enabled query parameters merged into the URL and
-// a scheme added if the URL has none. Query is empty in the result, since
-// the URL carries it.
+// a scheme added if an HTTP-carried request's URL has none. Query is empty in
+// the result, since the URL carries it.
 //
 // The body is only substituted when the request's SubstituteBodyVariables
 // option is on; otherwise it is sent exactly as written.
@@ -42,7 +42,12 @@ func Resolve(req Request, lookup func(string) (string, bool)) (Request, error) {
 	if missing := undefined(base, lookup); len(missing) > 0 {
 		return Request{}, UndefinedVariablesError{Names: missing}
 	}
-	base = ensureScheme(ResolvePathParams(sub(base), out.PathParams))
+	base = ResolvePathParams(sub(base), out.PathParams)
+	// A gRPC address's scheme, or its lack of one, picks the transport (see
+	// ParseGRPCTarget), so only HTTP gets Posting 2's default.
+	if req.Kind().OverHTTP() {
+		base = ensureScheme(base)
+	}
 
 	var pairs []string
 	if query != "" {
