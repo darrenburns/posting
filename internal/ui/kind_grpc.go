@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"strings"
 	"unicode"
@@ -122,15 +123,19 @@ func (e *grpcEditor) focusID(tab string) string {
 type catalogPhase uint8
 
 const (
+	// catalogIdle is before anything asked for the methods.
 	catalogIdle catalogPhase = iota
+	// catalogNoSource is a request with neither an address nor proto files.
+	catalogNoSource
 	catalogLoading
 	catalogReady
 	catalogFailed
 )
 
 // catalog is the schema the editor discovered. key is what it was
-// discovered from: the server's address or the proto set. A result for a
-// key the request has since moved on from is dropped.
+// discovered from: the proto set, or the server with the metadata and auth
+// it was asked with. A result for a key the request has since moved on from
+// is dropped.
 type catalog struct {
 	phase  catalogPhase
 	key    string
@@ -154,8 +159,11 @@ func (s schemaSource) String() string {
 	return s.address
 }
 
-// describe discovers the request's methods, unless the catalog already has
-// (or is getting) them for the same source. force asks again regardless.
+// describe discovers the request's methods. Only an event the user caused
+// calls it, such as moving to the method field, so opening a request never
+// contacts its server. The server is asked again when force is set, when
+// the request would ask it differently, or when asking it failed; proto
+// files are read every time, which is cheap, so an edited file is seen.
 // The work happens on a goroutine; its result lands on the UI goroutine.
 func (e *grpcEditor) describe(a *App, force bool) {
 	s := e.session
@@ -163,13 +171,13 @@ func (e *grpcEditor) describe(a *App, force bool) {
 	if req.Kind() != model.GRPCKind {
 		return
 	}
-	variables, err := a.requestVariableValues(req)
-	key, source, sourceErr := catalogKey(req, variables)
-	if err == nil {
-		err = sourceErr
+	variables, variablesErr := a.requestVariableValues(req)
+	key, source, err := catalogKey(req, variables)
+	if err == nil && source.files == 0 {
+		err = variablesErr
 	}
 	current := e.catalog.Peek()
-	if !force && current.key == key {
+	if !force && key != "" && source.files == 0 && current.key == key && current.phase != catalogFailed {
 		return
 	}
 	if e.cancel != nil {
@@ -178,7 +186,7 @@ func (e *grpcEditor) describe(a *App, force bool) {
 	}
 	switch {
 	case key == "":
-		e.setCatalog(catalog{})
+		e.setCatalog(catalog{phase: catalogNoSource})
 		return
 	case err != nil:
 		e.setCatalog(catalog{phase: catalogFailed, key: key, source: source, err: err})
@@ -186,11 +194,14 @@ func (e *grpcEditor) describe(a *App, force bool) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	e.cancel = cancel
-	e.catalog.Set(catalog{phase: catalogLoading, key: key, source: source, schema: current.schema})
-	describer := a.describer
+	// Reading the same proto files again keeps their methods on screen.
+	if force || current.key != key || current.phase != catalogReady {
+		e.catalog.Set(catalog{phase: catalogLoading, key: key, source: source, schema: current.schema})
+	}
+	describer, dispatch := a.describer, s.dispatch
 	go func() {
 		schema, err := describer.Describe(ctx, client.Call{Request: req, Variables: variables})
-		s.dispatch(func() {
+		dispatch(func() {
 			if ctx.Err() != nil || e.catalog.Peek().key != key {
 				return
 			}
@@ -201,8 +212,20 @@ func (e *grpcEditor) describe(a *App, force bool) {
 				return
 			}
 			e.setCatalog(catalog{phase: catalogReady, key: key, source: source, schema: schema})
+			// Discovery usually starts as the method field takes focus, when
+			// there is nothing to list yet, so the list opens once there is.
+			// It stays hidden while the field doesn't have focus.
+			e.methods.Show()
 		})
 	}()
+}
+
+// listProtoMethods discovers s's methods when they come from proto files,
+// which never contacts the server, so it runs as soon as a request loads.
+func (a *App) listProtoMethods(s *Session) {
+	if e := s.payloads[model.KindGRPC].(*grpcEditor); hasText(e.files) {
+		e.describe(a, false)
+	}
 }
 
 func (e *grpcEditor) setCatalog(c catalog) {
@@ -231,7 +254,9 @@ func (e *grpcEditor) offerMethods() {
 }
 
 // catalogKey names the source req's schema comes from: its proto set, or the
-// server its address resolves to. It is "" when there is no source yet.
+// server its address resolves to with a fingerprint of the metadata and
+// auth it would be asked with, so fixing a token asks again. It is "" when
+// there is no source yet.
 func catalogKey(req model.Request, variables map[string]string) (string, schemaSource, error) {
 	g := req.Payload.(model.GRPC)
 	if !g.Protos.Reflection() {
@@ -249,7 +274,15 @@ func catalogKey(req model.Request, variables map[string]string) (string, schemaS
 	if err != nil {
 		return "invalid\x00" + resolved.URL, schemaSource{address: resolved.URL}, err
 	}
-	key := fmt.Sprintf("server\x00%s\x00%v\x00%v", target.Authority, target.TLS, req.Options.VerifySSL)
+	credentials := sha256.New()
+	for _, h := range resolved.Headers {
+		if h.Enabled {
+			fmt.Fprintf(credentials, "%s\x00%s\x00", strings.ToLower(strings.TrimSpace(h.Name)), h.Value)
+		}
+	}
+	auth := resolved.Auth
+	fmt.Fprintf(credentials, "%s\x00%s\x00%s\x00%s", auth.Type, auth.Username, auth.Password, auth.Token)
+	key := fmt.Sprintf("server\x00%s\x00%v\x00%v\x00%x", target.Authority, target.TLS, req.Options.VerifySSL, credentials.Sum(nil))
 	return key, schemaSource{address: target.Authority, tls: target.TLS}, nil
 }
 
@@ -331,10 +364,6 @@ type grpcMessageView struct {
 func (v grpcMessageView) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	e, s, a := v.editor, v.editor.session, v.app
-	// Showing the tab, and focusing the method, discover the methods when
-	// the request's schema source has changed since they last were.
-	isFocusedID(ctx, grpcMethodID)
-	e.describe(a, false)
 	substitute := s.substitute.Checked.Get()
 	var area t.Widget = t.TextArea{
 		ID:            grpcMessageID,
@@ -393,6 +422,8 @@ func (l grpcCatalogLine) Build(ctx t.BuildContext) t.Widget {
 	color, text := theme.TextMuted, ""
 	switch c.phase {
 	case catalogIdle:
+		text = "Move to this field to list the server's methods"
+	case catalogNoSource:
 		text = "Enter the server's address to list its methods, or add proto files on the Proto tab"
 	case catalogLoading:
 		text = "Loading methods from " + c.source.String() + "…"

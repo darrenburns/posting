@@ -62,6 +62,7 @@ func (a *App) replaceCollection(root *model.Collection) {
 			continue
 		}
 		s.Load(req)
+		a.listProtoMethods(s)
 		updated++
 	}
 	a.collection.Set(root)
