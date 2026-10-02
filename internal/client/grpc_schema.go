@@ -59,7 +59,9 @@ func reflectWith(ctx context.Context, conn *grpc.ClientConn, method string, symb
 		return nil, err
 	}
 	ask := func(req *reflectionpb.ServerReflectionRequest) (*reflectionpb.ServerReflectionResponse, error) {
-		if err := stream.SendMsg(req); err != nil {
+		// io.EOF means the server already ended the call, as one without
+		// reflection may; RecvMsg has its status.
+		if err := stream.SendMsg(req); err != nil && err != io.EOF {
 			return nil, err
 		}
 		resp := new(reflectionpb.ServerReflectionResponse)
