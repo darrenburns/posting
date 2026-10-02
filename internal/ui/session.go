@@ -323,16 +323,15 @@ func (s *Session) Load(req model.Request) {
 }
 
 // setKind changes the kind of request the session edits. The kind's first
-// tab is selected, so its own editor is what shows. Digest auth is dropped
-// for a kind without it, as Normalize would drop it when sending.
+// tab is selected, so its own editor is what shows. The auth type becomes
+// the one Snapshot sends, so auth the kind can't send, such as digest for
+// gRPC, isn't left showing.
 func (s *Session) setKind(id model.KindID) {
 	if s.kind.Peek() == id {
 		return
 	}
 	s.kind.Set(id)
-	if kind, _ := model.KindByID(id); !kind.Fields.Has(model.FieldDigestAuth) && s.authType.Peek() == model.AuthDigest {
-		s.authType.Set(model.AuthNone)
-	}
+	s.authType.Set(s.Snapshot().Auth.Type)
 	s.requestTab.Set(s.requestTabList()[0].key)
 }
 
