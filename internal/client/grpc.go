@@ -72,13 +72,13 @@ func (g *GRPC) init() error {
 type grpcCall struct {
 	req     model.Request
 	payload model.GRPC
+	md      metadata.MD
 	timeout float64
-	// deadline carries the call's metadata and its timeout.
+	// deadline carries the call's metadata and its timeout, once started.
 	deadline context.Context
-	cancel   context.CancelFunc
 }
 
-func (g *GRPC) prepare(ctx context.Context, call Call) (*grpcCall, error) {
+func (g *GRPC) prepare(call Call) (*grpcCall, error) {
 	if err := g.init(); err != nil {
 		return nil, err
 	}
@@ -98,8 +98,14 @@ func (g *GRPC) prepare(ctx context.Context, call Call) (*grpcCall, error) {
 	if timeout <= 0 {
 		timeout = model.DefaultOptions().TimeoutSeconds
 	}
-	deadline, cancel := context.WithTimeout(metadata.NewOutgoingContext(ctx, md), time.Duration(timeout*float64(time.Second)))
-	return &grpcCall{req: req, payload: payload, timeout: timeout, deadline: deadline, cancel: cancel}, nil
+	return &grpcCall{req: req, payload: payload, md: md, timeout: timeout}, nil
+}
+
+// start begins the call's timeout.
+func (c *grpcCall) start(ctx context.Context) context.CancelFunc {
+	var cancel context.CancelFunc
+	c.deadline, cancel = context.WithTimeout(metadata.NewOutgoingContext(ctx, c.md), time.Duration(c.timeout*float64(time.Second)))
+	return cancel
 }
 
 // Send performs the call. A status the server sent, OK or not, is a
@@ -107,11 +113,10 @@ func (g *GRPC) prepare(ctx context.Context, call Call) (*grpcCall, error) {
 // UNAVAILABLE for a refused connection, is an error, as a failed HTTP
 // request is.
 func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
-	c, err := g.prepare(ctx, call)
+	c, err := g.prepare(call)
 	if err != nil {
 		return nil, err
 	}
-	defer c.cancel()
 	target, err := model.ParseGRPCTarget(c.req.URL)
 	if err != nil {
 		return nil, err
@@ -120,17 +125,24 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	var files *protoregistry.Files
+	var (
+		files *protoregistry.Files
+		md    protoreflect.MethodDescriptor
+		in    []proto.Message
+	)
 	if !c.payload.Protos.Reflection() {
 		if files, err = g.protos.load(g.Root, c.payload.Protos); err != nil {
 			return nil, err
 		}
 		// With the schema in hand, a bad method or message is reported
 		// before dialing.
-		if _, _, err := c.messages(files, method); err != nil {
+		if md, in, err = c.messages(files, method); err != nil {
 			return nil, err
 		}
 	}
+	// The timeout starts after the proto files compile.
+	cancel := c.start(ctx)
+	defer cancel()
 
 	trace := newGRPCTrace(call.OnTrace, target.TLS)
 	trace.method = "/" + method.service + "/" + method.name
@@ -146,11 +158,10 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 			trace.end(model.TraceFailed)
 			return nil, c.describe(ctx, err)
 		}
-	}
-	md, in, err := c.messages(files, method)
-	if err != nil {
-		trace.end(model.TraceFailed)
-		return nil, err
+		if md, in, err = c.messages(files, method); err != nil {
+			trace.end(model.TraceFailed)
+			return nil, err
+		}
 	}
 
 	ex := invoke(c.deadline, conn, md, in, trace, g.maxResponse)
@@ -172,18 +183,21 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 // Describe lists the methods of the request's schema: its proto files, which
 // need no server, or whatever the server's reflection service offers.
 func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
-	c, err := g.prepare(ctx, call)
-	if err != nil {
-		return Schema{}, err
-	}
-	defer c.cancel()
-	if !c.payload.Protos.Reflection() {
-		files, err := g.protos.load(g.Root, c.payload.Protos)
+	// Proto paths are never substituted, so proto files are listed without
+	// resolving the address and metadata they don't use.
+	if p, ok := call.Request.Payload.(model.GRPC); ok && !p.Protos.Reflection() {
+		files, err := g.protos.load(g.Root, p.Protos)
 		if err != nil {
 			return Schema{}, err
 		}
 		return schemaOf(files), nil
 	}
+	c, err := g.prepare(call)
+	if err != nil {
+		return Schema{}, err
+	}
+	cancel := c.start(ctx)
+	defer cancel()
 	target, err := model.ParseGRPCTarget(c.req.URL)
 	if err != nil {
 		return Schema{}, err
