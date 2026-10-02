@@ -194,7 +194,7 @@ func TestTreeSearchFindsGraphQLByBadge(tt *testing.T) {
 func TestCopyGraphQLAsCurlSendsTheLoweredRequest(tt *testing.T) {
 	app := testApp()
 	app.openRequest(graphQLRequest(tt))
-	command, err := app.curlCommand(true)
+	command, err := app.exportCommand(true)
 	if err != nil {
 		tt.Fatal(err)
 	}

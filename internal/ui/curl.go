@@ -103,9 +103,8 @@ func (a *App) exportTool() string {
 	return "curl"
 }
 
-// curlCommand is the current request as a command for its kind's tool:
-// curl, or grpcurl for gRPC.
-func (a *App) curlCommand(resolve bool) (string, error) {
+// exportCommand is the current request as an exportTool command.
+func (a *App) exportCommand(resolve bool) (string, error) {
 	s := a.current()
 	if s == nil {
 		return "", nil
@@ -125,30 +124,30 @@ func (a *App) curlCommand(resolve bool) (string, error) {
 	return kindViews[req.Kind().ID].export.format(a, req)
 }
 
-// copyAsCurl copies the request as a command and shows it.
-func (a *App) copyAsCurl() {
-	a.openCurlExport()
+// copyExport copies the request as a command and shows it.
+func (a *App) copyExport() {
+	a.openExport()
 	if text := a.curlDialog.text.GetText(); text != "" {
 		t.SetClipboard(t.SystemClipboard, text)
 		a.notify("Copied "+a.exportTool()+" command to clipboard", toastSuccess)
 	}
 }
 
-func (a *App) openCurlExport() {
+func (a *App) openExport() {
 	f := a.curlDialog
 	f.mode.Set("export")
-	a.refreshCurlExport()
+	a.refreshExport()
 	a.overlay.Set("curl")
 	t.RequestFocus("curl-text")
 }
 
-func (a *App) refreshCurlExport() {
+func (a *App) refreshExport() {
 	f := a.curlDialog
-	command, err := a.curlCommand(f.resolve.Peek())
+	command, err := a.exportCommand(f.resolve.Peek())
 	f.err.Set("")
 	if err != nil {
 		f.err.Set(err.Error() + " — showing the command with variables left in")
-		command, _ = a.curlCommand(false)
+		command, _ = a.exportCommand(false)
 	}
 	f.text.SetText(command)
 	f.text.CursorIndex.Set(0)
@@ -213,7 +212,7 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 			Selected: map[bool]string{true: "resolved", false: "variables"}[f.resolve.Get()],
 			OnChange: func(value string) {
 				f.resolve.Set(value == "resolved")
-				a.refreshCurlExport()
+				a.refreshExport()
 			},
 		}
 	}
