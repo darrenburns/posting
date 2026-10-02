@@ -224,7 +224,9 @@ The other tabs work as they do for an HTTP request, with these differences:
 - The **Headers** tab is called **Metadata**. Each enabled row is sent as gRPC metadata, with its
   name in lower case. A name that ends in `-bin` takes a base64 value, which Posting decodes before
   sending. Names that gRPC sets itself (`content-type`, `te`, and names that start with `grpc-` or
-  `:`) are errors.
+  `:`) are errors, and so are HTTP/1 headers that HTTP/2 forbids (`connection`, `keep-alive`,
+  `proxy-connection`, `transfer-encoding`, `upgrade` and `host`). A `user-agent` row replaces
+  Posting's own user agent, and gRPC adds its version after it.
 - Basic and bearer auth are sent as `authorization` metadata. Digest auth needs an HTTP challenge,
   so the **Auth** tab doesn't offer it, and a request file with `type: digest` doesn't load.
 - The **Options** tab has **Verify SSL certificates**, **Substitute body variables** and
