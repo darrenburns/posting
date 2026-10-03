@@ -69,31 +69,9 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 		if streaming != streamStarting {
 			label = "Waiting for the server…"
 		}
-		content = t.Column{
-			Style:      t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-			MainAlign:  t.MainAxisCenter,
-			CrossAlign: t.CrossAxisCenter,
-			Children: []t.Widget{
-				t.Row{Spacing: 1, Children: []t.Widget{
-					t.Spinner{State: s.spinner, Style: t.Style{ForegroundColor: theme.AccentText}},
-					t.Text{Content: label, Style: t.Style{ForegroundColor: theme.Text}},
-				}},
-				t.ParseMarkupToText(p.streamHints(streaming), theme),
-			},
-		}
+		content = waiting(theme, s.spinner, label, p.streamHints(streaming))
 	case resp == nil && phase == exchangeSending:
-		content = t.Column{
-			Style:      t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-			MainAlign:  t.MainAxisCenter,
-			CrossAlign: t.CrossAxisCenter,
-			Children: []t.Widget{
-				t.Row{Spacing: 1, Children: []t.Widget{
-					t.Spinner{State: s.spinner, Style: t.Style{ForegroundColor: theme.AccentText}},
-					t.Text{Content: "Sending request…", Style: t.Style{ForegroundColor: theme.Text}},
-				}},
-				t.ParseMarkupToText("[$TextMuted]Press [b]esc[/] to cancel[/]", theme),
-			},
-		}
+		content = waiting(theme, s.spinner, "Sending request…", "[$TextMuted]Press [b]esc[/] to cancel[/]")
 	case resp == nil:
 		content = emptyState{Title: "No response yet", Lines: []string{"Press [b]ctrl+j[/] to send the request"}}
 	default:
@@ -108,6 +86,22 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 		Width:     t.Flex(1),
 		Height:    t.Flex(1),
 		Child:     content,
+	}
+}
+
+// waiting is a spinner and label above a line of hints, in markup.
+func waiting(theme t.ThemeData, spinner *t.SpinnerState, label, hints string) t.Widget {
+	return t.Column{
+		Style:      t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		MainAlign:  t.MainAxisCenter,
+		CrossAlign: t.CrossAxisCenter,
+		Children: []t.Widget{
+			t.Row{Spacing: 1, Children: []t.Widget{
+				t.Spinner{State: spinner, Style: t.Style{ForegroundColor: theme.AccentText}},
+				t.Text{Content: label, Style: t.Style{ForegroundColor: theme.Text}},
+			}},
+			t.ParseMarkupToText(hints, theme),
+		},
 	}
 }
 

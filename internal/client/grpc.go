@@ -106,10 +106,9 @@ func (c *grpcCall) start(ctx context.Context) context.CancelFunc {
 // Send performs the call. A status the server sent, OK or not, is a
 // response. One grpc-go made up before the server said anything, such as
 // UNAVAILABLE for a refused connection, is an error, as a failed HTTP
-// request is.
-//
-// A call the server answered is a response even when ctx is cancelled, so
-// cancelling a stream keeps what arrived, with the status CANCELLED.
+// request is. A call the server answered is a response even when ctx is
+// cancelled, so cancelling a stream keeps what arrived, with the status
+// CANCELLED.
 func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	defer call.Stream.end()
 	c, err := prepare(call)
