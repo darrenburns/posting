@@ -84,6 +84,13 @@ func Load(path string) (importing.Result, error) {
 		Name   string   `json:"name"`
 		Type   string   `json:"type"`
 		Ignore []string `json:"ignore"`
+		// protoFiles only lists files a request may pick as its protoPath.
+		Protobuf struct {
+			ImportPaths []struct {
+				Path    string `json:"path"`
+				Enabled bool   `json:"enabled"`
+			} `json:"importPaths"`
+		} `json:"protobuf"`
 	}
 	if err = json.Unmarshal(config, &cfg); err != nil {
 		return importing.Result{}, fmt.Errorf("bruno.json: %w", err)
@@ -255,6 +262,11 @@ func Load(path string) (importing.Result, error) {
 	}
 	rootScope := emptyScope()
 	rootScope.deferred = true
+	for _, p := range cfg.Protobuf.ImportPaths {
+		if p.Enabled && p.Path != "" {
+			rootScope.protoImports = append(rootScope.protoImports, p.Path)
+		}
+	}
 	if err := walk(".", rootScope, 0); err != nil {
 		return importing.Result{}, err
 	}

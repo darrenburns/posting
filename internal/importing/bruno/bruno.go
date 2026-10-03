@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -25,6 +27,8 @@ type scope struct {
 	auth       model.Auth
 	authMode   string
 	authFields map[string]string
+	// protoImports are bruno.json's enabled protobuf import paths.
+	protoImports []string
 }
 
 func emptyScope() scope {
@@ -181,14 +185,14 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 		return nil, err
 	}
 	m := values(meta)
-	if t := m["type"]; t != "" && t != "http" && t != "graphql" {
+	if t := m["type"]; t != "" && t != "http" && t != "graphql" && t != "grpc" {
 		warn(result, "skipped unsupported Bruno request type "+t)
 		return nil, nil
 	}
 	var method string
 	for _, b := range d {
 		switch b.name {
-		case "get", "post", "put", "delete", "patch", "head", "options", "connect", "trace", "http":
+		case "get", "post", "put", "delete", "patch", "head", "options", "connect", "trace", "http", "grpc":
 			if method != "" {
 				return nil, fmt.Errorf("multiple HTTP method blocks")
 			}
@@ -213,7 +217,7 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 			valid = true
 		}
 	}
-	if !valid {
+	if !valid && method != "grpc" {
 		warn(result, "skipped HTTP method "+actualMethod+" unsupported by Posting request files")
 		return nil, nil
 	}
@@ -269,7 +273,12 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 	if err != nil {
 		return nil, err
 	}
-	r.Headers = mergeRows(parent.headers, headers, true)
+	// A gRPC request's metadata is its headers.
+	metadata, err := d.pairs("metadata")
+	if err != nil {
+		return nil, err
+	}
+	r.Headers = mergeRows(parent.headers, append(headers, metadata...), true)
 	query, err := d.pairs("params:query")
 	if err != nil {
 		return nil, err
@@ -348,6 +357,10 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 		case "header":
 			r.Headers = mergeRows(r.Headers, []model.KeyValue{kv}, true)
 		case "queryparams":
+			if method == "grpc" {
+				warn(result, "gRPC has no query parameters; API key was not imported")
+				break
+			}
 			r.Query = mergeQuery(r.Query, []model.KeyValue{kv})
 		default:
 			warn(result, "unsupported API key placement "+fields["placement"])
@@ -356,6 +369,9 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 		warn(result, "unsupported authentication "+mode+"; credentials were not imported")
 	}
 	bodyMode := http["body"]
+	if method == "grpc" {
+		bodyMode = "grpc"
+	}
 	switch bodyMode {
 	case "", "none":
 	case "json", "text", "xml", "sparql":
@@ -374,13 +390,24 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 	case "graphql":
 		// Variables in both are expanded below, with the other fields.
 		r.Payload = model.GraphQL{Query: d.text("body:graphql"), Variables: d.text("body:graphql:vars")}
+	case "grpc":
+		message, e := grpcMessage(d, http["methodType"], result)
+		if e != nil {
+			return nil, e
+		}
+		r.Payload = model.GRPC{
+			Method:  strings.TrimPrefix(http["method"], "/"),
+			Message: message,
+			Protos:  grpcProtos(http["protoPath"], parent.protoImports, result),
+		}
 	default:
 		warn(result, "unsupported body mode "+bodyMode+"; body was not imported")
 	}
+	_, graphQL := r.Payload.(model.GraphQL)
 	switch {
 	case m["type"] == "graphql" && r.Payload == nil:
 		warn(result, "GraphQL request has no GraphQL body; imported as HTTP")
-	case r.Payload != nil && r.Method != model.MethodPost:
+	case graphQL && r.Method != model.MethodPost:
 		warn(result, "GraphQL request uses "+string(r.Method)+"; Posting sends GraphQL requests as POST")
 	}
 	if d.has("body") {
@@ -414,7 +441,7 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 	diagnostics(d, result)
 	for _, b := range d {
 		switch {
-		case b.name == "meta", b.name == method, b.name == "headers", b.name == "query", b.name == "params:query", b.name == "params:path", b.name == "vars:pre-request", b.name == "vars:post-response", b.name == "settings", b.name == "docs", b.name == "body", b.name == "tests", b.name == "assert", b.name == "example", b.name == "app", strings.HasPrefix(b.name, "body:"), strings.HasPrefix(b.name, "auth:"), strings.HasPrefix(b.name, "script:"):
+		case b.name == "meta", b.name == method, b.name == "headers", b.name == "metadata", b.name == "query", b.name == "params:query", b.name == "params:path", b.name == "vars:pre-request", b.name == "vars:post-response", b.name == "settings", b.name == "docs", b.name == "body", b.name == "tests", b.name == "assert", b.name == "example", b.name == "app", strings.HasPrefix(b.name, "body:"), strings.HasPrefix(b.name, "auth:"), strings.HasPrefix(b.name, "script:"):
 		default:
 			warn(result, "unsupported block "+b.name)
 		}
@@ -441,10 +468,17 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 		warn(result, "unresolved Content-Type uses import-time body escaping; check body variables after setting the header")
 	}
 	r.Body.Raw = expansion.expandMode(r.Body.Raw, nil, strings.Contains(contentType, "json"))
-	if g, ok := r.Payload.(model.GraphQL); ok {
+	switch p := r.Payload.(type) {
+	case model.GraphQL:
 		r.Payload = model.GraphQL{
-			Query:     importing.BracedOnly(expansion.expand(g.Query, nil)),
-			Variables: expansion.expandMode(g.Variables, nil, true),
+			Query:     importing.BracedOnly(expansion.expand(p.Query, nil)),
+			Variables: expansion.expandMode(p.Variables, nil, true),
+		}
+	case model.GRPC:
+		p.Message = expansion.expandMode(p.Message, nil, true)
+		r.Payload = p
+		if r.Auth.Type == model.AuthDigest {
+			warn(result, "gRPC requests can't use digest authentication; credentials were not imported")
 		}
 	}
 	if expansion.err != nil {
@@ -452,6 +486,55 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 	}
 	r = model.Normalize(r)
 	return &r, nil
+}
+
+// grpcMessage is a request's body:grpc messages as one protojson value: an
+// array for a client or bidi stream, or for several messages of an unstated
+// method type, and otherwise the first message.
+func grpcMessage(d document, methodType string, result *importing.Result) (string, error) {
+	var contents []string
+	for _, b := range d {
+		if b.name != "body:grpc" {
+			continue
+		}
+		rows, err := parsePairs(b.text)
+		if err != nil {
+			return "", fmt.Errorf("body:grpc: %w", err)
+		}
+		contents = append(contents, values(rows)["content"])
+	}
+	switch {
+	case len(contents) == 0:
+		return "", nil
+	case methodType == "client-streaming", methodType == "bidi-streaming", methodType == "" && len(contents) > 1:
+		for i, c := range contents {
+			contents[i] = "  " + strings.ReplaceAll(c, "\n", "\n  ")
+		}
+		return "[\n" + strings.Join(contents, ",\n") + "\n]", nil
+	case len(contents) > 1:
+		warn(result, fmt.Sprintf("%s method sends one message; imported only the first of %d", methodType, len(contents)))
+	}
+	return contents[0], nil
+}
+
+// grpcProtos is the schema protoPath names, or server reflection when it is
+// blank. Bruno resolves the file and import paths against the collection
+// root, as Posting does, but the import doesn't copy them.
+func grpcProtos(protoPath string, imports []string, result *importing.Result) model.ProtoSet {
+	if protoPath == "" {
+		return model.ProtoSet{}
+	}
+	warn(result, "proto file "+protoPath+" is not copied; put it at that path relative to the imported collection")
+	set := model.ProtoSet{Files: []string{protoPath}, ImportPaths: slices.Clone(imports)}
+	search := imports
+	if len(search) == 0 {
+		search = []string{"."}
+	}
+	// Posting compiles a .proto by its name under an import path.
+	if _, ok := model.ImportName(protoPath, search); !ok {
+		set.ImportPaths = append(slices.Clone(search), filepath.Dir(protoPath))
+	}
+	return set
 }
 
 // scopeConstants can still be materialized with Bruno's JSON escaping. A
