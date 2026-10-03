@@ -130,6 +130,8 @@ Posting imports Postman Collection v2.0 and v2.1 JSON files.
 - Postman environment exports given after the collection, or on their own with `--output`, become
   [environments](#environments). Disabled values are skipped. Globals exports aren't supported.
 - Pre-request and test scripts aren't imported.
+- gRPC requests can't be imported from Postman. Postman doesn't export collections that contain
+  them as v2.1 JSON: the v2.1 format has no way to describe a gRPC request.
 
 ## Bruno
 
@@ -142,7 +144,14 @@ Posting imports a single `.bru` request file, or a whole Bruno collection direct
 - JSON, text and XML bodies, and URL-encoded forms, are imported. GraphQL requests become
   [GraphQL requests](./requests.md#graphql-requests), with their query and variables. Multipart and
   file bodies are skipped with a warning.
-- Basic, Digest, Bearer and API key authentication are imported.
+- gRPC requests become [gRPC requests](./requests.md#grpc-requests), with their server address,
+  method, metadata and messages. A client-streaming or bidirectional request's messages become one
+  array. A request's `protoPath`, and the enabled import paths in `bruno.json`, become its
+  [proto files](./requests.md#grpc-request-files). Proto files aren't copied, so Posting warns you
+  to put them at the same path relative to the imported collection. A request without a
+  `protoPath` uses server reflection, as it does in Bruno.
+- Basic, Digest, Bearer and API key authentication are imported. A gRPC request keeps Basic, Bearer
+  and header API keys only, and warns about the rest.
 - Collection variables from `collection.bru` are written to `posting.env`, so environments can
   override them. Folder and request variables are filled into each request, because Bruno ranks them
   above environments.
