@@ -543,7 +543,9 @@ func (a *App) send() {
 	if s == nil {
 		return
 	}
-	if s.streaming.Peek() == streamOpen {
+	// A stream stays open when the request becomes another kind, until the
+	// next send cancels it.
+	if s.streaming.Peek() == streamOpen && s.kind.Peek() == model.KindGRPC {
 		message := s.payloads[model.KindGRPC].(*grpcEditor).message.GetText()
 		if err := s.stream.Send(message); err != nil {
 			a.notify(err.Error(), toastWarning)

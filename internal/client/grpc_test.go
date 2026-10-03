@@ -1146,3 +1146,16 @@ func TestGRPCAuthoritySetsTheHeaderAndTheNameTLSChecks(t *testing.T) {
 		t.Fatalf("with the authority set to a name the certificate has: %v", err)
 	}
 }
+
+func TestGRPCOpenStreamCanStartWithNoMessages(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	u := newUpdates()
+	stream, result, _ := openStream(t, grpcRequest(addr, "library.v1.Library/Chat", `[]`), nil, u)
+	<-stream.Ready()
+	if err := stream.Send(`{"text": "first"}`); err != nil {
+		t.Fatal(err)
+	}
+	u.waitFor(t, 1)
+	stream.Close()
+	assertJSON(t, (<-result).Body, `[{"text": "FIRST"}]`)
+}

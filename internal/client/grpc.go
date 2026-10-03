@@ -70,8 +70,9 @@ type grpcCall struct {
 	userAgent string
 	timeout   float64
 	lookup    func(string) (string, bool)
-	// deadline carries the call's metadata and its timeout, once started.
-	deadline context.Context
+	// ctx carries the call's metadata and, once started, its timeout. An
+	// open stream's loses the timeout once it connects.
+	ctx context.Context
 }
 
 func prepare(call Call) (*grpcCall, error) {
@@ -99,7 +100,7 @@ func prepare(call Call) (*grpcCall, error) {
 // start begins the call's timeout.
 func (c *grpcCall) start(ctx context.Context) context.CancelFunc {
 	var cancel context.CancelFunc
-	c.deadline, cancel = context.WithTimeout(metadata.NewOutgoingContext(ctx, c.md), time.Duration(c.timeout*float64(time.Second)))
+	c.ctx, cancel = context.WithTimeout(metadata.NewOutgoingContext(ctx, c.md), time.Duration(c.timeout*float64(time.Second)))
 	return cancel
 }
 
@@ -145,14 +146,14 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	trace := newGRPCTrace(call.OnTrace, target.TLS)
 	trace.method = "/" + method.service + "/" + method.name
 	started := time.Now()
-	conn, err := g.dial(c.deadline, c, target, trace)
+	conn, err := g.dial(c.ctx, c, target, trace)
 	if err != nil {
 		trace.end(model.TraceFailed)
 		return nil, c.explain(ctx, err)
 	}
 	defer conn.Close()
 	if files == nil {
-		if files, err = reflectFiles(c.deadline, conn, []string{method.service}); err != nil {
+		if files, err = reflectFiles(c.ctx, conn, []string{method.service}); err != nil {
 			trace.end(model.TraceFailed)
 			return nil, c.explain(ctx, err)
 		}
@@ -162,9 +163,7 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 		}
 	}
 	if call.Stream != nil {
-		// An open stream runs until it is ended or cancelled: the timeout
-		// covered only connecting.
-		c.deadline = metadata.NewOutgoingContext(ctx, c.md)
+		c.ctx = metadata.NewOutgoingContext(ctx, c.md)
 		var refusal error
 		if !md.IsStreamingClient() {
 			refusal = fmt.Errorf("%s is a %s method, so it takes only the message it started with", md.Name(), streamingOf(md))
@@ -186,14 +185,14 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 			})
 		}}
 	}
-	ex := invoke(c.deadline, conn, md, in, call.Stream, trace, g.maxResponse, marshal, live)
+	ex := invoke(c.ctx, conn, md, in, call.Stream, trace, g.maxResponse, marshal, live)
 	live.stop()
 	if !trace.answered() {
 		trace.end(model.TraceFailed)
 		return nil, c.explain(ctx, ex.status.Err())
 	}
 	switch {
-	case ctx.Err() != nil:
+	case ctx.Err() != nil && !ex.trailed:
 		ex.status = status.New(codes.Canceled, "the call was cancelled")
 	case ex.status.Code() == codes.Canceled && c.atDeadline(ex.status.Err()):
 		ex.status = status.FromContextError(context.DeadlineExceeded)
@@ -241,7 +240,7 @@ func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
 		return Schema{}, err
 	}
 	budget := min(describeDialTimeout, time.Duration(c.timeout*float64(time.Second)))
-	dialCtx, cancelDial := context.WithTimeout(c.deadline, budget)
+	dialCtx, cancelDial := context.WithTimeout(c.ctx, budget)
 	defer cancelDial()
 	conn, err := g.dial(dialCtx, c, target, newGRPCTrace(nil, target.TLS))
 	// The budget running out fails whatever step the dial was on, such as
@@ -253,7 +252,7 @@ func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
 		return Schema{}, c.explain(ctx, err)
 	}
 	defer conn.Close()
-	files, err := reflectFiles(c.deadline, conn, nil)
+	files, err := reflectFiles(c.ctx, conn, nil)
 	if err != nil {
 		return Schema{}, c.explain(ctx, err)
 	}
@@ -607,7 +606,7 @@ func (c *grpcCall) explain(ctx context.Context, err error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	if errors.Is(c.deadline.Err(), context.DeadlineExceeded) || c.atDeadline(err) {
+	if errors.Is(c.ctx.Err(), context.DeadlineExceeded) || c.atDeadline(err) {
 		return fmt.Errorf("request timed out after %gs", c.timeout)
 	}
 	if s, ok := status.FromError(err); ok {
@@ -623,7 +622,7 @@ func (c *grpcCall) atDeadline(err error) bool {
 	if code := status.Code(err); code != codes.Canceled && code != codes.DeadlineExceeded {
 		return false
 	}
-	deadline, ok := c.deadline.Deadline()
+	deadline, ok := c.ctx.Deadline()
 	return ok && time.Until(deadline) < 100*time.Millisecond
 }
 
@@ -653,12 +652,13 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 		ex.status = status.Convert(err)
 		return ex
 	}
+	sending := open
+	if !md.IsStreamingClient() {
+		sending = nil
+	}
 	sent := make(chan error, 1)
 	go func() {
-		if !md.IsStreamingClient() {
-			open = nil
-		}
-		err := sendAll(ctx, stream, in, open)
+		err := sendAll(ctx, stream, in, sending)
 		if err != nil {
 			cancel()
 		}
@@ -687,7 +687,6 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 	if err == io.EOF {
 		err = nil
 	}
-	// The server has ended the call, so nothing more can be sent.
 	open.end()
 	sendErr := <-sent
 	ex.header, _ = stream.Header()
@@ -710,7 +709,7 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 // closed, and closes the client's side. io.EOF from SendMsg means the server
 // ended the call early, and RecvMsg has its status.
 func sendAll(ctx context.Context, stream grpc.ClientStream, in []proto.Message, open *Stream) error {
-	for len(in) > 0 {
+	for {
 		for _, msg := range in {
 			if err := stream.SendMsg(msg); err == io.EOF {
 				return nil
@@ -721,7 +720,9 @@ func sendAll(ctx context.Context, stream grpc.ClientStream, in []proto.Message, 
 		if open == nil {
 			break
 		}
-		in = open.next(ctx)
+		if in = open.next(ctx); len(in) == 0 {
+			break
+		}
 	}
 	return stream.CloseSend()
 }

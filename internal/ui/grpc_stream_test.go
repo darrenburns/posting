@@ -108,3 +108,16 @@ func TestGRPCAuthorityIsEditedOnTheOptionsTab(tt *testing.T) {
 		tt.Errorf("snapshot authority = %q", got)
 	}
 }
+
+func TestSendingAfterLeavingGRPCSendsTheNewRequest(tt *testing.T) {
+	app, s, updates := streamApp(tt)
+	app.toggleStream()
+	drainUntil(tt, updates, func() bool { return s.streaming.Peek() == streamOpen })
+	app.setKind(model.KindHTTP)
+	s.url.SetText("http://example.com/books")
+	app.send()
+	drainUntil(tt, updates, func() bool { return s.phase.Peek() == exchangeDone })
+	if got := s.sent.Kind().ID; got != model.KindHTTP {
+		tt.Errorf("the send went to the %s stream, not the HTTP request", got)
+	}
+}

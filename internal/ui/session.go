@@ -36,8 +36,9 @@ const (
 	streamStarting
 	// streamOpen takes messages: sending puts the editor's message on it.
 	streamOpen
-	// streamEnded has its sending side closed, or a method whose client
-	// doesn't stream, and waits for the server to end the call.
+	// streamEnded takes no more messages, because the user ended it or the
+	// method's client doesn't stream, and waits for the server to end the
+	// call.
 	streamEnded
 )
 
