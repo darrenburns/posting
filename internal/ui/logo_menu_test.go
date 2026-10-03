@@ -126,7 +126,7 @@ func TestSnapshotLogoMenu(tt *testing.T) {
 	app := testApp()
 	// Opening the menu requests focus for it, which the snapshot applies.
 	app.openLogoMenu("")
-	t.AssertSnapshotNamed(tt, "LogoMenu", app, snapW, snapH, "Links menu open above the Posting logo at the end of the footer")
+	t.AssertSnapshotNamed(tt, "LogoMenu", app, snapW, snapH, "Links menu open above the Posting logo at the start of the footer")
 
 	nerd := New(Config{
 		Version:      "3.0.0-dev",

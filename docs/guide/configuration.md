@@ -138,7 +138,7 @@ Each can also be set with the environment variable shown in brackets.
 | `heading.visible` (`POSTING_HEADING__VISIBLE`) | `true`, `false` (Default: `true`) | Show the header row at the top of the app, which shows the environment and host. |
 | `heading.show_host` (`POSTING_HEADING__SHOW_HOST`) | `true`, `false` (Default: `true`) | Show `user@host` in the header. |
 | `heading.hostname` (`POSTING_HEADING__HOSTNAME`) | Text (Default: unset) | Replace `user@host` in the header with your own text. Markup such as `[b]prod[/]` is allowed. |
-| `heading.show_version` (`POSTING_HEADING__SHOW_VERSION`) | `true`, `false` (Default: `true`) | Show the Posting logo and version in the bottom right corner. |
+| `heading.show_version` (`POSTING_HEADING__SHOW_VERSION`) | `true`, `false` (Default: `true`) | Show the Posting logo and version in the bottom left corner. |
 | `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show the line below the URL bar that previews variable values and the resolved URL. |
 | `url_bar.hide_secrets_in_value_preview` (`POSTING_URL_BAR__HIDE_SECRETS_IN_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Mask the value of a variable in the preview when its name looks secret. See [Environments](./environments.md#secrets). |
 | `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `left`, `right` (Default: `left`) | Which side of the screen the sidebar is on. |
