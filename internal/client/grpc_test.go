@@ -910,16 +910,185 @@ func TestGRPCBlankMessageIsOneEmptyMessage(t *testing.T) {
 	}
 }
 
-func TestGRPCCancelIsNotAResponse(t *testing.T) {
+func TestGRPCCancelBeforeTheServerAnswersIsNotAResponse(t *testing.T) {
 	addr := startLibrary(t, libraryOptions{})
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		time.Sleep(200 * time.Millisecond)
 		cancel()
 	}()
-	req := grpcRequest(addr, "library.v1.Library/ListBooks", `{"author": "stall"}`)
+	req := grpcRequest(addr, "library.v1.Library/GetBook", `{"isbn": "hang"}`)
 	_, err := NewGRPC("posting-test", TLSSettings{}, "").Send(ctx, Call{Request: req})
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("err = %v, want the cancellation", err)
+	}
+}
+
+// updates collects the bodies OnUpdate reports, and lets a test wait for one.
+type updates struct {
+	mu     sync.Mutex
+	bodies []string
+	seen   chan struct{}
+}
+
+func newUpdates() *updates { return &updates{seen: make(chan struct{}, 1000)} }
+
+func (u *updates) report(resp *model.Response) {
+	u.mu.Lock()
+	u.bodies = append(u.bodies, string(resp.Body))
+	u.mu.Unlock()
+	u.seen <- struct{}{}
+}
+
+// waitFor waits until a reported body is a JSON array of n messages.
+func (u *updates) waitFor(t *testing.T, n int) []map[string]any {
+	t.Helper()
+	timeout := time.After(3 * time.Second)
+	for {
+		u.mu.Lock()
+		var last string
+		if len(u.bodies) > 0 {
+			last = u.bodies[len(u.bodies)-1]
+		}
+		u.mu.Unlock()
+		var messages []map[string]any
+		if json.Unmarshal([]byte(last), &messages) == nil && len(messages) == n {
+			return messages
+		}
+		select {
+		case <-u.seen:
+		case <-timeout:
+			t.Fatalf("no update with %d messages; last was %s", n, last)
+		}
+	}
+}
+
+func TestGRPCUpdatesShowMessagesBeforeTheCallEnds(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	ctx, cancel := context.WithCancel(context.Background())
+	u := newUpdates()
+	done := make(chan struct{})
+	var resp *model.Response
+	var err error
+	go func() {
+		defer close(done)
+		req := grpcRequest(addr, "library.v1.Library/ListBooks", `{"author": "stall"}`)
+		resp, err = NewGRPC("posting-test", TLSSettings{}, "").Send(ctx, Call{Request: req, OnUpdate: u.report})
+	}()
+	books := u.waitFor(t, 2)
+	if books[0]["title"] != "Dune" {
+		t.Fatalf("books = %v", books)
+	}
+	select {
+	case <-done:
+		t.Fatal("the call ended before it was cancelled")
+	default:
+	}
+	cancel()
+	<-done
+	if err != nil {
+		t.Fatalf("a call the server answered is a response when cancelled, got %v", err)
+	}
+	if got := model.StatusOf(model.GRPCKind.New(), resp); got.Code != "CANCELLED" {
+		t.Errorf("status = %+v", got)
+	}
+	var kept []map[string]any
+	if err := json.Unmarshal(resp.Body, &kept); err != nil || len(kept) != 2 {
+		t.Fatalf("body = %s, want the two books that arrived", resp.Body)
+	}
+}
+
+// openStream starts a call that keeps its sending side open, returning the
+// stream, a channel that yields the call's result, and its cancel.
+func openStream(t *testing.T, req model.Request, variables map[string]string, u *updates) (*Stream, <-chan *model.Response, context.CancelFunc) {
+	t.Helper()
+	ctx, cancel := context.WithCancel(context.Background())
+	stream := NewStream()
+	result := make(chan *model.Response, 1)
+	done := make(chan struct{})
+	t.Cleanup(func() {
+		cancel()
+		<-done
+	})
+	go func() {
+		defer close(done)
+		resp, err := NewGRPC("posting-test", TLSSettings{}, "").Send(ctx, Call{Request: req, Variables: variables, OnUpdate: u.report, Stream: stream})
+		if err != nil {
+			t.Errorf("Send: %v", err)
+		}
+		result <- resp
+	}()
+	return stream, result, cancel
+}
+
+func TestGRPCOpenStreamTakesMoreMessages(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	req := grpcRequest(addr, "library.v1.Library/Chat", `{"text": "hi"}`)
+	req.Options.TimeoutSeconds = 0.2
+	u := newUpdates()
+	stream, result, _ := openStream(t, req, map[string]string{"WORD": "there"}, u)
+	u.waitFor(t, 1)
+	// Past the timeout: an open stream runs until it is ended.
+	time.Sleep(400 * time.Millisecond)
+	if err := stream.Send(`{"text": "${WORD}"}`); err != nil {
+		t.Fatal(err)
+	}
+	u.waitFor(t, 2)
+	if err := stream.Send(`[{"text": "a"}, {"text": "b"}]`); err != nil {
+		t.Fatal(err)
+	}
+	u.waitFor(t, 4)
+	stream.Close()
+	resp := <-result
+	if got := model.StatusOf(req, resp); got.Code != "OK" {
+		t.Fatalf("status = %+v", got)
+	}
+	assertJSON(t, resp.Body, `[{"text": "HI"}, {"text": "THERE"}, {"text": "A"}, {"text": "B"}]`)
+	if err := stream.Send(`{"text": "late"}`); err == nil {
+		t.Error("a stream whose call ended took a message")
+	}
+}
+
+func TestGRPCOpenClientStreamRepliesWhenEnded(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	u := newUpdates()
+	stream, result, _ := openStream(t, grpcRequest(addr, "library.v1.Library/ShelveBooks", `{"title": "Dune"}`), nil, u)
+	<-stream.Ready()
+	if err := stream.Send(`{"title": "Emma"}`); err != nil {
+		t.Fatal(err)
+	}
+	stream.Close()
+	if err := stream.Send(`{"title": "Late"}`); err == nil {
+		t.Error("an ended stream took a message")
+	}
+	assertJSON(t, (<-result).Body, `{"shelved": 2, "titles": ["Dune", "Emma"]}`)
+}
+
+func TestGRPCOpenStreamRejectsWhatItCantSend(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	u := newUpdates()
+	stream, result, _ := openStream(t, grpcRequest(addr, "library.v1.Library/Chat", `{"text": "hi"}`), nil, u)
+	u.waitFor(t, 1)
+	for _, text := range []string{`{"text": `, `{"nope": 1}`} {
+		if err := stream.Send(text); err == nil {
+			t.Errorf("Send(%s) took a message that doesn't parse", text)
+		}
+	}
+	if err := stream.Send(`{"text": "still open"}`); err != nil {
+		t.Fatalf("a rejected message closed the stream: %v", err)
+	}
+	u.waitFor(t, 2)
+	stream.Close()
+	<-result
+
+	u = newUpdates()
+	stream, result, cancel := openStream(t, grpcRequest(addr, "library.v1.Library/ListBooks", `{"author": "stall"}`), nil, u)
+	u.waitFor(t, 2)
+	if err := stream.Send(`{"author": "more"}`); err == nil || !strings.Contains(err.Error(), "server stream") {
+		t.Errorf("a server stream took a second message: %v", err)
+	}
+	cancel()
+	if got := model.StatusOf(model.GRPCKind.New(), <-result); got.Code != "CANCELLED" {
+		t.Errorf("status = %+v", got)
 	}
 }
