@@ -54,6 +54,7 @@ their name to say what they'll do, like **Layout: side by side** and **Layout: s
 | Delete request | Remove this request's file from the collection |
 | Copy response body | Copy the response body to the clipboard |
 | Reload collection | Read the collection from disk again |
+| Open gRPC stream | Call the method and keep sending messages until you end the stream. Only for a [gRPC request](./requests.md#open-streams). Shows as **End gRPC stream** while a stream is open |
 | Refresh gRPC methods | Look for the server's methods again. Only for a [gRPC request](./requests.md#finding-methods) |
 | Insert gRPC message template | Replace the message with a template for the chosen method. Only for a [gRPC request](./requests.md#messages-and-streams) |
 

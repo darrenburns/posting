@@ -231,7 +231,8 @@ The other tabs work as they do for an HTTP request, with these differences:
 - Basic and bearer auth are sent as `authorization` metadata. Digest auth needs an HTTP challenge,
   so the **Auth** tab doesn't offer it, and a request file with `type: digest` doesn't load.
 - The **Options** tab has **Verify SSL certificates**, **Substitute body variables** and
-  **Timeout**. The timeout is the deadline for the whole call, including connecting.
+  **Timeout**. The timeout is the deadline for the whole call, including connecting. An
+  [open stream](#open-streams) uses it only for connecting.
 
 ### Finding methods
 
@@ -289,10 +290,28 @@ Variables work as they do in a raw body: `$NAME` and `${NAME}` are both replaced
 suggests the variables you can use. Turn off **Substitute body variables** to send the message
 exactly as written. Press ++f4++ in the message to edit it in your own editor.
 
-Posting sends every message and closes its side of the call while it reads the server's replies, so
-a server that answers each message as it arrives works too. The response shows the replies when
-the call ends. Posting doesn't show messages as they arrive, and you can't send more messages while
-a call is running.
+When you press ++ctrl+j++, Posting sends every message and closes its side of the call while it
+reads the server's replies, so a server that answers each message as it arrives works too. The
+response shows each reply as it arrives, with `RECEIVING` in the response panel's title, until the
+call ends.
+
+#### Open streams
+
+To send messages one at a time while a call runs, open a stream instead. Press ++alt+j++, or choose
+**Open gRPC stream** in the command palette. Posting calls the method, sends the message, and keeps
+its side of the call open. The response panel's title shows `STREAM OPEN`. While the stream is open:
+
+- Press ++ctrl+j++ to send the message in the editor. Edit the message between sends to send a
+  different one. For a client-streaming or bidirectional method, a JSON array sends each object as
+  a message. A message that isn't valid for the method shows an error and sends nothing, and the
+  stream stays open.
+- Press ++alt+j++ again, or choose **End gRPC stream**, to close your side of the call. The server
+  then ends the call when it's ready, as a client-streaming server does when it replies.
+- Press ++escape++ to stop the call at once.
+
+An open stream has no timeout once it has connected. It runs until you end it, you stop it, or the
+server ends the call. For a unary or server-streaming method, an open stream sends only its first
+message, and is useful to watch a server stream for longer than the timeout.
 
 ### gRPC responses
 
@@ -314,7 +333,8 @@ when the server sent one, `grpc-message`. A call that ends without the server's 
 one that times out, has none.
 
 When a call runs past its timeout, the response shows the messages that arrived before the deadline,
-with the status `DEADLINE_EXCEEDED`. When Posting can't reach the server, or the server sends
+with the status `DEADLINE_EXCEEDED`. When you press ++escape++ after the server has answered, the
+response keeps the messages that arrived, with the status `CANCELLED`. When Posting can't reach the server, or the server sends
 nothing before the deadline, the response panel shows an error, as it does for an HTTP request.
 
 Posting keeps up to 64 MB of messages from a call, the same limit as an HTTP response body. When a

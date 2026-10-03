@@ -61,7 +61,8 @@ These are the actions you can rebind, with their default keys:
 
 | ID | Default | Action |
 |----|---------|--------|
-| `send-request` | ++ctrl+j++, ++alt+enter++ | Send the request |
+| `send-request` | ++ctrl+j++, ++alt+enter++ | Send the request, or send the message into an open gRPC stream |
+| `stream` | ++alt+j++ | Open a [gRPC stream](./requests.md#open-streams), or end the one that is open |
 | `jump` | ++ctrl+o++ | Enter [jump mode](./navigation.md#jump-mode) |
 | `commands` | ++ctrl+p++ | Open the [command palette](./command_palette.md) |
 | `save-request` | ++ctrl+s++ | Save the request to the collection |
@@ -82,8 +83,8 @@ These are the actions you can rebind, with their default keys:
 `expand-section` can't be fully rebound yet: ++alt+z++ keeps working inside the Request and
 Response panels, and a new key always expands the Request panel.
 
-A few keys are fixed: ++escape++ cancels a request that's in flight (or closes whatever dialog is
-open), ++ctrl+c++ quits, ++ctrl+z++ suspends Posting, and ++ctrl+shift+s++ saves a text screenshot
+A few keys are fixed: ++escape++ cancels a request that's in flight, or stops a gRPC call and keeps
+the messages that arrived (or closes whatever dialog is open), ++ctrl+c++ quits, ++ctrl+z++ suspends Posting, and ++ctrl+shift+s++ saves a text screenshot
 of the screen to the current directory.
 
 Many terminals send ++ctrl+h++ as ++backspace++. If ++ctrl+h++ doesn't toggle the sidebar for you,
