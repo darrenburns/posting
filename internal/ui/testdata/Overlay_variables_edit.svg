@@ -5040,19 +5040,19 @@
   <text x="108.8" y="703.8" fill="#2D2B43">0.0</text>
   <text x="134.0" y="703.8" fill="#2D2B42">-de</text>
   <text x="159.2" y="703.8" fill="#2D2B42">v</text>
-  <text x="201.2" y="703.8" fill="#572A4C">Enter</text>
-  <text x="251.6" y="703.8" fill="#39384F">Save</text>
-  <text x="293.6" y="703.8" fill="#572A4C">Esc</text>
-  <text x="327.2" y="703.8" fill="#39384F">Cancel</text>
-  <text x="386.0" y="703.8" fill="#572A4C">^J</text>
-  <text x="411.2" y="703.8" fill="#39384F">Send</text>
-  <text x="453.2" y="703.8" fill="#572A4C">^S</text>
-  <text x="478.4" y="703.8" fill="#39384F">Save</text>
-  <text x="520.4" y="703.8" fill="#572A4C">^N</text>
-  <text x="545.6" y="703.8" fill="#39384F">New</text>
-  <text x="579.2" y="703.8" fill="#39384F">tab</text>
-  <text x="612.8" y="703.8" fill="#572A4C">^P</text>
-  <text x="638.0" y="703.8" fill="#39384F">Commands</text>
-  <text x="713.6" y="703.8" fill="#572A4C">F1</text>
-  <text x="738.8" y="703.8" fill="#39384F">Help</text>
+  <text x="512.0" y="703.8" fill="#572A4C">Enter</text>
+  <text x="562.4" y="703.8" fill="#39384F">Save</text>
+  <text x="604.4" y="703.8" fill="#572A4C">Esc</text>
+  <text x="638.0" y="703.8" fill="#39384F">Cancel</text>
+  <text x="696.8" y="703.8" fill="#572A4C">^J</text>
+  <text x="722.0" y="703.8" fill="#39384F">Send</text>
+  <text x="764.0" y="703.8" fill="#572A4C">^S</text>
+  <text x="789.2" y="703.8" fill="#39384F">Save</text>
+  <text x="831.2" y="703.8" fill="#572A4C">^N</text>
+  <text x="856.4" y="703.8" fill="#39384F">New</text>
+  <text x="890.0" y="703.8" fill="#39384F">tab</text>
+  <text x="923.6" y="703.8" fill="#572A4C">^P</text>
+  <text x="948.8" y="703.8" fill="#39384F">Commands</text>
+  <text x="1024.4" y="703.8" fill="#572A4C">F1</text>
+  <text x="1049.6" y="703.8" fill="#39384F">Help</text>
 </svg>

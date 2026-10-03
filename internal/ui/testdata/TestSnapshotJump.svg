@@ -4998,13 +4998,13 @@
   <text x="142.4" y="703.8" fill="#494663">d</text>
   <text x="150.8" y="703.8" fill="#494663">e</text>
   <text x="159.2" y="703.8" fill="#494663">v</text>
-  <text x="201.2" y="703.8" class="bold" fill="#62607E">Jump</text>
-  <text x="251.6" y="703.8" fill="#62607E">Type</text>
-  <text x="293.6" y="703.8" fill="#62607E">a</text>
-  <text x="310.4" y="703.8" fill="#62607E">label</text>
-  <text x="360.8" y="703.8" fill="#62607E">to</text>
-  <text x="386.0" y="703.8" fill="#62607E">move</text>
-  <text x="428.0" y="703.8" fill="#62607E">there</text>
-  <text x="486.8" y="703.8" class="bold" fill="#9999A0">esc</text>
-  <text x="520.4" y="703.8" fill="#62607E">cancel</text>
+  <text x="713.6" y="703.8" class="bold" fill="#62607E">Jump</text>
+  <text x="764.0" y="703.8" fill="#62607E">Type</text>
+  <text x="806.0" y="703.8" fill="#62607E">a</text>
+  <text x="822.8" y="703.8" fill="#62607E">label</text>
+  <text x="873.2" y="703.8" fill="#62607E">to</text>
+  <text x="898.4" y="703.8" fill="#62607E">move</text>
+  <text x="940.4" y="703.8" fill="#62607E">there</text>
+  <text x="999.2" y="703.8" class="bold" fill="#9999A0">esc</text>
+  <text x="1032.8" y="703.8" fill="#62607E">cancel</text>
 </svg>

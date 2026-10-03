@@ -949,11 +949,10 @@ func (f footer) Build(ctx t.BuildContext) t.Widget {
 	f.app.tree.Selection.Get()
 	f.app.historyList.Selection.Get()
 	style := t.Style{ForegroundColor: theme.TextMuted}
-	var hints t.Widget = t.KeybindBar{Style: style, FormatKey: t.FormatKeyCaret}
+	var hints t.Widget = t.KeybindBar{Style: style, FormatKey: t.FormatKeyCaret, Width: t.Auto}
 	if f.app.jump.IsActive() {
 		text := t.ParseMarkupToText("[b $AccentText]Jump[/]  Type a label to move there  [b $Text]esc[/] cancel", theme)
 		text.Style = style
-		text.Style.Width = t.Flex(1)
 		hints = text
 	}
 	padding := t.EdgeInsetsXY(2, 0)
@@ -965,9 +964,9 @@ func (f footer) Build(ctx t.BuildContext) t.Widget {
 		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: padding, BackgroundColor: theme.Background},
 		Children: []t.Widget{
 			t.ShowWhen(f.app.settings.Heading.ShowVersion, logoGlow(theme, footerLogo{app: f.app})),
-			// The hints take the space the version leaves, and leave out
-			// those that don't fit.
-			hints,
+			// The hints sit at the right end of the space the version leaves,
+			// and leave out those that don't fit.
+			t.Row{Style: t.Style{Width: t.Flex(1)}, MainAlign: t.MainAxisEnd, Children: []t.Widget{hints}},
 		},
 	}
 }
