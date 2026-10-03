@@ -126,6 +126,9 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "Reload collection", Description: "Read the collection from disk again", Action: a.run(a.reloadCollection)},
 	}...)
 	if s := a.current(); s != nil {
+		if s.kind.Peek() == model.KindGRPC {
+			items = append(items, a.streamCommand(s))
+		}
 		if commands := kindViews[s.kind.Peek()].commands; commands != nil {
 			items = append(items, commands(a, s)...)
 		}

@@ -166,7 +166,11 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 		// An open stream runs until it is ended or cancelled: the timeout
 		// covered only connecting.
 		c.deadline = metadata.NewOutgoingContext(ctx, c.md)
-		call.Stream.start(c.streamParser(md, files))
+		var refusal error
+		if !md.IsStreamingClient() {
+			refusal = fmt.Errorf("%s is a %s method, so it takes only the message it started with", md.Name(), streamingOf(md))
+		}
+		call.Stream.start(c.streamParser(md, files), refusal)
 	}
 
 	marshal := protojson.MarshalOptions{EmitDefaultValues: true, Resolver: typesOf(files)}
@@ -208,9 +212,6 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 // variables as the request's own message was.
 func (c *grpcCall) streamParser(md protoreflect.MethodDescriptor, files *protoregistry.Files) func(string) ([]proto.Message, error) {
 	return func(text string) ([]proto.Message, error) {
-		if !streamingOf(md).clientStreams() {
-			return nil, fmt.Errorf("%s is a %s method, so it takes only the message it started with", md.Name(), streamingOf(md))
-		}
 		if c.req.Options.SubstituteBodyVariables {
 			text = model.Substitute(text, c.lookup)
 		}

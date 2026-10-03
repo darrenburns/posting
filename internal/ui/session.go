@@ -26,6 +26,21 @@ const (
 	exchangeCancelled
 )
 
+// streamPhase is where a gRPC stream opened with ctrl+o is up to. Its call
+// keeps the sending side open until the user ends it.
+type streamPhase int
+
+const (
+	streamNone streamPhase = iota
+	// streamStarting is before the call starts, when it can't take messages.
+	streamStarting
+	// streamOpen takes messages: sending puts the editor's message on it.
+	streamOpen
+	// streamEnded has its sending side closed, or a method whose client
+	// doesn't stream, and waits for the server to end the call.
+	streamEnded
+)
+
 // Session is one open request tab: the editor state for the request plus the
 // state of its most recent exchange. All mutation happens on the UI goroutine.
 //
@@ -122,6 +137,11 @@ type Session struct {
 	spinner                *t.SpinnerState
 	generation             uint64
 	cancel                 context.CancelFunc
+	// live is set once the exchange in flight has shown part of its response.
+	live bool
+	// stream is the open stream of the exchange in flight, if it has one.
+	stream    *client.Stream
+	streaming t.Signal[streamPhase]
 	// dispatch schedules exchange updates on the UI goroutine.
 	dispatch func(func())
 
@@ -174,6 +194,7 @@ func newSession(id int, req model.Request) *Session {
 		traceScroll:   t.NewScrollState(),
 
 		phase:                  t.NewSignal(exchangeIdle),
+		streaming:              t.NewSignal(streamNone),
 		err:                    t.NewAnySignal[error](nil),
 		trace:                  t.NewAnySignal[[]model.TraceEvent](nil),
 		response:               t.NewAnySignal[*model.Response](nil),
@@ -473,18 +494,22 @@ func sameKVs(a, b []model.KeyValue) bool {
 }
 
 // Send starts an exchange using sender. Any in-flight exchange is cancelled.
-// onDone runs on the UI goroutine when a response arrives.
-func (s *Session) Send(sender client.Sender, variables map[string]string, onDone func(model.Request, *model.Response, model.Status)) {
+// A gRPC call opens stream when it isn't nil. The response shows as it
+// arrives, and onDone runs on the UI goroutine once it has all arrived.
+func (s *Session) Send(sender client.Sender, variables map[string]string, stream *client.Stream, onDone func(model.Request, *model.Response, model.Status)) {
 	s.Cancel()
 	req := s.Snapshot()
 	ctx, cancel := context.WithCancel(context.Background())
 	s.generation++
 	generation := s.generation
 	s.cancel = cancel
+	s.live = false
+	s.stream = stream
 	s.phase.Set(exchangeSending)
 	s.err.Set(nil)
 	s.trace.Set(nil)
 	s.spinner.Start()
+	inFlight := func() bool { return generation == s.generation && s.phase.Peek() == exchangeSending }
 
 	call := client.Call{
 		Request:   req,
@@ -496,6 +521,32 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, onDone
 				}
 			})
 		},
+		OnUpdate: func(resp *model.Response) {
+			s.dispatch(func() {
+				if inFlight() {
+					s.showLive(req, resp)
+				}
+			})
+		},
+		Stream: stream,
+	}
+	if stream != nil {
+		s.streaming.Set(streamStarting)
+		go func() {
+			select {
+			case <-stream.Ready():
+			case <-ctx.Done():
+				return
+			}
+			s.dispatch(func() {
+				if inFlight() && s.streaming.Peek() == streamStarting {
+					s.streaming.Set(streamEnded)
+					if stream.TakesMessages() {
+						s.streaming.Set(streamOpen)
+					}
+				}
+			})
+		}()
 	}
 	go func() {
 		resp, err := sender.Send(ctx, call)
@@ -506,9 +557,11 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, onDone
 			cancelled := ctx.Err() != nil
 			s.cancel = nil
 			cancel()
+			s.endStream()
 			s.spinner.Stop()
 			switch {
-			case cancelled:
+			// A call the server answered is a response even once stopped.
+			case err != nil && cancelled:
 				s.phase.Set(exchangeCancelled)
 			case err != nil:
 				s.err.Set(err)
@@ -533,8 +586,37 @@ func (s *Session) Cancel() {
 	s.cancel()
 	s.cancel = nil
 	s.generation++
+	s.endStream()
 	s.spinner.Stop()
 	s.phase.Set(exchangeCancelled)
+}
+
+// Stop cancels the in-flight exchange but, unlike Cancel, still shows what
+// it returns, so stopping a stream keeps the messages that arrived.
+func (s *Session) Stop() {
+	if s.cancel != nil {
+		s.cancel()
+	}
+}
+
+func (s *Session) endStream() {
+	s.stream = nil
+	s.streaming.Set(streamNone)
+}
+
+// showLive shows the response so far of the exchange in flight, sent as
+// req. After the first, an update keeps the body's cursor and scroll, so
+// reading earlier messages isn't interrupted.
+func (s *Session) showLive(req model.Request, resp *model.Response) {
+	if !s.live {
+		s.live = true
+		s.sent = req
+		s.showResponse(resp, nil)
+		return
+	}
+	s.response.Set(resp)
+	s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
+	s.responseHeaders.SetRows(resp.Headers)
 }
 
 // showResponse displays resp. entry is non-nil when it came from history.
