@@ -1,0 +1,27 @@
+{
+  "version": "1",
+  "name": "Grpcbin",
+  "type": "collection",
+  "protobuf": {
+    "protoFiles": [
+      {
+        "path": "protos/hello.proto",
+        "type": "file"
+      },
+      {
+        "path": "../protos/services/product.proto",
+        "type": "file"
+      }
+    ],
+    "importPaths": [
+      {
+        "path": "../protos/types",
+        "enabled": false
+      },
+      {
+        "path": "protos",
+        "enabled": true
+      }
+    ]
+  }
+}

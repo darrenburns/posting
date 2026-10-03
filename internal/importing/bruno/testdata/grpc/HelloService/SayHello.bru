@@ -1,0 +1,28 @@
+meta {
+  name: SayHello
+  type: grpc
+  seq: 1
+}
+
+grpc {
+  url: grpc://localhost:50051
+  method: /hello.HelloService/SayHello
+  body: grpc
+  protoPath: protos/hello.proto
+  auth: inherit
+  methodType: unary
+}
+
+metadata {
+  test-bin: hello
+  ~test: hello
+}
+
+body:grpc {
+  name: message 1
+  content: '''
+    {
+      "greeting": "{{name}}"
+    }
+  '''
+}
