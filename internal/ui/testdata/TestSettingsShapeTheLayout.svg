@@ -4900,18 +4900,17 @@
   <rect x="1074.8" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="694.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <text x="33.2" y="703.8" fill="#FF69B4">^O</text>
-  <text x="58.4" y="703.8" fill="#9A96BE">Jump</text>
-  <text x="100.4" y="703.8" fill="#FF69B4">^J</text>
-  <text x="125.6" y="703.8" fill="#9A96BE">Send</text>
-  <text x="167.6" y="703.8" fill="#FF69B4">^S</text>
-  <text x="192.8" y="703.8" fill="#9A96BE">Save</text>
-  <text x="234.8" y="703.8" fill="#FF69B4">^N</text>
-  <text x="260.0" y="703.8" fill="#9A96BE">New</text>
-  <text x="293.6" y="703.8" fill="#9A96BE">tab</text>
-  <text x="327.2" y="703.8" fill="#FF69B4">^P</text>
-  <text x="352.4" y="703.8" fill="#9A96BE">Commands</text>
-  <text x="428.0" y="703.8" fill="#FF69B4">F1</text>
-  <text x="453.2" y="703.8" fill="#9A96BE">Help</text>
-  <path d="M 785.0000 694.0000 L 785.0000 713.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
+  <text x="629.6" y="703.8" fill="#FF69B4">^O</text>
+  <text x="654.8" y="703.8" fill="#9A96BE">Jump</text>
+  <text x="696.8" y="703.8" fill="#FF69B4">^J</text>
+  <text x="722.0" y="703.8" fill="#9A96BE">Send</text>
+  <text x="764.0" y="703.8" fill="#FF69B4">^S</text>
+  <text x="789.2" y="703.8" fill="#9A96BE">Save</text>
+  <text x="831.2" y="703.8" fill="#FF69B4">^N</text>
+  <text x="856.4" y="703.8" fill="#9A96BE">New</text>
+  <text x="890.0" y="703.8" fill="#9A96BE">tab</text>
+  <text x="923.6" y="703.8" fill="#FF69B4">^P</text>
+  <text x="948.8" y="703.8" fill="#9A96BE">Commands</text>
+  <text x="1024.4" y="703.8" fill="#FF69B4">F1</text>
+  <text x="1049.6" y="703.8" fill="#9A96BE">Help</text>
 </svg>

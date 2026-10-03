@@ -12,7 +12,7 @@ const (
 	mastodonURL = "https://fosstodon.org/@darrenburns"
 )
 
-// footerLogo is the name and version at the end of the footer. Clicking it
+// footerLogo is the name and version at the start of the footer. Clicking it
 // opens a menu of links: the docs, sponsorship and Mastodon. It has no
 // padding or background of its own, so it sits on the glow that surrounds it.
 type footerLogo struct{ app *App }
@@ -26,7 +26,7 @@ func (l footerLogo) Build(ctx t.BuildContext) t.Widget {
 				ID:        logoMenuID,
 				State:     a.logoMenu,
 				AnchorID:  logoID,
-				Anchor:    t.AnchorTopRight,
+				Anchor:    t.AnchorTopLeft,
 				OnDismiss: a.closeLogoMenu,
 			}),
 		},
