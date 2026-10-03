@@ -69,6 +69,7 @@ type grpcCall struct {
 	// replace with its own, so it goes to the dialer instead. "" is unset.
 	userAgent string
 	timeout   float64
+	lookup    func(string) (string, bool)
 	// deadline carries the call's metadata and its timeout, once started.
 	deadline context.Context
 }
@@ -92,7 +93,7 @@ func prepare(call Call) (*grpcCall, error) {
 	if timeout <= 0 {
 		timeout = model.DefaultOptions().TimeoutSeconds
 	}
-	return &grpcCall{req: req, payload: payload, md: md, userAgent: userAgent, timeout: timeout}, nil
+	return &grpcCall{req: req, payload: payload, md: md, userAgent: userAgent, timeout: timeout, lookup: call.Lookup}, nil
 }
 
 // start begins the call's timeout.
@@ -106,7 +107,11 @@ func (c *grpcCall) start(ctx context.Context) context.CancelFunc {
 // response. One grpc-go made up before the server said anything, such as
 // UNAVAILABLE for a refused connection, is an error, as a failed HTTP
 // request is.
+//
+// A call the server answered is a response even when ctx is cancelled, so
+// cancelling a stream keeps what arrived, with the status CANCELLED.
 func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
+	defer call.Stream.end()
 	c, err := prepare(call)
 	if err != nil {
 		return nil, err
@@ -157,22 +162,60 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 			return nil, err
 		}
 	}
+	if call.Stream != nil {
+		// An open stream runs until it is ended or cancelled: the timeout
+		// covered only connecting.
+		c.deadline = metadata.NewOutgoingContext(ctx, c.md)
+		call.Stream.start(c.streamParser(md, files))
+	}
 
-	ex := invoke(c.deadline, conn, md, in, trace, g.maxResponse)
-	if !trace.answered() || ctx.Err() != nil {
+	marshal := protojson.MarshalOptions{EmitDefaultValues: true, Resolver: typesOf(files)}
+	var live *progress
+	if call.OnUpdate != nil {
+		live = &progress{report: func(header metadata.MD, messages [][]byte) {
+			call.OnUpdate(&model.Response{
+				Proto:           "gRPC",
+				Headers:         metadataHeaders(header),
+				Body:            messagesBody(md, messages),
+				BodyContentType: "application/json",
+				Elapsed:         time.Since(started),
+				URL:             c.req.URL,
+			})
+		}}
+	}
+	ex := invoke(c.deadline, conn, md, in, call.Stream, trace, g.maxResponse, marshal, live)
+	live.stop()
+	if !trace.answered() {
 		trace.end(model.TraceFailed)
 		return nil, c.explain(ctx, ex.status.Err())
 	}
-	if ex.status.Code() == codes.Canceled && c.atDeadline(ex.status.Err()) {
+	switch {
+	case ctx.Err() != nil:
+		ex.status = status.New(codes.Canceled, "the call was cancelled")
+	case ex.status.Code() == codes.Canceled && c.atDeadline(ex.status.Err()):
 		ex.status = status.FromContextError(context.DeadlineExceeded)
 	}
 	trace.end(model.TraceComplete)
-	resp := responseOf(md, ex, files)
+	resp := responseOf(md, ex, marshal)
 	resp.Elapsed = time.Since(started)
 	resp.ReceivedAt = time.Now()
 	resp.Trace = trace.trace()
 	resp.URL = c.req.URL
 	return resp, nil
+}
+
+// streamParser reads the messages sent through an open stream, substituting
+// variables as the request's own message was.
+func (c *grpcCall) streamParser(md protoreflect.MethodDescriptor, files *protoregistry.Files) func(string) ([]proto.Message, error) {
+	return func(text string) ([]proto.Message, error) {
+		if !streamingOf(md).clientStreams() {
+			return nil, fmt.Errorf("%s is a %s method, so it takes only the message it started with", md.Name(), streamingOf(md))
+		}
+		if c.req.Options.SubstituteBodyVariables {
+			text = model.Substitute(text, c.lookup)
+		}
+		return parseMessages(md, text, files)
+	}
 }
 
 // Describe lists the methods of the request's schema: its proto files, which
@@ -571,25 +614,27 @@ func (c *grpcCall) atDeadline(err error) bool {
 	if code := status.Code(err); code != codes.Canceled && code != codes.DeadlineExceeded {
 		return false
 	}
-	deadline, _ := c.deadline.Deadline()
-	return time.Until(deadline) < 100*time.Millisecond
+	deadline, ok := c.deadline.Deadline()
+	return ok && time.Until(deadline) < 100*time.Millisecond
 }
 
 // exchange is what came back from one call.
 type exchange struct {
 	header, trailer metadata.MD
-	messages        []proto.Message
-	status          *status.Status
+	// messages are the server's messages as JSON.
+	messages [][]byte
+	status   *status.Status
 	// trailed is whether the server sent trailers, and so status.
 	trailed bool
 }
 
-// invoke runs a call of any shape. It sends every message and closes its
-// side on another goroutine while it reads until the server ends the call,
-// so a server that replies as it reads, filling the flow-control window,
-// never waits on Posting. Once the messages read pass limit bytes, it keeps
-// those before and cancels the call.
-func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDescriptor, in []proto.Message, trace *grpcTrace, limit int) exchange {
+// invoke runs a call of any shape. It sends every message, then those sent
+// through open while it is open, and closes its side on another goroutine
+// while it reads until the server ends the call, so a server that replies as
+// it reads, filling the flow-control window, never waits on Posting. Each
+// message read goes to live as it arrives. Once the messages read pass limit
+// bytes, it keeps those before and cancels the call.
+func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDescriptor, in []proto.Message, open *Stream, trace *grpcTrace, limit int, marshal protojson.MarshalOptions, live *progress) exchange {
 	desc := &grpc.StreamDesc{StreamName: string(md.Name()), ServerStreams: md.IsStreamingServer(), ClientStreams: md.IsStreamingClient()}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -601,7 +646,10 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 	}
 	sent := make(chan error, 1)
 	go func() {
-		err := sendAll(stream, in)
+		if !md.IsStreamingClient() {
+			open = nil
+		}
+		err := sendAll(ctx, stream, in, open)
 		if err != nil {
 			cancel()
 		}
@@ -620,11 +668,18 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 			cancel()
 			break
 		}
-		ex.messages = append(ex.messages, out)
+		message := marshalJSON(marshal, out)
+		ex.messages = append(ex.messages, message)
+		if len(ex.messages) == 1 {
+			ex.header, _ = stream.Header()
+		}
+		live.add(ex.header, message)
 	}
 	if err == io.EOF {
 		err = nil
 	}
+	// The server has ended the call, so nothing more can be sent.
+	open.end()
 	sendErr := <-sent
 	ex.header, _ = stream.Header()
 	ex.trailer = stream.Trailer()
@@ -642,15 +697,22 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 	return ex
 }
 
-// sendAll sends every message and closes the client's side. io.EOF from
-// SendMsg means the server ended the call early, and RecvMsg has its status.
-func sendAll(stream grpc.ClientStream, in []proto.Message) error {
-	for _, msg := range in {
-		if err := stream.SendMsg(msg); err == io.EOF {
-			return nil
-		} else if err != nil {
-			return err
+// sendAll sends every message, then those sent through open until it is
+// closed, and closes the client's side. io.EOF from SendMsg means the server
+// ended the call early, and RecvMsg has its status.
+func sendAll(ctx context.Context, stream grpc.ClientStream, in []proto.Message, open *Stream) error {
+	for len(in) > 0 {
+		for _, msg := range in {
+			if err := stream.SendMsg(msg); err == io.EOF {
+				return nil
+			} else if err != nil {
+				return err
+			}
 		}
+		if open == nil {
+			break
+		}
+		in = open.next(ctx)
 	}
 	return stream.CloseSend()
 }
@@ -659,30 +721,10 @@ func sendAll(stream grpc.ClientStream, in []proto.Message) error {
 // and messages as JSON. The body follows the method's shape: an object for
 // a method that returns one message, an array for one that streams them.
 // A failed call with no messages shows its status, with its details.
-func responseOf(md protoreflect.MethodDescriptor, ex exchange, files *protoregistry.Files) *model.Response {
-	types := typesOf(files)
-	marshal := protojson.MarshalOptions{EmitDefaultValues: true, Resolver: types}
-	var body []byte
-	switch {
-	case ex.status.Code() != codes.OK && len(ex.messages) == 0:
-		body = statusBody(ex.status, marshal)
-	case md.IsStreamingServer():
-		var b bytes.Buffer
-		b.WriteByte('[')
-		for i, msg := range ex.messages {
-			if i > 0 {
-				b.WriteByte(',')
-			}
-			b.Write(marshalJSON(marshal, msg))
-		}
-		b.WriteByte(']')
-		body = b.Bytes()
-	case len(ex.messages) > 0:
-		body = marshalJSON(marshal, ex.messages[0])
-	}
-	var pretty bytes.Buffer
-	if json.Indent(&pretty, body, "", "  ") == nil {
-		body = pretty.Bytes()
+func responseOf(md protoreflect.MethodDescriptor, ex exchange, marshal protojson.MarshalOptions) *model.Response {
+	body := messagesBody(md, ex.messages)
+	if ex.status.Code() != codes.OK && len(ex.messages) == 0 {
+		body = indentJSON(statusBody(ex.status, marshal))
 	}
 	var trailers []model.Header
 	if ex.trailed {
@@ -699,6 +741,26 @@ func responseOf(md protoreflect.MethodDescriptor, ex exchange, files *protoregis
 		BodyContentType: "application/json",
 		GRPC:            &model.GRPCStatus{Code: int(ex.status.Code()), Message: ex.status.Message()},
 	}
+}
+
+// messagesBody is the server's messages, each JSON, as the body shows them:
+// an array for a method that streams them, otherwise the one message.
+func messagesBody(md protoreflect.MethodDescriptor, messages [][]byte) []byte {
+	if !md.IsStreamingServer() {
+		if len(messages) == 0 {
+			return nil
+		}
+		return indentJSON(messages[0])
+	}
+	return indentJSON(append(append([]byte{'['}, bytes.Join(messages, []byte{','})...), ']'))
+}
+
+func indentJSON(data []byte) []byte {
+	var pretty bytes.Buffer
+	if json.Indent(&pretty, data, "", "  ") != nil {
+		return data
+	}
+	return pretty.Bytes()
 }
 
 func marshalJSON(options protojson.MarshalOptions, msg proto.Message) []byte {

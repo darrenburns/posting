@@ -22,6 +22,14 @@ type Call struct {
 	// OnTrace, when set, receives progress for each stage of the exchange.
 	// It may be called from any goroutine; the UI marshals it safely.
 	OnTrace func(model.TraceEvent)
+	// OnUpdate, when set, receives a gRPC call's response so far as its
+	// messages arrive, before Send returns the whole of it. It may be called
+	// from any goroutine.
+	OnUpdate func(*model.Response)
+	// Stream, when set, keeps a gRPC call's sending side open after the
+	// request's own messages, for more sent through it, and lifts the
+	// timeout once the call starts.
+	Stream *Stream
 }
 
 // Sender performs requests. Implementations must honour ctx cancellation:
