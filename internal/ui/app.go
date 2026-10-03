@@ -536,11 +536,53 @@ func (a *App) cycleSession(delta int) {
 // ---------------------------------------------------------------------------
 // Actions
 
+// send sends the current request, or while it has a stream open, sends the
+// message being edited through it.
 func (a *App) send() {
 	s := a.current()
 	if s == nil {
 		return
 	}
+	if s.streaming.Peek() == streamOpen {
+		message := s.payloads[model.KindGRPC].(*grpcEditor).message.GetText()
+		if err := s.stream.Send(message); err != nil {
+			a.notify(err.Error(), toastWarning)
+		}
+		return
+	}
+	a.start(s, nil)
+}
+
+// toggleStream opens a stream for the current gRPC request, or ends the
+// sending side of the one open.
+func (a *App) toggleStream() {
+	s := a.current()
+	switch {
+	case s == nil:
+	case s.kind.Peek() != model.KindGRPC:
+		a.notify("Only gRPC requests can open a stream", toastWarning)
+	case s.streaming.Peek() == streamStarting:
+		a.notify("The stream hasn't started yet", toastWarning)
+	case s.streaming.Peek() == streamOpen:
+		s.stream.Close()
+		s.streaming.Set(streamEnded)
+	default:
+		a.start(s, client.NewStream())
+	}
+}
+
+// streamCommand is the palette's command to open a stream for s, or end
+// the one open. It lives outside grpcCommands, which kindViews holds, since
+// opening a stream reads kindViews.
+func (a *App) streamCommand(s *Session) t.CommandPaletteItem {
+	if s.streaming.Peek() == streamOpen {
+		return t.CommandPaletteItem{Label: "End gRPC stream", Description: "Stop sending, and wait for the server to end the call", Action: a.run(a.toggleStream)}
+	}
+	return t.CommandPaletteItem{Label: "Open gRPC stream", Description: "Call the method and keep sending messages until you end the stream", Action: a.run(a.toggleStream)}
+}
+
+// start sends s's request, opening stream when it isn't nil.
+func (a *App) start(s *Session, stream *client.Stream) {
 	if strings.TrimSpace(s.url.GetText()) == "" {
 		a.notify("Enter a URL before sending", toastWarning)
 		t.RequestFocus(urlInputID)
@@ -558,7 +600,7 @@ func (a *App) send() {
 		a.notify(err.Error(), toastWarning)
 		return
 	}
-	s.Send(a.sender, variables, func(req model.Request, resp *model.Response, status model.Status) {
+	s.Send(a.sender, variables, stream, func(req model.Request, resp *model.Response, status model.Status) {
 		if req.Kind() == model.GRPCKind {
 			// The call has just reached the server, so asking it for its
 			// methods contacts no one new.
@@ -589,7 +631,7 @@ func (a *App) send() {
 
 func (a *App) cancelSend() {
 	if s := a.current(); s != nil && s.phase.Peek() == exchangeSending {
-		s.Cancel()
+		s.Stop()
 		a.notify("Request cancelled", toastWarning)
 	}
 }
@@ -1005,10 +1047,15 @@ type footer struct {
 
 func (f footer) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
-	// The sidebar's hints count what is selected (see collectionView), and
-	// the keybind bar only rebuilds by itself when focus moves.
+	// The sidebar's hints count what is selected (see collectionView), the
+	// stream action is named for the stream's phase, and the keybind bar
+	// only rebuilds by itself when focus moves.
 	f.app.tree.Selection.Get()
 	f.app.historyList.Selection.Get()
+	if s := f.app.current(); s != nil {
+		s.kind.Get()
+		s.streaming.Get()
+	}
 	style := t.Style{ForegroundColor: theme.TextMuted}
 	var hints t.Widget = t.KeybindBar{Style: style, FormatKey: t.FormatKeyCaret}
 	if f.app.jump.IsActive() {

@@ -33,9 +33,20 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	s := p.session
 	resp := s.response.Get()
 	phase := s.phase.Get()
+	streaming := s.streaming.Get()
+	live := phase == exchangeSending && s.live
 
 	title, subtitle := "", ""
-	if resp != nil {
+	switch {
+	case live:
+		label := "RECEIVING"
+		if streaming == streamOpen {
+			label = "STREAM OPEN"
+		}
+		fg, bg := statusColors(theme, model.StatusClassWarning)
+		title = fmt.Sprintf(" [b %s on %s] %s [/]", fg.Hex(), bg.Hex(), label)
+		subtitle = p.streamHints(streaming)
+	case resp != nil:
 		status := s.responseStatus
 		fg, bg := statusColors(theme, status.Class)
 		title = fmt.Sprintf(" [b %s on %s] %s [/]", fg.Hex(), bg.Hex(), statusText(status))
@@ -53,6 +64,23 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 			message = err.Error()
 		}
 		content = emptyState{Title: "Request failed", Lines: []string{"[$Error]" + escapeMarkup(message) + "[/]", "Press [b]ctrl+j[/] to try again"}}
+	case phase == exchangeSending && !s.live && streaming != streamNone:
+		label := "Opening stream…"
+		if streaming != streamStarting {
+			label = "Waiting for the server…"
+		}
+		content = t.Column{
+			Style:      t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+			MainAlign:  t.MainAxisCenter,
+			CrossAlign: t.CrossAxisCenter,
+			Children: []t.Widget{
+				t.Row{Spacing: 1, Children: []t.Widget{
+					t.Spinner{State: s.spinner, Style: t.Style{ForegroundColor: theme.AccentText}},
+					t.Text{Content: label, Style: t.Style{ForegroundColor: theme.Text}},
+				}},
+				t.ParseMarkupToText(p.streamHints(streaming), theme),
+			},
+		}
 	case resp == nil && phase == exchangeSending:
 		content = t.Column{
 			Style:      t.Style{Width: t.Flex(1), Height: t.Flex(1)},
@@ -81,6 +109,20 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 		Height:    t.Flex(1),
 		Child:     content,
 	}
+}
+
+// streamHints are the keys for the exchange in flight: sending into and
+// ending a stream that is open, and stopping the call.
+func (p responsePanel) streamHints(streaming streamPhase) string {
+	hint := func(key, what string) string {
+		return "[$TextMuted][b]" + escapeMarkup(key) + "[/] " + what + "[/]"
+	}
+	var hints []string
+	if streaming == streamOpen {
+		hints = append(hints, hint(p.app.keyHint("send-request"), "sends the message"), hint(p.app.keyHint("stream"), "ends the stream"))
+	}
+	hints = append(hints, hint("esc", "stops the call"))
+	return strings.Join(hints, "[$TextMuted] · [/]")
 }
 
 type responseTabs struct {

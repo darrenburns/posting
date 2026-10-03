@@ -9,6 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
+
 	"github.com/darrenburns/posting/internal/model"
 )
 
@@ -169,6 +173,9 @@ func (f Fake) sendGRPC(ctx context.Context, call Call) (*model.Response, error) 
 		status = &model.GRPCStatus{Code: 5, Message: "no such thing"}
 		body = []byte(`{"code": "NOT_FOUND", "message": "no such thing"}`)
 	}
+	if call.Stream != nil {
+		body, status = f.echoStream(ctx, call, body)
+	}
 	return &model.Response{
 		Proto:           "gRPC",
 		Headers:         []model.Header{{Name: "content-type", Value: "application/grpc"}, {Name: "server", Value: "posting-fake/3.0"}},
@@ -181,6 +188,45 @@ func (f Fake) sendGRPC(ctx context.Context, call Call) (*model.Response, error) 
 		Trace:           trace,
 		URL:             req.URL,
 	}, nil
+}
+
+// echoStream answers an open stream: it echoes the call's first message and
+// each one sent through the stream, as they arrive, until the stream ends.
+func (f Fake) echoStream(ctx context.Context, call Call, first []byte) ([]byte, *model.GRPCStatus) {
+	var messages [][]byte
+	echo := func(message []byte) {
+		messages = append(messages, message)
+		if call.OnUpdate != nil {
+			call.OnUpdate(&model.Response{Proto: "gRPC", Body: messagesJSON(messages), BodyContentType: "application/json"})
+		}
+	}
+	echo(first)
+	call.Stream.start(func(text string) ([]proto.Message, error) {
+		value := &structpb.Value{}
+		if err := protojson.Unmarshal([]byte(text), value); err != nil {
+			return nil, fmt.Errorf("the message isn't valid JSON: %v", err)
+		}
+		return []proto.Message{value}, nil
+	}, nil)
+	for {
+		sent := call.Stream.next(ctx)
+		if len(sent) == 0 {
+			break
+		}
+		for _, message := range sent {
+			data, _ := protojson.Marshal(message)
+			echo(data)
+		}
+	}
+	status := &model.GRPCStatus{}
+	if ctx.Err() != nil {
+		status = &model.GRPCStatus{Code: 1, Message: "the call was cancelled"}
+	}
+	return messagesJSON(messages), status
+}
+
+func messagesJSON(messages [][]byte) []byte {
+	return []byte("[" + string(bytes.Join(messages, []byte(","))) + "]")
 }
 
 // Describe returns the same schema whatever is asked: a greeter service

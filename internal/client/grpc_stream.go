@@ -18,12 +18,14 @@ type Stream struct {
 	mu sync.Mutex
 	// parse reads message text for the call's method. It is nil until the
 	// call has its schema.
-	parse  func(text string) ([]proto.Message, error)
-	queue  []proto.Message
-	closed bool
-	ended  bool
-	wake   chan struct{}
-	ready  chan struct{}
+	parse func(text string) ([]proto.Message, error)
+	// refusal is why a call whose client doesn't stream takes nothing more.
+	refusal error
+	queue   []proto.Message
+	closed  bool
+	ended   bool
+	wake    chan struct{}
+	ready   chan struct{}
 }
 
 // NewStream returns a stream for one call, to pass in its Call.
@@ -48,6 +50,8 @@ func (s *Stream) Send(text string) error {
 		return errors.New("the stream was ended, so it takes no more messages")
 	case s.parse == nil:
 		return errors.New("the call hasn't started yet")
+	case s.refusal != nil:
+		return s.refusal
 	}
 	messages, err := s.parse(text)
 	if err != nil {
@@ -66,14 +70,23 @@ func (s *Stream) Close() {
 	s.signal()
 }
 
-// start lets the stream take messages, read by parse.
-func (s *Stream) start(parse func(text string) ([]proto.Message, error)) {
+// TakesMessages reports whether Send would take a message now: the call has
+// started, its client streams, and neither side has ended it.
+func (s *Stream) TakesMessages() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.parse != nil && s.refusal == nil && !s.closed && !s.ended
+}
+
+// start lets the stream take messages, read by parse, or refuse each with
+// refusal when it isn't nil.
+func (s *Stream) start(parse func(text string) ([]proto.Message, error), refusal error) {
 	if s == nil {
 		return
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.parse = parse
+	s.parse, s.refusal = parse, refusal
 	close(s.ready)
 }
 
