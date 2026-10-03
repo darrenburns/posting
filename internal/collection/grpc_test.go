@@ -72,6 +72,7 @@ func TestParseGRPC(t *testing.T) {
 		{"no block", "kind: grpc\nurl: localhost:1\n", model.GRPC{}},
 		{"kind ignores case", "kind: gRPC\nurl: localhost:1\ngrpc:\n  method: a.B/C\n", model.GRPC{Method: "a.B/C"}},
 		{"empty proto lists read as reflection", "kind: grpc\ngrpc:\n  proto:\n    files: []\n    import_paths: []\n", model.GRPC{}},
+		{"authority", "kind: grpc\ngrpc:\n  method: a.B/C\n  authority: books.internal\n", model.GRPC{Method: "a.B/C", Authority: "books.internal"}},
 		{"proto files without import paths", "kind: grpc\ngrpc:\n  proto:\n    files: [a.protoset]\n", model.GRPC{Protos: model.ProtoSet{Files: []string{"a.protoset"}}}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -142,5 +143,19 @@ func TestParseKeepsHTTPOnlyOptionsForGraphQL(t *testing.T) {
 	req, err = ParseRequest([]byte("kind: graphql\nurl: https://x\nauth:\n  type: digest\n  digest:\n    username: a\n    password: b\n"), "")
 	if want := (model.Auth{Type: model.AuthDigest, Username: "a", Password: "b"}); err != nil || req.Auth != want {
 		t.Fatalf("GraphQL digest auth parsed as %+v, %v", req.Auth, err)
+	}
+}
+
+func TestGRPCFileKeepsTheAuthority(t *testing.T) {
+	req := model.GRPCKind.New()
+	req.URL = "unix:///run/books.sock"
+	req.Payload = model.GRPC{Method: "a.B/C", Authority: "books.internal"}
+	data, err := MarshalRequest(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "kind: grpc\nurl: unix:///run/books.sock\ngrpc:\n  method: a.B/C\n  authority: books.internal\n"
+	if string(data) != want {
+		t.Fatalf("got\n%s\nwant\n%s", data, want)
 	}
 }

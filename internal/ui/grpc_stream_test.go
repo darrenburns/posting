@@ -92,3 +92,19 @@ func TestGRPCLiveResponseShowsOnScreen(tt *testing.T) {
 		}
 	}
 }
+
+func TestGRPCAuthorityIsEditedOnTheOptionsTab(tt *testing.T) {
+	app := testApp()
+	req := grpcRequest()
+	req.Payload = model.GRPC{Method: "a.B/C", Authority: "books.internal"}
+	app.openRequest(req)
+	s := app.current()
+	e := s.payloads[model.KindGRPC].(*grpcEditor)
+	if got := e.authority.GetText(); got != "books.internal" {
+		tt.Fatalf("authority field = %q", got)
+	}
+	e.authority.SetText(" ${HOST} ")
+	if got := s.Snapshot().Payload.(model.GRPC).Authority; got != "${HOST}" {
+		tt.Errorf("snapshot authority = %q", got)
+	}
+}

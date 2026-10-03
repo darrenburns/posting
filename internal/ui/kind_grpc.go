@@ -33,6 +33,9 @@ type grpcEditor struct {
 	filesScroll   *t.ScrollState
 	imports       *t.TextAreaState
 	importsScroll *t.ScrollState
+	// authority is on the Options tab.
+	authority     *t.TextInputState
+	authorityVars *completion
 
 	catalog t.AnySignal[catalog]
 	// cancel stops the discovery under way, if any.
@@ -55,6 +58,8 @@ func newGRPCEditor(s *Session) payloadEditor {
 		filesScroll:   t.NewScrollState(),
 		imports:       t.NewTextAreaState(""),
 		importsScroll: t.NewScrollState(),
+		authority:     t.NewTextInputState(""),
+		authorityVars: newCompletion(),
 		catalog:       t.NewAnySignal(catalog{}),
 	}
 }
@@ -65,6 +70,7 @@ func (e *grpcEditor) load(req model.Request) {
 	e.message.SetText(g.Message)
 	e.files.SetText(strings.Join(g.Protos.Files, "\n"))
 	e.imports.SetText(strings.Join(g.Protos.ImportPaths, "\n"))
+	e.authority.SetText(g.Authority)
 	for _, area := range []*t.TextAreaState{e.message, e.files, e.imports} {
 		area.ClearSelection()
 		area.CursorIndex.Set(0)
@@ -76,9 +82,10 @@ func (e *grpcEditor) load(req model.Request) {
 
 func (e *grpcEditor) payload() model.Payload {
 	return model.GRPC{
-		Method:  e.method.GetText(),
-		Message: e.message.GetText(),
-		Protos:  model.ProtoSet{Files: lines(e.files.GetText()), ImportPaths: lines(e.imports.GetText())},
+		Method:    e.method.GetText(),
+		Message:   e.message.GetText(),
+		Protos:    model.ProtoSet{Files: lines(e.files.GetText()), ImportPaths: lines(e.imports.GetText())},
+		Authority: strings.TrimSpace(e.authority.GetText()),
 	}
 }
 
@@ -279,8 +286,9 @@ func catalogKey(req model.Request, variables map[string]string) (string, schemaS
 	}
 	auth := resolved.Auth
 	fmt.Fprintf(credentials, "%s\x00%s\x00%s\x00%s", auth.Type, auth.Username, auth.Password, auth.Token)
-	key := fmt.Sprintf("server\x00%s\x00%v\x00%v\x00%x", target.Authority, target.TLS, req.Options.VerifySSL, credentials.Sum(nil))
-	return key, schemaSource{address: target.Authority, tls: target.TLS}, nil
+	authority := resolved.Payload.(model.GRPC).Authority
+	key := fmt.Sprintf("server\x00%s\x00%s\x00%v\x00%v\x00%x", target, authority, target.TLS, req.Options.VerifySSL, credentials.Sum(nil))
+	return key, schemaSource{address: target.String(), tls: target.TLS}, nil
 }
 
 // pick chooses method m, filling in its message template when the message

@@ -113,7 +113,7 @@ func TestGRPCOptionsHaveNoHTTPOnlyRows(tt *testing.T) {
 		req  model.Request
 		want []string
 	}{
-		{grpcRequest(), []string{"req-opt-verify", "req-opt-substitute", "req-opt-timeout"}},
+		{grpcRequest(), []string{"req-opt-verify", "req-opt-substitute", "req-opt-authority", "req-opt-timeout"}},
 		{model.HTTPKind.Example(), []string{"req-opt-follow", "req-opt-verify", "req-opt-cookies", "req-opt-substitute", "req-opt-proxy", "req-opt-timeout"}},
 	} {
 		app := testApp()

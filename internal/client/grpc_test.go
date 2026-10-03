@@ -1092,3 +1092,57 @@ func TestGRPCOpenStreamRejectsWhatItCantSend(t *testing.T) {
 		t.Errorf("status = %+v", got)
 	}
 }
+
+func TestGRPCUnixSocket(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{unix: true})
+	resp := mustCallGRPC(t, grpcRequest(addr, "library.v1.Library/GetBook", `{"isbn": "1"}`))
+	if !strings.Contains(string(resp.Body), "Dune") {
+		t.Fatalf("body = %s", resp.Body)
+	}
+	if got := headerValues(resp.Headers, "echo-authority"); !reflect.DeepEqual(got, []string{"localhost"}) {
+		t.Errorf(":authority = %v, want localhost", got)
+	}
+	schema, err := NewGRPC("posting-test", TLSSettings{}, "").Describe(context.Background(), Call{Request: grpcRequest(addr, "", "")})
+	if err != nil || len(schema.Methods) == 0 {
+		t.Fatalf("Describe over the socket = %+v, %v", schema, err)
+	}
+	if _, err := callGRPC(t, grpcRequest("unix:///nowhere/posting.sock", "library.v1.Library/GetBook", `{}`)); err == nil || !strings.Contains(err.Error(), "unix:///nowhere/posting.sock") {
+		t.Errorf("a missing socket should be named in the error, got %v", err)
+	}
+}
+
+func TestGRPCAuthoritySetsTheHeaderAndTheNameTLSChecks(t *testing.T) {
+	plainAddr := startLibrary(t, libraryOptions{})
+	req := grpcRequest(plainAddr, "library.v1.Library/GetBook", `{"isbn": "1"}`)
+	req.Payload = model.GRPC{Method: "library.v1.Library/GetBook", Message: `{"isbn": "1"}`, Authority: "${HOST}"}
+	resp, err := NewGRPC("posting-test", TLSSettings{}, "").Send(context.Background(), Call{Request: req, Variables: map[string]string{"HOST": "books.internal"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := headerValues(resp.Headers, "echo-authority"); !reflect.DeepEqual(got, []string{"books.internal"}) {
+		t.Errorf(":authority = %v, want books.internal", got)
+	}
+
+	// The certificate names only books.internal, not the address's host.
+	cert := selfSignedFor(t, "books.internal", nil)
+	tlsAddr := startLibrary(t, libraryOptions{tls: true, cert: cert})
+	_, port, _ := net.SplitHostPort(tlsAddr)
+	bundle := filepath.Join(t.TempDir(), "ca.pem")
+	if err := os.WriteFile(bundle, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Certificate[0]}), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	g := NewGRPC("posting-test", TLSSettings{CABundle: bundle}, "")
+	send := func(authority string) error {
+		req := grpcRequest("grpcs://127.0.0.1:"+port, "library.v1.Library/GetBook", `{"isbn": "1"}`)
+		req.Payload = model.GRPC{Method: "library.v1.Library/GetBook", Message: `{"isbn": "1"}`, Authority: authority}
+		req.Options.VerifySSL = true
+		_, err := g.Send(context.Background(), Call{Request: req})
+		return err
+	}
+	if err := send(""); err == nil || !strings.Contains(err.Error(), "certificate verification failed") {
+		t.Fatalf("127.0.0.1 isn't a name the certificate has, got %v", err)
+	}
+	if err := send("books.internal"); err != nil {
+		t.Fatalf("with the authority set to a name the certificate has: %v", err)
+	}
+}

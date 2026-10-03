@@ -121,7 +121,7 @@ func (s *Session) contentFocusID(tab string) string {
 	case "auth":
 		id = "req-auth-type"
 	case "options":
-		id = optionRows(s.requestKind().Fields)[0]
+		id = optionRows(s.requestKind())[0]
 	case "body":
 		switch s.bodyType.Peek() {
 		case model.BodyRaw:
@@ -410,29 +410,35 @@ func (e optionsEditor) Build(ctx t.BuildContext) t.Widget {
 		"req-opt-proxy":      field(gap(formRow(ctx, "Proxy URL", "", input{ID: "req-opt-proxy", State: s.proxy, Placeholder: "http://proxy.example.com:8080", Highlighter: e.variables, OnChange: touch, Completion: s.proxyVars, Choices: e.choices})), "req-opt-proxy"),
 		"req-opt-timeout":    field(gap(formRow(ctx, "Timeout", "", input{ID: "req-opt-timeout", State: s.timeout, Placeholder: "seconds", Width: t.Cells(12), OnChange: touch})), "req-opt-timeout"),
 	}
+	if g, ok := s.payloads[model.KindGRPC].(*grpcEditor); ok {
+		fields["req-opt-authority"] = field(gap(formRow(ctx, "Authority", "", input{ID: "req-opt-authority", State: g.authority, Placeholder: "the address's host, or a name the server's certificate has", Highlighter: e.variables, OnChange: touch, Completion: g.authorityVars, Choices: e.choices})), "req-opt-authority")
+	}
 	var rows []formField
-	for _, id := range optionRows(s.requestKind().Fields) {
+	for _, id := range optionRows(s.requestKind()) {
 		rows = append(rows, fields[id])
 	}
 	return scrollForm{State: s.optionsScroll, Rows: rows}
 }
 
-// optionRows are the IDs of the Options tab's rows for a kind that uses
-// fields, in order. Rows for options the kind doesn't have are left out.
-func optionRows(fields model.Fields) []string {
+// optionRows are the IDs of the Options tab's rows for kind, in order. Rows
+// for options the kind doesn't have are left out.
+func optionRows(kind *model.Kind) []string {
 	var ids []string
 	for _, row := range []struct {
 		id    string
 		needs model.Fields
+		// only is the one kind the row is for. Blank is every kind.
+		only model.KindID
 	}{
-		{"req-opt-follow", model.FieldRedirects},
-		{"req-opt-verify", 0},
-		{"req-opt-cookies", model.FieldCookies},
-		{"req-opt-substitute", 0},
-		{"req-opt-proxy", model.FieldProxy},
-		{"req-opt-timeout", 0},
+		{id: "req-opt-follow", needs: model.FieldRedirects},
+		{id: "req-opt-verify"},
+		{id: "req-opt-cookies", needs: model.FieldCookies},
+		{id: "req-opt-substitute"},
+		{id: "req-opt-proxy", needs: model.FieldProxy},
+		{id: "req-opt-authority", only: model.KindGRPC},
+		{id: "req-opt-timeout"},
 	} {
-		if fields.Has(row.needs) {
+		if kind.Fields.Has(row.needs) && (row.only == "" || row.only == kind.ID) {
 			ids = append(ids, row.id)
 		}
 	}
