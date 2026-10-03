@@ -273,7 +273,6 @@ func convert(d document, parent scope, result *importing.Result) (*model.Request
 	if err != nil {
 		return nil, err
 	}
-	// A gRPC request's metadata is its headers.
 	metadata, err := d.pairs("metadata")
 	if err != nil {
 		return nil, err
