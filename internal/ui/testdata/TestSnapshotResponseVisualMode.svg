@@ -4977,27 +4977,27 @@
   <text x="142.4" y="703.8" fill="#706B91">d</text>
   <text x="150.8" y="703.8" fill="#706B91">e</text>
   <text x="159.2" y="703.8" fill="#706B91">v</text>
-  <text x="201.2" y="703.8" fill="#FF69B4">Y</text>
-  <text x="218.0" y="703.8" fill="#9A96BE">Copy</text>
-  <text x="260.0" y="703.8" fill="#FF69B4">V</text>
-  <text x="276.8" y="703.8" fill="#9A96BE">Visual</text>
-  <text x="335.6" y="703.8" fill="#FF69B4">Esc</text>
-  <text x="369.2" y="703.8" fill="#9A96BE">Normal</text>
-  <text x="428.0" y="703.8" fill="#FF69B4">F3</text>
-  <text x="453.2" y="703.8" fill="#9A96BE">Pager</text>
-  <text x="503.6" y="703.8" fill="#FF69B4">F4</text>
-  <text x="528.8" y="703.8" fill="#9A96BE">Editor</text>
-  <text x="587.6" y="703.8" fill="#FF69B4">^O</text>
-  <text x="612.8" y="703.8" fill="#9A96BE">Jump</text>
-  <text x="654.8" y="703.8" fill="#FF69B4">^J</text>
-  <text x="680.0" y="703.8" fill="#9A96BE">Send</text>
-  <text x="722.0" y="703.8" fill="#FF69B4">^S</text>
-  <text x="747.2" y="703.8" fill="#9A96BE">Save</text>
-  <text x="789.2" y="703.8" fill="#FF69B4">^N</text>
-  <text x="814.4" y="703.8" fill="#9A96BE">New</text>
-  <text x="848.0" y="703.8" fill="#9A96BE">tab</text>
-  <text x="881.6" y="703.8" fill="#FF69B4">^P</text>
-  <text x="906.8" y="703.8" fill="#9A96BE">Commands</text>
-  <text x="982.4" y="703.8" fill="#FF69B4">F1</text>
-  <text x="1007.6" y="703.8" fill="#9A96BE">Help</text>
+  <text x="243.2" y="703.8" fill="#FF69B4">Y</text>
+  <text x="260.0" y="703.8" fill="#9A96BE">Copy</text>
+  <text x="302.0" y="703.8" fill="#FF69B4">V</text>
+  <text x="318.8" y="703.8" fill="#9A96BE">Visual</text>
+  <text x="377.6" y="703.8" fill="#FF69B4">Esc</text>
+  <text x="411.2" y="703.8" fill="#9A96BE">Normal</text>
+  <text x="470.0" y="703.8" fill="#FF69B4">F3</text>
+  <text x="495.2" y="703.8" fill="#9A96BE">Pager</text>
+  <text x="545.6" y="703.8" fill="#FF69B4">F4</text>
+  <text x="570.8" y="703.8" fill="#9A96BE">Editor</text>
+  <text x="629.6" y="703.8" fill="#FF69B4">^O</text>
+  <text x="654.8" y="703.8" fill="#9A96BE">Jump</text>
+  <text x="696.8" y="703.8" fill="#FF69B4">^J</text>
+  <text x="722.0" y="703.8" fill="#9A96BE">Send</text>
+  <text x="764.0" y="703.8" fill="#FF69B4">^S</text>
+  <text x="789.2" y="703.8" fill="#9A96BE">Save</text>
+  <text x="831.2" y="703.8" fill="#FF69B4">^N</text>
+  <text x="856.4" y="703.8" fill="#9A96BE">New</text>
+  <text x="890.0" y="703.8" fill="#9A96BE">tab</text>
+  <text x="923.6" y="703.8" fill="#FF69B4">^P</text>
+  <text x="948.8" y="703.8" fill="#9A96BE">Commands</text>
+  <text x="1024.4" y="703.8" fill="#FF69B4">F1</text>
+  <text x="1049.6" y="703.8" fill="#9A96BE">Help</text>
 </svg>
