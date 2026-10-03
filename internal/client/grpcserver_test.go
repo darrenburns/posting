@@ -12,6 +12,8 @@ import (
 	"io"
 	"math/big"
 	"net"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -56,6 +58,8 @@ type libraryOptions struct {
 	tls         bool
 	// cert is the TLS server's certificate. Unset is a new self-signed one.
 	cert tls.Certificate
+	// unix serves on a Unix socket, whose address is unix:PATH.
+	unix bool
 }
 
 // startLibrary serves the library service on a free loopback port and
@@ -80,12 +84,25 @@ func startLibrary(t *testing.T, opts libraryOptions) string {
 		}
 		reflectionv1alpha.RegisterServerReflectionServer(server, reflection.NewServer(ro))
 	}
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	network, address := "tcp", "127.0.0.1:0"
+	if opts.unix {
+		// Socket paths are short on macOS, so not under t.TempDir().
+		dir, err := os.MkdirTemp("", "lib")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { os.RemoveAll(dir) })
+		network, address = "unix", filepath.Join(dir, "s.sock")
+	}
+	lis, err := net.Listen(network, address)
 	if err != nil {
 		t.Fatal(err)
 	}
 	go func() { _ = server.Serve(lis) }()
 	t.Cleanup(server.Stop)
+	if opts.unix {
+		return "unix://" + address
+	}
 	return lis.Addr().String()
 }
 
@@ -240,18 +257,32 @@ func echoMetadata(ctx context.Context) {
 				out.Append("echo-"+k, v)
 			}
 		}
+		if k == ":authority" {
+			out.Append("echo-authority", vs...)
+		}
 	}
 	_ = grpc.SetHeader(ctx, out)
 }
 
 func selfSigned(t *testing.T) tls.Certificate {
 	t.Helper()
+	return selfSignedFor(t, "localhost", net.ParseIP("127.0.0.1"))
+}
+
+// selfSignedFor is a self-signed certificate for host, and for ip when it
+// isn't nil.
+func selfSignedFor(t *testing.T, host string, ip net.IP) tls.Certificate {
+	t.Helper()
 	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	var ips []net.IP
+	if ip != nil {
+		ips = []net.IP{ip}
+	}
 	tmpl := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
-		Subject:      pkix.Name{CommonName: "localhost"},
-		DNSNames:     []string{"localhost"},
-		IPAddresses:  []net.IP{net.ParseIP("127.0.0.1")},
+		Subject:      pkix.Name{CommonName: host},
+		DNSNames:     []string{host},
+		IPAddresses:  ips,
 		NotBefore:    time.Now().Add(-time.Hour),
 		NotAfter:     time.Now().Add(time.Hour),
 	}

@@ -22,6 +22,10 @@ type GRPC struct {
 	Message string
 	// Protos are where the schema comes from. Empty means server reflection.
 	Protos ProtoSet
+	// Authority replaces the host the call names in its :authority header
+	// and, over TLS, the name the server's certificate must have. Blank
+	// means the address's host.
+	Authority string
 }
 
 // ProtoSet lists collection-relative schema files. A file ending in
@@ -98,7 +102,7 @@ func (g GRPC) clone() Payload {
 }
 
 func (g GRPC) size() int {
-	n := len(g.Method) + len(g.Message)
+	n := len(g.Method) + len(g.Message) + len(g.Authority)
 	for _, path := range g.Protos.Files {
 		n += len(path)
 	}
@@ -108,10 +112,12 @@ func (g GRPC) size() int {
 	return n
 }
 
-// resolve substitutes the message like a raw body. The method and proto
-// paths are names, not text, so they are never substituted.
+// resolve substitutes the message like a raw body, and the authority like
+// the address. The method and proto paths are names, not text, so they are
+// never substituted.
 func (g GRPC) resolve(_, all func(string) string, opts Options) Payload {
 	g = g.clone().(GRPC)
+	g.Authority = all(g.Authority)
 	if opts.SubstituteBodyVariables {
 		g.Message = all(g.Message)
 	}
@@ -170,9 +176,24 @@ func GRPCCodeName(c int) string {
 
 // GRPCTarget is where a gRPC call goes.
 type GRPCTarget struct {
-	// Authority is "host:port".
+	// Authority is "host:port", or "localhost" for a Unix socket.
 	Authority string
 	TLS       bool
+	// Socket is the path of a Unix socket, for an address written as
+	// unix:PATH. Blank means TCP.
+	Socket string
+}
+
+// String is the address as messages name it: host:port, unix:///ABSPATH or
+// unix:RELPATH.
+func (t GRPCTarget) String() string {
+	switch {
+	case strings.HasPrefix(t.Socket, "/"):
+		return "unix://" + t.Socket
+	case t.Socket != "":
+		return "unix:" + t.Socket
+	}
+	return t.Authority
 }
 
 // ParseGRPCTarget reads a resolved gRPC server address. A scheme decides the
@@ -180,11 +201,18 @@ type GRPCTarget struct {
 // TLS. A bare host:port is TLS unless the host is this machine, so
 // "localhost:50051" works as typed and a remote server never gets
 // credentials in plaintext by accident. Without a port, TLS uses 443 and
-// plaintext 80.
+// plaintext 80. unix:PATH, or unix:///PATH, is a plaintext Unix socket.
 func ParseGRPCTarget(address string) (GRPCTarget, error) {
 	address = strings.TrimSpace(address)
 	if address == "" {
 		return GRPCTarget{}, errors.New("enter the server's address, e.g. localhost:50051")
+	}
+	if scheme, path, ok := strings.Cut(address, ":"); ok && strings.EqualFold(scheme, "unix") {
+		path = strings.TrimPrefix(path, "//")
+		if path == "" {
+			return GRPCTarget{}, fmt.Errorf("%q names no socket: use unix:///path/to/socket", address)
+		}
+		return GRPCTarget{Authority: "localhost", Socket: path}, nil
 	}
 	rest, tls, explicit := address, false, false
 	if scheme, after, ok := strings.Cut(address, "://"); ok {

@@ -29,12 +29,18 @@ type FormatOptions struct {
 func Format(req model.Request, opts FormatOptions) string {
 	g, _ := req.Payload.(model.GRPC)
 	var args [][]string
-	address, tls := target(req.URL)
+	address, tls, unix := target(req.URL)
 	switch {
 	case !tls:
 		args = append(args, []string{"-plaintext"})
 	case !req.Options.VerifySSL:
 		args = append(args, []string{"-insecure"})
+	}
+	if unix {
+		args = append(args, []string{"-unix"})
+	}
+	if authority := strings.TrimSpace(g.Authority); authority != "" {
+		args = append(args, []string{"-authority", curl.Quote(authority)})
 	}
 	if tls && opts.CACert != "" {
 		args = append(args, []string{"-cacert", curl.Quote(opts.CACert)})
@@ -79,22 +85,29 @@ func Format(req model.Request, opts FormatOptions) string {
 	return strings.Join(parts, " \\\n  ")
 }
 
-// target is the address grpcurl takes, and whether to use TLS. An address
-// with a variable left in is kept as written, without a guessed port, and
-// only an explicit scheme says it is plaintext: grpcurl's default is TLS.
-func target(url string) (address string, tls bool) {
+// target is the address grpcurl takes, whether to use TLS, and whether the
+// address is a Unix socket's path. An address with a variable left in is
+// kept as written, without a guessed port, and only an explicit scheme says
+// it is plaintext: grpcurl's default is TLS.
+func target(url string) (address string, tls, unix bool) {
 	address = strings.TrimSpace(url)
 	if len(model.FindVariables(address)) > 0 {
+		if scheme, path, ok := strings.Cut(address, ":"); ok && strings.EqualFold(scheme, "unix") {
+			return strings.TrimPrefix(path, "//"), false, true
+		}
 		if scheme, rest, ok := strings.Cut(address, "://"); ok {
 			scheme = strings.ToLower(scheme)
-			return rest, scheme != "grpc" && scheme != "http"
+			return rest, scheme != "grpc" && scheme != "http", false
 		}
-		return address, true
+		return address, true, false
 	}
 	if t, err := model.ParseGRPCTarget(address); err == nil {
-		return t.Authority, t.TLS
+		if t.Socket != "" {
+			return t.Socket, false, true
+		}
+		return t.Authority, t.TLS, false
 	}
-	return address, true
+	return address, true, false
 }
 
 // messageData is the message as grpcurl's -d takes it. grpcurl reads a

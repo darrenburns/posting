@@ -248,7 +248,7 @@ func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
 	// The budget running out fails whatever step the dial was on, such as
 	// the TLS handshake, so the dial's error needn't say it was the budget.
 	if err != nil && errors.Is(dialCtx.Err(), context.DeadlineExceeded) && ctx.Err() == nil {
-		return Schema{}, fmt.Errorf("couldn't connect to %s within %v", target.Authority, budget)
+		return Schema{}, fmt.Errorf("couldn't connect to %s within %v", target, budget)
 	}
 	if err != nil {
 		return Schema{}, c.explain(ctx, err)
@@ -478,11 +478,15 @@ func (g *GRPC) dial(ctx context.Context, c *grpcCall, target model.GRPCTarget, t
 		userAgent = c.userAgent
 	}
 	dialer := &net.Dialer{}
-	conn, err := grpc.NewClient("passthrough:///"+target.Authority,
+	options := []grpc.DialOption{
 		grpc.WithTransportCredentials(creds),
 		grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
 			trace.begin(model.TraceConnect)
-			conn, err := dialer.DialContext(ctx, "tcp", addr)
+			network := "tcp"
+			if target.Socket != "" {
+				network, addr = "unix", target.Socket
+			}
+			conn, err := dialer.DialContext(ctx, network, addr)
 			if err != nil {
 				failure.record(err, false)
 				return nil, err
@@ -493,7 +497,12 @@ func (g *GRPC) dial(ctx context.Context, c *grpcCall, target model.GRPCTarget, t
 		grpc.WithStatsHandler(trace),
 		grpc.WithUserAgent(userAgent),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxBodyBytes)),
-	)
+	}
+	// grpc-go checks a TLS certificate against the authority.
+	if authority := strings.TrimSpace(c.payload.Authority); authority != "" {
+		options = append(options, grpc.WithAuthority(authority))
+	}
+	conn, err := grpc.NewClient("passthrough:///"+target.Authority, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -543,8 +552,8 @@ func (f *dialFailure) err(target model.GRPCTarget) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	switch {
-	case f.cause == nil && target.TLS:
-		return fmt.Errorf("couldn't connect to %s", target.Authority)
+	case f.cause == nil && (target.TLS || target.Socket != ""):
+		return fmt.Errorf("couldn't connect to %s", target)
 	case f.cause == nil:
 		// The connection opened, then closed before the server spoke
 		// HTTP/2: a TLS server hanging up on a plaintext client.
@@ -567,9 +576,9 @@ func (f *dialFailure) err(target model.GRPCTarget) error {
 	}
 	var opErr *net.OpError
 	if errors.As(f.cause, &opErr) && opErr.Op == "dial" {
-		return fmt.Errorf("couldn't connect to %s: %v", target.Authority, opErr.Err)
+		return fmt.Errorf("couldn't connect to %s: %v", target, opErr.Err)
 	}
-	return fmt.Errorf("couldn't connect to %s: %v", target.Authority, f.cause)
+	return fmt.Errorf("couldn't connect to %s: %v", target, f.cause)
 }
 
 // tracedTLS times the TLS handshake and keeps its error.

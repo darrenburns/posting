@@ -42,12 +42,23 @@ func TestFormatTargets(t *testing.T) {
 		{"grpcs://api.example.com", true, "grpcurl -max-time 5 api.example.com:443 a.B/C"},
 		{"api.example.com:8443", false, "grpcurl -insecure -max-time 5 api.example.com:8443 a.B/C"},
 		{"grpc://api.example.com:80", true, "grpcurl -plaintext -max-time 5 api.example.com:80 a.B/C"},
+		{"unix:///run/books.sock", true, "grpcurl -plaintext -unix -max-time 5 /run/books.sock a.B/C"},
+		{"unix:${SOCKET}", true, "grpcurl -plaintext -unix -max-time 5 '${SOCKET}' a.B/C"},
 	} {
 		r := request(c.url, model.GRPC{Method: "/a.B/C"})
 		r.Options.VerifySSL = c.verify
 		if got := Format(r, FormatOptions{}); got != c.want {
 			t.Errorf("%s: got %s\nwant %s", c.url, got, c.want)
 		}
+	}
+}
+
+func TestFormatAuthority(t *testing.T) {
+	r := request("grpcs://10.0.0.5", model.GRPC{Method: "a.B/C", Authority: "books.internal"})
+	r.Options.VerifySSL = true
+	want := "grpcurl -authority books.internal -max-time 5 10.0.0.5:443 a.B/C"
+	if got := Format(r, FormatOptions{}); got != want {
+		t.Fatalf("got  %s\nwant %s", got, want)
 	}
 }
 

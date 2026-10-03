@@ -24,9 +24,10 @@ func (f *graphQLFile) UnmarshalYAML(node *yaml.Node) error {
 
 // grpcFile is a gRPC request's `grpc:` block.
 type grpcFile struct {
-	Method  yamlString    `yaml:"method,omitempty"`
-	Message yamlString    `yaml:"message,omitempty"`
-	Proto   *protoSetFile `yaml:"proto,omitempty"`
+	Method    yamlString    `yaml:"method,omitempty"`
+	Message   yamlString    `yaml:"message,omitempty"`
+	Authority yamlString    `yaml:"authority,omitempty"`
+	Proto     *protoSetFile `yaml:"proto,omitempty"`
 }
 
 func (f *grpcFile) UnmarshalYAML(node *yaml.Node) error {
@@ -70,7 +71,7 @@ var kindBlocks = map[model.KindID]struct {
 		decode: func(in requestFile) model.Payload {
 			var g model.GRPC
 			if f := in.GRPC; f != nil {
-				g = model.GRPC{Method: string(f.Method), Message: string(f.Message)}
+				g = model.GRPC{Method: string(f.Method), Message: string(f.Message), Authority: string(f.Authority)}
 				if p := f.Proto; p != nil {
 					g.Protos = model.ProtoSet{Files: nonEmpty(p.Files), ImportPaths: nonEmpty(p.ImportPaths)}
 				}
@@ -175,7 +176,7 @@ func encodePayload(req model.Request, out *requestFile) error {
 		out.GraphQL = &graphQLFile{Query: yamlString(p.Query), Variables: yamlString(p.Variables), OperationName: yamlString(p.OperationName)}
 	case model.GRPC:
 		out.Kind = string(model.KindGRPC)
-		out.GRPC = &grpcFile{Method: yamlString(p.Method), Message: yamlString(p.Message)}
+		out.GRPC = &grpcFile{Method: yamlString(p.Method), Message: yamlString(p.Message), Authority: yamlString(p.Authority)}
 		if len(p.Protos.Files) > 0 || len(p.Protos.ImportPaths) > 0 {
 			out.GRPC.Proto = &protoSetFile{Files: p.Protos.Files, ImportPaths: p.Protos.ImportPaths}
 		}

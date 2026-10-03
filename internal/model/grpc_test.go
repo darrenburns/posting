@@ -120,23 +120,26 @@ func TestParseGRPCTarget(t *testing.T) {
 		in   string
 		want GRPCTarget
 	}{
-		{"localhost:50051", GRPCTarget{"localhost:50051", false}},
-		{"LOCALHOST:50051", GRPCTarget{"LOCALHOST:50051", false}},
-		{"127.0.0.1:9000", GRPCTarget{"127.0.0.1:9000", false}},
-		{"127.4.5.6:9000", GRPCTarget{"127.4.5.6:9000", false}},
-		{"[::1]:9000", GRPCTarget{"[::1]:9000", false}},
-		{"0.0.0.0:50051", GRPCTarget{"0.0.0.0:50051", false}},
-		{"[::]:50051", GRPCTarget{"[::]:50051", false}},
-		{"localhost", GRPCTarget{"localhost:80", false}},
-		{"api.example.com:8443", GRPCTarget{"api.example.com:8443", true}},
-		{"api.example.com", GRPCTarget{"api.example.com:443", true}},
-		{"10.0.0.5:50051", GRPCTarget{"10.0.0.5:50051", true}},
-		{"grpc://api.example.com:50051", GRPCTarget{"api.example.com:50051", false}},
-		{"http://api.example.com", GRPCTarget{"api.example.com:80", false}},
-		{"grpcs://localhost:50051", GRPCTarget{"localhost:50051", true}},
-		{"HTTPS://localhost", GRPCTarget{"localhost:443", true}},
-		{"grpc://localhost:50051/", GRPCTarget{"localhost:50051", false}},
-		{"  localhost:50051  ", GRPCTarget{"localhost:50051", false}},
+		{"localhost:50051", GRPCTarget{Authority: "localhost:50051", TLS: false}},
+		{"LOCALHOST:50051", GRPCTarget{Authority: "LOCALHOST:50051", TLS: false}},
+		{"127.0.0.1:9000", GRPCTarget{Authority: "127.0.0.1:9000", TLS: false}},
+		{"127.4.5.6:9000", GRPCTarget{Authority: "127.4.5.6:9000", TLS: false}},
+		{"[::1]:9000", GRPCTarget{Authority: "[::1]:9000", TLS: false}},
+		{"0.0.0.0:50051", GRPCTarget{Authority: "0.0.0.0:50051", TLS: false}},
+		{"[::]:50051", GRPCTarget{Authority: "[::]:50051", TLS: false}},
+		{"localhost", GRPCTarget{Authority: "localhost:80", TLS: false}},
+		{"api.example.com:8443", GRPCTarget{Authority: "api.example.com:8443", TLS: true}},
+		{"api.example.com", GRPCTarget{Authority: "api.example.com:443", TLS: true}},
+		{"10.0.0.5:50051", GRPCTarget{Authority: "10.0.0.5:50051", TLS: true}},
+		{"grpc://api.example.com:50051", GRPCTarget{Authority: "api.example.com:50051", TLS: false}},
+		{"http://api.example.com", GRPCTarget{Authority: "api.example.com:80", TLS: false}},
+		{"grpcs://localhost:50051", GRPCTarget{Authority: "localhost:50051", TLS: true}},
+		{"HTTPS://localhost", GRPCTarget{Authority: "localhost:443", TLS: true}},
+		{"grpc://localhost:50051/", GRPCTarget{Authority: "localhost:50051", TLS: false}},
+		{"  localhost:50051  ", GRPCTarget{Authority: "localhost:50051", TLS: false}},
+		{"unix:///run/books.sock", GRPCTarget{Authority: "localhost", Socket: "/run/books.sock"}},
+		{"unix:/run/books.sock", GRPCTarget{Authority: "localhost", Socket: "/run/books.sock"}},
+		{"UNIX:books.sock", GRPCTarget{Authority: "localhost", Socket: "books.sock"}},
 	} {
 		got, err := ParseGRPCTarget(c.in)
 		if err != nil || got != c.want {
@@ -151,6 +154,8 @@ func TestParseGRPCTarget(t *testing.T) {
 		"localhost:http":                    "port",
 		"localhost:70000":                   "port",
 		"grpc://:50051":                     "host",
+		"unix://":                           "socket",
+		"unix:":                             "socket",
 	} {
 		if got, err := ParseGRPCTarget(in); err == nil || !strings.Contains(err.Error(), wantInError) {
 			t.Errorf("ParseGRPCTarget(%q) = %+v, %v; want an error naming %q", in, got, err, wantInError)

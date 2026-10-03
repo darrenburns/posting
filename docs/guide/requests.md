@@ -203,6 +203,7 @@ Posting connects with TLS:
 | `localhost:50051`, `127.0.0.1:50051` or `[::1]:50051` | Plaintext, because the host is a loopback address |
 | `0.0.0.0:50051` or `[::]:50051` | Plaintext, because a server that prints this address is listening on this machine |
 | Any other address without a scheme, such as `api.example.com:8443` | TLS |
+| `unix:///run/app.sock` or `unix:app.sock` | Plaintext, over the Unix socket at that path. A relative path is relative to the directory you started Posting in |
 
 Without a port, TLS uses port 443 and plaintext uses port 80. If a TLS connection fails because the
 server only speaks plaintext, the error suggests `grpc://`. If a plaintext connection fails because
@@ -210,6 +211,12 @@ the server wants TLS, the error suggests `grpcs://`.
 
 **Verify SSL certificates** in the **Options** tab, and the [SSL settings](./configuration.md#configuring-ssl)
 in your configuration, apply as they do to HTTP requests.
+
+The call names the address's host in its `:authority` header, and over TLS, checks that the
+server's certificate has that name. A call to a Unix socket names `localhost`. To use another name,
+type it in **Authority** on the **Options** tab. Use it when you connect through an IP address, a
+port forward or a load balancer, and the server or its certificate expects its own name.
+**Authority** takes variables.
 
 ### The Message and Proto tabs
 
@@ -230,8 +237,8 @@ The other tabs work as they do for an HTTP request, with these differences:
   Posting's own user agent, and gRPC adds its version after it.
 - Basic and bearer auth are sent as `authorization` metadata. Digest auth needs an HTTP challenge,
   so the **Auth** tab doesn't offer it, and a request file with `type: digest` doesn't load.
-- The **Options** tab has **Verify SSL certificates**, **Substitute body variables** and
-  **Timeout**. The timeout is the deadline for the whole call, including connecting. An
+- The **Options** tab has **Verify SSL certificates**, **Substitute body variables**,
+  **Authority** and **Timeout**. The timeout is the deadline for the whole call, including connecting. An
   [open stream](#open-streams) uses it only for connecting.
 
 ### Finding methods
@@ -347,7 +354,8 @@ the method's schema again, so a changed server is picked up straight away.
 ### Exporting as grpcurl
 
 For a gRPC request, the command palette offers **Export as grpcurl** in place of **Export as curl**.
-The command uses `-plaintext` or `-insecure` to match the connection, `-cacert`, `-cert` and `-key`
+The command uses `-plaintext` or `-insecure` to match the connection, `-unix` for a Unix socket,
+`-authority` for **Authority**, `-cacert`, `-cert` and `-key`
 for the files in your [SSL settings](./configuration.md#configuring-ssl) when the connection uses
 TLS, `-H` for metadata and auth, `-d` for the message, `-max-time` for the timeout, and
 `-import-path`, `-proto` and `-protoset` for the proto files, with absolute paths so the command
