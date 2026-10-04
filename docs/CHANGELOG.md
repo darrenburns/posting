@@ -1,5 +1,10 @@
 ## Unreleased
 
+### Fixed
+
+- Send configured client certificates when using a custom CA bundle file or directory (#325).
+- Load password-protected combined PEM client certificates without a separate key file.
+
 ## 2.11.0 [26th September 2026]
 
 ### Added
