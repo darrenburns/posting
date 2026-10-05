@@ -141,6 +141,7 @@ func appConfig(opts options) (ui.Config, error) {
 	for _, file := range envFiles {
 		envDirs = append(envDirs, filepath.Dir(file))
 	}
+	messages = append(messages, settingsInEnvironmentFiles(envFiles)...)
 
 	store := collection.Dir{Root: dir}
 	root, problems := store.Load()
@@ -237,6 +238,31 @@ func environmentFiles(given []string, dirs []string) ([]string, error) {
 		}
 	}
 	return files, nil
+}
+
+// settingsInEnvironmentFiles warns about POSTING_* settings in environment
+// files. Posting 2 read settings from them, but environment files only hold
+// request variables now, so the settings would otherwise be lost silently.
+func settingsInEnvironmentFiles(files []string) []string {
+	var warnings []string
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue // Loading the environment reports it.
+		}
+		var names []string
+		for _, pair := range env.Parse(string(data), nil) {
+			if strings.HasPrefix(strings.ToUpper(pair.Name), "POSTING_") {
+				names = append(names, pair.Name)
+			}
+		}
+		if len(names) > 0 {
+			warnings = append(warnings, fmt.Sprintf(
+				"%s sets %s, but settings aren't read from environment files. Set them in config.yaml or your shell instead.",
+				filepath.Base(file), strings.Join(names, ", ")))
+		}
+	}
+	return warnings
 }
 
 func locate(args []string, stdout, stderr io.Writer) int {

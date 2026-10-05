@@ -70,7 +70,8 @@ POSTING_THEME=lantern POSTING_LAYOUT=horizontal posting
 
 Posting reads these from the environment it was started in, not from the `.env` files you use
 for [environments](./environments.md). Those files hold variables for your requests, not
-settings for the app.
+settings for the app. If an environment file you start Posting with contains `POSTING_*`
+variables, Posting shows a warning naming them, since Posting 2 did read settings from those files.
 
 ## Configuring SSL
 
