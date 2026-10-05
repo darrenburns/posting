@@ -64,7 +64,7 @@ their name to say what they'll do, like **Layout: side by side** and **Layout: s
 | Command | Description |
 |---------|-------------|
 | Import curl command… | Paste a curl command to load it into this tab. See [Importing curl commands](./requests.md#importing-curl-commands) |
-| Import curl from clipboard | Import the curl command on your clipboard (needs a terminal that lets apps read the clipboard) |
+| Import curl from clipboard | Import the curl command on your clipboard (over SSH, needs a terminal that lets apps read the clipboard) |
 | Export as curl | Copy the request as a curl command. See [Exporting as curl](./requests.md#exporting-as-curl). For a gRPC request, this is **Export as grpcurl**. See [Exporting as grpcurl](./requests.md#exporting-as-grpcurl) |
 | Export as YAML | Copy the request as a Posting request file |
 

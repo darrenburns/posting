@@ -84,7 +84,7 @@ These are the actions you can rebind, with their default keys:
 Response panels, and a new key always expands the Request panel.
 
 A few keys are fixed: ++escape++ cancels a request that's in flight, or stops a gRPC call and keeps
-the messages that arrived (or closes whatever dialog is open), ++ctrl+c++ quits, ++ctrl+z++ suspends Posting, and ++ctrl+shift+s++ saves a text screenshot
+the messages that arrived (or closes whatever dialog is open), ++ctrl+c++ quits, ++ctrl+z++ suspends Posting (in a text field it undoes instead), and ++ctrl+shift+s++ saves a text screenshot
 of the screen to the current directory.
 
 Many terminals send ++ctrl+h++ as ++backspace++. If ++ctrl+h++ doesn't toggle the sidebar for you,
@@ -100,7 +100,7 @@ rebound yet.
 | Key | Action |
 |-----|--------|
 | ++tab++ / ++shift+tab++ | Move focus to the next / previous field |
-| ++ctrl+z++ | Suspend Posting (resume it with `fg` in your shell) |
+| ++ctrl+z++ | Suspend Posting (resume it with `fg` in your shell). In a text field, it undoes instead |
 
 ### Method selector
 
@@ -118,6 +118,7 @@ rebound yet.
 | ++enter++ | Send the request, or import the URL bar's contents if it's a curl command |
 | ++down++ | Move down to the request tabs |
 | ++ctrl+y++ | Copy the URL |
+| ++ctrl+shift+z++ | Redo (in place of ++ctrl+y++, which copies the URL here). Needs a terminal with the kitty keyboard protocol |
 | Type `$` | Suggest variables |
 
 ### Tabs
@@ -156,6 +157,7 @@ The Path table's names come from the URL, so only its values can be edited.
 | ++home++ / ++end++, ++ctrl+e++ | Start / end of the line |
 | ++shift++ + movement keys | Select text |
 | ++ctrl+a++ | Select all |
+| ++ctrl+z++ / ++ctrl+y++ | Undo / redo (in the URL bar, redo is ++ctrl+shift+z++) |
 | ++ctrl+w++ / ++alt+backspace++ | Delete the word before the cursor |
 | ++ctrl+u++ / ++ctrl+k++ | Delete to the start / end of the line |
 | ++ctrl+d++ / ++delete++ | Delete the character after the cursor |

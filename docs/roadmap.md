@@ -51,7 +51,6 @@ If you have any feedback or suggestions, please open a [new discussion on GitHub
 Posting 3 is a rewrite of Posting in Go. These Posting 2 features haven't been brought across yet.
 
 - Pre-request and post-response scripts (requests keep their scripts, but they aren't run) <span class="tag scripting">Scripting</span>
-- Undo and redo in text areas <span class="tag ux">UX</span>
 - Live reloading of theme files, and X resources themes <span class="tag ui">UI</span>
 - Custom syntax highlighting and method colours in theme files <span class="tag ui">UI</span>
 
@@ -109,6 +108,7 @@ Features that have been implemented in Posting 3.
 - Custom themes, loaded from the theme directory <span class="tag ui">UI</span>
 - Specify certificates via config <span class="tag security">Security</span>
 - Encrypted client certificate keys (`ssl.password`) <span class="tag security">Security</span>
+- Undo and redo in text inputs and text areas <span class="tag ux">UX</span>
 
 ## Legend
 
