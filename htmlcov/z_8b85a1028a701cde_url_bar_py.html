@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for src/posting/widgets/request/url_bar.py: 87%</title>
+    <title>Coverage for src/posting/widgets/request/url_bar.py: 88%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_6b508a39.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>src/posting/widgets/request/url_bar.py</b>:
-            <span class="pc_cov">87%</span>
+            <span class="pc_cov">88%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">209 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">181<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">28<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">183<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">26<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_9662dffa6bd645f8_cookies_table_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.11.0">coverage.py v7.11.0</a>,
-            created at 2026-10-05 14:29 +0000
+            created at 2026-10-05 21:05 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -392,8 +392,8 @@
     <p class="run"><span class="n"><a id="t310" href="#t310">310</a></span><span class="t">                <span class="nam">style</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_component_rich_style</span><span class="op">(</span><span class="str">"complete-marker"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t311" href="#t311">311</a></span><span class="t">                <span class="key">return</span> <span class="nam">Text</span><span class="op">(</span><span class="str">"&#9632;"</span><span class="op">,</span> <span class="nam">style</span><span class="op">=</span><span class="nam">style</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t312" href="#t312">312</a></span><span class="t">            <span class="key">elif</span> <span class="fst">f"</span><span class="op">{</span><span class="nam">event_base</span><span class="op">}</span><span class="fst">.failed</span><span class="fst">"</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_trace_events</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t313" href="#t313">313</a></span><span class="t">                <span class="nam">style</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_component_rich_style</span><span class="op">(</span><span class="str">"failed-marker"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t314" href="#t314">314</a></span><span class="t">                <span class="key">return</span> <span class="nam">Text</span><span class="op">(</span><span class="str">"&#9632;"</span><span class="op">,</span> <span class="nam">style</span><span class="op">=</span><span class="nam">style</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t313" href="#t313">313</a></span><span class="t">                <span class="nam">style</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_component_rich_style</span><span class="op">(</span><span class="str">"failed-marker"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t314" href="#t314">314</a></span><span class="t">                <span class="key">return</span> <span class="nam">Text</span><span class="op">(</span><span class="str">"&#9632;"</span><span class="op">,</span> <span class="nam">style</span><span class="op">=</span><span class="nam">style</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t315" href="#t315">315</a></span><span class="t">            <span class="key">elif</span> <span class="fst">f"</span><span class="op">{</span><span class="nam">event_base</span><span class="op">}</span><span class="fst">.started</span><span class="fst">"</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_trace_events</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t316" href="#t316">316</a></span><span class="t">                <span class="nam">style</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_component_rich_style</span><span class="op">(</span><span class="str">"started-marker"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t317" href="#t317">317</a></span><span class="t">                <span class="key">return</span> <span class="nam">Text</span><span class="op">(</span><span class="str">"&#9632;"</span><span class="op">,</span> <span class="nam">style</span><span class="op">=</span><span class="nam">style</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -448,7 +448,7 @@
             <a class="nav" href="z_9662dffa6bd645f8_cookies_table_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.11.0">coverage.py v7.11.0</a>,
-            created at 2026-10-05 14:29 +0000
+            created at 2026-10-05 21:05 +0000
         </p>
     </div>
 </footer>
