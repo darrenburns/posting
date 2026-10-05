@@ -56,7 +56,6 @@ These Posting 2 features aren't in Posting 3 yet:
 - **Scripts.** Pre-request and post-response Python scripts aren't run. They're kept in your request files,
   so nothing is lost. See [Scripting](./scripting.md) for alternatives.
 - **Undo and redo** in text areas.
-- **Encrypted client certificate keys** (`ssl.password`).
 - **X resources themes** (`use_xresources`), and live reloading of theme files (`watch_themes`).
 - **Custom syntax highlighting and method colours** in theme files. Colours come from the theme's
   main colours instead.

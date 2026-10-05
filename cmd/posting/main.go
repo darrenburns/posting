@@ -159,13 +159,11 @@ func appConfig(opts options) (ui.Config, error) {
 	if settings.UseHostEnvironment {
 		host = env.Host()
 	}
-	if settings.SSL.Password != "" {
-		messages = append(messages, "ssl.password isn't supported yet: use an unencrypted key file")
-	}
 	tlsSettings := client.TLSSettings{
 		CABundle: settings.SSL.CABundle,
 		CertFile: settings.SSL.CertificatePath,
 		KeyFile:  settings.SSL.KeyFile,
+		Password: settings.SSL.Password,
 	}
 	var historyStore ui.HistoryStore
 	if settings.History.Enabled {
