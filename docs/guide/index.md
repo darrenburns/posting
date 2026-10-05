@@ -151,8 +151,9 @@ body. From here you can:
 - press ++w++ to turn line wrapping on or off
 - press ++f3++ to open the body in your pager, or ++f4++ to open it in your editor
 
-The **Headers**, **Cookies** and **Trace** tabs show the rest of the response.
-See [Responses](./responses.md) for more.
+The **Headers**, **Cookies** and **Trace** tabs show the rest of the response. In the headers or
+cookies, press ++y++ to copy the value of the row under the cursor, ++n++ to copy its name, or ++b++
+to copy both. See [Responses](./responses.md) for more.
 
 ### Saving the request
 

@@ -182,6 +182,16 @@ In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++esc
 In the response body, ++ctrl+a++ goes to the start of the line rather than selecting all, as it did in
 Posting 2.
 
+### Response headers, cookies and trailers
+
+| Key | Action |
+|-----|--------|
+| ++up++ / ++k++, ++down++ / ++j++ | Move the cursor |
+| ++home++ / ++g++, ++end++ / ++shift+g++ | First / last row |
+| ++y++ / ++c++ | Copy the value |
+| ++n++ | Copy the name |
+| ++b++ | Copy both, as `Name: value` (a cookie as `name=value`) |
+
 ### Collection
 
 | Key | Action |
@@ -232,6 +242,7 @@ entries keep working. A few things changed:
 | `help` also accepted `ctrl+?` | ++f1++ only |
 | `quit` could be rebound | ++ctrl+c++ is fixed |
 | `open-in-pager` and `open-in-editor` could be rebound | ++f3++ and ++f4++ are fixed |
+| ++c++ / ++y++ on a response table opened a menu to copy the name, value or both | ++y++ / ++c++ copy the value, ++n++ the name and ++b++ both, with no menu |
 | Keys like `ctrl+X` meant ++ctrl+shift+x++ | Write `ctrl+shift+x` |
 
 Keymap entries for IDs Posting 3 doesn't have are ignored.

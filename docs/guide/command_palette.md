@@ -53,6 +53,7 @@ their name to say what they'll do, like **Layout: side by side** and **Layout: s
 | Duplicate request | Save a copy beside this request |
 | Delete request | Remove this request's file from the collection |
 | Copy response body | Copy the response body to the clipboard |
+| Copy header value / name / name and value | Copy the row under the cursor in the response's **Headers** table. Only while that tab is showing. On the **Cookies** or **Trailers** tab, these copy a cookie or a trailer. See [Headers](./responses.md#headers) |
 | Reload collection | Read the collection from disk again |
 | Open gRPC stream | Call the method and keep sending messages until you end the stream. Only for a [gRPC request](./requests.md#open-streams). Shows as **End gRPC stream** while a stream is open |
 | Refresh gRPC methods | Look for the server's methods again. Only for a [gRPC request](./requests.md#finding-methods) |
