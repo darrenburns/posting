@@ -118,6 +118,9 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			}
 		})},
 		{Label: "Copy response body", Action: a.run(a.copyResponseBody)},
+	}...)
+	items = append(items, a.rowCopyCommands()...)
+	items = append(items, []t.CommandPaletteItem{
 		{Label: "Toggle response wrap", Description: "Wrap long lines in the response body", Action: a.run(func() {
 			if s := a.current(); s != nil {
 				s.responseBody.ToggleWrap()
@@ -379,6 +382,11 @@ var helpSections = []helpSection{
 		{"V / f6, f7", "Select the line, select all"},
 		{"y / c", "Copy the selection, or the whole body"},
 		{"esc", "Leave visual mode"},
+	}},
+	{"Response headers, cookies, trailers", [][2]string{
+		{"y / c", "Copy the value"},
+		{"n", "Copy the name"},
+		{"b", "Copy both, as Name: value (name=value for a cookie)"},
 	}},
 }
 

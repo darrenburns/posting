@@ -48,8 +48,9 @@ func TestClickTabs(tt *testing.T) {
 	}
 }
 
-// pressOn runs the first of the focusable widget id's keybinds that matches
-// key, as the focus manager does when the widget has focus.
+// pressOn runs the first keybind matching key of the focusable widget id or,
+// failing that, of its nearest ancestor that has one, as the focus manager
+// does when the widget has focus.
 func pressOn(tt *testing.T, app *App, id, key string) {
 	tt.Helper()
 	renderer := t.NewRenderer(uv.NewBuffer(snapW, snapH), snapW, snapH, t.NewFocusManager(), t.NewAnySignal[t.Focusable](nil), t.NewAnySignal[t.Widget](nil))
@@ -57,14 +58,20 @@ func pressOn(tt *testing.T, app *App, id, key string) {
 		if entry.ID != id {
 			continue
 		}
-		provider, ok := entry.Focusable.(t.KeybindProvider)
-		if !ok {
-			tt.Fatalf("%s (%T) has no keybinds", id, entry.Focusable)
+		chain := []any{entry.Focusable}
+		for i := len(entry.Ancestors) - 1; i >= 0; i-- {
+			chain = append(chain, entry.Ancestors[i])
 		}
-		for _, kb := range provider.Keybinds() {
-			if kb.Key == key {
-				kb.Action()
-				return
+		for _, widget := range chain {
+			provider, ok := widget.(t.KeybindProvider)
+			if !ok {
+				continue
+			}
+			for _, kb := range provider.Keybinds() {
+				if kb.Key == key {
+					kb.Action()
+					return
+				}
 			}
 		}
 		tt.Fatalf("%s has no keybind for %q", id, key)

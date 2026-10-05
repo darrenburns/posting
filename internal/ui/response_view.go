@@ -191,9 +191,9 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 			Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
 			Children: map[string]t.Widget{
 				"body":     responseBody{app: r.app, session: s, response: resp},
-				"headers":  responseHeaders{id: "resp-headers", state: s.responseHeaders, scroll: s.responseHeadersScroll, empty: "No headers"},
-				"cookies":  responseCookies{session: s},
-				"trailers": responseHeaders{id: "resp-trailers", state: s.responseTrailers, scroll: s.responseTrailersScroll, empty: "No trailers"},
+				"headers":  responseHeaders{app: r.app, session: s, id: "resp-headers", state: s.responseHeaders, scroll: s.responseHeadersScroll, empty: "No headers"},
+				"cookies":  responseCookies{app: r.app, session: s},
+				"trailers": responseHeaders{app: r.app, session: s, id: "resp-trailers", state: s.responseTrailers, scroll: s.responseTrailersScroll, empty: "No trailers"},
 				"trace":    responseTrace{session: s},
 			},
 		},
@@ -308,11 +308,15 @@ func (r responseBodyStatus) Build(ctx t.BuildContext) t.Widget {
 // responseHeaders is a table of headers, or of trailers.
 type responseHeaders struct {
 	fillParent
-	id     string
-	state  *t.TableState[model.Header]
-	scroll *t.ScrollState
-	empty  string
+	app     *App
+	session *Session
+	id      string
+	state   *t.TableState[model.Header]
+	scroll  *t.ScrollState
+	empty   string
 }
+
+func (h responseHeaders) Keybinds() []t.Keybind { return h.app.rowCopyKeybinds(h.session) }
 
 func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
@@ -335,8 +339,11 @@ func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
 
 type responseCookies struct {
 	fillParent
+	app     *App
 	session *Session
 }
+
+func (c responseCookies) Keybinds() []t.Keybind { return c.app.rowCopyKeybinds(c.session) }
 
 func (c responseCookies) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
