@@ -85,8 +85,7 @@ func (a *App) submitURL(text string) {
 		return
 	}
 	if strings.HasSuffix(strings.TrimRight(text, " "), "\\") {
-		s.url.SetText(strings.TrimSuffix(strings.TrimRight(text, " "), "\\") + " ")
-		s.url.CursorEnd()
+		replaceToEnd(s.url, strings.TrimSuffix(strings.TrimRight(text, " "), "\\")+" ")
 		return
 	}
 	if a.importCurl(text) {

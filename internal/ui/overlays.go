@@ -502,8 +502,8 @@ func (a *App) submitSave() {
 		return
 	}
 	s.syncing = true
-	s.name.SetText(name)
-	s.description.SetText(req.Description)
+	s.name.ReplaceText(name, s.name.CursorIndex.Peek())
+	s.description.ReplaceText(req.Description, s.description.CursorIndex.Peek())
 	s.file.Set(path)
 	s.syncing = false
 	s.title.Set(req.DisplayName())

@@ -60,7 +60,7 @@ func (a *App) openInEditor(area *t.TextAreaState, language string) bool {
 	if !ok || area.ReadOnly.Peek() || text == area.GetText() {
 		return false
 	}
-	area.SetText(text)
+	area.ReplaceText(text, area.CursorIndex.Peek())
 	return true
 }
 

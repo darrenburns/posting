@@ -294,8 +294,7 @@ func catalogKey(req model.Request, variables map[string]string) (string, schemaS
 // pick chooses method m, filling in its message template when the message
 // is blank or still the last template.
 func (e *grpcEditor) pick(m client.Method) {
-	e.method.SetText(m.Name)
-	e.method.CursorEnd()
+	replaceToEnd(e.method, m.Name)
 	if current := e.message.GetText(); strings.TrimSpace(current) == "" || current == e.template {
 		e.setMessage(m.Template)
 	}
@@ -315,9 +314,7 @@ func (e *grpcEditor) insertTemplate() bool {
 }
 
 func (e *grpcEditor) setMessage(text string) {
-	e.message.SetText(text)
-	e.message.ClearSelection()
-	e.message.CursorIndex.Set(0)
+	e.message.ReplaceText(text, 0)
 	e.messageScroll.SetOffset(0)
 	e.template = text
 }
