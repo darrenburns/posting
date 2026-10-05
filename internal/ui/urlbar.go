@@ -69,7 +69,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 								ExtraKeybinds: []t.Keybind{
 									{Key: "down", Name: "Request", Action: func() { t.RequestFocus(requestTabsID) }, Hidden: true},
 									{Key: "ctrl+y", Name: "Copy URL", Action: func() {
-										t.SetClipboard('c', s.url.GetText())
+										t.SetClipboard(t.SystemClipboard, s.url.GetText())
 										a.notify("Copied URL", toastSuccess)
 									}, Hidden: true},
 								},
