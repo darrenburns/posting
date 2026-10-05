@@ -1,6 +1,6 @@
 [project]
 name = "posting"
-version = "2.11.0"
+version = "2.11.1"
 description = "The modern API client that lives in your terminal."
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }
@@ -74,6 +74,20 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/posting"]
+
+[tool.hatch.build.targets.sdist]
+only-include = [
+    "src",
+    "tests",
+    "docs",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "Makefile",
+    "mkdocs.yml",
+    "NOTICE",
+    "README.md",
+    "uv.lock",
+]
 
 [tool.pytest.ini_options]
 markers = [

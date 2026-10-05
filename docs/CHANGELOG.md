@@ -5,6 +5,13 @@
 - Send configured client certificates when using a custom CA bundle file or directory (#325).
 - Load password-protected combined PEM client certificates without a separate key file.
 
+## 2.11.1 [5th October 2026]
+
+### Security
+
+- Reject Python object tags when loading request YAML files, preventing code execution from crafted collections (reported in #348 and #383).
+- Load user theme files with YAML's safe loader, so Python tags in a theme file are rejected.
+
 ## 2.11.0 [26th September 2026]
 
 ### Added
