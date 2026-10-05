@@ -1,8 +1,11 @@
 ## Unreleased
 
+## 2.11.1 [5th October 2026]
+
 ### Security
 
-- Reject Python object tags when loading request YAML files, preventing code execution from crafted collections.
+- Reject Python object tags when loading request YAML files, preventing code execution from crafted collections (reported in #348 and #383).
+- Load user theme files with YAML's safe loader, so Python tags in a theme file are rejected.
 
 ## 2.11.0 [26th September 2026]
 

@@ -74,3 +74,16 @@ def test_request_roundtrip_preserves_multiline_format(loader, tmp_path: Path):
     assert posting_yaml.dump(
         {"text": "first line\nsecond line"}, Dumper=posting_yaml.Dumper
     ) == "text: |-\n  first line\n  second line\n"
+
+
+def test_theme_loader_rejects_python_tags(tmp_path: Path):
+    from posting.themes import InvalidThemeError, load_user_theme
+
+    path = tmp_path / "unsafe.yaml"
+    path.write_text(
+        "name: unsafe\nprimary: '#ffffff'\nsecondary: !!python/name:os.system\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(InvalidThemeError, match="Could not parse theme file"):
+        load_user_theme(path)
