@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 2.11.2 [5th October 2026]
+
 ### Fixed
 
 - Send configured client certificates when using a custom CA bundle file or directory (#325).
