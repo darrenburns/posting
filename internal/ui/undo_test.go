@@ -160,3 +160,27 @@ func TestUndoRestoresAGRPCMessageReplacedByItsTemplate(tt *testing.T) {
 		tt.Fatalf("after undo message = %q", got)
 	}
 }
+
+// ctrl+y copies the URL, as in Posting 2, so the URL bar redoes with
+// ctrl+shift+z.
+func TestURLBarUndoAndRedo(tt *testing.T) {
+	app := testApp()
+	s := app.current()
+	pasteInto(tt, app, urlInputID, "https://api.test/users")
+
+	pressOn(tt, app, urlInputID, "ctrl+z")
+	if got := s.url.GetText(); got != "" {
+		tt.Fatalf("after undo url = %q", got)
+	}
+	pressOn(tt, app, urlInputID, "ctrl+y")
+	if got := s.url.GetText(); got != "" {
+		tt.Fatalf("ctrl+y redid in the URL bar: url = %q", got)
+	}
+	if got := app.toast.Peek().message; got != "Copied URL" {
+		tt.Fatalf("ctrl+y toast = %q, want Copied URL", got)
+	}
+	pressOn(tt, app, urlInputID, "ctrl+shift+z")
+	if got := s.url.GetText(); got != "https://api.test/users" {
+		tt.Fatalf("after redo url = %q", got)
+	}
+}

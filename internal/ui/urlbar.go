@@ -66,6 +66,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 								OnChange:    func(string) { s.urlEdited() },
 								OnSubmit:    a.submitURL,
 								OnPaste:     a.pasteURL,
+								RedoKeys:    []string{"ctrl+shift+z"},
 								ExtraKeybinds: []t.Keybind{
 									{Key: "down", Name: "Request", Action: func() { t.RequestFocus(requestTabsID) }, Hidden: true},
 									{Key: "ctrl+y", Name: "Copy URL", Action: func() {
