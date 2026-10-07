@@ -272,6 +272,19 @@ class Theme(BaseModel):
             "json.label": Style.parse(
                 variables.get("syntax-json-key", variables["text-primary"])
             ),
+            # Styles for languages which have more to highlight than JSON
+            # does - GraphQL queries, for example. Themes which name one of
+            # Textual's built-in syntax themes get that theme's colours for
+            # these instead.
+            # `text-muted` is an "auto" colour, which can't be parsed as a
+            # style, so comments are simply dimmed.
+            "comment": Style(dim=True),
+            "keyword": Style.parse(variables.get("accent", variables["text-accent"])),
+            "function": Style.parse(variables["text-primary"]),
+            "type": Style.parse(variables["text-warning"]),
+            "type.builtin": Style.parse(variables["text-warning"]),
+            "css.property": Style.parse(variables["text-secondary"]),
+            "constant.builtin": Style.parse(variables["text-success"]),
         }
 
         return TextAreaTheme(

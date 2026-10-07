@@ -8,6 +8,7 @@ from textual.lazy import Lazy
 from textual.widgets import ContentSwitcher, Select, TabPane
 from posting.collection import RequestBody
 from posting.widgets.request.form_editor import FormEditor
+from posting.widgets.request.graphql_editor import GraphQLEditor
 
 from posting.widgets.request.header_editor import HeaderEditor
 from posting.widgets.request.query_editor import QueryStringEditor
@@ -83,6 +84,10 @@ class RequestEditor(Vertical):
         return self.query_one("#form-body-editor", FormEditor)
 
     @property
+    def graphql_editor(self) -> GraphQLEditor:
+        return self.query_one("#graphql-body-editor", GraphQLEditor)
+
+    @property
     def query_editor(self) -> QueryStringEditor:
         return self.query_one(QueryStringEditor)
 
@@ -109,6 +114,13 @@ class RequestEditor(Vertical):
                 "body": RequestBody(
                     form_data=self.form_editor.to_model(),
                     content_type="application/x-www-form-urlencoded",
+                )
+            }
+        elif current == "graphql-body-editor":
+            return {
+                "body": RequestBody(
+                    graphql=self.graphql_editor.to_model(),
+                    content_type="application/json",
                 )
             }
         return {}
