@@ -11,6 +11,19 @@
 - Selecting the GraphQL body type now switches the request method to `POST`. Loading a request no longer applies the side effects of choosing a body type, so a saved request always keeps the method it was saved with.
 - Added a GraphQL schema browser (`f2`, or the `graphql: Browse schema` command): a tree of every operation and type in the schema, with a detail pane, a search across every field in the schema, and `enter` to insert a field into the query - root fields become a complete operation with a variables template, and any other field is inserted as a selection at the cursor.
 - Added schema-aware autocompletion to the GraphQL query editor, covering fields, arguments, enum values, input object fields, operation variables and inline fragment type conditions.
+## 2.11.2 [5th October 2026]
+
+### Fixed
+
+- Send configured client certificates when using a custom CA bundle file or directory (#325).
+- Load password-protected combined PEM client certificates without a separate key file.
+
+## 2.11.1 [5th October 2026]
+
+### Security
+
+- Reject Python object tags when loading request YAML files, preventing code execution from crafted collections (reported in #348 and #383).
+- Load user theme files with YAML's safe loader, so Python tags in a theme file are rejected.
 
 ## 2.11.0 [26th September 2026]
 
