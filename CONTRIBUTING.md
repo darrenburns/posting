@@ -95,6 +95,22 @@ When you're making a change which should be recorded in the changelog.
 You should add your change to the `## Unreleased` section of the changelog.
 If the `## Unreleased` section doesn't exist, you should add it at the top.
 
+## Releasing Posting 3
+
+Releases are built by [GoReleaser](https://goreleaser.com) when a tag starting with `v` is pushed.
+The version comes from the tag, so nothing in the code needs changing.
+
+1. Replace `[Unreleased]` in the changelog heading with the release date.
+2. Tag the release commit and push the tag, for example `git tag v3.0.0-beta.0 && git push origin v3.0.0-beta.0`.
+   Go only accepts tags in [semantic version](https://semver.org) form, so write a beta as `-beta.0`, not `b0`.
+
+The Release workflow publishes a GitHub release with archives for macOS, Linux and Windows, and updates the
+`posting@beta` cask in [darrenburns/homebrew-homebrew](https://github.com/darrenburns/homebrew-homebrew).
+It needs a `HOMEBREW_TAP_GITHUB_TOKEN` secret, with write access to that repository, in the repository's
+`goreleaser` environment.
+
+To try a release locally without publishing it, run `goreleaser release --snapshot --clean` and look in `dist/`.
+
 ## Feeling unsure?
 
 If you're feeling a bit stuck, just open a discussion and I'll do my best to help you out!

@@ -35,7 +35,8 @@ cursor's line and column.
 | ++0++ `^` ++home++ ++ctrl+a++ / `$` ++end++ ++ctrl+e++ | Start / end of the line |
 | ++g++ / ++shift+g++ | Top / bottom of the body |
 | `%` | The bracket matching the one under the cursor |
-| ++page-up++ / ++page-down++ | Up / down a page |
+| ++page-up++ ++ctrl+b++ / ++page-down++ ++ctrl+f++ | Up / down a page |
+| ++ctrl+u++ / ++ctrl+d++ | Up / down half a page |
 | ++shift++ + movement, or ++shift+k++ ++shift+j++ ++shift+h++ ++shift+l++ ++shift+w++ ++shift+b++ | Select while moving |
 | ++v++ | Visual mode: moving the cursor selects, as if you were holding ++shift++. ++escape++ leaves it |
 | ++shift+v++ / ++f6++ | Select the line |

@@ -172,6 +172,7 @@ In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++esc
 | ++k++ ++j++ ++h++ ++l++, ++w++ / ++b++ | Move the cursor, by word |
 | ++0++ `^` / `$`, ++g++ / ++shift+g++ | Start / end of the line, top / bottom |
 | `%` | Matching bracket |
+| ++page-up++ ++ctrl+b++ / ++page-down++ ++ctrl+f++, ++ctrl+u++ / ++ctrl+d++ | Up / down a page, half a page |
 | ++shift+k++ ++shift+j++ ++shift+h++ ++shift+l++ ++shift+w++ ++shift+b++ | Select while moving |
 | ++v++ | Visual mode (++escape++ to leave) |
 | ++shift+v++ / ++f6++, ++f7++ | Select the line, select all |

@@ -3,11 +3,30 @@ Posting 3 is a single, self-contained binary: there's no Python or other runtime
 
 ## Installation
 
-Posting 3 is written in Go. If you have [Go](https://go.dev/dl/) 1.25.5 or newer installed,
-you can install it with a single command:
+Posting 3 is in beta. Install it with Homebrew, download a release, or build it with Go.
+
+### Homebrew
+
+On macOS and Linux, install the beta from Posting's Homebrew tap:
 
 ```bash
-go install github.com/darrenburns/posting/cmd/posting@latest
+brew install darrenburns/homebrew/posting@beta
+```
+
+Posting 2's Homebrew formula also installs a command called `posting`, so run
+`brew uninstall posting` first if you have it.
+
+### Downloading a release
+
+Each [GitHub release](https://github.com/darrenburns/posting/releases) has archives for macOS,
+Linux and Windows. Extract the `posting` binary and put it in a directory on your `PATH`.
+
+### Go
+
+If you have [Go](https://go.dev/dl/) 1.25.5 or newer installed, run:
+
+```bash
+go install github.com/darrenburns/posting/v3/cmd/posting@latest
 ```
 
 This builds Posting and puts the `posting` binary in `$(go env GOPATH)/bin` (usually `~/go/bin`).
@@ -32,7 +51,7 @@ go build -o posting ./cmd/posting
 
 ```bash
 $ posting version
-Posting 3.0.0
+Posting 3.0.0-beta.0
 ```
 
 `posting --help` lists the options you can start Posting with.

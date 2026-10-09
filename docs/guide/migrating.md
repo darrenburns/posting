@@ -40,8 +40,8 @@ so you can point it at your existing collections and carry on.
 
 ## What's changed
 
-- **Installation.** Posting 3 is installed with `go install`, not `uv` or `pipx`. See
-  [Installation](./index.md#installation).
+- **Installation.** Posting 3 is installed with Homebrew, from a release download or with
+  `go install`, not with `uv` or `pipx`. See [Installation](./index.md#installation).
 - **Some shortcuts moved.** Searching requests is now ++ctrl+g++, and expanding a panel is ++alt+z++.
   ++ctrl+n++ opens a new request tab.
 - **Help.** ++f1++ shows all the keyboard shortcuts in one place, rather than help for the focused widget.
@@ -56,8 +56,6 @@ These Posting 2 features aren't in Posting 3 yet:
 - **Scripts.** Pre-request and post-response Python scripts aren't run. They're kept in your request files,
   so nothing is lost. See [Scripting](./scripting.md) for alternatives.
 - **Undo and redo** in text areas.
-- **Paging keys in the response body.** ++ctrl+f++ / ++ctrl+b++ (page) and ++ctrl+d++ / ++ctrl+u++ (half a
-  page) aren't bound yet. Use ++page-down++ and ++page-up++.
 - **Encrypted client certificate keys** (`ssl.password`).
 - **X resources themes** (`use_xresources`), and live reloading of theme files (`watch_themes`).
 - **Custom syntax highlighting and method colours** in theme files. Colours come from the theme's
