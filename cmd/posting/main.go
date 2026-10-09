@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"slices"
 	"strings"
 
@@ -23,9 +24,15 @@ import (
 	"github.com/darrenburns/posting/v3/internal/ui"
 )
 
-const version = "3.0.0-dev"
+// version is set for releases with -ldflags "-X main.version=<version>".
+// Other builds use the module version Go records, which go install takes
+// from the tag it installs.
+var version string
 
 func main() {
+	if version == "" {
+		version = moduleVersion()
+	}
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
 }
 
@@ -254,4 +261,13 @@ func locate(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	return 0
+}
+
+func moduleVersion() string {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if v := strings.TrimPrefix(info.Main.Version, "v"); v != "" && v != "(devel)" {
+			return v
+		}
+	}
+	return "dev"
 }
