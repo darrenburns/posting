@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func write(t *testing.T, dir string, files map[string]string) {

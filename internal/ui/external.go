@@ -6,7 +6,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/curl"
 )
 
 // runOnText writes text to a temporary file, runs command on it with the

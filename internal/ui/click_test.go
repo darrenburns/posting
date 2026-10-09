@@ -6,7 +6,7 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // clickID renders app and clicks the top-left cell of the widget with id, as

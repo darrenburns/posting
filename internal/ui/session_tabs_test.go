@@ -8,7 +8,7 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // openTabs opens n more request tabs, named "Request 01" onwards, leaving

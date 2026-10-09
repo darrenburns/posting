@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/env"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/env"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func TestEnvironmentFilesAcceptNamesAndFiles(t *testing.T) {

@@ -3,8 +3,8 @@ package grpcurl
 import (
 	"testing"
 
-	"github.com/darrenburns/posting/internal/curl"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func request(url string, payload model.GRPC) model.Request {

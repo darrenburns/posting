@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func keys(m object) []string {

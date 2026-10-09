@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // The Posting 2 test collection lives in the repository's Python test suite.

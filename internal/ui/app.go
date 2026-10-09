@@ -18,11 +18,11 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/config"
-	"github.com/darrenburns/posting/internal/model"
-	"github.com/darrenburns/posting/internal/themes"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/config"
+	"github.com/darrenburns/posting/v3/internal/model"
+	"github.com/darrenburns/posting/v3/internal/themes"
 )
 
 // Config is everything the UI needs from the outside world.

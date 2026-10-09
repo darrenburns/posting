@@ -5,8 +5,8 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/curl"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // curlForm is the state of the curl import and export dialogs.

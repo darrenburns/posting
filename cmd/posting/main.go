@@ -12,15 +12,15 @@ import (
 
 	"github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/config"
-	"github.com/darrenburns/posting/internal/env"
-	"github.com/darrenburns/posting/internal/history"
-	"github.com/darrenburns/posting/internal/model"
-	"github.com/darrenburns/posting/internal/paths"
-	"github.com/darrenburns/posting/internal/themes"
-	"github.com/darrenburns/posting/internal/ui"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/config"
+	"github.com/darrenburns/posting/v3/internal/env"
+	"github.com/darrenburns/posting/v3/internal/history"
+	"github.com/darrenburns/posting/v3/internal/model"
+	"github.com/darrenburns/posting/v3/internal/paths"
+	"github.com/darrenburns/posting/v3/internal/themes"
+	"github.com/darrenburns/posting/v3/internal/ui"
 )
 
 const version = "3.0.0-dev"

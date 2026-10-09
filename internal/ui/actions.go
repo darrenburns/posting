@@ -5,7 +5,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // action is a global command with a keymap ID. The IDs are Posting 2's, so

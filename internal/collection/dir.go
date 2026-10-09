@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // Store persists requests. The UI saves and deletes through it, so it never
