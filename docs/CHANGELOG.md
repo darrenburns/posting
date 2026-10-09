@@ -8,6 +8,20 @@ Posting 3 is a rewrite of Posting in Go, distributed as a single binary. It read
 
 - `posting import` imports environments. Give Postman environment exports after the collection, or on their own with `--output` to add them to an existing collection. A Bruno collection's `environments` directory is imported too. Collection variables go in `posting.env` and each environment in its own `<name>.env` on top of it. References between variables are kept, so a `BASE_URL` built from `HOST` follows the selected environment (#270).
 
+## 2.11.2 [5th October 2026]
+
+### Fixed
+
+- Send configured client certificates when using a custom CA bundle file or directory (#325).
+- Load password-protected combined PEM client certificates without a separate key file.
+
+## 2.11.1 [5th October 2026]
+
+### Security
+
+- Reject Python object tags when loading request YAML files, preventing code execution from crafted collections (reported in #348 and #383).
+- Load user theme files with YAML's safe loader, so Python tags in a theme file are rejected.
+
 ## 2.11.0 [26th September 2026]
 
 ### Added
