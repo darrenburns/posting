@@ -37,9 +37,9 @@ class CurlImport:
         if curl_command.strip().startswith("curl "):
             curl_command = curl_command.strip()[5:]
 
-        # Replace line breaks and `\`. If we don't do this, argparse can crash when pasting requests from chrome
+        # Remove shell line continuations from commands copied from a browser.
+        # Leave other backslashes for shlex to handle, including quoted data.
         curl_command = curl_command.replace("\\\n", " ")
-        curl_command = curl_command.replace("\\", " ")
 
         # Split the command string into tokens
         tokens = shlex.split(curl_command)

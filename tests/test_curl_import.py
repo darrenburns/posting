@@ -1,6 +1,26 @@
 from posting.importing.curl import CurlImport
 
 
+def test_curl_preserves_backslashes_in_json_body():
+    body = r'{"message":"first\nsecond","path":"C:\\temp","literal":"\u4e2d"}'
+    curl_import = CurlImport(
+        f"curl -H 'Content-Type: application/json' --data-raw '{body}' http://example.com"
+    )
+    assert curl_import.data == body
+    assert curl_import.to_request_model().body.content == body
+
+
+def test_curl_preserves_backslashes_in_quoted_header():
+    curl_import = CurlImport(r"curl -H 'X-Path: C:\temp\file' http://example.com")
+    assert curl_import.headers == [("X-Path", r"C:\temp\file")]
+
+
+def test_curl_honors_escaped_spaces():
+    curl_import = CurlImport(r"curl -H X-Label:\ hello\ world http://example.com")
+    assert curl_import.headers == [("X-Label", "hello world")]
+    assert curl_import.url == "http://example.com"
+
+
 def test_simple_get():
     """Test a simple GET request."""
     curl_command = "curl http://example.com"
