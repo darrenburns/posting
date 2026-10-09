@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Added
+
+- A one-time notice on startup announcing the Posting 3 beta, with install instructions and a link to the migration guide. It is shown once per machine.
+
 ## 2.11.2 [5th October 2026]
 
 ### Fixed
