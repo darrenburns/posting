@@ -259,12 +259,15 @@ func TestResponseBodyPagingGeometry(tt *testing.T) {
 			if line != wantLine || s.responseBody.SelectionAnchor.Peek() != 3 {
 				tt.Fatalf("%s at height %d moved to line %d, want %d; anchor=%d", pair.down, height, line, wantLine, s.responseBody.SelectionAnchor.Peek())
 			}
-			if line >= viewport && s.responseBodyScroll.GetOffset() == 0 {
-				tt.Fatal("page cursor was not revealed immediately")
+			if offset := s.responseBodyScroll.GetOffset(); offset != wantLine {
+				tt.Fatalf("%s at height %d scrolled to %d, want %d so the cursor keeps its row", pair.down, height, offset, wantLine)
 			}
 			bodyScreenKey(tt, screen, pair.up)
 			if got := cursorAt(s); got != "1:4" {
 				tt.Fatalf("%s lost preferred column: %s", pair.up, got)
+			}
+			if offset := s.responseBodyScroll.GetOffset(); offset != 0 {
+				tt.Fatalf("%s at height %d left the view scrolled to %d", pair.up, height, offset)
 			}
 			bodyScreenKey(tt, screen, "escape")
 		}

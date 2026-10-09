@@ -65,9 +65,14 @@ func (s *Session) responseBodyKeybinds(copyBody func(), visual bool) []t.Keybind
 		{[]string{"ctrl+u"}, -1, 2},
 		{[]string{"ctrl+d"}, 1, 2},
 	} {
+		// As in Posting 2, the view scrolls as far as the cursor moves, so
+		// the cursor keeps its row on screen.
 		move := func(body *t.TextAreaState) {
 			lines := max(1, (s.responseBodyViewportHeight-1)/page.divisor)
+			_, before := body.CursorScreenPosition(0, 0)
 			body.CursorDownBy(page.direction * lines)
+			_, after := body.CursorScreenPosition(0, 0)
+			s.responseBodyScroll.SetOffset(s.responseBodyScroll.GetOffset() + after - before)
 		}
 		for _, key := range page.keys {
 			binds = append(binds, t.Keybind{Key: key, Action: s.moveBodyCursor(move, false), Hidden: true})
