@@ -1,6 +1,47 @@
 from posting.importing.curl import CurlImport
 
 
+def test_curl_preserves_quoted_backslash_newline_in_body():
+    body = "first\\\nsecond"
+    curl_import = CurlImport(
+        f"curl -H 'Content-Type: text/plain' --data-binary '{body}' http://example.com"
+    )
+    assert curl_import.data == body
+    assert curl_import.to_request_model().body.content == body
+
+
+def test_curl_continuation_concatenates_url():
+    curl_import = CurlImport("curl http://example.com\\\n/path")
+    assert curl_import.url == "http://example.com/path"
+
+
+def test_curl_continuation_concatenates_double_quoted_data():
+    curl_import = CurlImport(
+        'curl -H "Content-Type: text/plain" --data-raw "first\\\nsecond" http://example.com'
+    )
+    assert curl_import.data == "firstsecond"
+
+
+def test_curl_preserves_backslashes_in_json_body():
+    body = r'{"message":"first\nsecond","path":"C:\\temp","literal":"\u4e2d"}'
+    curl_import = CurlImport(
+        f"curl -H 'Content-Type: application/json' --data-raw '{body}' http://example.com"
+    )
+    assert curl_import.data == body
+    assert curl_import.to_request_model().body.content == body
+
+
+def test_curl_preserves_backslashes_in_quoted_header():
+    curl_import = CurlImport(r"curl -H 'X-Path: C:\temp\file' http://example.com")
+    assert curl_import.headers == [("X-Path", r"C:\temp\file")]
+
+
+def test_curl_honors_escaped_spaces():
+    curl_import = CurlImport(r"curl -H X-Label:\ hello\ world http://example.com")
+    assert curl_import.headers == [("X-Label", "hello world")]
+    assert curl_import.url == "http://example.com"
+
+
 def test_simple_get():
     """Test a simple GET request."""
     curl_command = "curl http://example.com"

@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Fixed
+
+- Preserve backslashes in request bodies and headers when importing curl commands, including quoted backslash-newline data and shell line continuations within arguments.
+
 ## 2.11.2 [5th October 2026]
 
 ### Fixed
