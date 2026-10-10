@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // Pair is one assignment from a dotenv file, in file order.

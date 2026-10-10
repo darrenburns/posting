@@ -9,8 +9,8 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // docsURL is where the "Open documentation" command goes.

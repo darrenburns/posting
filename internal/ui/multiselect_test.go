@@ -8,7 +8,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func sidebarScreen(tt *testing.T, app *App, id string) *screen {

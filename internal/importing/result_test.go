@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func TestBracedOnlyKeepsWhatSubstituteBracedSends(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // recordingStore remembers what the app asked it to save and delete.

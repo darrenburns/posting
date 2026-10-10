@@ -7,25 +7,32 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"slices"
 	"strings"
 
 	"github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/config"
-	"github.com/darrenburns/posting/internal/env"
-	"github.com/darrenburns/posting/internal/history"
-	"github.com/darrenburns/posting/internal/model"
-	"github.com/darrenburns/posting/internal/paths"
-	"github.com/darrenburns/posting/internal/themes"
-	"github.com/darrenburns/posting/internal/ui"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/config"
+	"github.com/darrenburns/posting/v3/internal/env"
+	"github.com/darrenburns/posting/v3/internal/history"
+	"github.com/darrenburns/posting/v3/internal/model"
+	"github.com/darrenburns/posting/v3/internal/paths"
+	"github.com/darrenburns/posting/v3/internal/themes"
+	"github.com/darrenburns/posting/v3/internal/ui"
 )
 
-const version = "3.0.0-dev"
+// version is set for releases with -ldflags "-X main.version=<version>".
+// Other builds use the module version Go records, which go install takes
+// from the tag it installs.
+var version string
 
 func main() {
+	if version == "" {
+		version = moduleVersion()
+	}
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
 }
 
@@ -134,6 +141,7 @@ func appConfig(opts options) (ui.Config, error) {
 	for _, file := range envFiles {
 		envDirs = append(envDirs, filepath.Dir(file))
 	}
+	messages = append(messages, settingsInEnvironmentFiles(envFiles)...)
 
 	store := collection.Dir{Root: dir}
 	root, problems := store.Load()
@@ -152,13 +160,11 @@ func appConfig(opts options) (ui.Config, error) {
 	if settings.UseHostEnvironment {
 		host = env.Host()
 	}
-	if settings.SSL.Password != "" {
-		messages = append(messages, "ssl.password isn't supported yet: use an unencrypted key file")
-	}
 	tlsSettings := client.TLSSettings{
 		CABundle: settings.SSL.CABundle,
 		CertFile: settings.SSL.CertificatePath,
 		KeyFile:  settings.SSL.KeyFile,
+		Password: settings.SSL.Password,
 	}
 	var historyStore ui.HistoryStore
 	if settings.History.Enabled {
@@ -234,6 +240,31 @@ func environmentFiles(given []string, dirs []string) ([]string, error) {
 	return files, nil
 }
 
+// settingsInEnvironmentFiles warns about POSTING_* settings in environment
+// files. Posting 2 read settings from them, but environment files only hold
+// request variables now, so the settings would otherwise be lost silently.
+func settingsInEnvironmentFiles(files []string) []string {
+	var warnings []string
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue // Loading the environment reports it.
+		}
+		var names []string
+		for _, pair := range env.Parse(string(data), nil) {
+			if strings.HasPrefix(strings.ToUpper(pair.Name), "POSTING_") {
+				names = append(names, pair.Name)
+			}
+		}
+		if len(names) > 0 {
+			warnings = append(warnings, fmt.Sprintf(
+				"%s sets %s, but settings aren't read from environment files. Set them in config.yaml or your shell instead.",
+				filepath.Base(file), strings.Join(names, ", ")))
+		}
+	}
+	return warnings
+}
+
 func locate(args []string, stdout, stderr io.Writer) int {
 	if len(args) != 1 {
 		fmt.Fprintln(stderr, "Usage: posting locate config|collection|themes")
@@ -254,4 +285,13 @@ func locate(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	return 0
+}
+
+func moduleVersion() string {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if v := strings.TrimPrefix(info.Main.Version, "v"); v != "" && v != "(devel)" {
+			return v
+		}
+	}
+	return "dev"
 }

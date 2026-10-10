@@ -7,8 +7,8 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/curl"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 const (
@@ -66,10 +66,11 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 								OnChange:    func(string) { s.urlEdited() },
 								OnSubmit:    a.submitURL,
 								OnPaste:     a.pasteURL,
+								RedoKeys:    []string{"ctrl+shift+z"},
 								ExtraKeybinds: []t.Keybind{
 									{Key: "down", Name: "Request", Action: func() { t.RequestFocus(requestTabsID) }, Hidden: true},
 									{Key: "ctrl+y", Name: "Copy URL", Action: func() {
-										t.SetClipboard('c', s.url.GetText())
+										t.SetClipboard(t.SystemClipboard, s.url.GetText())
 										a.notify("Copied URL", toastSuccess)
 									}, Hidden: true},
 								},

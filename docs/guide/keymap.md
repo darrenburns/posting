@@ -84,7 +84,7 @@ These are the actions you can rebind, with their default keys:
 Response panels, and a new key always expands the Request panel.
 
 A few keys are fixed: ++escape++ cancels a request that's in flight, or stops a gRPC call and keeps
-the messages that arrived (or closes whatever dialog is open), ++ctrl+c++ quits, ++ctrl+z++ suspends Posting, and ++ctrl+shift+s++ saves a text screenshot
+the messages that arrived (or closes whatever dialog is open), ++ctrl+c++ quits, ++ctrl+z++ suspends Posting (in a text field it undoes instead), and ++ctrl+shift+s++ saves a text screenshot
 of the screen to the current directory.
 
 Many terminals send ++ctrl+h++ as ++backspace++. If ++ctrl+h++ doesn't toggle the sidebar for you,
@@ -100,7 +100,7 @@ rebound yet.
 | Key | Action |
 |-----|--------|
 | ++tab++ / ++shift+tab++ | Move focus to the next / previous field |
-| ++ctrl+z++ | Suspend Posting (resume it with `fg` in your shell) |
+| ++ctrl+z++ | Suspend Posting (resume it with `fg` in your shell). In a text field, it undoes instead |
 
 ### Method selector
 
@@ -118,6 +118,7 @@ rebound yet.
 | ++enter++ | Send the request, or import the URL bar's contents if it's a curl command |
 | ++down++ | Move down to the request tabs |
 | ++ctrl+y++ | Copy the URL |
+| ++ctrl+shift+z++ | Redo (in place of ++ctrl+y++, which copies the URL here). Needs a terminal with the kitty keyboard protocol |
 | Type `$` | Suggest variables |
 
 ### Tabs
@@ -156,6 +157,7 @@ The Path table's names come from the URL, so only its values can be edited.
 | ++home++ / ++end++, ++ctrl+e++ | Start / end of the line |
 | ++shift++ + movement keys | Select text |
 | ++ctrl+a++ | Select all |
+| ++ctrl+z++ / ++ctrl+y++ | Undo / redo (in the URL bar, redo is ++ctrl+shift+z++) |
 | ++ctrl+w++ / ++alt+backspace++ | Delete the word before the cursor |
 | ++ctrl+u++ / ++ctrl+k++ | Delete to the start / end of the line |
 | ++ctrl+d++ / ++delete++ | Delete the character after the cursor |
@@ -172,6 +174,7 @@ In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++esc
 | ++k++ ++j++ ++h++ ++l++, ++w++ / ++b++ | Move the cursor, by word |
 | ++0++ `^` / `$`, ++g++ / ++shift+g++ | Start / end of the line, top / bottom |
 | `%` | Matching bracket |
+| ++page-up++ ++ctrl+b++ / ++page-down++ ++ctrl+f++, ++ctrl+u++ / ++ctrl+d++ | Up / down a page, half a page |
 | ++shift+k++ ++shift+j++ ++shift+h++ ++shift+l++ ++shift+w++ ++shift+b++ | Select while moving |
 | ++v++ | Visual mode (++escape++ to leave) |
 | ++shift+v++ / ++f6++, ++f7++ | Select the line, select all |
@@ -180,6 +183,16 @@ In a list of suggestions, ++up++ and ++down++ move, ++enter++ accepts, and ++esc
 
 In the response body, ++ctrl+a++ goes to the start of the line rather than selecting all, as it did in
 Posting 2.
+
+### Response headers, cookies and trailers
+
+| Key | Action |
+|-----|--------|
+| ++up++ / ++k++, ++down++ / ++j++ | Move the cursor |
+| ++home++ / ++g++, ++end++ / ++shift+g++ | First / last row |
+| ++y++ / ++c++ | Copy the value |
+| ++n++ | Copy the name |
+| ++b++ | Copy both, as `Name: value` (a cookie as `name=value`) |
 
 ### Collection
 
@@ -231,6 +244,7 @@ entries keep working. A few things changed:
 | `help` also accepted `ctrl+?` | ++f1++ only |
 | `quit` could be rebound | ++ctrl+c++ is fixed |
 | `open-in-pager` and `open-in-editor` could be rebound | ++f3++ and ++f4++ are fixed |
+| ++c++ / ++y++ on a response table opened a menu to copy the name, value or both | ++y++ / ++c++ copy the value, ++n++ the name and ++b++ both, with no menu |
 | Keys like `ctrl+X` meant ++ctrl+shift+x++ | Write `ctrl+shift+x` |
 
 Keymap entries for IDs Posting 3 doesn't have are ignored.

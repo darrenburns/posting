@@ -11,7 +11,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // EnvironmentSource finds and loads environments. It is the UI's only way to

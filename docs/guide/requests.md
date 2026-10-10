@@ -479,8 +479,8 @@ You can also:
 
 - choose **Import curl command…** in the command palette, and paste the command into the dialog;
   press ++ctrl+j++ to import it
-- choose **Import curl from clipboard** to import the command on your clipboard directly (this
-  needs a terminal that lets applications read the clipboard)
+- choose **Import curl from clipboard** to import the command on your clipboard directly (over
+  SSH, this needs a terminal that lets applications read the clipboard)
 
 Importing replaces everything in the current tab's request except its name and description.
 The request keeps its file too, so importing into a saved request updates it once you save.

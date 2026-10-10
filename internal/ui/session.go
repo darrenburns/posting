@@ -11,8 +11,8 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // exchangePhase is where a session's current send is up to.
@@ -290,16 +290,19 @@ func (s *Session) Load(req model.Request) {
 		e.load(req)
 	}
 	s.method.Set(req.Method)
-	s.url.SetText(req.URL)
 	s.headers.Load(req.Headers)
 	s.query.Load(req.Query)
 	base, _, _ := strings.Cut(req.URL, "#")
 	_, query, _ := strings.Cut(base, "?")
 	// An empty URL query falls back to saved rows, as model.Resolve does.
+	if query == "" && len(req.Query) > 0 {
+		s.url.SetText(s.urlWithQuery(req.URL))
+		s.url.CursorEnd()
+	} else {
+		s.url.SetText(req.URL)
+	}
 	if query != "" {
 		s.syncQueryFromURL()
-	} else if len(req.Query) > 0 {
-		s.writeQueryToURL()
 	}
 	s.pathParams.Load(req.PathParams)
 	s.syncPathParams()
@@ -401,9 +404,14 @@ func (s *Session) queryEdited() {
 	s.touch()
 }
 
-// writeQueryToURL replaces the URL's query string with the enabled query rows.
+// writeQueryToURL replaces the URL's query string with the enabled query
+// rows, as an edit the user can undo.
 func (s *Session) writeQueryToURL() {
-	raw := s.url.GetText()
+	replaceToEnd(s.url, s.urlWithQuery(s.url.GetText()))
+}
+
+// urlWithQuery is raw with its query string replaced by the enabled query rows.
+func (s *Session) urlWithQuery(raw string) string {
 	base, fragment := raw, ""
 	if i := strings.IndexByte(base, '#'); i >= 0 {
 		base, fragment = base[:i], base[i:]
@@ -420,8 +428,14 @@ func (s *Session) writeQueryToURL() {
 	if len(parts) > 0 {
 		base += "?" + strings.Join(parts, "&")
 	}
-	s.url.SetText(base + fragment)
-	s.url.CursorEnd()
+	return base + fragment
+}
+
+// replaceToEnd replaces input's text as one undoable edit and puts the cursor
+// at the end. ReplaceText clamps the cursor, and a byte count is never less
+// than the grapheme count.
+func replaceToEnd(input *t.TextInputState, text string) {
+	input.ReplaceText(text, len(text))
 }
 
 // encodeQueryPart escapes a query component but leaves ${VAR} references readable.

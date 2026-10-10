@@ -1,0 +1,7 @@
+name: Delete user
+description: Permanently delete a user.
+method: DELETE
+url: ${BASE_URL}/users/:id
+path_params:
+  - name: id
+    value: '1'

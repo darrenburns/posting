@@ -18,7 +18,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/darrenburns/posting/internal/paths"
+	"github.com/darrenburns/posting/v3/internal/paths"
 )
 
 // Settings is the whole configuration.

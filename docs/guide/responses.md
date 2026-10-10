@@ -35,7 +35,8 @@ cursor's line and column.
 | ++0++ `^` ++home++ ++ctrl+a++ / `$` ++end++ ++ctrl+e++ | Start / end of the line |
 | ++g++ / ++shift+g++ | Top / bottom of the body |
 | `%` | The bracket matching the one under the cursor |
-| ++page-up++ / ++page-down++ | Up / down a page |
+| ++page-up++ ++ctrl+b++ / ++page-down++ ++ctrl+f++ | Up / down a page |
+| ++ctrl+u++ / ++ctrl+d++ | Up / down half a page |
 | ++shift++ + movement, or ++shift+k++ ++shift+j++ ++shift+h++ ++shift+l++ ++shift+w++ ++shift+b++ | Select while moving |
 | ++v++ | Visual mode: moving the cursor selects, as if you were holding ++shift++. ++escape++ leaves it |
 | ++shift+v++ / ++f6++ | Select the line |
@@ -59,10 +60,25 @@ or choose **Copy response body** or **Toggle response wrap** in the command pale
 
 The response headers, one per row.
 
+Move into the table with ++down++, then move between rows with ++up++ / ++k++ and ++down++ / ++j++.
+These keys copy the row under the cursor:
+
+| Key | Copies |
+|-----|--------|
+| ++y++ / ++c++ | The value |
+| ++n++ | The name |
+| ++b++ | Both, as `Name: value` |
+
+The same keys work in the **Cookies** and **Trailers** tables. ++b++ copies a cookie as
+`name=value`, the way a `Cookie` header carries it. The command palette also has **Copy header
+value**, **Copy header name** and **Copy header name and value** (or **cookie** or **trailer**) for
+the row under the cursor on the tab that's showing.
+
 ## Cookies
 
 The cookies the response set, with each cookie's name, value, path, and whether it's `HttpOnly`
-or `Secure`.
+or `Secure`. Copy a cookie's value with ++y++, its name with ++n++, or `name=value` with ++b++. See
+[Headers](#headers).
 
 Cookies from responses are remembered until you quit Posting, and sent with later requests to the
 same site, unless you turn off **Attach cookies** in the request's [Options](./requests.md#options).

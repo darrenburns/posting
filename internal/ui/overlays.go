@@ -6,7 +6,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 const (
@@ -118,6 +118,9 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			}
 		})},
 		{Label: "Copy response body", Action: a.run(a.copyResponseBody)},
+	}...)
+	items = append(items, a.rowCopyCommands()...)
+	items = append(items, []t.CommandPaletteItem{
 		{Label: "Toggle response wrap", Description: "Wrap long lines in the response body", Action: a.run(func() {
 			if s := a.current(); s != nil {
 				s.responseBody.ToggleWrap()
@@ -139,7 +142,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			a.palette.SetNextFocusIDOnClose("curl-text")
 			a.run(a.openCurlImport)()
 		}},
-		{Label: "Import curl from clipboard", Description: "Needs a terminal that lets apps read the clipboard", Action: a.run(a.importCurlFromClipboard)},
+		{Label: "Import curl from clipboard", Description: "Over SSH, needs a terminal that lets apps read the clipboard", Action: a.run(a.importCurlFromClipboard)},
 		{Label: "Export as " + a.exportTool(), Description: "Copy the request as a " + a.exportTool() + " command", Action: func() {
 			a.palette.SetNextFocusIDOnClose("curl-text")
 			a.run(a.copyExport)()
@@ -380,6 +383,11 @@ var helpSections = []helpSection{
 		{"y / c", "Copy the selection, or the whole body"},
 		{"esc", "Leave visual mode"},
 	}},
+	{"Response headers, cookies, trailers", [][2]string{
+		{"y / c", "Copy the value"},
+		{"n", "Copy the name"},
+		{"b", "Copy both, as Name: value (name=value for a cookie)"},
+	}},
 }
 
 func (h helpOverlay) Build(ctx t.BuildContext) t.Widget {
@@ -494,8 +502,8 @@ func (a *App) submitSave() {
 		return
 	}
 	s.syncing = true
-	s.name.SetText(name)
-	s.description.SetText(req.Description)
+	s.name.ReplaceText(name, s.name.CursorIndex.Peek())
+	s.description.ReplaceText(req.Description, s.description.CursorIndex.Peek())
 	s.file.Set(path)
 	s.syncing = false
 	s.title.Set(req.DisplayName())

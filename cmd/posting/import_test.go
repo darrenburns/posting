@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/curl"
-	"github.com/darrenburns/posting/internal/env"
-	"github.com/darrenburns/posting/internal/model"
-	"github.com/darrenburns/posting/internal/paths"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/env"
+	"github.com/darrenburns/posting/v3/internal/model"
+	"github.com/darrenburns/posting/v3/internal/paths"
 )
 
 const postmanCLIExample = `{"info":{"name":"CLI collection","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"item":[{"name":"Ping","request":{"method":"GET","url":"https://example.test/ping"}}]}`

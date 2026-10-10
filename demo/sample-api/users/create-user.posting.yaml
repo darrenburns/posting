@@ -1,0 +1,19 @@
+name: Create user
+description: Create a new user account.
+method: POST
+url: ${BASE_URL}/users
+body:
+  content: |-
+    {
+      "name": "Grace Hopper",
+      "email": "grace@example.com",
+      "role": "admin"
+    }
+  content_type: application/json
+headers:
+  - name: Content-Type
+    value: application/json
+auth:
+  type: bearer_token
+  bearer_token:
+    token: ${API_TOKEN}

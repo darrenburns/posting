@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/env"
-	"github.com/darrenburns/posting/internal/importing"
-	"github.com/darrenburns/posting/internal/importing/bruno"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/env"
+	"github.com/darrenburns/posting/v3/internal/importing"
+	"github.com/darrenburns/posting/v3/internal/importing/bruno"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func TestImportedAliasesReachSenderAndCurlWithRequestScope(t *testing.T) {

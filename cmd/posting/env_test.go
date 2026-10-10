@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/env"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/env"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func TestEnvironmentFilesAcceptNamesAndFiles(t *testing.T) {
@@ -130,5 +130,30 @@ func TestNamedEnvironmentReappliesItsLayers(t *testing.T) {
 				t.Fatalf("values = %v, want %v (files %v)", got, want, files)
 			}
 		})
+	}
+}
+
+func TestSettingsInEnvironmentFilesAreReported(t *testing.T) {
+	dir := t.TempDir()
+	files := map[string]string{
+		"posting.env": "BASE_URL=https://example.com\n",
+		"dev.env":     "POSTING_SSL__CA_BUNDLE=/dev-ca.pem\nTOKEN=abc\nexport posting_theme=lantern\n",
+	}
+	var paths []string
+	for _, name := range []string{"posting.env", "dev.env"} {
+		path := filepath.Join(dir, name)
+		if err := os.WriteFile(path, []byte(files[name]), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		paths = append(paths, path)
+	}
+
+	got := settingsInEnvironmentFiles(paths)
+	want := []string{"dev.env sets POSTING_SSL__CA_BUNDLE, posting_theme, but settings aren't read from environment files. Set them in config.yaml or your shell instead."}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("warnings = %q, want %q", got, want)
+	}
+	if got := settingsInEnvironmentFiles(paths[:1]); got != nil {
+		t.Errorf("warnings without settings = %q, want none", got)
 	}
 }

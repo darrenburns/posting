@@ -70,7 +70,8 @@ POSTING_THEME=lantern POSTING_LAYOUT=horizontal posting
 
 Posting reads these from the environment it was started in, not from the `.env` files you use
 for [environments](./environments.md). Those files hold variables for your requests, not
-settings for the app.
+settings for the app. If an environment file you start Posting with contains `POSTING_*`
+variables, Posting shows a warning naming them, since Posting 2 did read settings from those files.
 
 ## Configuring SSL
 
@@ -103,8 +104,18 @@ ssl:
 If you leave out `key_file`, Posting reads the private key from `certificate_path`, so a single
 PEM containing both the certificate and the key works too.
 
-The key must not be encrypted: `ssl.password` isn't supported in Posting 3 yet, and setting it
-shows a warning at startup. Problems loading certificates are reported when you send a request.
+If the private key is encrypted, give its password too:
+
+```yaml
+ssl:
+  certificate_path: /path/to/client-cert.pem
+  key_file: /path/to/client-key.pem
+  password: my-key-password
+```
+
+Keys encrypted as PKCS #8 (`BEGIN ENCRYPTED PRIVATE KEY`) and in OpenSSL's older format (a
+`Proc-Type: 4,ENCRYPTED` header) both work. Problems loading certificates, including a wrong
+password, are reported when you send a request.
 
 ### Per-environment certificates
 
@@ -156,6 +167,7 @@ Each can also be set with the environment variable shown in brackets.
 | `ssl.ca_bundle` (`POSTING_SSL__CA_BUNDLE`) | Path to a PEM file (Default: unset) | Extra certificate authorities to trust. |
 | `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Path (Default: unset) | A client certificate to present. |
 | `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Path (Default: unset) | The private key for the client certificate. |
+| `ssl.password` (`POSTING_SSL__PASSWORD`) | Text (Default: unset) | The password of an encrypted private key. |
 
 ### Settings not yet supported
 
@@ -164,7 +176,6 @@ do anything in Posting 3 yet:
 
 | Setting | Notes |
 |---------|-------|
-| `ssl.password` | Encrypted client keys aren't supported. Setting this shows a warning. |
 | `watch_themes` | Theme files are read when Posting starts. Restart to pick up changes. |
 | `use_xresources` | X resources themes aren't available. |
 | `animation` | Posting 3 has no animation levels. |

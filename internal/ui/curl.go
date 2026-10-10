@@ -5,8 +5,8 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/curl"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // curlForm is the state of the curl import and export dialogs.
@@ -85,8 +85,7 @@ func (a *App) submitURL(text string) {
 		return
 	}
 	if strings.HasSuffix(strings.TrimRight(text, " "), "\\") {
-		s.url.SetText(strings.TrimSuffix(strings.TrimRight(text, " "), "\\") + " ")
-		s.url.CursorEnd()
+		replaceToEnd(s.url, strings.TrimSuffix(strings.TrimRight(text, " "), "\\")+" ")
 		return
 	}
 	if a.importCurl(text) {

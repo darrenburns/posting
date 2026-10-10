@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/darrenburns/posting/internal/history"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/history"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // HistoryStore keeps history between runs.

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func variableRow(t *testing.T, app *App, name string) model.Variable {

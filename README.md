@@ -4,7 +4,7 @@
 
 Posting is an HTTP client, not unlike Postman and Insomnia. As a TUI application, it can be used over SSH and enables efficient keyboard-centric workflows. Your requests are stored locally in simple YAML files, so they're easy to read and version control.
 
-<img width="968" alt="image" src="https://github.com/user-attachments/assets/78359ab0-5e0c-4c0b-a60b-dce06b11bbf5" />
+<img width="1400" alt="Posting 3 opening requests from a collection with jump mode, sending them, adding a header, and showing the response headers and trace" src="docs/assets/readme.gif" />
 
 Some notable features include:
 
@@ -26,10 +26,17 @@ Visit the [website](https://posting.sh) for more information, the roadmap, and t
 
 ## Installation
 
-Posting 3 is a single binary written in Go. With [Go](https://go.dev/dl/) 1.25.5 or newer installed, run:
+Posting 3 is in beta. It's a single binary written in Go. Install it with Homebrew:
 
 ```bash
-go install github.com/darrenburns/posting/cmd/posting@latest
+brew install darrenburns/homebrew/posting@beta
+```
+
+Or download an archive for macOS, Linux or Windows from the [releases page](https://github.com/darrenburns/posting/releases).
+Or, with [Go](https://go.dev/dl/) 1.25.5 or newer installed, run:
+
+```bash
+go install github.com/darrenburns/posting/v3/cmd/posting@latest
 ```
 
 Now you can run Posting via the command line:

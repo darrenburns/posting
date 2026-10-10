@@ -1,0 +1,10 @@
+name: Login
+description: Exchange credentials for a session token.
+method: POST
+url: ${BASE_URL}/auth/login
+body:
+  form_data:
+    - name: username
+      value: ada
+    - name: password
+      value: ${PASSWORD}

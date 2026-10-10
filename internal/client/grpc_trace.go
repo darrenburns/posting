@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/grpc/stats"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // grpcTrace lays a gRPC call onto the trace stages HTTP uses: connect and

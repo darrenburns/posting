@@ -2,6 +2,7 @@ import inspect
 from contextlib import redirect_stdout, redirect_stderr
 import os
 import sqlite3
+import ssl
 from pathlib import Path
 import sys
 from typing import Any, Literal, Sequence, cast
@@ -383,12 +384,15 @@ class MainScreen(Screen[None]):
         request_options = self.request_options.to_model()
 
         cert_config = SETTINGS.get().ssl
-        httpx_cert_config: list[str] = []
+        httpx_cert_config: list[str | None] = []
         if certificate_path := cert_config.certificate_path:
             httpx_cert_config.append(certificate_path)
         if key_file := cert_config.key_file:
             httpx_cert_config.append(key_file)
         if password := cert_config.password:
+            if certificate_path and not key_file:
+                # Keep the key slot when a combined PEM only needs a password.
+                httpx_cert_config.append(None)
             httpx_cert_config.append(password.get_secret_value())
 
         app = cast("Posting", self.app)
@@ -424,11 +428,15 @@ class MainScreen(Screen[None]):
                 raise
 
             verify_ssl = request_model.options.verify_ssl
-            verify: str | bool = verify_ssl
+            verify: ssl.SSLContext | bool = verify_ssl
             if verify_ssl and cert_config.ca_bundle is not None:
                 # If verification is enabled and a CA bundle is supplied,
                 # use the CA bundle.
-                verify = cert_config.ca_bundle
+                ca_bundle = cert_config.ca_bundle
+                if Path(ca_bundle).is_dir():
+                    verify = ssl.create_default_context(capath=ca_bundle)
+                else:
+                    verify = ssl.create_default_context(cafile=ca_bundle)
 
             timeout = request_model.options.timeout
             async with httpx.AsyncClient(

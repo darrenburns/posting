@@ -10,8 +10,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/darrenburns/posting/internal/importing"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/importing"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // Load imports a .bru file or a collection directory containing bruno.json.
