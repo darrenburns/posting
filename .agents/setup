@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Prepares an Amp orb for Posting 3 (Go). See https://ampcode.com/docs/orbs.
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+step() {
+  local label="$1"
+  shift
+  local start=$SECONDS
+  echo "==> $label"
+  "$@"
+  echo "    done in $((SECONDS - start))s"
+}
+
+# The Go version pinned in go.mod, e.g. 1.25.5.
+go_version="$(awk '$1 == "go" { print $2; exit }' go.mod)"
+go_root="$HOME/.local/go"
+bin_dir="$HOME/.local/bin"
+
+install_go() {
+  if [[ -x "$go_root/bin/go" ]] && [[ "$("$go_root/bin/go" env GOVERSION)" == "go$go_version" ]]; then
+    echo "    go$go_version already installed"
+  else
+    local arch
+    case "$(uname -m)" in
+      x86_64) arch=amd64 ;;
+      aarch64 | arm64) arch=arm64 ;;
+      *) echo "unsupported architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+    local tmp
+    tmp="$(mktemp -d)"
+    curl -fsSL --retry 3 "https://go.dev/dl/go${go_version}.linux-${arch}.tar.gz" | tar -xz -C "$tmp"
+    rm -rf "$go_root"
+    mkdir -p "$(dirname "$go_root")"
+    mv "$tmp/go" "$go_root"
+    rmdir "$tmp"
+  fi
+  # ~/.local/bin is already on PATH for Amp and login shells.
+  mkdir -p "$bin_dir"
+  ln -sfn "$go_root/bin/go" "$bin_dir/go"
+  ln -sfn "$go_root/bin/gofmt" "$bin_dir/gofmt"
+}
+
+export PATH="$go_root/bin:$PATH"
+# Use the toolchain installed above rather than downloading another one.
+export GOTOOLCHAIN=local
+
+step "Install Go $go_version" install_go
+step "Download Go modules" go mod download
+step "Build" go build ./...
+# Compile every test binary without running tests, so the first `go test` is fast.
+step "Warm test build cache" go test -count=1 -run '^$' ./...
