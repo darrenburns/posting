@@ -31,32 +31,6 @@ func homeApp(theme string) *App {
 	})
 }
 
-func responseScene(tt *testing.T, theme string) *App {
-	app := homeApp(theme)
-	app.openRequest(sampleRequest(tt, "List users"))
-	s := app.current()
-	s.showResponse(fixedResponse(), nil)
-	s.phase.Set(exchangeDone)
-	return app
-}
-
-// Writes the README screenshot as an SVG. `make readme-screenshot` runs this
-// with README_SVG set, then rasterises the SVG to docs/assets/readme.png.
-func TestGenerateReadmeScreenshot(tt *testing.T) {
-	out := os.Getenv("README_SVG")
-	if out == "" {
-		tt.Skip("README_SVG not set")
-	}
-	theme, _ := t.GetTheme("galaxy")
-	opts := t.DefaultSVGOptions()
-	opts.Background = theme.Background
-	opts.Padding = 0
-	buf := t.RenderToBuffer(responseScene(tt, "galaxy"), snapW, snapH)
-	if err := os.WriteFile(out, []byte(t.BufferToSVG(buf, snapW, snapH, opts)), 0o644); err != nil {
-		tt.Fatal(err)
-	}
-}
-
 func TestGenerateHomepageScenes(tt *testing.T) {
 	out := os.Getenv("HOMEPAGE_OUT")
 	if out == "" {
@@ -64,7 +38,14 @@ func TestGenerateHomepageScenes(tt *testing.T) {
 	}
 	themes := []string{"galaxy", "aurora", "lantern", "midnight-ember", "kintsugi", "neon-reef", "cyberdeck", "catppuccin-latte"}
 	scenes := map[string]func(string) *App{
-		"response": func(th string) *App { return responseScene(tt, th) },
+		"response": func(th string) *App {
+			app := homeApp(th)
+			app.openRequest(sampleRequest(tt, "List users"))
+			s := app.current()
+			s.showResponse(fixedResponse(), nil)
+			s.phase.Set(exchangeDone)
+			return app
+		},
 		"jump": func(th string) *App {
 			app := homeApp(th)
 			app.openRequest(sampleRequest(tt, "List users"))
