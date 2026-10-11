@@ -9,8 +9,8 @@ import (
 )
 
 func TestDirRejectsOutsideParentSymlink(t *testing.T) {
-	for _, relative := range []bool{false, true} {
-		t.Run(map[bool]string{false: "absolute", true: "relative"}[relative], func(t *testing.T) {
+	for _, linkType := range []string{"absolute", "relative"} {
+		t.Run(linkType, func(t *testing.T) {
 			base := t.TempDir()
 			dir := Dir{Root: filepath.Join(base, "collection")}
 			outside := filepath.Join(base, "outside")
@@ -20,7 +20,7 @@ func TestDirRejectsOutsideParentSymlink(t *testing.T) {
 				}
 			}
 			target := outside
-			if relative {
+			if linkType == "relative" {
 				target = "../outside"
 			}
 			if err := os.Symlink(target, filepath.Join(dir.Root, "escape")); err != nil {
@@ -158,5 +158,33 @@ func TestDirMissingPaths(t *testing.T) {
 		if err := dir.Delete(file); err != nil {
 			t.Fatalf("Delete(%q): %v", file, err)
 		}
+	}
+}
+
+func TestDirRejectsAbsoluteInternalParentSymlink(t *testing.T) {
+	dir := Dir{Root: t.TempDir()}
+	real := filepath.Join(dir.Root, "real")
+	if err := os.Mkdir(real, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(real, filepath.Join(dir.Root, "alias")); err != nil {
+		t.Fatal(err)
+	}
+	const original = "name: original\n"
+	target := filepath.Join(real, "request.posting.yaml")
+	if err := os.WriteFile(target, []byte(original), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	req := model.NewRequest()
+	req.File = "alias/request.posting.yaml"
+	if err := dir.Save(req); err == nil {
+		t.Error("Save succeeded through an absolute folder symlink")
+	}
+	if err := dir.Delete(req.File); err == nil {
+		t.Error("Delete succeeded through an absolute folder symlink")
+	}
+	data, err := os.ReadFile(target)
+	if err != nil || string(data) != original {
+		t.Fatalf("symlink target changed: data = %q, error = %v", data, err)
 	}
 }

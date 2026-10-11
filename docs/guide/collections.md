@@ -92,6 +92,10 @@ collection browser, so moving the cursor to the right place first saves you some
 
 Folders only appear in the collection browser once they contain a request.
 
+For collection-relative request paths, saving and deleting through a folder symlink requires
+a relative link target that stays inside the collection. Absolute folder symlinks are rejected,
+even if they point inside the collection. The collection directory itself can be a symlink.
+
 ## Changes on disk
 
 Posting checks the collection for changes every second. If you add, edit or remove request files

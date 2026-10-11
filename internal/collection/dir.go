@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -109,14 +110,28 @@ func (d Dir) Save(req model.Request) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Clean(d.Root), 0o755); err != nil {
 		return err
 	}
-	tmp, err := os.CreateTemp(filepath.Dir(target), ".posting-*.tmp")
+	root, err := os.OpenRoot(filepath.Clean(d.Root))
 	if err != nil {
 		return err
 	}
-	defer os.Remove(tmp.Name())
+	defer root.Close()
+	if err := root.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return err
+	}
+	parent, err := root.OpenRoot(filepath.Dir(target))
+	if err != nil {
+		return err
+	}
+	defer parent.Close()
+	tempName := ".posting-" + rand.Text() + ".tmp"
+	tmp, err := parent.OpenFile(tempName, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	if err != nil {
+		return err
+	}
+	defer parent.Remove(tempName)
 	if _, err := tmp.Write(data); err != nil {
 		tmp.Close()
 		return err
@@ -124,7 +139,7 @@ func (d Dir) Save(req model.Request) error {
 	if err := tmp.Close(); err != nil {
 		return err
 	}
-	return os.Rename(tmp.Name(), target)
+	return parent.Rename(tempName, filepath.Base(target))
 }
 
 // Delete removes a request file. A file that is already gone is not an error.
@@ -133,20 +148,27 @@ func (d Dir) Delete(file string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.Remove(target); err != nil && !errors.Is(err, fs.ErrNotExist) {
+	root, err := os.OpenRoot(filepath.Clean(d.Root))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+	if err := root.Remove(target); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
 	return nil
 }
 
-// resolve turns a collection-relative path into a path on disk, refusing
-// anything that would land outside the collection.
+// resolve validates a collection-relative request path and uses native separators.
 func (d Dir) resolve(file string) (string, error) {
 	clean := path.Clean("/" + file)[1:]
 	if file == "" || clean != file || !strings.HasSuffix(file, FileSuffix) {
 		return "", fmt.Errorf("invalid request path %q", file)
 	}
-	return filepath.Join(d.Root, filepath.FromSlash(clean)), nil
+	return filepath.FromSlash(clean), nil
 }
 
 // EnsureFolder returns the folder at the collection-relative path, creating
