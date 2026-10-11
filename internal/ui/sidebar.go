@@ -65,24 +65,27 @@ func (sb sidebar) GetContentDimensions() (t.Dimension, t.Dimension) { return t.F
 
 // Build lays the sidebar straight onto the app background, with no card
 // around it; the split pane's divider separates it from the workspace.
+//
+// Its rows line up with the workspace's: the tabs with the request tabs,
+// the search box with the URL bar and the tree with the request panel's tabs
+// (see requestsPane). The row beside the header is left blank; the
+// collection's name is in the header.
 func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 	a := sb.app
 	historyCount := len(a.history.Get())
-	title := "[b $TextMuted]" + escapeMarkup(a.collection.Get().Name) + "[/]"
-	if focusWithin(ctx, "side-") {
-		title = "[b $Text]" + escapeMarkup(a.collection.Get().Name) + "[/]"
+	tabs := tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Down: a.focusBelowSidebarTabs, Tabs: []tabItem{
+		{Key: "requests", Label: a.icons.requests + "Requests"},
+		{Key: "history", Label: a.icons.history + "History", Badge: countBadge(historyCount)},
+	}}
+	top := t.Column{Style: t.Style{Width: t.Flex(1)}, Children: []t.Widget{tabs}}
+	if a.settings.Heading.Visible {
+		top.Children = []t.Widget{t.Spacer{Height: t.Cells(1)}, tabs}
 	}
-	heading := t.ParseMarkupToText(title, ctx.Theme())
-	heading.Style.Width = t.Flex(1)
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Left: 2, Right: 1}},
 		Spacing: a.gap(),
 		Children: []t.Widget{
-			heading,
-			tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Down: a.focusBelowSidebarTabs, Tabs: []tabItem{
-				{Key: "requests", Label: a.icons.requests + "Requests"},
-				{Key: "history", Label: a.icons.history + "History", Badge: countBadge(historyCount)},
-			}},
+			top,
 			t.Switcher{
 				Active: a.sidebarTab.Get(),
 				Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1)},
@@ -202,6 +205,8 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 							a.tree.Toggle(a.tree.CursorPath.Peek())
 						}
 					},
+					// Guides are kept faint so the methods and names lead.
+					GuideStyle: t.Style{ForegroundColor: theme.TextMuted.WithAlpha(0.12)},
 					RenderNode: func(i treeItem, node t.TreeNodeContext) t.Widget {
 						return a.trackTreeRow(row(i, node), node.Path)
 					},
@@ -255,7 +260,7 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 	// in the visible tab is bold; others open in tabs get a dot after them.
 	r := i.Request
 	nameStyle := t.SpanStyle{Foreground: theme.Text, Background: bg}
-	methodStyle := t.SpanStyle{Foreground: requestColor(theme, *r), Background: bg, Bold: true}
+	methodStyle := t.SpanStyle{Foreground: requestColor(theme, *r), Background: bg}
 	markStyle := t.SpanStyle{Foreground: theme.TextMuted, Background: bg}
 	mark := ""
 	switch {
@@ -353,7 +358,7 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, sele
 	}
 	statusSpan := t.Span{}
 	if entry.Response != nil {
-		statusSpan = t.Span{Text: " " + entry.Status.Code, Style: t.SpanStyle{Foreground: statusFg, Background: bg, Bold: true}}
+		statusSpan = t.Span{Text: " " + entry.Status.Code, Style: t.SpanStyle{Foreground: statusFg, Background: bg}}
 	}
 	target := entry.Request.URL
 	if entry.Response != nil && entry.Response.URL != "" {
@@ -364,7 +369,7 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, sele
 		Style: t.Style{Width: t.Flex(1), BackgroundColor: bg, Padding: t.EdgeInsetsXY(1, 0)},
 		Children: []t.Widget{
 			t.Text{Spans: []t.Span{
-				{Text: requestLabel(entry.Request), Style: t.SpanStyle{Foreground: methodFg, Background: bg, Bold: true}},
+				{Text: requestLabel(entry.Request), Style: t.SpanStyle{Foreground: methodFg, Background: bg}},
 				statusSpan,
 				{Text: " · " + entry.SentAt.Format("02 Jan 15:04:05"), Style: t.SpanStyle{Foreground: fg, Background: bg}},
 			}},

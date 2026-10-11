@@ -36,7 +36,10 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	streaming := s.streaming.Get()
 	live := phase == exchangeSending && s.live
 
-	title, subtitle := "", ""
+	// Everything about the response as a whole sits together on the
+	// heading row, just before the title: what is happening or the status,
+	// then the size and time.
+	var info []string
 	switch {
 	case live:
 		label := "RECEIVING"
@@ -44,18 +47,18 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 			label = "STREAM OPEN"
 		}
 		fg, bg := statusColors(theme, model.StatusClassWarning)
-		title = fmt.Sprintf(" [b %s on %s] %s [/]", fg.Hex(), bg.Hex(), label)
-		subtitle = p.streamHints(streaming)
+		info = []string{p.streamHints(streaming), fmt.Sprintf("[%s on %s] %s [/]", fg.Hex(), bg.Hex(), label)}
 	case resp != nil:
 		status := s.responseStatus
 		fg, bg := statusColors(theme, status.Class)
-		title = fmt.Sprintf(" [b %s on %s] %s [/]", fg.Hex(), bg.Hex(), statusText(status))
 		if p.app.settings.Response.ShowSizeAndTime {
-			subtitle = fmt.Sprintf("[$Text]%s[/] [$TextMuted]in[/] [$TextMuted]%s[/][$Text]%s[/]", model.FormatBytes(resp.Size()), p.app.icons.elapsed, model.FormatDuration(resp.Elapsed))
+			info = append(info, fmt.Sprintf("[$Text]%s[/] [$TextMuted]in %s[/][$Text]%s[/]", model.FormatBytes(resp.Size()), p.app.icons.elapsed, model.FormatDuration(resp.Elapsed)))
 		}
+		info = append(info, fmt.Sprintf("[%s on %s] %s [/]", fg.Hex(), bg.Hex(), statusText(status)))
 	}
 
 	var content t.Widget
+	var tabs *tabStrip
 	switch {
 	case phase == exchangeFailed:
 		err := s.err.Get()
@@ -75,17 +78,20 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	case resp == nil:
 		content = emptyState{Title: "No response yet", Lines: []string{"Press [b]ctrl+j[/] to send the request"}}
 	default:
+		strip := s.responseTabs(resp)
+		tabs = &strip
 		content = responseTabs{app: p.app, session: s, response: resp}
 	}
 
 	return section{
-		Prefix:    "resp-",
-		Title:     "Response",
-		TitleMark: title,
-		Subtitle:  subtitle,
-		Width:     t.Flex(1),
-		Height:    t.Flex(1),
-		Child:     content,
+		Prefix: "resp-",
+		Title:  "Response",
+		Tabs:   tabs,
+		Info:   info,
+		Fit:    p.app.responseFit,
+		Width:  t.Flex(1),
+		Height: t.Flex(1),
+		Child:  content,
 	}
 }
 
@@ -185,7 +191,6 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 		})
 	}
 	children = append(children,
-		s.responseTabs(resp),
 		t.Switcher{
 			Active: s.responseTab.Get(),
 			Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
@@ -198,7 +203,9 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 			},
 		},
 	)
-	return t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)}, Spacing: r.app.gap(), Children: children}
+	// The tab strip is on the panel's heading row (see responsePanel).
+	gap := r.app.gap()
+	return t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Top: gap}}, Spacing: gap, Children: children}
 }
 
 // responseBody is a read-only, highlighted view of the body.

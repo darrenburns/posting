@@ -64,9 +64,9 @@ func TestFocusScrollsRequestOptionsIntoView(tt *testing.T) {
 	app := testApp()
 	app.openRequest(sampleRequest(tt, "Create user"))
 	app.current().requestTab.Set("options")
-	s := newScreen(app, snapW, 20)
+	s := newScreen(app, snapW, 19)
 	if s.visible("req-opt-timeout") {
-		tt.Fatal("the timeout field fits on a 20-row screen, so this test proves nothing")
+		tt.Fatal("the timeout field fits on a 19-row screen, so this test proves nothing")
 	}
 	s.focusID(tt, "req-opt-timeout")
 	if !s.visible("req-opt-timeout") {

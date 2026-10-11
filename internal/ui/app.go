@@ -131,6 +131,8 @@ type App struct {
 	active        t.Signal[int] // Session.id of the visible session
 	nextSessionID int
 	sessionView   *sessionTabsView // where the strip of open tabs is scrolled to
+	requestFit    *headingFit      // how wide the request panel's heading is
+	responseFit   *headingFit      // how wide the response panel's heading is
 
 	sidebarVisible t.Signal[bool]
 	sidebarTab     t.Signal[string]
@@ -226,6 +228,8 @@ func New(cfg Config) *App {
 		sessions:       t.NewAnySignal[[]*Session](nil),
 		active:         t.NewSignal(0),
 		sessionView:    newSessionTabsView(),
+		requestFit:     newHeadingFit(),
+		responseFit:    newHeadingFit(),
 		sidebarVisible: t.NewSignal(settings.CollectionBrowser.ShowOnStartup),
 		sidebarTab:     t.NewSignal("requests"),
 		sidebarSplit:   t.NewSplitPaneState(sidebarRatio),
@@ -1140,6 +1144,9 @@ func (h header) Build(ctx t.BuildContext) t.Widget {
 		Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(2, 0), BackgroundColor: theme.Background},
 		Children: []t.Widget{
 			t.Spacer{},
+			// The collection sits beside the environment: together they
+			// are what you are working in.
+			t.Text{Content: a.collection.Get().Name + "   ", Style: t.Style{ForegroundColor: theme.TextMuted}},
 			t.Text{
 				Spans: []t.Span{
 					{Text: a.icons.environment, Style: t.SpanStyle{Foreground: envColor}},

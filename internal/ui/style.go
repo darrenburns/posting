@@ -91,31 +91,94 @@ func (fillWidth) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Fl
 // with the tab labels above.
 var inset = t.EdgeInsetsTRBL(0, 0, 0, 1)
 
-// section is a titled panel drawn straight onto the background. Its heading
-// brightens while focus is anywhere inside it, which is detected through the
-// shared ID prefix.
+// section is a titled panel drawn straight onto the background. The heading
+// row holds the panel's tab strip, with the title right-aligned and muted
+// after anything in Info; the title brightens while focus is anywhere inside
+// the panel, which is detected through the shared ID prefix.
+//
+// When the heading is too narrow for its tabs and everything else, the title
+// gives way first, then the parts of Info from the start, so the tabs and
+// the last part of Info (e.g. the status) stay longest.
 type section struct {
-	ID        string
-	Prefix    string // focus-within prefix for the children's IDs
-	Title     string
-	TitleMark string // markup appended to the title (e.g. a status chip)
-	Subtitle  string // right-aligned markup on the heading row
-	Child     t.Widget
-	Width     t.Dimension
-	Height    t.Dimension
+	ID     string
+	Prefix string // focus-within prefix for the children's IDs
+	Title  string
+	Tabs   *tabStrip   // tab strip on the left of the heading row, if any
+	Info   []string    // markup parts shown before the title (e.g. a status chip)
+	Fit    *headingFit // the heading's width, so parts that don't fit can go
+	Child  t.Widget
+	Width  t.Dimension
+	Height t.Dimension
 }
+
+// headingSpacing is the gap between the parts of a section's heading.
+const headingSpacing = 2
 
 func (s section) GetContentDimensions() (t.Dimension, t.Dimension) { return s.Width, s.Height }
 
 func (s section) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
-	title := "[b $TextMuted]" + s.Title + "[/]"
+	title := "[$TextMuted]" + s.Title + "[/]"
 	if focusWithin(ctx, s.Prefix) {
-		title = "[b $Text]" + s.Title + "[/]"
+		title = "[$Text]" + s.Title + "[/]"
 	}
-	heading := []t.Widget{t.ParseMarkupToText(title+s.TitleMark, theme), t.Spacer{Width: t.Flex(1)}}
-	if s.Subtitle != "" {
-		heading = append(heading, t.ParseMarkupToText(s.Subtitle, theme))
+	// The parts as shown, Info then the title, and the order they go in
+	// when there isn't room for them all.
+	parts := make([]t.Text, 0, len(s.Info)+1)
+	for _, info := range s.Info {
+		parts = append(parts, t.ParseMarkupToText(info, theme))
+	}
+	parts = append(parts, t.ParseMarkupToText(title, theme))
+	dropOrder := []int{len(parts) - 1}
+	for i := range s.Info {
+		dropOrder = append(dropOrder, i)
+	}
+	used := 0
+	if s.Tabs != nil {
+		for _, tab := range s.Tabs.Tabs {
+			used += tab.width()
+		}
+	}
+	for _, part := range parts {
+		used += headingSpacing + spansWidth(part.Spans)
+	}
+	shown := make([]bool, len(parts))
+	for i := range shown {
+		shown[i] = true
+	}
+	if s.Fit != nil {
+		s.Fit.changed.Get()
+		for _, i := range dropOrder {
+			if s.Fit.width == 0 || used <= s.Fit.width {
+				break
+			}
+			shown[i] = false
+			used -= headingSpacing + spansWidth(parts[i].Spans)
+		}
+	}
+	// Tab strips pad their labels by a cell, so they start at the panel's
+	// edge; that lines their labels up with the inset text below.
+	heading := make([]t.Widget, 0, len(parts)+1)
+	if s.Tabs != nil {
+		heading = append(heading, *s.Tabs)
+	} else {
+		heading = append(heading, t.Spacer{Width: t.Flex(1)})
+	}
+	for i, part := range parts {
+		if shown[i] {
+			heading = append(heading, part)
+		}
+	}
+	var row t.Widget = t.Row{
+		Style:    t.Style{Width: t.Flex(1), Height: t.Cells(1)},
+		Spacing:  headingSpacing,
+		Children: heading,
+	}
+	if s.Fit != nil {
+		row = t.Stack{
+			Style:    t.Style{Width: t.Flex(1), Height: t.Cells(1)},
+			Children: []t.Widget{headingProbe{fit: s.Fit}, row},
+		}
 	}
 	return t.Column{
 		ID: s.ID,
@@ -124,10 +187,34 @@ func (s section) Build(ctx t.BuildContext) t.Widget {
 			Height:  s.Height,
 			Padding: t.EdgeInsets{Right: 1},
 		},
-		Children: []t.Widget{
-			t.Row{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: heading},
-			s.Child,
-		},
+		Children: []t.Widget{row, s.Child},
+	}
+}
+
+// headingFit is the width of a section's heading as of its last paint.
+type headingFit struct {
+	width   int
+	changed t.Signal[int] // rebuilds the heading when its width changes
+}
+
+func newHeadingFit() *headingFit { return &headingFit{changed: t.NewSignal(0)} }
+
+// headingProbe fills a section's heading and records its width. A change of
+// width rebuilds the heading in the next frame, since this one has already
+// been built for the old one.
+type headingProbe struct{ fit *headingFit }
+
+func (p headingProbe) GetContentDimensions() (t.Dimension, t.Dimension) {
+	return t.Flex(1), t.Cells(1)
+}
+
+func (p headingProbe) Build(t.BuildContext) t.Widget { return p }
+
+func (p headingProbe) Render(ctx *t.RenderContext) {
+	f := p.fit
+	if ctx.Width != f.width {
+		f.width = ctx.Width
+		t.Dispatch(func() { f.changed.Set(f.changed.Peek() + 1) })
 	}
 }
 

@@ -28,8 +28,8 @@ var methodHotkeys = map[model.Method]string{
 	model.MethodOptions: "o",
 }
 
-// urlBar is the method selector, URL input, status and send button, with a
-// preview line underneath.
+// urlBar is the method selector, URL input, status and send button, joined
+// into one strip, with a preview line underneath.
 type urlBar struct {
 	fillWidth
 	app     *App
@@ -49,8 +49,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 		Style: t.Style{Width: t.Flex(1), Padding: t.EdgeInsetsTRBL(a.gap(), 1, 0, 0)},
 		Children: []t.Widget{
 			t.Row{
-				Style:   t.Style{Width: t.Flex(1), Height: t.Cells(1)},
-				Spacing: 1,
+				Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), BackgroundColor: theme.Surface},
 				Children: []t.Widget{
 					methodSelector{app: a, request: s.badgeRequest()},
 					t.Row{
@@ -174,7 +173,7 @@ func (m methodSelector) Build(ctx t.BuildContext) t.Widget {
 	}
 	return t.Text{
 		Spans: []t.Span{
-			{Text: " " + padRight(requestLabel(m.request), 7), Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: true}},
+			{Text: " " + padRight(requestLabel(m.request), 7), Style: t.SpanStyle{Foreground: fg, Background: bg}},
 			{Text: "▾ ", Style: t.SpanStyle{Foreground: theme.TextMuted, Background: bg}},
 		},
 	}
@@ -188,16 +187,16 @@ func (c statusChip) Build(ctx t.BuildContext) t.Widget {
 	s := c.session
 	switch s.phase.Get() {
 	case exchangeSending:
-		return t.Spinner{State: s.spinner, Style: t.Style{ForegroundColor: theme.AccentText, Padding: t.EdgeInsetsXY(1, 0)}}
+		return t.Spinner{State: s.spinner, Style: t.Style{ForegroundColor: theme.AccentText, BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)}}
 	case exchangeFailed:
-		return t.Text{Content: " ERR ", Style: t.Style{ForegroundColor: theme.ErrorText, BackgroundColor: theme.ErrorBg, Bold: true}}
+		return t.Text{Content: " ERR ", Style: t.Style{ForegroundColor: theme.ErrorText, BackgroundColor: theme.ErrorBg}}
 	}
 	if s.response.Get() == nil {
 		return t.EmptyWidget{}
 	}
 	status := s.responseStatus
 	fg, bg := statusColors(theme, status.Class)
-	return t.Text{Content: " " + status.Code + " ", Style: t.Style{ForegroundColor: fg, BackgroundColor: bg, Bold: true}}
+	return t.Text{Content: " " + status.Code + " ", Style: t.Style{ForegroundColor: fg, BackgroundColor: bg}}
 }
 
 // traceMarkers is a compact progress indicator: one square per exchange stage.
@@ -228,7 +227,7 @@ func (m traceMarkers) Build(ctx t.BuildContext) t.Widget {
 		}
 		spans = append(spans, t.Span{Text: "■", Style: t.SpanStyle{Foreground: color}})
 	}
-	return t.Text{Spans: spans}
+	return t.Text{Spans: spans, Style: t.Style{BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)}}
 }
 
 // urlPreview explains the URL under the input: the value of the variable at
@@ -247,7 +246,7 @@ func (p urlPreview) Build(ctx t.BuildContext) t.Widget {
 	text := strings.Join(graphemes, "")
 	variables := p.app.resolvedVariables()
 	values := model.Values(variables)
-	style := t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(12, 0)}
+	style := t.Style{Width: t.Flex(1), Height: t.Cells(1), Padding: t.EdgeInsetsXY(11, 0)}
 
 	if curl.IsCommand(text) {
 		hint := "Press [b]enter[/] to import this curl command"
