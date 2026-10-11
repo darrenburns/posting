@@ -1,7 +1,7 @@
 <div id="p3-home">
 
   <p class="statusline">
-    <span class="sl-badge">POSTING 3</span>
+    <span class="sl-badge">POSTING 3 BETA</span>
     <span class="sl-text">rebuilt in Go &middot; one binary</span>
     <span class="sl-right">
       <span class="sl-tip">keys: <b>1</b>&ndash;<b>6</b> panes &middot; <b>^O</b> jump &middot; <b>^P</b> commands</span>
@@ -23,8 +23,8 @@
         <h1 id="home-title">The API client that lives in your terminal.</h1>
 
         <p class="lede">
-          Posting is a keyboard-driven HTTP client. Compose requests, switch environments and read
-          responses without reaching for the mouse. Run it on your laptop, <strong>over SSH</strong> or
+          Posting is a keyboard-driven client for HTTP, GraphQL, and gRPC. Compose requests, switch
+          environments and read responses without reaching for the mouse. Run it on your laptop, <strong>over SSH</strong> or
           inside a container, and keep every request as <strong>plain YAML</strong> next to your code.
         </p>
 
@@ -43,7 +43,7 @@
         <p class="fetch-host"><b>posting</b><span>@</span><b>3</b></p>
         <p class="fetch-rule" aria-hidden="true">───────────</p>
         <dl>
-          <div><dt>build</dt><dd>rebuilt in Go, one binary</dd></div>
+          <div><dt>build</dt><dd>3.0 beta, one Go binary</dd></div>
           <div><dt>runs</dt><dd>laptop &middot; SSH &middot; container</dd></div>
           <div><dt>input</dt><dd>keyboard first, mouse welcome</dd></div>
           <div><dt>requests</dt><dd>plain YAML files</dd></div>
@@ -102,7 +102,7 @@
         <div role="tabpanel" id="panel-palette" aria-labelledby="tab-palette" hidden><p class="panel-desc">Search every action by name, with its shortcut alongside.</p>{% include "partials/screens/palette.html" %}</div>
         <div role="tabpanel" id="panel-variables" aria-labelledby="tab-variables" hidden><p class="panel-desc">See every value in the active environment, override one for this session, and keep secrets masked.</p>{% include "partials/screens/variables.html" %}</div>
         <div role="tabpanel" id="panel-curlhint" aria-labelledby="tab-curlhint" hidden><p class="panel-desc">Paste a curl command into the URL bar and press enter to turn it into a request.</p>{% include "partials/screens/curlhint.html" %}</div>
-        <div role="tabpanel" id="panel-curlexport" aria-labelledby="tab-curlexport" hidden><p class="panel-desc">Copy any request as a ready-to-run curl command, with its variables filled in.</p>{% include "partials/screens/curlexport.html" %}</div>
+        <div role="tabpanel" id="panel-curlexport" aria-labelledby="tab-curlexport" hidden><p class="panel-desc">Copy an HTTP or GraphQL request as a curl command, with its variables filled in.</p>{% include "partials/screens/curlexport.html" %}</div>
         <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" hidden><p class="panel-desc">Every exchange is saved. Reopen one to see its response and how long each stage took.</p>{% include "partials/screens/history.html" %}</div>
         <div role="tabpanel" id="panel-themes" aria-labelledby="tab-themes" hidden><p class="panel-desc">Preview all 37 built-in themes as you scroll, or load the ones you made for Posting 2.</p>{% include "partials/screens/themes.html" %}</div>
       </div>
@@ -196,22 +196,21 @@
     <div class="upgrade">
       <header class="pane-head">
         <p class="c-comment"># coming from Posting 2?</p>
-        <h2 id="upgrade-title">Bring everything with you.</h2>
-        <p>Posting 3 is a ground-up rewrite, and it reads the files you already have. Point it at your collections and keep going.</p>
+        <h2 id="upgrade-title">Bring your HTTP collections.</h2>
+        <p>Posting 3 opens your Posting 2 collections without conversion. Python scripts are preserved but aren't run, history is separate, and some settings and theme options have changed.</p>
         <div class="actions">
-          <a class="btn" href="{{ 'guide/' | url }}">Getting started</a>
+          <a class="btn" href="{{ 'guide/migrating/' | url }}">Read the migration guide</a>
         </div>
       </header>
 
       <div class="log">
-        <ul class="carry" aria-label="Files Posting 3 reads unchanged">
-          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">*.posting.yaml</span><span class="note">read unchanged</span></li>
+        <ul class="carry" aria-label="Posting 2 files supported by Posting 3">
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">HTTP requests</span><span class="note">no conversion</span></li>
           <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">.env files</span><span class="note">read unchanged</span></li>
-          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">themes</span><span class="note">read unchanged</span></li>
-          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">keymaps</span><span class="note">read unchanged</span></li>
-          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">config.yaml</span><span class="note">read unchanged</span></li>
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">themes</span><span class="note">main hex colours</span></li>
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">keymaps</span><span class="note">supported actions</span></li>
+          <li><span class="ok" aria-hidden="true">[ ok ]</span> <span class="f">config.yaml</span><span class="note">supported settings</span></li>
         </ul>
-        <p class="bar" aria-hidden="true"><span class="fill"></span><span class="n">5/5</span></p>
       </div>
     </div>
   </section>

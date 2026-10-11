@@ -401,13 +401,12 @@ Posting 2 doesn't know about gRPC requests. Edit them only in Posting 3.
 
 ### What gRPC requests don't do yet
 
-- Show a stream's messages as they arrive, or send messages during a bidirectional call.
 - gRPC-Web and Connect.
 - Compressed messages.
 - Proxies.
 - Client certificates for a single request. The client certificate in your
   [SSL settings](./configuration.md#configuring-ssl) applies to every request.
-- Importing gRPC requests from Postman, Bruno or grpcurl.
+- Importing gRPC requests from Postman or grpcurl. [Bruno gRPC requests can be imported](./importing.md#bruno).
 - Completing proto file paths.
 - Reusing a connection from one send to the next.
 

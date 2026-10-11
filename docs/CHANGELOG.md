@@ -2,12 +2,59 @@
 
 ### Posting 3
 
-Posting 3 is a rewrite of Posting in Go, distributed as a single binary. It reads the same collections, configuration and `.env` files as Posting 2. See [Coming from Posting 2](guide/migrating.md) for what's new, what's changed, and what isn't supported yet.
+Posting 3 is now available as a public beta. It is a rewrite in Go, distributed as a single binary
+for macOS, Linux, and Windows. Existing Posting 2 HTTP collections open without conversion.
+See [Coming from Posting 2](guide/migrating.md) for compatibility limits before sharing collections
+between versions.
 
 ### Added
 
-- `posting remote` drives a running Posting from another terminal: list the collection, open, send and save requests, switch environments, and read responses, with `--json` output. Requests open and send in Posting's window, so you can watch a coding agent in the next pane work through your API. See [Remote Control](guide/remote_control.md).
-- `posting import` imports environments. Give Postman environment exports after the collection, or on their own with `--output` to add them to an existing collection. A Bruno collection's `environments` directory is imported too. Collection variables go in `posting.env` and each environment in its own `<name>.env` on top of it. References between variables are kept, so a `BASE_URL` built from `HOST` follows the selected environment (#270).
+- [GraphQL requests](guide/requests.md#graphql-requests), with separate query and JSON variables
+  editors, operation selection, and error counts for responses that contain GraphQL errors.
+- [gRPC requests](guide/requests.md#grpc-requests), including unary calls and all streaming modes.
+  Discover methods with server reflection, `.proto` files, or compiled descriptor sets. View
+  messages as they arrive, keep streams open to send more messages, and export calls as grpcurl.
+- [Request tabs](guide/navigation.md#preview-tabs) let you keep several requests open and send them
+  independently. A reusable preview tab keeps collection browsing from filling the tab strip.
+- [Layered environments](guide/environments.md#layered-environments), with a shared `posting.env`
+  base, named environments, and local files for secrets. Posting remembers the environment chosen
+  for each collection and reloads active environment files when they change.
+- [Request traces](guide/responses.md#trace) show timing for each stage of an exchange. The URL bar
+  shows progress while a request runs, and timing is saved with its history entry.
+- [Bruno import](guide/importing.md#bruno) for individual requests and whole collections, including
+  HTTP, GraphQL, and gRPC requests. The importer detects OpenAPI, Postman, and Bruno sources.
+- [Environment import](guide/importing.md#environments) from Postman exports and Bruno collections.
+  Collection variables go in `posting.env` and each environment in its own `<name>.env`.
+  References between variables are kept, so a `BASE_URL` built from `HOST` follows the selected
+  environment (#270).
+- [Remote control](guide/remote_control.md) lets another terminal or a coding agent drive a running Posting instance.
+  Open, send, and save requests, switch environments, and read responses as text or JSON.
+  Requests use the app's active environment and appear in its tabs and history.
+- [Collection filtering](guide/navigation.md#searching-for-requests) by request name, folder, or
+  HTTP method with `ctrl+g`.
+- [Curl export](guide/requests.md#exporting-as-curl) with resolved values or preserved variable
+  expressions for sharing.
+- 37 built-in themes with live previews, and resizable collection, request, and response panels.
+
+### Changed
+
+- Install Posting 3 with Homebrew, a release download, or `go install`. Existing `uv` and `pipx`
+  installations remain on Posting 2. See [Installation](guide/index.md#installation).
+- `ctrl+n` opens a new request tab, `ctrl+g` searches the collection, and `alt+z` expands a panel.
+  `F1` lists all keyboard shortcuts.
+- History uses a new format stored separately from Posting 2 history. Existing history isn't
+  migrated or removed.
+- Posting 3 reads existing configuration, keymaps, and theme files, with
+  [documented differences](guide/migrating.md). `POSTING_*` settings come from the shell environment,
+  and custom CA bundles must be PEM files.
+
+### Not yet supported
+
+- Posting 2 Python scripts are preserved in saved requests but aren't executed.
+- X resources themes, live theme-file reloading, and custom syntax and method colours in theme files.
+
+GraphQL, gRPC, and requests with `variable_scope` must be edited in Posting 3. Saving them in
+Posting 2 removes the fields that hold their queries, RPC settings, or scoped variables.
 
 ## 2.11.2 [5th October 2026]
 
