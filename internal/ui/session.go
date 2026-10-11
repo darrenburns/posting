@@ -145,6 +145,8 @@ type Session struct {
 	streaming t.Signal[streamPhase]
 	// dispatch schedules exchange updates on the UI goroutine.
 	dispatch func(func())
+	// settled run once the exchange in flight ends, however it ends.
+	settled []func()
 
 	// prettifyJSON indents JSON response bodies.
 	prettifyJSON bool
@@ -373,6 +375,19 @@ func (s *Session) touch() {
 	s.title.Set(titled.DisplayName())
 }
 
+// savedAs records that the request was saved as req: under its name,
+// description and file.
+func (s *Session) savedAs(req model.Request) {
+	s.syncing = true
+	s.name.ReplaceText(req.Name, s.name.CursorIndex.Peek())
+	s.description.ReplaceText(req.Description, s.description.CursorIndex.Peek())
+	s.file.Set(req.File)
+	s.syncing = false
+	s.title.Set(req.DisplayName())
+	s.dirty.Set(false)
+	s.preview.Set(false)
+}
+
 // markEdited records that the request has unsaved changes. An edited tab is
 // kept: it stops being the preview, so opening another request can't replace
 // it and lose the changes.
@@ -589,8 +604,21 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, stream
 					onDone(req, resp, s.responseStatus)
 				}
 			}
+			s.settle()
 		})
 	}()
+}
+
+// whenSettled runs fn on the UI goroutine once the exchange in flight ends:
+// answered, failed or cancelled.
+func (s *Session) whenSettled(fn func()) { s.settled = append(s.settled, fn) }
+
+func (s *Session) settle() {
+	settled := s.settled
+	s.settled = nil
+	for _, fn := range settled {
+		fn()
+	}
 }
 
 // Cancel abandons the in-flight exchange, if any.
@@ -604,6 +632,7 @@ func (s *Session) Cancel() {
 	s.endStream()
 	s.spinner.Stop()
 	s.phase.Set(exchangeCancelled)
+	s.settle()
 }
 
 // Stop cancels the in-flight exchange but, unlike Cancel, still shows what

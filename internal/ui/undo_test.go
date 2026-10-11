@@ -125,6 +125,35 @@ func TestUndoInTheBodyEditor(tt *testing.T) {
 	}
 }
 
+func TestUndoRestoresNameAndDescriptionAfterSaveAs(tt *testing.T) {
+	store := &recordingStore{}
+	app := storeApp(store)
+	s := app.current()
+	s.name.SetText("Original name")
+	s.description.SetText("Original description")
+	app.saveRequest()
+	app.save.name.SetText("Saved name")
+	app.save.description.SetText("Saved description")
+	app.save.folder.SetText("")
+	app.submitSave()
+	if len(store.saved) != 1 || s.dirty.Peek() {
+		tt.Fatalf("save did not finish: files %v, dirty %v", store.saved, s.dirty.Peek())
+	}
+
+	s.requestTab.Set("info")
+	pressOn(tt, app, "req-info-name", "ctrl+z")
+	if got := s.name.GetText(); got != "Original name" {
+		tt.Fatalf("after undo name = %q, want Original name", got)
+	}
+	pressOn(tt, app, "req-info-description", "ctrl+z")
+	if got := s.description.GetText(); got != "Original description" {
+		tt.Fatalf("after undo description = %q, want Original description", got)
+	}
+	if !s.dirty.Peek() || s.file.Peek() != "saved-name.posting.yaml" {
+		tt.Fatalf("undo left file %q, dirty %v", s.file.Peek(), s.dirty.Peek())
+	}
+}
+
 func TestUndoRevertsTheExternalEditor(tt *testing.T) {
 	app := testApp()
 	app.openRequest(sampleRequest(tt, "Create user"))

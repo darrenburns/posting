@@ -501,14 +501,7 @@ func (a *App) submitSave() {
 	if !a.storeRequest(req) {
 		return
 	}
-	s.syncing = true
-	s.name.ReplaceText(name, s.name.CursorIndex.Peek())
-	s.description.ReplaceText(req.Description, s.description.CursorIndex.Peek())
-	s.file.Set(path)
-	s.syncing = false
-	s.title.Set(req.DisplayName())
-	s.dirty.Set(false)
-	s.preview.Set(false)
+	s.savedAs(req)
 	a.closeOverlay()
 	a.notify("Saved "+path, toastSuccess)
 }

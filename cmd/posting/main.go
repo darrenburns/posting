@@ -10,6 +10,7 @@ import (
 	"runtime/debug"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/darrenburns/terma"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/darrenburns/posting/v3/internal/history"
 	"github.com/darrenburns/posting/v3/internal/model"
 	"github.com/darrenburns/posting/v3/internal/paths"
+	"github.com/darrenburns/posting/v3/internal/remote"
 	"github.com/darrenburns/posting/v3/internal/themes"
 	"github.com/darrenburns/posting/v3/internal/ui"
 )
@@ -55,6 +57,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return importCommand(args[1:], stdout, stderr)
 		case "locate":
 			return locate(args[1:], stdout, stderr)
+		case "remote":
+			return remoteCommand(args[1:], os.Stdin, stdout, stderr)
 		case "version", "--version", "-v":
 			fmt.Fprintln(stdout, "Posting "+version)
 			return 0
@@ -68,6 +72,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprint(stderr, `Usage: posting [options]
        posting locate config|collection|themes
        posting import [--type FORMAT] [-o DIR] SOURCE [ENVIRONMENT...]
+       posting remote COMMAND [options]   (see posting remote --help)
 
 A terminal HTTP client.
 
@@ -100,11 +105,40 @@ Options:
 		fmt.Fprintln(stderr, "posting:", err)
 		return 1
 	}
-	if err := ui.Run(cfg); err != nil {
+	var server *remote.Server
+	if cfg.Settings.RemoteControl.Enabled {
+		server, err = listenForRemote(cfg)
+		if err != nil {
+			cfg.StartupMessages = append(cfg.StartupMessages, "posting remote won't work: "+err.Error())
+		}
+	}
+	app := ui.New(cfg)
+	if server != nil {
+		server.Serve(app.Remote())
+		defer server.Close()
+		defer closeOnSignal(server)()
+	}
+	if err := terma.Run(app); err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
 	return 0
+}
+
+// listenForRemote listens for `posting remote` commands.
+func listenForRemote(cfg ui.Config) (*remote.Server, error) {
+	cwd, _ := os.Getwd()
+	var dir string
+	if store, ok := cfg.Store.(collection.Dir); ok {
+		dir = store.Root
+	}
+	return remote.Listen(paths.SocketDir(), remote.Info{
+		PID:        os.Getpid(),
+		Version:    version,
+		Collection: dir,
+		Cwd:        cwd,
+		Started:    time.Now(),
+	})
 }
 
 // appConfig loads everything the UI needs from disk.
