@@ -6,6 +6,7 @@ Posting 3 is a rewrite of Posting in Go, distributed as a single binary. It read
 
 ### Added
 
+- `posting remote` drives a running Posting from another terminal: list the collection, open, send and save requests, switch environments, and read responses, with `--json` output. Requests open and send in Posting's window, so you can watch a coding agent in the next pane work through your API. See [Remote Control](guide/remote_control.md).
 - `posting import` imports environments. Give Postman environment exports after the collection, or on their own with `--output` to add them to an existing collection. A Bruno collection's `environments` directory is imported too. Collection variables go in `posting.env` and each environment in its own `<name>.env` on top of it. References between variables are kept, so a `BASE_URL` built from `HOST` follows the selected environment (#270).
 
 ## 2.11.0 [26th September 2026]

@@ -493,14 +493,7 @@ func (a *App) submitSave() {
 	if !a.storeRequest(req) {
 		return
 	}
-	s.syncing = true
-	s.name.SetText(name)
-	s.description.SetText(req.Description)
-	s.file.Set(path)
-	s.syncing = false
-	s.title.Set(req.DisplayName())
-	s.dirty.Set(false)
-	s.preview.Set(false)
+	s.savedAs(req)
 	a.closeOverlay()
 	a.notify("Saved "+path, toastSuccess)
 }

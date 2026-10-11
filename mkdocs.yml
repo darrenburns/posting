@@ -47,6 +47,7 @@ nav:
     - "External Tools": "guide/external_tools.md"
     - "Keymaps": "guide/keymap.md"
     - "Importing": "guide/importing.md"
+    - "Remote Control": "guide/remote_control.md"
     - "Configuration": "guide/configuration.md"
     - "Scripting": "guide/scripting.md"
     - "Help": "guide/help_system.md"
