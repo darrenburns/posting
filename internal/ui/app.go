@@ -109,6 +109,7 @@ type App struct {
 	remoteTab int
 
 	collection t.AnySignal[*model.Collection]
+	urlTree    urlTree // invalidated with collection changes
 	tree       *t.TreeState[treeItem]
 	treeScroll *t.ScrollState
 	// treeSearch is the search box above the tree, and treeFilter the
@@ -807,6 +808,7 @@ func (a *App) deleteRequests(files []string) {
 }
 
 func (a *App) refreshTree() {
+	a.urlTree = nil
 	a.collection.Set(a.collection.Peek())
 	a.tree.Nodes.Set(buildTree(a.collection.Peek()))
 }
