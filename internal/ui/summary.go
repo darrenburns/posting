@@ -216,9 +216,9 @@ func summaryBubble(ctx t.BuildContext, a *App, r model.Request, place summaryPla
 	if !geometry.AnchorFound {
 		return nil
 	}
-	// The tree can run to the bottom of the screen.
+	// The tree ends above the one-line footer.
 	viewport := geometry.AnchorBounds
-	viewport.Height = geometry.Screen.Height - viewport.Y
+	viewport.Height = geometry.Screen.Height - viewport.Y - 1
 	// The row's line in the viewport. The mouse wheel scrolls without moving
 	// the cursor, and a row scrolled out of view has no bubble.
 	scroll := a.treeScroll.Offset.Get()
@@ -249,15 +249,15 @@ func summaryBubble(ctx t.BuildContext, a *App, r model.Request, place summaryPla
 			return nil
 		}
 		lines = wrapWords(strings.TrimSpace(r.Description), width, summaryLines)
-		// The title lines up with the row, below the bubble's top border.
+		// The title in the top border lines up with the row.
 		// If the bubble would run off the bottom of the viewport it opens
 		// upwards instead, with its last line beside the row.
-		height := len(lines) + 4
+		height := len(lines) + 3
 		if r.URL != "" {
 			height++
 		}
-		y = top - 1
-		if top-1+height > viewport.Height && top+2 >= height {
+		y = top
+		if top+height > viewport.Height && top+2 >= height {
 			y = top + 2 - height
 		}
 		widest := left
@@ -277,10 +277,10 @@ func summaryBubble(ctx t.BuildContext, a *App, r model.Request, place summaryPla
 		}
 		return t.Text{Spans: spans}
 	}
-	children := []t.Widget{line(
-		t.Span{Text: " " + requestLabel(r) + " ", Style: t.SpanStyle{Foreground: requestColor(theme, r), Background: theme.Surface3, Bold: true}},
-		t.Span{Text: " " + truncate(r.DisplayName(), width-len(requestLabel(r))-3), Style: t.SpanStyle{Foreground: theme.Text, Bold: true}},
-	)}
+	label := requestLabel(r)
+	title := truncate(r.DisplayName(), width-len(label)-3)
+	decoration := t.BorderTitleMarkup("[b " + requestColor(theme, r).Hex() + " on " + theme.Surface3.Hex() + "]" + label + " [/][b $Text] " + escapeMarkup(title) + "[/]")
+	var children []t.Widget
 	if r.URL != "" {
 		children = append(children, line(t.Span{Text: truncate(r.URL, width), Style: t.SpanStyle{Foreground: theme.TextMuted}}))
 	}
@@ -294,8 +294,10 @@ func summaryBubble(ctx t.BuildContext, a *App, r model.Request, place summaryPla
 	return t.Column{
 		ID: summaryID,
 		Style: t.Style{
+			// Border titles don't contribute to intrinsic width.
+			MinWidth:        t.Cells(len(label) + 3 + utf8.RuneCountInString(title)),
 			BackgroundColor: theme.Background,
-			Border:          t.RoundedBorder(theme.Border),
+			Border:          t.TallBorder(theme.Border, decoration),
 			Padding:         t.EdgeInsetsXY(1, 0),
 			Margin:          t.EdgeInsets{Top: y + 1, Left: left},
 		},

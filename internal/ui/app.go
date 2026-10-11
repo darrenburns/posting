@@ -146,6 +146,9 @@ type App struct {
 	// focus is where focus was when focusProbe last reported it.
 	focus focusAt
 
+	sidebarGradient        t.Signal[string]
+	sidebarGradientPreview t.Signal[string] // empty outside a palette preview
+
 	jump               *t.JumpState
 	palette            *t.CommandPaletteState
 	tabSearch          *t.CommandPaletteState
@@ -243,6 +246,9 @@ func New(cfg Config) *App {
 		overlay:        t.NewSignal(""),
 		confirm:        t.NewAnySignal(confirmation{}),
 		toast:          t.NewAnySignal(toast{}),
+
+		sidebarGradient:        t.NewSignal(settings.SidebarGradient),
+		sidebarGradientPreview: t.NewSignal(""),
 	}
 	a.tree = t.NewTreeState(buildTree(cfg.Collection))
 	if cfg.History != nil {
@@ -278,6 +284,18 @@ func New(cfg Config) *App {
 		theme = t.ThemeNameGalaxy
 	}
 	t.SetTheme(theme)
+	gradient := settings.SidebarGradient
+	if gradient == "" {
+		gradient = "theme"
+	}
+	if gradient != "theme" && gradient != "off" {
+		gradient = themeAlias(gradient)
+		if _, ok := t.GetTheme(gradient); !ok {
+			messages = append(messages, fmt.Sprintf("Unknown sidebar gradient %q; following app theme", settings.SidebarGradient))
+			gradient = "theme"
+		}
+	}
+	a.sidebarGradient.Set(gradient)
 	t.SetCursorBlink(settings.TextInput.BlinkingCursor)
 	switch settings.Focus.OnStartup {
 	case "method":
@@ -885,9 +903,15 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 			Second:       main,
 			MinPaneSize:  24,
 			DisableFocus: true,
+			// Keep the stroke against the sidebar edge, with the rest of
+			// its cell on the workspace side even while dragging.
+			DividerChar:            "▏",
+			DividerBackground:      theme.Background,
+			DividerFocusBackground: theme.Background,
 		}
 		if a.settings.CollectionBrowser.Position == "right" {
 			split.First, split.Second = split.Second, split.First
+			split.DividerChar = "▕"
 		}
 		main = split
 	}

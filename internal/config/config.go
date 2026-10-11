@@ -25,6 +25,8 @@ import (
 type Settings struct {
 	// Theme is the name of the theme to use.
 	Theme string `yaml:"theme"`
+	// SidebarGradient is "theme" to follow Theme, "off", or a theme name.
+	SidebarGradient string `yaml:"sidebar_gradient"`
 	// ThemeDirectory holds user themes (Posting 2's theme YAML format).
 	ThemeDirectory    string `yaml:"theme_directory"`
 	LoadUserThemes    bool   `yaml:"load_user_themes"`
@@ -126,11 +128,11 @@ type FocusSettings struct {
 	OnRequestOpen string `yaml:"on_request_open"`
 }
 
-// Defaults are Posting 2's defaults, except the theme preview, which is on:
-// seeing a theme before choosing it is the point of browsing them.
+// Defaults follow Posting 2, with theme previews and sidebar gradients on.
 func Defaults() Settings {
 	return Settings{
 		Theme:                "galaxy",
+		SidebarGradient:      "theme",
 		ThemeDirectory:       paths.ThemeDir(),
 		LoadUserThemes:       true,
 		LoadBuiltinThemes:    true,

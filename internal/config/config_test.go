@@ -36,9 +36,14 @@ func TestLoadsPosting2Config(t *testing.T) {
 
 func TestEnvironmentOverridesTheFile(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "config.yaml")
-	os.WriteFile(file, []byte("theme: nord\nheading:\n  show_host: true\nkeymap:\n  send-request: ctrl+r\n"), 0o644)
+	os.WriteFile(file, []byte("theme: nord\nsidebar_gradient: lantern\nheading:\n  show_host: true\nkeymap:\n  send-request: ctrl+r\n"), 0o644)
+	fromFile, warnings := load(file, nil)
+	if fromFile.SidebarGradient != "lantern" || len(warnings) != 0 {
+		t.Fatalf("sidebar_gradient from file = %q, warnings: %v", fromFile.SidebarGradient, warnings)
+	}
 	s, warnings := load(file, []string{
 		"POSTING_THEME=dracula",
+		"POSTING_SIDEBAR_GRADIENT=off",
 		"POSTING_HEADING__SHOW_HOST=false",
 		"POSTING_RESPONSE__PRETTIFY_JSON=0",
 		"POSTING_NERD_FONTS=true",
@@ -48,6 +53,9 @@ func TestEnvironmentOverridesTheFile(t *testing.T) {
 	})
 	if len(warnings) > 0 {
 		t.Fatalf("warnings: %v", warnings)
+	}
+	if s.SidebarGradient != "off" {
+		t.Fatalf("sidebar_gradient env override = %q", s.SidebarGradient)
 	}
 	if s.Theme != "dracula" || s.Heading.ShowHost || s.Response.PrettifyJSON {
 		t.Errorf("env overrides not applied: theme=%q heading=%+v response=%+v", s.Theme, s.Heading, s.Response)

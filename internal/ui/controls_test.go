@@ -4,8 +4,45 @@ import (
 	"strings"
 	"testing"
 
+	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
+
+	"github.com/darrenburns/posting/internal/config"
 )
+
+func TestSelectedTabUnderlineMatchesCursor(tt *testing.T) {
+	// Aurora's accent and cursor colours differ, so using Accent fails.
+	app := settingsApp(tt, func(s *config.Settings) { s.Theme = "aurora" })
+	app.current().showResponse(fixedResponse(), nil)
+	app.current().phase.Set(exchangeDone)
+	buf := uv.NewBuffer(snapW, snapH)
+	focus := t.NewFocusManager()
+	focused := t.NewAnySignal[t.Focusable](nil)
+	renderer := t.NewRenderer(buf, snapW, snapH, focus, focused, t.NewAnySignal[t.Widget](nil))
+	focus.SetFocusables(renderer.Render(app))
+	for _, tab := range []struct{ strip, key string }{
+		{sidebarTabsID, "requests"},
+		{requestTabsID, "headers"},
+		{responseTabsID, "body"},
+	} {
+		focus.FocusByID(urlInputID)
+		focused.Set(focus.Focused())
+		renderer.Render(app)
+		bounds := renderer.WidgetByID(tabID(tab.strip, tab.key)).Bounds
+		cell := buf.CellAt(bounds.X+1, bounds.Y)
+		if cell.Style.Underline != uv.UnderlineSingle || cell.Style.UnderlineColor == nil {
+			tt.Fatalf("%s: selected, unfocused tab has no coloured underline", tab.strip)
+		}
+		underline := t.FromANSI(cell.Style.UnderlineColor)
+		focus.FocusByID(tab.strip)
+		focused.Set(focus.Focused())
+		renderer.Render(app)
+		cell = buf.CellAt(bounds.X+1, bounds.Y)
+		if cell.Style.Underline != uv.UnderlineNone || cell.Style.Bg == nil || underline != t.FromANSI(cell.Style.Bg) {
+			tt.Fatalf("%s: underline %s does not match the focused cursor background %v", tab.strip, underline.Hex(), cell.Style.Bg)
+		}
+	}
+}
 
 func TestTabStripRevealScrollsOnlyAsFarAsNeeded(tt *testing.T) {
 	// Each tab is 6 cells wide: " Tab0 ".

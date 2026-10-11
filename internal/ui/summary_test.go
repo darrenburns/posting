@@ -95,6 +95,48 @@ func TestSnapshotRequestSummaryCollectionOnRight(tt *testing.T) {
 	t.AssertSnapshot(tt, app, snapW, snapH, "Collection on the right: the summary floats to the left of the row")
 }
 
+func TestSummaryBorderTitle(tt *testing.T) {
+	for _, themeName := range []string{"galaxy", "catppuccin-latte"} {
+		req := model.NewRequest()
+		req.Name, req.Method, req.Description = "Customers [b] and archived profiles", model.MethodPost, "Brief."
+		settings := config.Defaults()
+		settings.Theme = themeName
+		app := New(Config{Collection: &model.Collection{Requests: []model.Request{req}}, Settings: &settings})
+		buf := uv.NewBuffer(snapW, snapH)
+		focus := t.NewFocusManager()
+		focused := t.NewAnySignal[t.Focusable](nil)
+		renderer := t.NewRenderer(buf, snapW, snapH, focus, focused, t.NewAnySignal[t.Widget](nil))
+		focus.SetFocusables(renderer.Render(app))
+		focus.FocusByID(treeID)
+		focused.Set(focus.Focused())
+		renderer.Render(app)
+		bubble := renderer.WidgetByID(summaryID)
+		if bubble == nil {
+			tt.Fatal("request preview is missing")
+		}
+		b := bubble.Bounds
+		row := []rune(strings.Split(renderer.ScreenText(), "\n")[b.Y])
+		// A long title over a short body must size the preview, remain literal,
+		// and start at the left of the top border rather than inside the body.
+		if !strings.HasPrefix(string(row[b.X+1:b.X+b.Width-1]), " POST  "+req.Name) {
+			tt.Fatalf("%s: border title clipped, misplaced or parsed as markup: %q", themeName, string(row))
+		}
+		theme, _ := t.GetTheme(themeName)
+		for _, part := range []struct {
+			x      int
+			fg, bg t.Color
+		}{{b.X + 2, theme.SuccessText, theme.Surface3}, {b.X + 8, theme.Text, theme.Background}} {
+			style := buf.CellAt(part.x, b.Y).Style
+			if t.FromANSI(style.Fg) != part.fg || t.FromANSI(style.Bg) != part.bg || style.Attrs&uv.AttrBold == 0 {
+				tt.Fatalf("%s: border title styling at column %d: fg=%s bg=%s attrs=%d; want fg=%s bg=%s bold", themeName, part.x, t.FromANSI(style.Fg).Hex(), t.FromANSI(style.Bg).Hex(), style.Attrs, part.fg.Hex(), part.bg.Hex())
+			}
+		}
+		if buf.CellAt(b.X+1, b.Y+2).Content != " " || buf.CellAt(b.X+2, b.Y+2).Content != "B" {
+			tt.Fatal("preview content must have one cell of horizontal padding")
+		}
+	}
+}
+
 // summary checks that the summary bubble is on screen beside the tree
 // cursor's row (see summaryOf) and returns its bounds.
 func (s *screen) summary(tt *testing.T) t.Rect {
@@ -116,7 +158,7 @@ func (s *screen) summaryOf(tt *testing.T, path []int) t.Rect {
 	row, _ := s.app.treeRow(path)
 	want := viewport.Bounds.Y + row - s.app.treeScroll.GetOffset()
 	b := bubble.Bounds
-	if title, last := b.Y+1, b.Y+b.Height-2; title != want && last != want {
+	if title, last := b.Y, b.Y+b.Height-2; title != want && last != want {
 		tt.Fatalf("summary spans rows %d-%d, want its title or last line beside the row on row %d", title, last, want)
 	}
 	tree := viewport.Bounds
@@ -153,7 +195,7 @@ func (s *screen) summaryOf(tt *testing.T, path []int) t.Rect {
 func (s *screen) summaryTitle(tt *testing.T) string {
 	tt.Helper()
 	b := s.renderer.WidgetByID(summaryID).Bounds
-	line := []rune(strings.Split(s.renderer.ScreenText(), "\n")[b.Y+1])
+	line := []rune(strings.Split(s.renderer.ScreenText(), "\n")[b.Y])
 	return strings.TrimSpace(string(line[b.X+1 : b.X+b.Width-1]))
 }
 
@@ -252,42 +294,31 @@ func (s *screen) underSummary(tt *testing.T, id string) (int, int) {
 }
 
 func TestSummaryLetsThePointerThrough(tt *testing.T) {
-	// The first request in the tree, so its bubble reaches up to the tabs.
+	// The first request in the tree, so its bubble covers the body editor.
 	app := appWithDescription("Current user", "Fetch the signed-in user's profile.", nil)
 	app.openRequest(sampleRequest(tt, "Create user"))
+	app.current().requestTab.Set("body")
 	moveTreeCursor(tt, app, "Current user")
 	s := newScreen(app, snapW, snapH)
 	s.focusID(tt, treeID)
 
-	// A click on a tab under the bubble reaches the tab, with no pointer
-	// movement over the bubble first.
-	body := tabID(requestTabsID, "body")
-	x, y := s.underSummary(tt, body)
-	entry := s.renderer.WidgetAt(x, y)
-	clickable, ok := entry.EventWidget.(t.Clickable)
-	if !ok || entry.ID != body {
-		tt.Fatalf("a click under the summary reaches %q (%T), not the body tab", entry.ID, entry.EventWidget)
-	}
-	clickable.OnClick(t.MouseEvent{X: x, Y: y, Button: uv.MouseLeft, ClickCount: 1})
-	if got := app.current().requestTab.Peek(); got != "body" {
-		tt.Fatalf("clicking the body tab under the summary left the %s tab showing", got)
-	}
-	s.render()
-
 	// The wheel scrolls the body the bubble covers, not the tree beside it.
-	x, y = s.underSummary(tt, "req-body-text")
+	x, y := s.underSummary(tt, "req-body-text")
 	scrollables := s.renderer.ScrollablesAt(x, y)
 	if len(scrollables) == 0 || scrollables[0].State != app.current().bodyScroll {
 		tt.Fatal("the wheel under the summary doesn't reach the request body")
 	}
 
-	// A click there focuses the body, which leaves the tree and so puts the
-	// bubble away.
+	// Without moving over the bubble first, a click reaches and focuses the
+	// body, leaving the tree and putting the bubble away.
 	focusable := s.renderer.FocusableAt(x, y)
 	if focusable == nil || focusable.ID != "req-body-text" {
 		tt.Fatalf("a click under the summary focuses %v, not the request body", focusable)
 	}
-	s.focusID(tt, focusable.ID)
+	s.press(tt, x, y)
+	if s.focus.FocusedID() != "req-body-text" {
+		tt.Fatal("clicking through the summary didn't focus the body")
+	}
 	if s.renderer.WidgetByID(summaryID) != nil {
 		tt.Error("the summary stayed after focus left the tree")
 	}
