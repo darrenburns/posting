@@ -424,7 +424,7 @@ func TestGRPCDescribeByReflection(t *testing.T) {
 func TestGRPCDescribeSkipsAServiceReflectionCantDescribe(t *testing.T) {
 	files, svc := librarySchema(t)
 	server := grpc.NewServer()
-	server.RegisterService(libraryService(svc), struct{}{})
+	server.RegisterService(libraryService(t, svc), struct{}{})
 	server.RegisterService(&grpc.ServiceDesc{ServiceName: "hidden.v1.Hidden", HandlerType: (*any)(nil)}, struct{}{})
 	reflectionv1.RegisterServerReflectionServer(server, reflection.NewServerV1(reflection.ServerOptions{Services: server, DescriptorResolver: files}))
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
@@ -792,7 +792,7 @@ func TestGRPCDiscoveryErrorNamesTheStatusCode(t *testing.T) {
 		}
 		return handler(srv, ss)
 	}))
-	server.RegisterService(libraryService(svc), struct{}{})
+	server.RegisterService(libraryService(t, svc), struct{}{})
 	reflectionv1.RegisterServerReflectionServer(server, reflection.NewServerV1(reflection.ServerOptions{Services: server, DescriptorResolver: files}))
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
