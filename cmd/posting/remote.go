@@ -15,6 +15,7 @@ import (
 
 	"github.com/darrenburns/posting/internal/paths"
 	"github.com/darrenburns/posting/internal/remote"
+	"github.com/darrenburns/posting/skills"
 )
 
 const remoteUsage = `Usage: posting remote COMMAND [REQUEST] [options]
@@ -36,6 +37,9 @@ Commands:
                     List the environments, marking the active one with *,
                     after switching to the one named, or layering the files
                     given. --none switches to no environment.
+  skill             Print a skill that teaches coding agents to use these
+                    commands, for Claude Code, Codex, Pi or Amp. It doesn't
+                    need a running Posting.
   save [FILE]       Save the request in the active tab: as FILE, or where it
                     was saved before, or else under its name. FILE is relative
                     to the collection unless it starts with /, ./ or ../, and
@@ -56,10 +60,12 @@ arrives.
 
 Options:
   --json            Print the result as JSON
-  --instance PID    The Posting to drive, by process ID or socket, when several
-                    are running. Defaults to $POSTING_INSTANCE, or else the only
-                    one running, the one started in this directory, or the one
-                    whose collection holds this directory.
+  --instance PID    The Posting to drive, by process ID or socket path, when
+                    several are running, or when this command can't see the
+                    socket directory (as in some agent sandboxes). Defaults
+                    to $POSTING_INSTANCE, or else the only one running, the
+                    one started in this directory, or the one whose
+                    collection holds this directory.
   -h, --help        Show this help
 
 Examples:
@@ -165,7 +171,7 @@ func parseRemoteOptions(args []string) (remoteOptions, error) {
 		if len(positional) == 1 {
 			opts.file = positional[0]
 		}
-	case "list", "requests", "show", "response":
+	case "list", "requests", "show", "response", "skill":
 		if len(positional) > 0 {
 			return opts, fmt.Errorf("unexpected argument %q", positional[0])
 		}
@@ -198,6 +204,10 @@ func remoteCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) int
 		fmt.Fprintln(stderr, "Run posting remote --help for usage.")
 		return 2
 	}
+	if opts.command == "skill" {
+		fmt.Fprint(stdout, skills.UsingPosting)
+		return 0
+	}
 	ctx := context.Background()
 	instances, err := remote.Instances(ctx, paths.SocketDir())
 	if err != nil {
@@ -210,6 +220,15 @@ func remoteCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) int
 	want := opts.instance
 	if want == "" {
 		want = os.Getenv("POSTING_INSTANCE")
+	}
+	if strings.ContainsRune(want, filepath.Separator) {
+		// A socket given by path is used even outside the socket directory,
+		// for agents whose sandbox sees a different temporary directory.
+		var info remote.Info
+		if err := remote.Call(ctx, want, remote.Request{Command: remote.CommandInfo}, &info); err == nil {
+			info.Socket = want
+			instances = []remote.Info{info}
+		}
 	}
 	cwd, _ := os.Getwd()
 	instance, err := remote.Choose(instances, want, cwd)

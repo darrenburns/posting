@@ -20,6 +20,9 @@ posting remote response --json           # the active tab's latest response
 Run `posting remote --help` for the full reference. It is written so an agent can learn the command
 from it.
 
+To teach your coding agent to use Posting this way, install the `using-posting` skill. See
+[Coding Agents](./agents.md).
+
 ## Commands
 
 | Command | What it does |

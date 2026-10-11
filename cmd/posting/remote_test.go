@@ -161,4 +161,25 @@ func TestRemoteCommandEndToEnd(t *testing.T) {
 	if code := remoteCommand([]string{"list"}, nil, &stdout, &stderr); code != 0 || !strings.Contains(stdout.String(), dir) {
 		t.Errorf("list exited %d with %q", code, stdout.String())
 	}
+
+	// From a sandbox that sees another socket directory, a socket given by
+	// path still works.
+	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
+	stdout.Reset()
+	if code := remoteCommand([]string{"send", "users/get"}, nil, &stdout, &stderr); code != 1 {
+		t.Errorf("send without the socket directory exited %d", code)
+	}
+	t.Setenv("POSTING_INSTANCE", server.Path())
+	stdout.Reset()
+	if code := remoteCommand([]string{"send", "users/get"}, nil, &stdout, &stderr); code != 0 || !strings.Contains(stdout.String(), "hi") {
+		t.Errorf("send by socket path exited %d with %q", code, stdout.String())
+	}
+}
+
+func TestRemoteSkillPrintsTheEmbeddedSkill(t *testing.T) {
+	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	if code := remoteCommand([]string{"skill"}, nil, &stdout, &stderr); code != 0 || !strings.HasPrefix(stdout.String(), "---\nname: using-posting\n") {
+		t.Errorf("skill exited %d with %.40q", code, stdout.String())
+	}
 }
