@@ -65,6 +65,7 @@ func (a *App) replaceCollection(root *model.Collection) {
 		a.listProtoMethods(s)
 		updated++
 	}
+	a.urlTree = nil
 	a.collection.Set(root)
 	a.tree.Nodes.Set(buildTree(root))
 	if updated > 0 {
