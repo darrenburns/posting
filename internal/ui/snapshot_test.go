@@ -150,4 +150,18 @@ func TestSnapshotOverlays(tt *testing.T) {
 	app.save.prefill(model.NewRequest(), "users")
 	app.overlay.Set("save")
 	t.AssertSnapshotNamed(tt, "Overlay_save", app, snapW, snapH, "Save request dialog")
+
+	app = testApp()
+	app.openPalette()
+	t.AssertSnapshotNamed(tt, "Overlay_palette", app, snapW, snapH, "Borderless command palette")
+
+	app = testApp()
+	app.askConfirm(confirmation{title: "Delete request?", message: "Delete List users from this collection?", confirm: "Delete", danger: true})
+	t.AssertSnapshotNamed(tt, "Overlay_confirm", app, snapW, snapH, "Confirmation uses the shared modal frame and a text-coloured left-aligned title")
+	t.SetTheme("catppuccin-latte")
+	t.AssertSnapshotNamed(tt, "Overlay_confirm_light", app, snapW, snapH, "Light confirmation has a legible title and the same styling as other dialogs")
+
+	app = testApp()
+	app.toast.Set(toast{message: "Saved List users", kind: toastSuccess})
+	t.AssertSnapshotNamed(tt, "Overlay_toast", app, snapW, snapH, "Success notification with a severity-coloured tall border")
 }

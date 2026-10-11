@@ -201,7 +201,7 @@ func (s tabStrip) Build(ctx t.BuildContext) t.Widget {
 			label = t.SpanStyle{Foreground: theme.SelectionText, Bold: true}
 			extra.Foreground = theme.SelectionText
 		case key == active:
-			label = t.SpanStyle{Foreground: theme.Text, Bold: true, Underline: t.UnderlineSingle, UnderlineColor: theme.Accent}
+			label = t.SpanStyle{Foreground: theme.Text, Bold: true, Underline: t.UnderlineSingle, UnderlineColor: theme.ActiveCursor}
 			extra.Foreground = theme.AccentText
 		}
 		label.Background, extra.Background = bg, bg

@@ -217,6 +217,7 @@ type requestsPane struct {
 
 func (p requestsPane) Build(ctx t.BuildContext) t.Widget {
 	a := p.app
+	theme := ctx.Theme()
 	if len(a.tree.Nodes.Get()) == 0 {
 		return collectionView{app: a}
 	}
@@ -227,13 +228,16 @@ func (p requestsPane) Build(ctx t.BuildContext) t.Widget {
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Spacing: 1,
 		Children: []t.Widget{
-			input{
+			t.TextInput{
 				ID:          treeSearchID,
 				State:       a.treeSearch,
 				Placeholder: "Search requests…",
 				OnChange:    a.searchTree,
 				OnSubmit:    func(string) { a.enterTreeResults() },
-				Keybinds: []t.Keybind{
+				// An explicitly transparent background keeps the gradient
+				// behind both the text and padding; an unset one uses Surface.
+				Style: t.Style{Width: t.Flex(1), ForegroundColor: theme.Text, BackgroundColor: theme.Background.WithAlpha(0), Padding: t.EdgeInsetsXY(1, 0)},
+				ExtraKeybinds: []t.Keybind{
 					{Key: "down", Name: "Results", Action: a.enterTreeResults, Hidden: true},
 					{Key: "up", Name: "Out", Action: func() { t.RequestFocus(sidebarTabsID) }, Hidden: true},
 					{Key: "escape", Name: "Clear", Action: a.clearTreeSearch},

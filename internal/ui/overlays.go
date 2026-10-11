@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	paletteID   = "palette"
-	themesTitle = "Themes"
+	paletteID             = "palette"
+	themesTitle           = "Themes"
+	sidebarGradientsTitle = "Sidebar gradient"
 )
 
 // overlays hosts every floating layer. Floating widgets register themselves
@@ -20,6 +21,7 @@ type overlays struct{ app *App }
 
 func (o overlays) Build(ctx t.BuildContext) t.Widget {
 	a := o.app
+	theme := ctx.Theme()
 	overlay := a.overlay.Get()
 	return t.Column{Children: []t.Widget{
 		t.CommandPalette{
@@ -31,7 +33,7 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 			OnCursorChange: a.themePreviewHook(),
 			OnDismiss:      a.restoreTheme,
 		},
-		a.tabSearchPalette(ctx.Theme()),
+		a.tabSearchPalette(theme),
 		helpOverlay{app: a, visible: overlay == "help"},
 		saveOverlay{app: a, visible: overlay == "save"},
 		variablesOverlay{app: a, visible: overlay == "variables"},
@@ -164,6 +166,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 	}
 	items = append(items,
 		t.CommandPaletteItem{Label: "Theme…", ChildrenTitle: themesTitle, Children: a.themeItems},
+		t.CommandPaletteItem{Label: "Sidebar gradient…", Description: "Choose gradient colours independently of the app theme", ChildrenTitle: sidebarGradientsTitle, Children: a.sidebarGradientItems},
 		t.CommandPaletteItem{Divider: "App"},
 		t.CommandPaletteItem{Label: "Clear history", Action: a.run(a.clearHistory)},
 		t.CommandPaletteItem{Label: "Keyboard shortcuts", Hint: a.keyHint("help"), Action: a.run(func() { a.overlay.Set("help") })},
@@ -178,6 +181,28 @@ func (a *App) themeItems() []t.CommandPaletteItem {
 	if a.themeBeforePreview != "" {
 		current = a.themeBeforePreview
 	}
+	return a.themeChoices(current, func(name string) {
+		a.themeBeforePreview = ""
+		t.SetTheme(name)
+	})
+}
+
+func (a *App) sidebarGradientItems() []t.CommandPaletteItem {
+	current := a.sidebarGradient.Peek()
+	selectGradient := func(name string) {
+		a.sidebarGradient.Set(name)
+		a.sidebarGradientPreview.Set("")
+	}
+	items := []t.CommandPaletteItem{
+		{Label: "Follow app theme", Description: "Use the current theme's colours", Current: current == "theme", Data: "theme", Action: a.run(func() { selectGradient("theme") })},
+		{Label: "Sidebar gradient off", Description: "Use the plain app background", Current: current == "off", Data: "off", Action: a.run(func() { selectGradient("off") })},
+	}
+	return append(items, a.themeChoices(current, selectGradient)...)
+}
+
+// themeChoices keeps the theme and gradient pickers' groups and user-theme
+// visibility in step, while leaving their selections independent.
+func (a *App) themeChoices(current string, selectTheme func(string)) []t.CommandPaletteItem {
 	user := map[string]bool{}
 	for _, name := range a.userThemes {
 		user[name] = true
@@ -195,8 +220,7 @@ func (a *App) themeItems() []t.CommandPaletteItem {
 				Current: themeName == current,
 				Data:    themeName,
 				Action: a.run(func() {
-					a.themeBeforePreview = ""
-					t.SetTheme(themeName)
+					selectTheme(themeName)
 				}),
 			})
 		}
@@ -213,7 +237,7 @@ func (a *App) themeItems() []t.CommandPaletteItem {
 	return items
 }
 
-// themePreviewHook previews themes while browsing them, unless the
+// themePreviewHook previews themes and sidebar gradients, unless the
 // command_palette.theme_preview setting turns it off.
 func (a *App) themePreviewHook() func(t.CommandPaletteItem) {
 	if !a.settings.CommandPalette.ThemePreview {
@@ -222,10 +246,17 @@ func (a *App) themePreviewHook() func(t.CommandPaletteItem) {
 	return a.previewTheme
 }
 
-// previewTheme applies the theme under the cursor while browsing themes.
+// previewTheme applies the theme or gradient under the cursor. Leaving a
+// picker restores its uncommitted preview, including when going back a level.
 func (a *App) previewTheme(item t.CommandPaletteItem) {
 	level := a.palette.CurrentLevel()
 	themeName, ok := item.Data.(string)
+	if level != nil && level.Title == sidebarGradientsTitle && ok {
+		a.restoreTheme()
+		a.sidebarGradientPreview.Set(themeName)
+		return
+	}
+	a.sidebarGradientPreview.Set("")
 	if level == nil || level.Title != themesTitle || !ok {
 		a.restoreTheme()
 		return
@@ -237,6 +268,7 @@ func (a *App) previewTheme(item t.CommandPaletteItem) {
 }
 
 func (a *App) restoreTheme() {
+	a.sidebarGradientPreview.Set("")
 	if a.themeBeforePreview != "" {
 		t.SetTheme(a.themeBeforePreview)
 		a.themeBeforePreview = ""
@@ -309,7 +341,7 @@ func (m modal) Build(ctx t.BuildContext) t.Widget {
 				Width:           m.Width,
 				Height:          m.Height,
 				BackgroundColor: theme.Background,
-				Border:          t.RoundedBorder(theme.Primary, t.BorderTitleMarkup(" [b $Text]"+m.Title+"[/] "), t.BorderSubtitleRightMarkup(" [$TextMuted]esc to close[/] ")),
+				Border:          t.TallBorder(theme.Primary, t.BorderTitleMarkup(" [b $Text]"+escapeMarkup(m.Title)+"[/] "), t.BorderSubtitleRightMarkup(" [$TextMuted]esc to close[/] ")),
 				Padding:         t.EdgeInsetsXY(2, 1),
 			},
 			Children: []t.Widget{m.Child},
@@ -883,6 +915,7 @@ type confirmation struct {
 func (a *App) askConfirm(c confirmation) {
 	a.confirm.Set(c)
 	a.overlay.Set("confirm")
+	t.RequestFocus("confirm-no")
 }
 
 type confirmOverlay struct {
@@ -905,16 +938,22 @@ func (o confirmOverlay) Build(ctx t.BuildContext) t.Widget {
 	}
 	message := t.ParseMarkupToText(c.message, ctx.Theme())
 	message.Wrap = t.WrapSoft
-	return t.Dialog{
-		ID:      "confirm-dialog",
-		Visible: o.visible,
-		Title:   c.title,
-		Content: message,
-		Buttons: []t.Button{
-			{ID: "confirm-no", Label: "Cancel", OnPress: a.closeOverlay},
-			{ID: "confirm-yes", Label: orDefault(c.confirm, "Yes"), Variant: variant, OnPress: yes},
-		},
+	return modal{
+		Visible:   o.visible,
+		Title:     c.title,
+		Width:     t.Cells(72),
 		OnDismiss: a.closeOverlay,
+		Child: t.Column{
+			Style:   t.Style{Width: t.Flex(1), ForegroundColor: ctx.Theme().Text},
+			Spacing: 1,
+			Children: []t.Widget{
+				message,
+				t.Row{Spacing: 2, MainAlign: t.MainAxisEnd, Style: t.Style{Width: t.Flex(1)}, Children: []t.Widget{
+					t.Button{ID: "confirm-no", Label: "Cancel", OnPress: a.closeOverlay},
+					t.Button{ID: "confirm-yes", Label: orDefault(c.confirm, "Yes"), Variant: variant, OnPress: yes},
+				}},
+			},
+		},
 	}
 }
 
@@ -960,13 +999,12 @@ func (o toastOverlay) Build(ctx t.BuildContext) t.Widget {
 			DismissOnClickOutside: t.BoolPtr(false),
 		},
 		Child: t.Row{
-			Style: t.Style{BackgroundColor: theme.Surface2},
+			Style: t.Style{BackgroundColor: theme.Surface2, Border: t.TallBorder(accent), Padding: t.EdgeInsetsXY(1, 0)},
 			Children: []t.Widget{
-				t.Text{Content: "▌", Style: t.Style{ForegroundColor: accent}},
 				t.Text{Spans: []t.Span{
 					{Text: icon, Style: t.SpanStyle{Foreground: accent}},
 					{Text: current.message, Style: t.SpanStyle{Foreground: theme.Text}},
-				}, Style: t.Style{Padding: t.EdgeInsetsXY(1, 0)}},
+				}},
 			},
 		},
 	}

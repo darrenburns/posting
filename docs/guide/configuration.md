@@ -123,6 +123,7 @@ Each can also be set with the environment variable shown in brackets.
 | Config key (env var) | Values (default) | Description |
 |----------------------|------------------|-------------|
 | `theme` (`POSTING_THEME`) | Any theme name (Default: `galaxy`) | The theme to use. See [Themes](./themes.md). |
+| `sidebar_gradient` (`POSTING_SIDEBAR_GRADIENT`) | `theme`, `off`, or any theme name (Default: `theme`) | A subtle sidebar gradient. `theme` follows the app theme; a name borrows that theme's accent colours, blended into the active background to keep text readable. `off` restores the plain background. Choose it independently in **Sidebar gradient…** in the command palette. |
 | `theme_directory` (`POSTING_THEME_DIRECTORY`) | A path (Default: `$XDG_DATA_HOME/posting/themes`) | Where Posting looks for your own theme files. |
 | `load_user_themes` (`POSTING_LOAD_USER_THEMES`) | `true`, `false` (Default: `true`) | Load the themes in `theme_directory`. |
 | `load_builtin_themes` (`POSTING_LOAD_BUILTIN_THEMES`) | `true`, `false` (Default: `true`) | When `false` and you have at least one theme of your own, the theme picker lists only your themes. |
@@ -143,7 +144,7 @@ Each can also be set with the environment variable shown in brackets.
 | `url_bar.hide_secrets_in_value_preview` (`POSTING_URL_BAR__HIDE_SECRETS_IN_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Mask the value of a variable in the preview when its name looks secret. See [Environments](./environments.md#secrets). |
 | `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `left`, `right` (Default: `left`) | Which side of the screen the sidebar is on. |
 | `collection_browser.show_on_startup` (`POSTING_COLLECTION_BROWSER__SHOW_ON_STARTUP`) | `true`, `false` (Default: `true`) | Show the sidebar when Posting starts. Toggle it any time with ++ctrl+h++. |
-| `command_palette.theme_preview` (`POSTING_COMMAND_PALETTE__THEME_PREVIEW`) | `true`, `false` (Default: `true`) | Preview each theme as you move through the theme picker. |
+| `command_palette.theme_preview` (`POSTING_COMMAND_PALETTE__THEME_PREVIEW`) | `true`, `false` (Default: `true`) | Preview themes and sidebar gradients as you move through their pickers. |
 | `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | Blink the cursor in inputs and text areas. |
 | `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `url`, `method`, `collection` (Default: `url`) | What to focus when Posting starts. |
 | `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `body`, `tabs` (Default: unset) | Move focus to the response body, or the response tabs, when a response arrives. |

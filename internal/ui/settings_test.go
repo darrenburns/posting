@@ -47,6 +47,39 @@ func TestSettingsHideTheCollectionAndHeading(tt *testing.T) {
 	t.AssertSnapshot(tt, app, snapW, snapH, "Configured: no collection browser and no heading row")
 }
 
+func TestSidebarGradientWithoutPreview(tt *testing.T) {
+	app := settingsApp(tt, func(s *config.Settings) {
+		s.SidebarGradient = "lantern"
+		s.CommandPalette.ThemePreview = false
+	})
+	app.openPalette()
+	app.palette.PushLevel(sidebarGradientsTitle, app.sidebarGradientItems())
+	selected := ""
+	for _, item := range app.palette.CurrentLevel().Items {
+		if item.Current {
+			selected = item.Label
+		}
+	}
+	if selected != "lantern" {
+		tt.Fatalf("configured gradient was not selected: %q", selected)
+	}
+	background := func() string {
+		buf := t.SerializeBuffer(t.RenderToBuffer(app, snapW, snapH), snapW, snapH)
+		return buf.Cells[0].Bg
+	}
+	before := background()
+	app.palette.CurrentLevel().ListState.SelectIndex(0)
+	pressOn(tt, app, "palette-input", "down") // Off must not preview.
+	if got := background(); got != before {
+		tt.Fatalf("preview disabled, but background changed from %s to %s", before, got)
+	}
+	pressOn(tt, app, "palette-input", "enter")
+	theme, _ := t.GetTheme("galaxy")
+	if got := background(); !strings.EqualFold(got, theme.Background.Hex()) {
+		tt.Fatalf("selecting Off without previews gave %s, want %s", got, theme.Background.Hex())
+	}
+}
+
 func TestHeadingHostnameIsMarkup(tt *testing.T) {
 	app := settingsApp(tt, func(s *config.Settings) { s.Heading.Hostname = "[i]tempest[/i]" })
 	first := t.RenderToPlainString(app, snapW, snapH)

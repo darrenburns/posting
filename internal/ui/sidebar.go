@@ -63,8 +63,8 @@ type sidebar struct{ app *App }
 
 func (sb sidebar) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), t.Flex(1) }
 
-// Build lays the sidebar straight onto the app background, with no card
-// around it; the split pane's divider separates it from the workspace.
+// Build lays the sidebar on its own background, with no card around it;
+// the split pane's divider separates it from the workspace.
 //
 // Its rows line up with the workspace's: the tabs with the request tabs,
 // the search box with the URL bar and the tree with the request panel's tabs
@@ -82,7 +82,7 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 		top.Children = []t.Widget{t.Spacer{Height: t.Cells(1)}, tabs}
 	}
 	return t.Column{
-		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Left: 2, Right: 1}},
+		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Left: 2, Right: 1}, BackgroundColor: a.sidebarBackground(ctx.Theme())},
 		Spacing: a.gap(),
 		Children: []t.Widget{
 			top,
@@ -96,6 +96,31 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 			},
 		},
 	}
+}
+
+// sidebarBackground borrows only the selected theme's hues. Keeping the
+// active background as the base preserves contrast even across light/dark
+// theme pairings, without recolouring the sidebar's text and controls.
+func (a *App) sidebarBackground(theme t.ThemeData) t.ColorProvider {
+	name := a.sidebarGradient.Get()
+	if preview := a.sidebarGradientPreview.Get(); preview != "" {
+		name = preview
+	}
+	if name == "off" {
+		return nil
+	}
+	palette := theme
+	if name != "theme" {
+		if selected, ok := t.GetTheme(name); ok {
+			palette = selected
+		}
+	}
+	bg := theme.Background
+	return t.NewGradient(
+		bg.Blend(palette.Primary, 0.20),
+		bg.Blend(palette.Secondary, 0.10),
+		bg.Blend(palette.Accent, 0.04),
+	).WithAngle(25)
 }
 
 // collectionView is the request tree, with a summary of the hovered or
@@ -217,10 +242,9 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 	}
 }
 
-// renderTreeNode draws one row. The cursor is only emphasised while the tree
-// has focus; otherwise it is a quiet highlight so it doesn't compete with the
-// focused widget, and gives way to the selection. Letters that match the
-// search are highlighted.
+// renderTreeNode draws one row. The cursor is visible only while the tree
+// has focus; selections remain visible when focus moves elsewhere. Letters
+// that match the search are highlighted.
 //
 // A click opens a request in the preview tab (see App.openRequest), whose
 // request is in italics like the tab; a double-click keeps it open.
@@ -232,8 +256,6 @@ func renderTreeNode(theme t.ThemeData, icons iconSet, i treeItem, node t.TreeNod
 		bg = theme.ActiveCursor
 	case node.Selected:
 		bg = theme.Selection
-	case node.Active:
-		bg = theme.Surface
 	}
 	highlight := t.MatchHighlightStyle(theme)
 	if cursor {
@@ -353,8 +375,6 @@ func renderHistoryItem(theme t.ThemeData, entry model.HistoryEntry, active, sele
 		fg, methodFg, statusFg = theme.SelectionText, theme.SelectionText, theme.SelectionText
 	case selected:
 		bg = theme.Selection
-	case active:
-		bg = theme.Surface
 	}
 	statusSpan := t.Span{}
 	if entry.Response != nil {

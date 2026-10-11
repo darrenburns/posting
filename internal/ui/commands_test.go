@@ -29,6 +29,84 @@ func TestEveryPaletteCommandRuns(tt *testing.T) {
 	}
 }
 
+func TestSidebarGradientPalette(tt *testing.T) {
+	app := testApp()
+	choose := func(label string) {
+		tt.Helper()
+		level := app.palette.CurrentLevel()
+		for i, item := range level.Items {
+			if item.Label == label {
+				level.ListState.SelectIndex(i)
+				pressOn(tt, app, "palette-input", "enter")
+				return
+			}
+		}
+		tt.Fatalf("palette item %q not found", label)
+	}
+	backgrounds := func() [2]string {
+		buf := t.SerializeBuffer(t.RenderToBuffer(app, snapW, snapH), snapW, snapH)
+		return [2]string{buf.Cells[0].Bg, buf.Cells[30*snapW].Bg}
+	}
+	original := backgrounds()
+	if original[0] == original[1] {
+		tt.Fatal("default sidebar is not a gradient")
+	}
+	app.openPalette()
+	// The palette dims the app underneath it, so compare like-for-like.
+	underPalette := backgrounds()
+	choose("Sidebar gradient…")
+	pressOn(tt, app, "palette-input", "down") // Preview Off.
+	if got := backgrounds(); got[0] != got[1] || t.CurrentThemeName() != "galaxy" {
+		tt.Fatalf("Off preview = %v, theme = %s", got, t.CurrentThemeName())
+	}
+	pressOn(tt, app, "palette-input", "escape") // Back restores the gradient.
+	if got := backgrounds(); got != underPalette {
+		tt.Fatalf("leaving the picker kept the preview: %v, want %v", got, underPalette)
+	}
+	choose("Sidebar gradient…")
+	choose("lantern")
+	pinned := backgrounds()
+	if pinned == original || t.CurrentThemeName() != "galaxy" || app.palette.Visible.Peek() {
+		tt.Fatal("choosing a gradient must change only the sidebar and close the palette")
+	}
+	app.openPalette()
+	choose("Sidebar gradient…")
+	pressOn(tt, app, "palette-input", "down")
+	pressOn(tt, app, "palette-input", "escape")
+	pressOn(tt, app, "palette-input", "escape")
+	if got := backgrounds(); got != pinned {
+		tt.Fatalf("cancelling lost the pinned gradient: %v, want %v", got, pinned)
+	}
+	app.openPalette()
+	choose("Theme…")
+	choose("aurora")
+	app.openPalette()
+	choose("Sidebar gradient…")
+	selected := ""
+	for _, item := range app.palette.CurrentLevel().Items {
+		if item.Current {
+			selected = item.Label
+		}
+	}
+	if selected != "lantern" {
+		tt.Fatalf("changing the app theme changed the selected gradient to %q", selected)
+	}
+	choose("Sidebar gradient off")
+	if got := backgrounds(); got[0] != got[1] {
+		tt.Fatalf("Off did not restore a flat background: %v", got)
+	}
+	app.openPalette()
+	choose("Sidebar gradient…")
+	choose("Follow app theme")
+	following := backgrounds()
+	app.openPalette()
+	choose("Theme…")
+	choose("galaxy")
+	if got := backgrounds(); got == following || got != original {
+		tt.Fatalf("Follow app theme did not track theme changes: %v", got)
+	}
+}
+
 func TestExportYAMLRoundTrips(tt *testing.T) {
 	app := testApp()
 	req := sampleRequest(tt, "Create user")
