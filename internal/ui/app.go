@@ -14,6 +14,7 @@ import (
 	"os/user"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	t "github.com/darrenburns/terma"
@@ -96,6 +97,16 @@ type App struct {
 	runExternal func(*exec.Cmd) error
 	// after runs fn on the UI goroutine once d has passed; tests replace it.
 	after func(d time.Duration, fn func())
+	// dispatch runs fn on the UI goroutine; tests replace it.
+	dispatch func(fn func())
+
+	// running is closed once the app is running, when remote commands can
+	// be dispatched to it (see remote.go).
+	running     chan struct{}
+	runningOnce sync.Once
+	// remoteTab is the tab remote commands open requests that aren't saved
+	// in.
+	remoteTab int
 
 	collection t.AnySignal[*model.Collection]
 	tree       *t.TreeState[treeItem]
@@ -193,6 +204,8 @@ func New(cfg Config) *App {
 		openURL:        cfg.OpenURL,
 		runExternal:    t.RunExternal,
 		after:          dispatchAfter,
+		dispatch:       t.Dispatch,
+		running:        make(chan struct{}),
 		watcher:        cfg.Reload,
 		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
@@ -363,6 +376,7 @@ func (a *App) openSession(req model.Request) *Session {
 func (a *App) createSession(req model.Request) *Session {
 	a.nextSessionID++
 	s := newSession(a.nextSessionID, req)
+	s.dispatch = a.dispatch
 	s.prettifyJSON = a.settings.Response.PrettifyJSON
 	a.listProtoMethods(s)
 	return s
@@ -727,9 +741,17 @@ func (a *App) saveRequest() {
 // in-memory collection by its File. It reports whether the save worked; a
 // failure has already been shown to the user.
 func (a *App) storeRequest(req model.Request) bool {
-	if err := a.store.Save(req); err != nil {
+	if err := a.writeRequest(req); err != nil {
 		a.notify("Couldn't save "+req.File+": "+err.Error(), toastError)
 		return false
+	}
+	return true
+}
+
+// writeRequest is storeRequest, returning the error rather than showing it.
+func (a *App) writeRequest(req model.Request) error {
+	if err := a.store.Save(req); err != nil {
+		return err
 	}
 	root := a.collection.Peek()
 	folderPath, _ := splitFile(req.File)
@@ -746,7 +768,7 @@ func (a *App) storeRequest(req model.Request) bool {
 	}
 	root.Sort()
 	a.refreshTree()
-	return true
+	return nil
 }
 
 // deleteRequests deletes files from the store and the collection, stopping
@@ -822,6 +844,7 @@ func (a *App) focusRequestTab(key string) {
 // Root widget
 
 func (a *App) Build(ctx t.BuildContext) t.Widget {
+	a.markRunning()
 	theme := ctx.Theme()
 	// Without the collection on the left, the workspace needs the margin
 	// the split pane's divider would otherwise give it.

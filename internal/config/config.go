@@ -68,6 +68,14 @@ type Settings struct {
 	// NerdFonts uses Nerd Font icons. Unset means on in terminals known to
 	// ship them (Ghostty), off elsewhere.
 	NerdFonts *bool `yaml:"nerd_fonts"`
+	// RemoteControl lets `posting remote` drive the running app.
+	RemoteControl RemoteControlSettings `yaml:"remote_control"`
+}
+
+type RemoteControlSettings struct {
+	// Enabled listens for `posting remote` commands on a socket only the
+	// user can reach.
+	Enabled bool `yaml:"enabled"`
 }
 
 type TextInputSettings struct {
@@ -142,6 +150,7 @@ func Defaults() Settings {
 		Editor:               os.Getenv("EDITOR"),
 		Keymap:               map[string]string{},
 		Spacing:              "standard",
+		RemoteControl:        RemoteControlSettings{Enabled: true},
 	}
 }
 

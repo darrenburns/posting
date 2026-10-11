@@ -177,9 +177,9 @@ func (a *App) switchEnvironment(files []string) {
 	a.notify("Switched to "+a.env.active.Peek().Name, toastInfo)
 }
 
-// environmentItems lists the environments used this session, then the other
-// environment files found, then the option to clear the environment.
-func (a *App) environmentItems() []t.CommandPaletteItem {
+// environmentGroups lists the files of the environments used this session,
+// then those of the other environments found.
+func (a *App) environmentGroups() [][]string {
 	groups := append([][]string(nil), a.env.history...)
 	seen := map[string]bool{}
 	for _, g := range groups {
@@ -191,6 +191,13 @@ func (a *App) environmentItems() []t.CommandPaletteItem {
 			groups = append(groups, candidate)
 		}
 	}
+	return groups
+}
+
+// environmentItems lists the environments used this session, then the other
+// environment files found, then the option to clear the environment.
+func (a *App) environmentItems() []t.CommandPaletteItem {
+	groups := a.environmentGroups()
 	active := envKey(a.env.active.Peek().Files)
 	items := make([]t.CommandPaletteItem, 0, len(groups)+1)
 	for _, files := range groups {

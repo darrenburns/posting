@@ -6,6 +6,7 @@ package paths
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // ConfigHome is $XDG_CONFIG_HOME, or ~/.config.
@@ -43,6 +44,20 @@ func HistoryDir() string { return filepath.Join(DataDir(), "history") }
 
 // EnvironmentMemory remembers the environment last used in each collection.
 func EnvironmentMemory() string { return filepath.Join(DataDir(), "environments.json") }
+
+// SocketDir holds the sockets of running instances, which `posting remote`
+// talks to: $XDG_RUNTIME_DIR/posting, or a directory of the user's own in
+// the temporary directory. Neither is shared with other users.
+func SocketDir() string {
+	if dir := os.Getenv("XDG_RUNTIME_DIR"); dir != "" && filepath.IsAbs(dir) {
+		return filepath.Join(dir, "posting")
+	}
+	name := "posting"
+	if uid := os.Getuid(); uid >= 0 {
+		name += "-" + strconv.Itoa(uid)
+	}
+	return filepath.Join(os.TempDir(), name)
+}
 
 func xdg(variable, fallback string) string {
 	if dir := os.Getenv(variable); dir != "" && filepath.IsAbs(dir) {

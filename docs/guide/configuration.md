@@ -153,6 +153,7 @@ Each can also be set with the environment variable shown in brackets.
 | `pager_json` (`POSTING_PAGER_JSON`) | A command (Default: unset) | The pager to view JSON in, instead of `pager`. |
 | `curl_export_extra_args` (`POSTING_CURL_EXPORT_EXTRA_ARGS`) | Text (Default: empty) | Inserted straight after `curl` in [exported curl commands](./requests.md#exporting-as-curl), e.g. `--silent --show-error`. |
 | `keymap` | Action IDs and keys (Default: empty) | Change keyboard shortcuts. See [Keymaps](./keymap.md). |
+| `remote_control.enabled` (`POSTING_REMOTE_CONTROL__ENABLED`) | `true`, `false` (Default: `true`) | Let `posting remote` drive Posting from another terminal. See [Remote Control](./remote_control.md). |
 | `ssl.ca_bundle` (`POSTING_SSL__CA_BUNDLE`) | Path to a PEM file (Default: unset) | Extra certificate authorities to trust. |
 | `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Path (Default: unset) | A client certificate to present. |
 | `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Path (Default: unset) | The private key for the client certificate. |
