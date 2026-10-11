@@ -21,6 +21,7 @@ Some notable features include:
 - export requests as curl commands
 - import from OpenAPI, Postman and Bruno
 - a command palette for quickly accessing functionality
+- `posting remote`, so coding agents like Claude Code and Codex can send requests through the Posting you have open while you watch
 
 Visit the [website](https://posting.sh) for more information, the roadmap, and the user guide.
 

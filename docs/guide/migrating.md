@@ -33,6 +33,9 @@ so you can point it at your existing collections and carry on.
   as you type, by name, folder or method.
 - **Curl export with or without variables.** Export a request as a curl command that's ready to run, or
   one that keeps its `${VARIABLES}` for sharing.
+- **Coding agents.** Claude Code, Codex and other agents can send requests through the Posting you have
+  open with [`posting remote`](./remote_control.md), so you watch what they send and what comes back.
+  Install the [`using-posting` skill](./agents.md) to teach them how.
 - **Bruno import.** `posting import` now reads Bruno requests and collections, and detects the format
   of any source by itself.
 - **37 themes**, previewed live as you browse them.
