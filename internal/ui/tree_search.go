@@ -220,9 +220,12 @@ func (p requestsPane) Build(ctx t.BuildContext) t.Widget {
 	if len(a.tree.Nodes.Get()) == 0 {
 		return collectionView{app: a}
 	}
+	// The search box sits level with the URL bar, and the tree starts a row
+	// lower than it, level with the request tabs: the URL bar's preview line
+	// is always there, even in compact spacing.
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: a.gap(),
+		Spacing: 1,
 		Children: []t.Widget{
 			input{
 				ID:          treeSearchID,

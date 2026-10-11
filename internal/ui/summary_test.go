@@ -212,7 +212,7 @@ func TestSummaryFollowsTheCursorResizeAndScroll(tt *testing.T) {
 
 	// Scrolling the tree of a short screen moves the bubble with its row,
 	// and a row scrolled out of view has none.
-	s.renderer.Resize(snapW, 10)
+	s.renderer.Resize(snapW, 11)
 	s.render()
 	before := s.summary(tt)
 	app.treeScroll.SetOffset(1)

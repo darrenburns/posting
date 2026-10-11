@@ -83,22 +83,18 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 			views[tab.key] = s.payloads[s.kind.Get()].view(tab.key, p.app)
 		}
 	}
+	tabs := s.requestTabs()
 	return section{
 		Prefix: "req-",
 		Title:  "Request",
+		Tabs:   &tabs,
+		Fit:    p.app.requestFit,
 		Width:  t.Flex(1),
 		Height: t.Flex(1),
-		Child: t.Column{
-			Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-			Spacing: gap,
-			Children: []t.Widget{
-				s.requestTabs(),
-				t.Switcher{
-					Active:   s.requestTab.Get(),
-					Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
-					Children: views,
-				},
-			},
+		Child: t.Switcher{
+			Active:   s.requestTab.Get(),
+			Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsetsTRBL(gap, 0, 0, 1)},
+			Children: views,
 		},
 	}
 }
