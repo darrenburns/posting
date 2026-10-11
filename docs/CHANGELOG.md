@@ -1,4 +1,4 @@
-## 3.0.0-beta.0 [Unreleased]
+## 3.0.0-beta.0 [2026-10-11]
 
 ### Posting 3
 
