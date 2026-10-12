@@ -56,7 +56,8 @@ func Parse(command string) (model.Request, error) {
 		rawURL     string
 		data       []string
 		dataIsJSON bool
-		form       []model.KeyValue
+		form       []model.Part
+		bodyFile   string
 		user       string
 		digest     bool
 		getMode    bool
@@ -131,6 +132,16 @@ func Parse(command string) (model.Request, error) {
 		case "-H", "--header":
 			addHeader(value)
 		case "-d", "--data", "--data-raw", "--data-binary", "--data-ascii":
+			if flag == "--data-binary" && strings.HasPrefix(value, "@") {
+				if bodyFile != "" || value == "@" || value == "@-" {
+					return model.Request{}, fmt.Errorf("use one regular file with --data-binary @path")
+				}
+				bodyFile = value[1:]
+				continue
+			}
+			if flag != "--data-raw" && strings.HasPrefix(value, "@") {
+				return model.Request{}, fmt.Errorf("file-backed %s is not supported; use --data-binary @path", flag)
+			}
 			data = append(data, value)
 		case "--data-urlencode":
 			data = append(data, urlencodeData(value))
@@ -138,8 +149,13 @@ func Parse(command string) (model.Request, error) {
 			data = append(data, value)
 			dataIsJSON = true
 		case "-F", "--form", "--form-string":
-			name, v, _ := strings.Cut(value, "=")
-			form = append(form, model.KeyValue{Name: name, Value: v, Enabled: true})
+			part, err := parsePart(value, flag == "--form-string")
+			if err != nil {
+				return model.Request{}, err
+			}
+			form = append(form, part)
+		case "-T", "--upload-file":
+			return model.Request{}, fmt.Errorf("use --data-binary @path with -X PUT to import a whole-file upload")
 		case "-u", "--user":
 			user = value
 		case "-b", "--cookie":
@@ -164,6 +180,9 @@ func Parse(command string) (model.Request, error) {
 	}
 	if rawURL == "" {
 		return model.Request{}, fmt.Errorf("the curl command has no URL")
+	}
+	if (len(form) > 0 && (len(data) > 0 || bodyFile != "" || headMode || getMode)) || (bodyFile != "" && (len(data) > 0 || getMode)) {
+		return model.Request{}, fmt.Errorf("cannot combine multipart, file and data body modes")
 	}
 	if followSet {
 		req.Options.FollowRedirects = follow
@@ -215,7 +234,9 @@ func Parse(command string) (model.Request, error) {
 			rawURL += "#" + fragment
 		}
 	case len(form) > 0:
-		req.Body = model.Body{Type: model.BodyForm, Form: form, ContentType: "application/x-www-form-urlencoded"}
+		req.Body = model.Body{Type: model.BodyMultipart, Multipart: form}
+	case bodyFile != "":
+		req.Body = model.Body{Type: model.BodyFile, File: bodyFile, ContentType: orDefault(headerValue(req.Headers, "Content-Type"), "application/x-www-form-urlencoded")}
 	case len(data) > 0:
 		contentType := headerValue(req.Headers, "Content-Type")
 		if dataIsJSON {
@@ -244,7 +265,7 @@ func Parse(command string) (model.Request, error) {
 		req.Method = model.Method(method)
 	case headMode:
 		req.Method = model.MethodHead
-	case len(data) > 0 && !getMode, len(form) > 0:
+	case len(data) > 0 && !getMode, len(form) > 0, bodyFile != "":
 		req.Method = model.MethodPost
 	}
 	if !validMethod(req.Method) {

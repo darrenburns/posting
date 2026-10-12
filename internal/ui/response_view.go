@@ -15,6 +15,11 @@ import (
 
 const responseTabsID = "resp-tabs"
 
+type uploadProgress struct {
+	sent, total int64
+	active      bool
+}
+
 // responsePanel shows the latest response for the session.
 type responsePanel struct {
 	fillParent
@@ -41,6 +46,13 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	// then the size and time.
 	var info []string
 	switch {
+	case phase == exchangeSending && s.uploadProgress.Get().active:
+		progress := s.uploadProgress.Get()
+		label := "Waiting for response"
+		if progress.sent < progress.total {
+			label = fmt.Sprintf("Uploading %s / %s", model.FormatBytes(int(progress.sent)), model.FormatBytes(int(progress.total)))
+		}
+		info = []string{escapeMarkup(label)}
 	case live:
 		label := "RECEIVING"
 		class := model.StatusClassWarning
@@ -75,6 +87,13 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 			label = "Waiting for the server…"
 		}
 		content = waiting(theme, s.spinner, label, p.streamHints(streaming))
+	case phase == exchangeSending && s.uploadProgress.Get().active:
+		progress := s.uploadProgress.Get()
+		label := "Waiting for response…"
+		if progress.sent < progress.total {
+			label = fmt.Sprintf("Uploading %s / %s", model.FormatBytes(int(progress.sent)), model.FormatBytes(int(progress.total)))
+		}
+		content = waiting(theme, s.spinner, label, "[$TextMuted]Press [b]esc[/] to cancel[/]")
 	case resp == nil && phase == exchangeSending:
 		content = waiting(theme, s.spinner, "Sending request…", "[$TextMuted]Press [b]esc[/] to cancel[/]")
 	case resp == nil:

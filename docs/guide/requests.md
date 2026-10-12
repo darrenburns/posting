@@ -49,13 +49,65 @@ Choose the kind of body with the selector at the top of the tab (++left++ and ++
   **HTML**. The text is syntax highlighted, and Posting sends the matching `Content-Type` header,
   unless you've set a `Content-Type` header yourself.
 - **Form** sends URL-encoded form fields (`application/x-www-form-urlencoded`), edited in a table.
+- **Multipart** sends an ordered mixture of text and file parts (`multipart/form-data`).
+- **File** sends a file's bytes as the entire body, without multipart framing, for example for a PUT upload.
 
 Press ++f4++ in the body to edit it in your own editor, or ++f3++ to view it in your pager.
 See [External Tools](./external_tools.md).
 
-!!! note
+#### Multipart and file uploads
 
-    Posting 3 can't send multipart form data or upload files yet.
+In **Multipart**, select a part in the list to edit its details beside it. On a narrow pane,
+++enter++ opens the details full-width and ++escape++ returns to the list. Choose **+ Add part**
+or press ++insert++ to add one. Use ++ctrl+space++ to enable or disable the selected part,
+++ctrl+x++ to delete it, and ++alt+up++ / ++alt+down++ to reorder it. Disabled parts are saved but
+not sent. Repeated names are kept: to send several files as `attachments`, add a part for each
+file with that name.
+
+A **Text** part has a multiline value and an optional content type, for example
+`application/json` for metadata. ++f4++ and ++f3++ work in its value. A **File** part has a path,
+an optional filename override, and an optional content type. With no overrides, Posting sends
+the basename as the filename and infers the content type from the extension, falling back to
+`application/octet-stream`. Switching part types or body modes keeps drafts in the open tab;
+only the selected body mode and part type are written to YAML.
+
+Paths are relative to the **collection root**, including for unsaved requests, or absolute.
+They refer to files on the machine running Posting: over SSH, these are files on the remote
+host. Type a path to see directory and file completions, then press ++enter++ to accept one.
+Suggestions use up to 512 entries in each directory; you can always type an exact path.
+++f5++ in the path refreshes its metadata. Posting supports regular files, including empty files,
+not directories, devices, stdin or glob patterns.
+
+**Substitute body variables** applies to part names, text values, paths, filenames and content
+types. It never changes file contents. Importing and saving store references, not file bytes.
+Each send reads the current files, so re-sending a history entry is not a replay of historical
+file contents. Keep shared fixtures in the collection, or use variables for machine-specific paths.
+
+Posting checks every enabled file before connecting. It streams uploads, shows byte progress,
+then waits for the response. ++escape++ cancels the request. Redirects and Digest authentication
+can resend the body; if a file's identity, size or modification time changed, Posting stops and
+asks you to send again. The request timeout includes uploading, so increase it for large files.
+
+Posting generates the multipart boundary and its `Content-Type`. Leave that header unset, or
+use bare `multipart/form-data`; a different type or a manually supplied boundary is an error.
+
+For example:
+
+```yaml
+body:
+  multipart:
+    - name: title
+      value: ${TITLE}
+    - name: document
+      file: fixtures/report.pdf
+    - name: metadata
+      value: '{"team":"finance"}'
+      content_type: application/json
+```
+
+For a whole-file body, use `body: {file: fixtures/report.pdf}` with an optional `content_type`.
+Each multipart part has exactly one of `value` or `file`, plus optional `filename`, `content_type`
+and `enabled: false`. Multipart and file bodies require Posting 3; older versions cannot preserve them.
 
 ### Path
 
@@ -490,7 +542,11 @@ Posting understands the options people most often copy from browsers and API doc
 `-x`, `-m`, `-G`, `-I` and `--oauth2-bearer`. Options that don't affect the request, such as `-s`,
 `-v` and `-o`, are ignored. A few things to be aware of:
 
-- `-F` fields are sent as a URL-encoded form, not multipart, and `@file` values aren't read from disk.
+- `-F` imports multipart fields, including `@path`, `;filename=` and `;type=`. Use separate
+  `-F` fields for multiple files. `--form-string` always imports literal text.
+- `--data-binary @path` imports a whole-file body. Files are not read during import. Relative
+  paths resolve against the collection, not the shell directory the command originally ran in.
+  Stdin, nested multipart, `<file` parts and custom per-part headers aren't supported.
 - `$NAME` in a pasted command isn't expanded: it becomes a Posting variable.
 
 ## Exporting as curl
@@ -506,6 +562,11 @@ The command is copied to your clipboard straight away, and shown in a dialog whe
 The **Values** / **Variables** switch at the top of the dialog chooses between a command with
 variables replaced by their values (the default), ready to run, or one with the variables left
 in, ready to share. Press ++y++ to copy the command again.
+
+Uploads export as `-F` / `--form-string`, or `--data-binary @path` for a whole file. Resolved file
+paths are absolute so the command can run from another directory. Paths with unresolved variables
+are kept as written. Curl generates the boundary for multipart uploads; empty multipart bodies
+export with explicit framing instead.
 
 To add your own options to every exported command, set `curl_export_extra_args` in your
 [configuration](./configuration.md):
@@ -568,11 +629,12 @@ Only settings that differ from the defaults are written, so most files are short
 | `url` | The URL, without its query string. |
 | `headers`, `params` | Lists of `name` and `value`. `enabled: false` marks a disabled row. |
 | `path_params` | The values of the URL's `:name` placeholders. |
-| `body` | Either `content` (with `content_type`) for a raw body, or `form_data` (a list of `name` and `value`) for a form. |
+| `body` | One of `content` for a raw body, `form_data` for a URL-encoded form, `multipart` for ordered parts, or `file` for a whole-file body. Raw and file bodies can also specify `content_type`. |
 | `graphql` | A GraphQL request's `query`, `variables` and `operation_name`. Any other key in it is an error. |
 | `grpc` | A gRPC request's `method`, `message` and `proto` (`files` and `import_paths`). Any other key in it is an error. |
 | `auth` | `type` is `basic`, `digest` or `bearer_token`, with credentials under a key of the same name (`basic: {username, password}`, `bearer_token: {token}`). |
 | `options` | Any of `follow_redirects`, `verify_ssl`, `attach_cookies`, `substitute_body_variables`, `proxy_url` and `timeout`. |
 | `scripts` | Posting 2 scripts. Posting 3 keeps them but doesn't run them; see [Scripting](./scripting.md). |
 
-The format is the same as Posting 2's, so HTTP request files can be shared between the two.
+HTTP requests with none, raw or URL-encoded form bodies use Posting 2's format. Multipart and file
+bodies require Posting 3.

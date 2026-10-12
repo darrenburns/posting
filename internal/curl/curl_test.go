@@ -106,7 +106,7 @@ func TestParseFlags(t *testing.T) {
 			return r.Auth == model.Auth{Type: model.AuthBasic, Username: "ada", Password: "secret"} && len(r.Headers) == 0
 		}},
 		{`curl -F name=ada -F role=admin https://x.test`, func(r model.Request) bool {
-			return r.Method == model.MethodPost && r.Body.Type == model.BodyForm && len(r.Body.Form) == 2
+			return r.Method == model.MethodPost && r.Body.Type == model.BodyMultipart && len(r.Body.Multipart) == 2 && r.Body.Multipart[1].Value == "admin"
 		}},
 		{`curl -A agent/1 -e https://ref.test -o out.json -w '%{http_code}' https://x.test`, func(r model.Request) bool {
 			return r.URL == "https://x.test" && len(r.Headers) == 2 && r.Headers[0].Name == "User-Agent"

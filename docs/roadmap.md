@@ -61,7 +61,6 @@ Posting 3 is a rewrite of Posting in Go. These Posting 2 features haven't been b
 Features that are planned for future development but are not immediate priorities.
 
 - Searching in responses <span class="tag requests">Requests</span>
-- Multipart form bodies and file uploads <span class="tag requests">Requests</span>
 - Transparent background support (experimentation) <span class="tag ui">UI</span>
 - In-app information about headers, and quickly opening MDN links for them <span class="tag documentation">Documentation</span>
 - Jump mode 2-stage jump - if you press shift+[jump target key], then it'll jump to the target and then show a secondary overlay of available targets within that section <span class="tag ux">UX</span>
@@ -82,6 +81,7 @@ Features that are planned for future development but are not immediate prioritie
 
 Features that have been implemented in Posting 3.
 
+- Multipart form bodies and file uploads <span class="tag requests">Requests</span>
 - Request tabs, with a preview tab for browsing the collection <span class="tag ui">UI</span>
 - Layered environments: `posting.env`, `<name>.env` and `.local.env` files <span class="tag environment">Environment</span>
 - Environment switcher, remembered per collection <span class="tag environment">Environment</span>

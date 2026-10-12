@@ -50,7 +50,7 @@ var (
 		if !ok {
 			return "", fmt.Errorf("%s requests can't be copied as curl", req.Kind().Label)
 		}
-		return curl.Format(wire, curl.FormatOptions{ExtraArgs: a.settings.CurlExportExtraArgs, Multiline: true}), nil
+		return curl.Format(wire, curl.FormatOptions{ExtraArgs: a.settings.CurlExportExtraArgs, Multiline: true, Root: a.uploadRoot()}), nil
 	}}
 )
 

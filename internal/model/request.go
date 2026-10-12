@@ -56,20 +56,48 @@ type KeyValue struct {
 type BodyType string
 
 const (
-	BodyNone BodyType = "none"
-	BodyRaw  BodyType = "raw"
-	BodyForm BodyType = "form"
+	BodyNone      BodyType = "none"
+	BodyRaw       BodyType = "raw"
+	BodyForm      BodyType = "form"
+	BodyMultipart BodyType = "multipart"
+	BodyFile      BodyType = "file"
 )
+
+// PartType distinguishes inline text from a file reference, including an
+// unfinished file part whose path is still empty.
+type PartType string
+
+const (
+	PartText PartType = "text"
+	PartFile PartType = "file"
+)
+
+// Part is one ordered multipart/form-data part. Duplicate names are kept.
+// Filename and ContentType are optional overrides; file contents are never
+// stored in the request or substituted as variables.
+type Part struct {
+	Type        PartType
+	Name        string
+	Value       string
+	File        string
+	Filename    string
+	ContentType string
+	Enabled     bool
+}
 
 // Body is the request payload.
 type Body struct {
 	Type BodyType
 	// Raw is used when Type is BodyRaw.
 	Raw string
-	// ContentType is the MIME type of Raw (e.g. application/json).
+	// ContentType is the MIME type of Raw or File. Empty means infer it.
 	ContentType string
 	// Form is used when Type is BodyForm (application/x-www-form-urlencoded).
 	Form []KeyValue
+	// Multipart is used when Type is BodyMultipart.
+	Multipart []Part `json:",omitempty"`
+	// File is a collection-relative or absolute path for BodyFile.
+	File string `json:",omitempty"`
 }
 
 // AuthType selects the authentication scheme.
@@ -162,6 +190,7 @@ func (r Request) Clone() Request {
 	r.Query = cloneKV(r.Query)
 	r.PathParams = cloneKV(r.PathParams)
 	r.Body.Form = cloneKV(r.Body.Form)
+	r.Body.Multipart = slices.Clone(r.Body.Multipart)
 	if r.Payload != nil {
 		r.Payload = r.Payload.clone()
 	}
@@ -198,7 +227,11 @@ func (r Request) SortRank() int {
 // URL and headers: the raw body for HTTP, the payload otherwise.
 func (r Request) PayloadSize() int {
 	if r.Payload == nil {
-		return len(r.Body.Raw)
+		n := len(r.Body.Raw) + len(r.Body.File)
+		for _, p := range r.Body.Multipart {
+			n += len(p.Name) + len(p.Value) + len(p.File) + len(p.Filename) + len(p.ContentType)
+		}
+		return n
 	}
 	return r.Payload.size()
 }

@@ -15,6 +15,8 @@ type FormatOptions struct {
 	ExtraArgs string
 	// Multiline puts each option on its own line.
 	Multiline bool
+	// Root resolves upload paths when producing a runnable command.
+	Root string
 }
 
 // Format writes req as a curl command. Pass a resolved request (see
@@ -28,7 +30,7 @@ func Format(req model.Request, opts FormatOptions) string {
 	if extra := strings.TrimSpace(opts.ExtraArgs); extra != "" {
 		parts = append(parts, extra)
 	}
-	hasBody := req.Body.Type == model.BodyRaw && req.Body.Raw != "" || req.Body.Type == model.BodyForm && anyEnabled(req.Body.Form)
+	hasBody := req.Body.Type == model.BodyRaw && req.Body.Raw != "" || req.Body.Type == model.BodyForm && anyEnabled(req.Body.Form) || req.Body.Type == model.BodyFile || req.Body.Type == model.BodyMultipart
 	switch {
 	case req.Method == model.MethodHead && !hasBody:
 		parts = append(parts, "--head")
@@ -42,6 +44,9 @@ func Format(req model.Request, opts FormatOptions) string {
 	var headers []model.KeyValue
 	for _, h := range req.Headers {
 		if h.Enabled && h.Name != "" {
+			if req.Body.Type == model.BodyMultipart && strings.EqualFold(h.Name, "Content-Type") {
+				continue
+			}
 			headers = append(headers, h)
 		}
 	}
@@ -49,6 +54,9 @@ func Format(req model.Request, opts FormatOptions) string {
 	// or curl (and Parse) would take it for a form.
 	if req.Body.Type == model.BodyRaw && hasBody && headerValue(headers, "Content-Type") == "" {
 		headers = append(headers, model.KeyValue{Name: "Content-Type", Value: orDefault(req.Body.ContentType, "text/plain"), Enabled: true})
+	}
+	if req.Body.Type == model.BodyFile && headerValue(headers, "Content-Type") == "" {
+		headers = append(headers, model.KeyValue{Name: "Content-Type", Value: orDefault(req.Body.ContentType, model.FileContentType(req.Body.File)), Enabled: true})
 	}
 	for _, h := range headers {
 		parts = append(parts, "-H", Quote(h.Name+": "+h.Value))
@@ -75,6 +83,41 @@ func Format(req model.Request, opts FormatOptions) string {
 				// already be escaped or its delimiters change the form fields.
 				parts = append(parts, "--data-urlencode", Quote(escapeQueryPart(f.Name)+"="+f.Value))
 			}
+		}
+	case model.BodyFile:
+		parts = append(parts, "--data-binary", Quote("@"+exportFilePath(opts.Root, req.Body.File)))
+	case model.BodyMultipart:
+		parts = append(parts, "--form-escape")
+		empty := true
+		for _, p := range req.Body.Multipart {
+			if !p.Enabled {
+				continue
+			}
+			empty = false
+			if p.Type != model.PartFile && p.ContentType == "" && p.Filename == "" {
+				parts = append(parts, "--form-string", Quote(p.Name+"="+p.Value))
+				continue
+			}
+			value := formQuote(p.Value)
+			typ := p.ContentType
+			if p.Type == model.PartFile {
+				value = "@" + formQuote(exportFilePath(opts.Root, p.File))
+				if typ == "" {
+					typ = model.FileContentType(p.File)
+				}
+			}
+			if typ != "" {
+				value += ";type=" + typ
+			}
+			if p.Filename != "" {
+				value += ";filename=" + formQuote(p.Filename)
+			}
+			parts = append(parts, "-F", Quote(p.Name+"="+value))
+		}
+		if empty {
+			// curl has no -F spelling for zero parts. With no content, a
+			// fixed boundary cannot collide; send just the closing delimiter.
+			parts = append(parts, "-H", Quote("Content-Type: multipart/form-data; boundary=posting-empty"), "--data-binary", Quote("\r\n--posting-empty--\r\n"))
 		}
 	}
 

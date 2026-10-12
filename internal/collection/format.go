@@ -46,7 +46,18 @@ type requestFile struct {
 type bodyFile struct {
 	Content     *yamlString `yaml:"content,omitempty"`
 	FormData    *[]kvFile   `yaml:"form_data,omitempty"`
+	Multipart   *[]partFile `yaml:"multipart,omitempty"`
+	File        *yamlString `yaml:"file,omitempty"`
 	ContentType yamlString  `yaml:"content_type,omitempty"`
+}
+
+type partFile struct {
+	Name        yamlString  `yaml:"name"`
+	Value       *yamlString `yaml:"value,omitempty"`
+	File        *yamlString `yaml:"file,omitempty"`
+	Filename    yamlString  `yaml:"filename,omitempty"`
+	ContentType yamlString  `yaml:"content_type,omitempty"`
+	Enabled     *bool       `yaml:"enabled,omitempty"`
 }
 
 type authFile struct {
@@ -121,7 +132,32 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 		req.PathParams = append(req.PathParams, model.KeyValue{Name: string(p.Name), Value: string(p.Value), Enabled: true})
 	}
 	if b := in.Body; b != nil {
+		count := 0
+		for _, present := range []bool{b.Content != nil, b.FormData != nil, b.Multipart != nil, b.File != nil} {
+			if present {
+				count++
+			}
+		}
+		if count > 1 {
+			return model.Request{}, fmt.Errorf("body must contain only one of content, form_data, multipart or file")
+		}
 		switch {
+		case b.File != nil:
+			req.Body = model.Body{Type: model.BodyFile, File: string(*b.File), ContentType: string(b.ContentType)}
+		case b.Multipart != nil:
+			req.Body = model.Body{Type: model.BodyMultipart}
+			for i, p := range *b.Multipart {
+				if (p.Value == nil) == (p.File == nil) {
+					return model.Request{}, fmt.Errorf("multipart part %d must contain exactly one of value or file", i+1)
+				}
+				part := model.Part{Name: string(p.Name), Type: model.PartText, Filename: string(p.Filename), ContentType: string(p.ContentType), Enabled: p.Enabled == nil || *p.Enabled}
+				if p.File != nil {
+					part.Type, part.File = model.PartFile, string(*p.File)
+				} else {
+					part.Value = string(*p.Value)
+				}
+				req.Body.Multipart = append(req.Body.Multipart, part)
+			}
 		case b.FormData != nil:
 			req.Body = model.Body{Type: model.BodyForm, Form: kvsFromFile(*b.FormData), ContentType: orDefault(string(b.ContentType), "application/x-www-form-urlencoded")}
 		case b.Content != nil:
@@ -207,6 +243,29 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 			form = []kvFile{}
 		}
 		out.Body = &bodyFile{FormData: &form, ContentType: "application/x-www-form-urlencoded"}
+	case model.BodyFile:
+		path := yamlString(req.Body.File)
+		out.Body = &bodyFile{File: &path, ContentType: yamlString(req.Body.ContentType)}
+	case model.BodyMultipart:
+		parts := []partFile{}
+		for _, p := range req.Body.Multipart {
+			part := partFile{Name: yamlString(p.Name), Filename: yamlString(p.Filename), ContentType: yamlString(p.ContentType)}
+			if !p.Enabled {
+				part.Enabled = boolPtr(false)
+			}
+			switch p.Type {
+			case model.PartFile:
+				path := yamlString(p.File)
+				part.File = &path
+			case "", model.PartText:
+				value := yamlString(p.Value)
+				part.Value = &value
+			default:
+				return nil, fmt.Errorf("unsupported multipart part type %q", p.Type)
+			}
+			parts = append(parts, part)
+		}
+		out.Body = &bodyFile{Multipart: &parts}
 	}
 	switch req.Auth.Type {
 	case model.AuthBasic:
