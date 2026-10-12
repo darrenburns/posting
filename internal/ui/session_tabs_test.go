@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -66,6 +67,101 @@ func (s *screen) showTab(tt *testing.T, title string) {
 		s.app.cycleSession(1)
 	}
 	tt.Fatalf("no tab titled %q", title)
+}
+
+func TestSessionTabsDragToReorder(tt *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		n        int
+		from, to int
+		order    []int
+	}{
+		{"right", 2, 0, 2, []int{1, 2, 0}},
+		{"left", 2, 2, 0, []int{2, 0, 1}},
+		{"overflow-left", 12, 12, 11, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 11}},
+		{"overflow-right", 12, 11, 12, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 11}},
+	} {
+		tt.Run(tc.name, func(tt *testing.T) {
+			app := testApp()
+			openTabs(app, tc.n)
+			before := slices.Clone(app.sessions.Peek())
+			before[tc.from].preview.Set(true)
+			p := t.NewPilot(tt, app, snapW, snapH)
+			bounds, _ := p.Bounds(sessionTabsID)
+			row := strings.Split(p.ScreenText(), "\n")[bounds.Y]
+			x := func(index int) int {
+				tt.Helper()
+				at := strings.Index(row, before[index].title.Peek())
+				if at < 0 {
+					tt.Fatalf("tab %d not visible: %s", index, row)
+				}
+				return len([]rune(row[:at]))
+			}
+			p.MouseDown(x(tc.from), bounds.Y, uv.MouseLeft, 0)
+			p.MouseMove(x(tc.to), bounds.Y)
+			if !slices.Equal(app.sessions.Peek(), before) {
+				tt.Fatal("dragging changed the order before release")
+			}
+			p.MouseUp(x(tc.to), bounds.Y, uv.MouseLeft, 0)
+			var want []*Session
+			for _, index := range tc.order {
+				want = append(want, before[index])
+			}
+			if !slices.Equal(app.sessions.Peek(), want) {
+				tt.Fatalf("drop did not reorder the existing sessions: %s", tabTitles(app))
+			}
+			if app.current() != before[tc.from] {
+				tt.Fatal("dropping switched away from the dragged request")
+			}
+			if !app.current().preview.Peek() {
+				tt.Fatal("dragging changed the preview state")
+			}
+			row = strings.Split(p.ScreenText(), "\n")[bounds.Y]
+			if strings.Index(row, want[tc.to].title.Peek()) < 0 {
+				tt.Fatalf("dragged tab disappeared after release: %s", row)
+			}
+			// Keyboard navigation must follow the new order, not the old one.
+			p.Press("alt+right")
+			if app.current() != want[(tc.to+1)%len(want)] {
+				tt.Fatal("next-tab did not follow the dropped tab's new position")
+			}
+		})
+	}
+}
+
+func TestSessionTabDragCancellationAndClose(tt *testing.T) {
+	for _, end := range []string{"escape", "outside", "same-tab", "close"} {
+		tt.Run(end, func(tt *testing.T) {
+			app := testApp()
+			openTabs(app, 2)
+			p := t.NewPilot(tt, app, snapW, snapH)
+			bounds, _ := p.Bounds(sessionTabsID)
+			x, y := findText(tt, p.ScreenText(), "Request 02", bounds.X, bounds.X+bounds.Width)
+			target, _ := findText(tt, p.ScreenText(), "Request 01", bounds.X, bounds.X+bounds.Width)
+			if end == "close" {
+				row := []rune(strings.Split(p.ScreenText(), "\n")[y])
+				for row[x] != '✕' {
+					x++
+				}
+			}
+			p.MouseDown(x, y, uv.MouseLeft, 0)
+			p.MouseMove(target, y)
+			switch end {
+			case "escape":
+				p.Press("escape")
+			case "outside":
+				y += 3
+			case "same-tab":
+				target = x + 1
+			}
+			p.MouseUp(target, y, uv.MouseLeft, 0)
+			if end == "close" {
+				assertTabs(tt, app, "Untitled, Request 01")
+			} else {
+				assertTabs(tt, app, "Untitled, Request 01, Request 02")
+			}
+		})
+	}
 }
 
 func TestSessionTabsUnderlineOnlyTheActiveTitle(tt *testing.T) {
