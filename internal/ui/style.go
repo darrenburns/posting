@@ -411,11 +411,12 @@ func textOf(state *t.TextInputState) string {
 // it grows with its text; clicking the space below the text focuses it.
 func scrollingArea(id string, scroll *t.ScrollState, background t.Color, area t.Widget) t.Scrollable {
 	return t.Scrollable{
-		State:              scroll,
-		ScrollbarFadeDelay: scrollbarFadeDelay,
-		Style:              t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: background},
-		Child:              area,
-		Click:              func(t.MouseEvent) { t.RequestFocus(id) },
+		State:               scroll,
+		ScrollbarFadeDelay:  scrollbarFadeDelay,
+		ScrollbarTrackColor: t.RGBA(0, 0, 0, 0),
+		Style:               t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: background},
+		Child:               area,
+		Click:               func(t.MouseEvent) { t.RequestFocus(id) },
 	}
 }
 
@@ -427,9 +428,10 @@ func scrollingArea(id string, scroll *t.ScrollState, background t.Color, area t.
 func scrollingTable[T any](scroll *t.ScrollState, table t.Table[T]) t.Widget {
 	table.ScrollState = scroll
 	return t.Scrollable{
-		State:              scroll,
-		ScrollbarFadeDelay: scrollbarFadeDelay,
-		Style:              t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Child:              table,
+		State:               scroll,
+		ScrollbarFadeDelay:  scrollbarFadeDelay,
+		ScrollbarTrackColor: t.RGBA(0, 0, 0, 0),
+		Style:               t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		Child:               table,
 	}
 }

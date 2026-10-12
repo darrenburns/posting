@@ -126,9 +126,14 @@ func TestFocusScrollsSaveButtonsIntoView(tt *testing.T) {
 }
 
 func TestSidebarScrollbarTrackAndFade(tt *testing.T) {
-	for _, tab := range []string{"requests", "history"} {
-		tt.Run(tab, func(tt *testing.T) {
-			app := testApp()
+	for _, tc := range []struct{ theme, tab string }{
+		{"galaxy", "requests"},
+		{"galaxy", "history"},
+		{"catppuccin-latte", "requests"},
+		{"catppuccin-latte", "history"},
+	} {
+		tt.Run(tc.theme+"/"+tc.tab, func(tt *testing.T) {
+			app := homeApp(tc.theme)
 			collection := &model.Collection{Name: "Requests"}
 			var history []model.HistoryEntry
 			for i := 0; i < 61; i++ {
@@ -142,10 +147,10 @@ func TestSidebarScrollbarTrackAndFade(tt *testing.T) {
 			app.historyList.SetItems(history)
 			var view t.Widget = collectionView{app: app}
 			state := app.treeScroll
-			if tab == "history" {
+			if tc.tab == "history" {
 				view, state = historyView{app: app}, app.historyScroll
 			}
-			theme, _ := t.GetTheme("galaxy")
+			theme, _ := t.GetTheme(tc.theme)
 			background, _ := app.sidebarColors(theme)
 			root := t.Column{
 				Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: background},
@@ -156,35 +161,36 @@ func TestSidebarScrollbarTrackAndFade(tt *testing.T) {
 			state.SetOffset(7)
 			p.Advance(0)
 			buf := t.SerializeBuffer(p.Buffer(), width, height)
-			track := buf.Cells[width-1].Bg
 			thumb := strings.ToLower(theme.ScrollbarThumb.Hex())
-			if track == thumb || track == strings.ToLower(theme.ScrollbarTrack.Hex()) {
-				tt.Fatal("track must be softened without changing the thumb")
-			}
 			partial := 0
+			thumbRow := -1
 			for y := 0; y < height; y++ {
+				track := strings.ToLower(background.ColorAt(width, height, width-1, y).Hex())
 				cell := buf.Cells[y*width+width-1]
 				if cell.Content != "" && strings.Contains("▁▂▃▄▅▆▇", cell.Content) {
 					partial++
 					if !((cell.Fg == track && cell.Bg == thumb) || (cell.Fg == thumb && cell.Bg == track)) {
 						tt.Errorf("fractional thumb at row %d = %+v, want track %s and thumb %s", y, cell, track, thumb)
 					}
-				} else if cell.Bg != track && cell.Bg != thumb {
-					tt.Errorf("scrollbar at row %d = %+v, want track %s or thumb %s", y, cell, track, thumb)
+				} else if cell.Bg == thumb {
+					thumbRow = y
+				} else if cell.Bg != track || strings.TrimSpace(cell.Content) != "" {
+					tt.Errorf("track at row %d = %+v, want untouched background %s", y, cell, track)
 				}
 			}
-			if partial != 2 {
-				tt.Fatalf("need both fractional thumb ends, got %d", partial)
+			if partial != 2 || thumbRow < 0 {
+				tt.Fatalf("need both fractional thumb ends and a solid thumb: partial=%d, thumbRow=%d", partial, thumbRow)
 			}
 
+			thumbIndex := thumbRow*width + width - 1
 			p.Advance(900 * time.Millisecond)
-			if got := t.SerializeBuffer(p.Buffer(), width, height).Cells[width-1].Bg; got != track {
-				tt.Fatalf("scrollbar faded before the idle delay: %s, want %s", got, track)
+			if got := t.SerializeBuffer(p.Buffer(), width, height).Cells[thumbIndex].Bg; got != thumb {
+				tt.Fatalf("thumb faded before the idle delay: %s, want %s", got, thumb)
 			}
 			p.Advance(225 * time.Millisecond)
-			fading := t.SerializeBuffer(p.Buffer(), width, height).Cells[width-1].Bg
-			if fading == track || strings.EqualFold(fading, background.ColorAt(width, height, width-1, 0).Hex()) {
-				tt.Fatalf("scrollbar should be partway through fading, got %s", fading)
+			fading := t.SerializeBuffer(p.Buffer(), width, height).Cells[thumbIndex].Bg
+			if fading == thumb || strings.EqualFold(fading, background.ColorAt(width, height, width-1, thumbRow).Hex()) {
+				tt.Fatalf("thumb should be partway through fading, got %s", fading)
 			}
 			p.Advance(125 * time.Millisecond)
 			hidden := t.SerializeBuffer(p.Buffer(), width, height)
@@ -203,8 +209,8 @@ func TestSidebarScrollbarTrackAndFade(tt *testing.T) {
 			if state.GetOffset() <= 7 {
 				tt.Fatal("wheel didn't scroll the content")
 			}
-			if got := t.SerializeBuffer(p.Buffer(), width, height).Cells[width-1].Bg; got != track {
-				tt.Fatalf("wheel didn't reveal the scrollbar: %s, want %s", got, track)
+			if got := t.SerializeBuffer(p.Buffer(), width, height).Cells[thumbIndex].Bg; got != thumb {
+				tt.Fatalf("wheel didn't reveal the thumb: %s, want %s", got, thumb)
 			}
 		})
 	}

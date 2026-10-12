@@ -448,11 +448,12 @@ func (h helpOverlay) Build(ctx t.BuildContext) t.Widget {
 		Height:    t.Cells(30),
 		OnDismiss: h.app.closeOverlay,
 		Child: t.Scrollable{
-			ID:                 "help-scroll",
-			State:              h.app.helpScroll,
-			Focusable:          true,
-			ScrollbarFadeDelay: scrollbarFadeDelay,
-			Style:              t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+			ID:                  "help-scroll",
+			State:               h.app.helpScroll,
+			Focusable:           true,
+			ScrollbarFadeDelay:  scrollbarFadeDelay,
+			ScrollbarTrackColor: t.RGBA(0, 0, 0, 0),
+			Style:               t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 			// Keep the descriptions clear of the scrollbar.
 			Child: t.Column{Style: t.Style{Padding: t.EdgeInsetsTRBL(0, 2, 0, 0)}, Children: rows},
 		},
