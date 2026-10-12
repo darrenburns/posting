@@ -30,7 +30,8 @@ class ResponseArea(Vertical):
     """
 
     DEFAULT_CSS = """
-    ResponseArea #response-history-info {
+    ResponseArea #response-history-info,
+    ResponseArea #response-origin-info {
         display: none;
         height: 1;
         text-wrap: nowrap;
@@ -56,6 +57,7 @@ class ResponseArea(Vertical):
         self.app.theme_changed_signal.subscribe(self, self.on_theme_change)
 
     def compose(self) -> ComposeResult:
+        yield Static(id="response-origin-info")
         yield Static(id="response-history-info")
         with ResponseTabbedContent(disabled=self.response is None):
             with TabPane("Body", id="response-body-pane"):
@@ -83,6 +85,15 @@ class ResponseArea(Vertical):
             return
         else:
             self.query_one(ResponseTabbedContent).disabled = False
+
+        # Show which request produced this response, so a response that is
+        # left over from a previously selected request is not mistaken for
+        # the response of the one currently open (issue #320).
+        origin_info = self.query_one("#response-origin-info", Static)
+        origin = f"{response.request.method} {response.request.url}"
+        origin_info.update(Text(origin, no_wrap=True, overflow="ellipsis"))
+        origin_info.tooltip = origin
+        origin_info.display = True
 
         history_info = self.query_one("#response-history-info", Static)
         history_info.display = self.history_timestamp is not None
