@@ -218,7 +218,7 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 				State:               a.treeScroll,
 				Style:               t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 				ScrollbarFadeDelay:  scrollbarFadeDelay,
-				ScrollbarTrackColor: theme.ScrollbarTrack.Blend(theme.Background, 0.5),
+				ScrollbarTrackColor: t.RGBA(0, 0, 0, 0),
 				Child: collectionTree{app: a, Tree: t.Tree[treeItem]{
 					ID:          treeID,
 					State:       a.tree,
@@ -359,7 +359,7 @@ func (h historyView) Build(ctx t.BuildContext) t.Widget {
 		State:               a.historyScroll,
 		Style:               t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		ScrollbarFadeDelay:  scrollbarFadeDelay,
-		ScrollbarTrackColor: theme.ScrollbarTrack.Blend(theme.Background, 0.5),
+		ScrollbarTrackColor: t.RGBA(0, 0, 0, 0),
 		Child: t.List[model.HistoryEntry]{
 			ID:          historyID,
 			State:       a.historyList,

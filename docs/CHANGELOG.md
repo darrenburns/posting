@@ -12,7 +12,7 @@ Posting 3 is a rewrite of Posting in Go, distributed as a single binary. It read
 
 ### Changed
 
-- Scrollbars fade out after a second of inactivity and reappear when scrolling.
+- Scrollbar thumbs fade out after a second of inactivity and reappear when scrolling. Their tracks are transparent.
 
 ### Fixed
 
