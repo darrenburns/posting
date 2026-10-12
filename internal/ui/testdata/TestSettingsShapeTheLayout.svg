@@ -142,7 +142,7 @@
   <text x="596.0" y="17.8" fill="#9A96BE">sample-api</text>
   <text x="705.2" y="17.8" fill="#FAAFD5">◆</text>
   <text x="722.0" y="17.8" class="bold" fill="#FAAFD5">local</text>
-  <text x="780.8" y="17.8" fill="#45407A">▕</text>
+  <text x="780.8" y="17.8" fill="#65479B">▕</text>
   <rect x="8.0" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="27.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="27.6" width="8.4" height="19.6" fill="#1E1E3F"/>
@@ -278,7 +278,7 @@
   <text x="108.8" y="37.4" class="bold italic" fill="#F5F5F6">users</text>
   <text x="167.6" y="37.4" fill="#9A96BE">✕</text>
   <text x="192.8" y="37.4" fill="#9A96BE">+</text>
-  <text x="780.8" y="37.4" fill="#45407A">▕</text>
+  <text x="780.8" y="37.4" fill="#64479A">▕</text>
   <text x="814.4" y="37.4" class="bold" fill="#F5F5F6">R</text>
   <path d="M 814.40 45.70 H 822.80" fill="none" stroke="#FF69B4" stroke-width="1.00"/>
   <text x="822.8" y="37.4" class="bold" fill="#F5F5F6">e</text>
@@ -450,7 +450,7 @@
   <text x="713.6" y="57.0" fill="#A94FDD">[</text>
   <text x="722.0" y="57.0" fill="#0F0F1F">Send</text>
   <text x="755.6" y="57.0" fill="#A94FDD">]</text>
-  <text x="780.8" y="57.0" fill="#45407A">▕</text>
+  <text x="780.8" y="57.0" fill="#624798">▕</text>
   <text x="814.4" y="57.0" fill="#9A96BE">S</text>
   <text x="822.8" y="57.0" fill="#9A96BE">e</text>
   <text x="831.2" y="57.0" fill="#9A96BE">a</text>
@@ -594,7 +594,7 @@
   <rect x="1091.6" y="66.8" width="8.4" height="19.6" fill="#231C39"/>
   <text x="117.2" y="76.6" fill="#9A96BE">→</text>
   <text x="134.0" y="76.6" class="italic" fill="#9A96BE">http://localhost:8000/users?page=1&amp;per_page=20</text>
-  <text x="780.8" y="76.6" fill="#45407A">▕</text>
+  <text x="780.8" y="76.6" fill="#614797">▕</text>
   <rect x="8.0" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -743,7 +743,7 @@
   <text x="545.6" y="96.2" fill="#9A96BE">Cookies</text>
   <text x="612.8" y="96.2" fill="#9A96BE">1</text>
   <text x="638.0" y="96.2" fill="#9A96BE">Trace</text>
-  <text x="780.8" y="96.2" fill="#45407A">▕</text>
+  <text x="780.8" y="96.2" fill="#5F4795">▕</text>
   <text x="806.0" y="96.2" fill="#F5F5F6">▼</text>
   <text x="822.8" y="96.2" class="bold" fill="#9A96BE">au</text>
   <text x="839.6" y="96.2" class="bold" fill="#9A96BE">th</text>
@@ -886,7 +886,7 @@
   <text x="369.2" y="115.8" fill="#9A96BE">✕</text>
   <path d="M 390.2000 106.0000 L 390.2000 125.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="411.2" y="115.8" fill="#9A96BE">{</text>
-  <text x="780.8" y="115.8" fill="#45407A">▕</text>
+  <text x="780.8" y="115.8" fill="#5E4694">▕</text>
   <path d="M 810.2000 115.8000 L 814.4000 115.8000 M 810.2000 106.0000 L 810.2000 115.8000 M 810.2000 115.8000 L 810.2000 125.6000" fill="none" stroke="#3B2C54" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <path d="M 814.4000 115.8000 L 822.8000 115.8000" fill="none" stroke="#3B2C54" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="839.6" y="115.8" fill="#DDA8FB">G</text>
@@ -1042,7 +1042,7 @@
   <text x="428.0" y="135.4" fill="#DDA8FB">&#34;users&#34;</text>
   <text x="486.8" y="135.4" fill="#9A96BE">:</text>
   <text x="503.6" y="135.4" fill="#9A96BE">[</text>
-  <text x="780.8" y="135.4" fill="#45407A">▕</text>
+  <text x="780.8" y="135.4" fill="#5D4693">▕</text>
   <path d="M 810.2000 135.4000 L 814.4000 135.4000 M 810.2000 125.6000 L 810.2000 135.4000" fill="none" stroke="#3A2C54" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <path d="M 814.4000 135.4000 L 822.8000 135.4000" fill="none" stroke="#3A2C54" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="839.6" y="135.4" fill="#7BF8C8">P</text>
@@ -1184,7 +1184,7 @@
   <rect x="1091.6" y="145.2" width="8.4" height="19.6" fill="#1F1B35"/>
   <path d="M 390.2000 145.2000 L 390.2000 164.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="444.8" y="155.0" fill="#9A96BE">{</text>
-  <text x="780.8" y="155.0" fill="#45407A">▕</text>
+  <text x="780.8" y="155.0" fill="#5B4691">▕</text>
   <text x="806.0" y="155.0" fill="#F5F5F6">▼</text>
   <text x="822.8" y="155.0" class="bold" fill="#9A96BE">u</text>
   <text x="831.2" y="155.0" class="bold" fill="#9A96BE">s</text>
@@ -1325,7 +1325,7 @@
   <text x="495.2" y="174.6" fill="#9A96BE">:</text>
   <text x="512.0" y="174.6" fill="#7BF8C8">1</text>
   <text x="520.4" y="174.6" fill="#9A96BE">,</text>
-  <text x="780.8" y="174.6" fill="#45407A">▕</text>
+  <text x="780.8" y="174.6" fill="#5A4690">▕</text>
   <path d="M 810.2000 174.6000 L 814.4000 174.6000 M 810.2000 164.8000 L 810.2000 174.6000 M 810.2000 174.6000 L 810.2000 184.4000" fill="none" stroke="#392C52" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <path d="M 814.4000 174.6000 L 822.8000 174.6000" fill="none" stroke="#382C52" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="839.6" y="174.6" fill="#DDA8FB">GE</text>
@@ -1471,7 +1471,7 @@
   <text x="512.0" y="194.2" fill="#9A96BE">:</text>
   <text x="528.8" y="194.2" fill="#7BF8C8">&#34;Ada&#34;</text>
   <text x="570.8" y="194.2" fill="#9A96BE">,</text>
-  <text x="780.8" y="194.2" fill="#45407A">▕</text>
+  <text x="780.8" y="194.2" fill="#58468E">▕</text>
   <path d="M 810.2000 194.2000 L 814.4000 194.2000 M 810.2000 184.4000 L 810.2000 194.2000 M 810.2000 194.2000 L 810.2000 204.0000" fill="none" stroke="#382C51" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <path d="M 814.4000 194.2000 L 822.8000 194.2000" fill="none" stroke="#372C51" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="839.6" y="194.2" fill="#DDA8FB">GE</text>
@@ -1617,7 +1617,7 @@
   <text x="461.6" y="213.8" fill="#DDA8FB">&#34;admin&#34;</text>
   <text x="520.4" y="213.8" fill="#9A96BE">:</text>
   <text x="537.2" y="213.8" fill="#FAAFD5">true</text>
-  <text x="780.8" y="213.8" fill="#45407A">▕</text>
+  <text x="780.8" y="213.8" fill="#57468D">▕</text>
   <path d="M 810.2000 213.8000 L 814.4000 213.8000 M 810.2000 204.0000 L 810.2000 213.8000 M 810.2000 213.8000 L 810.2000 223.6000" fill="none" stroke="#372C50" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <path d="M 814.4000 213.8000 L 822.8000 213.8000" fill="none" stroke="#372C50" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="839.6" y="213.8" fill="#7BF8C8">PO</text>
@@ -1761,7 +1761,7 @@
   <rect x="1091.6" y="223.6" width="8.4" height="19.6" fill="#1E1A32"/>
   <path d="M 390.2000 223.6000 L 390.2000 243.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="444.8" y="233.4" fill="#9A96BE">}</text>
-  <text x="780.8" y="233.4" fill="#45407A">▕</text>
+  <text x="780.8" y="233.4" fill="#55468B">▕</text>
   <path d="M 810.2000 233.4000 L 814.4000 233.4000 M 810.2000 223.6000 L 810.2000 233.4000 M 810.2000 233.4000 L 810.2000 243.2000" fill="none" stroke="#372C4F" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <path d="M 814.4000 233.4000 L 822.8000 233.4000" fill="none" stroke="#372C4F" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="839.6" y="233.4" fill="#CEBDEF">P</text>
@@ -1907,7 +1907,7 @@
   <rect x="1091.6" y="243.2" width="8.4" height="19.6" fill="#1D1A31"/>
   <path d="M 390.2000 243.2000 L 390.2000 262.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="428.0" y="253.0" fill="#9A96BE">],</text>
-  <text x="780.8" y="253.0" fill="#45407A">▕</text>
+  <text x="780.8" y="253.0" fill="#54468A">▕</text>
   <path d="M 810.2000 253.0000 L 814.4000 253.0000 M 810.2000 243.2000 L 810.2000 253.0000" fill="none" stroke="#362B4E" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <path d="M 814.4000 253.0000 L 822.8000 253.0000" fill="none" stroke="#362B4E" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="839.6" y="253.0" fill="#FA9D7B">D</text>
@@ -2056,7 +2056,7 @@
   <text x="478.4" y="272.6" fill="#9A96BE">:</text>
   <text x="495.2" y="272.6" fill="#7BF8C8">1</text>
   <text x="503.6" y="272.6" fill="#9A96BE">,</text>
-  <text x="780.8" y="272.6" fill="#45407A">▕</text>
+  <text x="780.8" y="272.6" fill="#534589">▕</text>
   <text x="822.8" y="272.6" fill="#DDA8FB">G</text>
   <text x="831.2" y="272.6" fill="#DDA8FB">E</text>
   <text x="839.6" y="272.6" fill="#DDA8FB">T</text>
@@ -2203,7 +2203,7 @@
   <text x="428.0" y="292.2" fill="#DDA8FB">&#34;next&#34;</text>
   <text x="478.4" y="292.2" fill="#9A96BE">:</text>
   <text x="495.2" y="292.2" fill="#FAAFD5">null</text>
-  <text x="780.8" y="292.2" fill="#45407A">▕</text>
+  <text x="780.8" y="292.2" fill="#514587">▕</text>
   <text x="822.8" y="292.2" fill="#9A96BE">O</text>
   <text x="831.2" y="292.2" fill="#9A96BE">P</text>
   <text x="839.6" y="292.2" fill="#9A96BE">T</text>
@@ -2349,7 +2349,7 @@
   <rect x="1091.6" y="302.0" width="8.4" height="19.6" fill="#1D192F"/>
   <path d="M 390.2000 302.0000 L 390.2000 321.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
   <text x="411.2" y="311.8" fill="#9A96BE">}</text>
-  <text x="780.8" y="311.8" fill="#45407A">▕</text>
+  <text x="780.8" y="311.8" fill="#504586">▕</text>
   <rect x="8.0" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2481,7 +2481,7 @@
   <rect x="1083.2" y="321.6" width="8.4" height="19.6" fill="#1D192F"/>
   <rect x="1091.6" y="321.6" width="8.4" height="19.6" fill="#1D192F"/>
   <path d="M 390.2000 321.6000 L 390.2000 341.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="331.4" fill="#45407A">▕</text>
+  <text x="780.8" y="331.4" fill="#4E4584">▕</text>
   <rect x="8.0" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2613,7 +2613,7 @@
   <rect x="1083.2" y="341.2" width="8.4" height="19.6" fill="#1C192F"/>
   <rect x="1091.6" y="341.2" width="8.4" height="19.6" fill="#1C182E"/>
   <path d="M 390.2000 341.2000 L 390.2000 360.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="351.0" fill="#45407A">▕</text>
+  <text x="780.8" y="351.0" fill="#4D4583">▕</text>
   <rect x="8.0" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2745,7 +2745,7 @@
   <rect x="1083.2" y="360.8" width="8.4" height="19.6" fill="#1C182E"/>
   <rect x="1091.6" y="360.8" width="8.4" height="19.6" fill="#1C182E"/>
   <path d="M 390.2000 360.8000 L 390.2000 380.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="370.6" fill="#45407A">▕</text>
+  <text x="780.8" y="370.6" fill="#4D4582">▕</text>
   <rect x="8.0" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2877,7 +2877,7 @@
   <rect x="1083.2" y="380.4" width="8.4" height="19.6" fill="#1C182E"/>
   <rect x="1091.6" y="380.4" width="8.4" height="19.6" fill="#1C182D"/>
   <path d="M 390.2000 380.4000 L 390.2000 400.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="390.2" fill="#45407A">▕</text>
+  <text x="780.8" y="390.2" fill="#4C4482">▕</text>
   <rect x="8.0" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3009,7 +3009,7 @@
   <rect x="1083.2" y="400.0" width="8.4" height="19.6" fill="#1C182D"/>
   <rect x="1091.6" y="400.0" width="8.4" height="19.6" fill="#1C172D"/>
   <path d="M 390.2000 400.0000 L 390.2000 419.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="409.8" fill="#45407A">▕</text>
+  <text x="780.8" y="409.8" fill="#4C4481">▕</text>
   <rect x="8.0" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3141,7 +3141,7 @@
   <rect x="1083.2" y="419.6" width="8.4" height="19.6" fill="#1C172C"/>
   <rect x="1091.6" y="419.6" width="8.4" height="19.6" fill="#1C172C"/>
   <path d="M 390.2000 419.6000 L 390.2000 439.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="429.4" fill="#45407A">▕</text>
+  <text x="780.8" y="429.4" fill="#4B4481">▕</text>
   <rect x="8.0" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3273,7 +3273,7 @@
   <rect x="1083.2" y="439.2" width="8.4" height="19.6" fill="#1B172C"/>
   <rect x="1091.6" y="439.2" width="8.4" height="19.6" fill="#1B172C"/>
   <path d="M 390.2000 439.2000 L 390.2000 458.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="449.0" fill="#45407A">▕</text>
+  <text x="780.8" y="449.0" fill="#4B4480">▕</text>
   <rect x="8.0" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3405,7 +3405,7 @@
   <rect x="1083.2" y="458.8" width="8.4" height="19.6" fill="#1B172B"/>
   <rect x="1091.6" y="458.8" width="8.4" height="19.6" fill="#1B162B"/>
   <path d="M 390.2000 458.8000 L 390.2000 478.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="468.6" fill="#45407A">▕</text>
+  <text x="780.8" y="468.6" fill="#4A4380">▕</text>
   <rect x="8.0" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3537,7 +3537,7 @@
   <rect x="1083.2" y="478.4" width="8.4" height="19.6" fill="#1B162B"/>
   <rect x="1091.6" y="478.4" width="8.4" height="19.6" fill="#1B162B"/>
   <path d="M 390.2000 478.4000 L 390.2000 498.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="488.2" fill="#45407A">▕</text>
+  <text x="780.8" y="488.2" fill="#4A437F">▕</text>
   <rect x="8.0" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3669,7 +3669,7 @@
   <rect x="1083.2" y="498.0" width="8.4" height="19.6" fill="#1B162A"/>
   <rect x="1091.6" y="498.0" width="8.4" height="19.6" fill="#1B162A"/>
   <path d="M 390.2000 498.0000 L 390.2000 517.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="507.8" fill="#45407A">▕</text>
+  <text x="780.8" y="507.8" fill="#49437F">▕</text>
   <rect x="8.0" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3801,7 +3801,7 @@
   <rect x="1083.2" y="517.6" width="8.4" height="19.6" fill="#1B162A"/>
   <rect x="1091.6" y="517.6" width="8.4" height="19.6" fill="#1B1629"/>
   <path d="M 390.2000 517.6000 L 390.2000 537.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="527.4" fill="#45407A">▕</text>
+  <text x="780.8" y="527.4" fill="#49427E">▕</text>
   <rect x="8.0" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3933,7 +3933,7 @@
   <rect x="1083.2" y="537.2" width="8.4" height="19.6" fill="#1A1529"/>
   <rect x="1091.6" y="537.2" width="8.4" height="19.6" fill="#1A1529"/>
   <path d="M 390.2000 537.2000 L 390.2000 556.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="547.0" fill="#45407A">▕</text>
+  <text x="780.8" y="547.0" fill="#48427E">▕</text>
   <rect x="8.0" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4065,7 +4065,7 @@
   <rect x="1083.2" y="556.8" width="8.4" height="19.6" fill="#1A1529"/>
   <rect x="1091.6" y="556.8" width="8.4" height="19.6" fill="#1A1528"/>
   <path d="M 390.2000 556.8000 L 390.2000 576.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="566.6" fill="#45407A">▕</text>
+  <text x="780.8" y="566.6" fill="#48427D">▕</text>
   <rect x="8.0" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4197,7 +4197,7 @@
   <rect x="1083.2" y="576.4" width="8.4" height="19.6" fill="#1A1528"/>
   <rect x="1091.6" y="576.4" width="8.4" height="19.6" fill="#1A1528"/>
   <path d="M 390.2000 576.4000 L 390.2000 596.0000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="586.2" fill="#45407A">▕</text>
+  <text x="780.8" y="586.2" fill="#47417D">▕</text>
   <rect x="8.0" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4329,7 +4329,7 @@
   <rect x="1083.2" y="596.0" width="8.4" height="19.6" fill="#1A1427"/>
   <rect x="1091.6" y="596.0" width="8.4" height="19.6" fill="#1A1427"/>
   <path d="M 390.2000 596.0000 L 390.2000 615.6000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="605.8" fill="#45407A">▕</text>
+  <text x="780.8" y="605.8" fill="#47417C">▕</text>
   <rect x="8.0" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4461,7 +4461,7 @@
   <rect x="1083.2" y="615.6" width="8.4" height="19.6" fill="#1A1427"/>
   <rect x="1091.6" y="615.6" width="8.4" height="19.6" fill="#1A1427"/>
   <path d="M 390.2000 615.6000 L 390.2000 635.2000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="625.4" fill="#45407A">▕</text>
+  <text x="780.8" y="625.4" fill="#46417C">▕</text>
   <rect x="8.0" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4593,7 +4593,7 @@
   <rect x="1083.2" y="635.2" width="8.4" height="19.6" fill="#191426"/>
   <rect x="1091.6" y="635.2" width="8.4" height="19.6" fill="#191426"/>
   <path d="M 390.2000 635.2000 L 390.2000 654.8000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="645.0" fill="#45407A">▕</text>
+  <text x="780.8" y="645.0" fill="#46417B">▕</text>
   <rect x="8.0" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="654.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4725,7 +4725,7 @@
   <rect x="1083.2" y="654.8" width="8.4" height="19.6" fill="#191326"/>
   <rect x="1091.6" y="654.8" width="8.4" height="19.6" fill="#191326"/>
   <path d="M 390.2000 654.8000 L 390.2000 674.4000" fill="none" stroke="#45407A" stroke-width="1.0500" shape-rendering="crispEdges"/>
-  <text x="780.8" y="664.6" fill="#45407A">▕</text>
+  <text x="780.8" y="664.6" fill="#45407B">▕</text>
   <rect x="8.0" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="16.4" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="24.8" y="674.4" width="8.4" height="19.6" fill="#0F0F1F"/>

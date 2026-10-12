@@ -43,38 +43,44 @@ func TestSidebarGradientPalette(tt *testing.T) {
 		}
 		tt.Fatalf("palette item %q not found", label)
 	}
-	backgrounds := func() [2]string {
+	colors := func() [4]string {
 		buf := t.SerializeBuffer(t.RenderToBuffer(app, snapW, snapH), snapW, snapH)
-		return [2]string{buf.Cells[0].Bg, buf.Cells[30*snapW].Bg}
+		for x := 0; x < snapW; x++ {
+			if buf.Cells[x].Content == "▏" {
+				return [4]string{buf.Cells[0].Bg, buf.Cells[30*snapW].Bg, buf.Cells[x].Fg, buf.Cells[30*snapW+x].Fg}
+			}
+		}
+		tt.Fatal("sidebar divider not found")
+		return [4]string{}
 	}
-	original := backgrounds()
-	if original[0] == original[1] {
-		tt.Fatal("default sidebar is not a gradient")
+	original := colors()
+	if original[0] == original[1] || original[2] == original[3] {
+		tt.Fatal("default sidebar and divider must both have a gradient")
 	}
 	app.openPalette()
 	// The palette dims the app underneath it, so compare like-for-like.
-	underPalette := backgrounds()
+	underPalette := colors()
 	choose("Sidebar gradient…")
 	pressOn(tt, app, "palette-input", "down") // Preview Off.
-	if got := backgrounds(); got[0] != got[1] || t.CurrentThemeName() != "galaxy" {
+	if got := colors(); got[0] != got[1] || got[2] != got[3] || t.CurrentThemeName() != "galaxy" {
 		tt.Fatalf("Off preview = %v, theme = %s", got, t.CurrentThemeName())
 	}
 	pressOn(tt, app, "palette-input", "escape") // Back restores the gradient.
-	if got := backgrounds(); got != underPalette {
+	if got := colors(); got != underPalette {
 		tt.Fatalf("leaving the picker kept the preview: %v, want %v", got, underPalette)
 	}
 	choose("Sidebar gradient…")
 	choose("lantern")
-	pinned := backgrounds()
-	if pinned == original || t.CurrentThemeName() != "galaxy" || app.palette.Visible.Peek() {
-		tt.Fatal("choosing a gradient must change only the sidebar and close the palette")
+	pinned := colors()
+	if pinned[0] == original[0] || pinned[2] == original[2] || t.CurrentThemeName() != "galaxy" || app.palette.Visible.Peek() {
+		tt.Fatal("choosing a gradient must recolour the sidebar and divider without changing the app theme, and close the palette")
 	}
 	app.openPalette()
 	choose("Sidebar gradient…")
 	pressOn(tt, app, "palette-input", "down")
 	pressOn(tt, app, "palette-input", "escape")
 	pressOn(tt, app, "palette-input", "escape")
-	if got := backgrounds(); got != pinned {
+	if got := colors(); got != pinned {
 		tt.Fatalf("cancelling lost the pinned gradient: %v, want %v", got, pinned)
 	}
 	app.openPalette()
@@ -92,17 +98,17 @@ func TestSidebarGradientPalette(tt *testing.T) {
 		tt.Fatalf("changing the app theme changed the selected gradient to %q", selected)
 	}
 	choose("Sidebar gradient off")
-	if got := backgrounds(); got[0] != got[1] {
-		tt.Fatalf("Off did not restore a flat background: %v", got)
+	if got := colors(); got[0] != got[1] || got[2] != got[3] {
+		tt.Fatalf("Off did not restore a flat background and divider: %v", got)
 	}
 	app.openPalette()
 	choose("Sidebar gradient…")
 	choose("Follow app theme")
-	following := backgrounds()
+	following := colors()
 	app.openPalette()
 	choose("Theme…")
 	choose("galaxy")
-	if got := backgrounds(); got == following || got != original {
+	if got := colors(); got == following || got != original {
 		tt.Fatalf("Follow app theme did not track theme changes: %v", got)
 	}
 }

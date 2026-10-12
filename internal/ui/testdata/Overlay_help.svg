@@ -139,7 +139,7 @@
   <rect x="1074.8" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="310.40" y="8.00" width="1.05" height="19.60" fill="#1F1E3A"/>
+  <rect x="310.40" y="8.00" width="1.05" height="19.60" fill="#292044"/>
   <text x="814.4" y="17.8" fill="#39384F">sample-api</text>
   <text x="923.6" y="17.8" fill="#563F56">◆</text>
   <text x="940.4" y="17.8" fill="#563F56">local</text>

@@ -899,16 +899,19 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 	// The sidebar sits beside the header rather than below it. The footer
 	// runs the full width of the app, below both.
 	if a.sidebarVisible.Get() {
+		background, divider := a.sidebarColors(theme)
 		split := t.SplitPane{
 			ID:           sidebarSplitID,
 			State:        a.sidebarSplit,
-			First:        sidebar{app: a},
+			First:        sidebar{app: a, background: background},
 			Second:       main,
 			MinPaneSize:  24,
 			DisableFocus: true,
 			// Keep the stroke against the sidebar edge, with the rest of
 			// its cell on the workspace side even while dragging.
 			DividerChar:            "▏",
+			DividerForeground:      divider,
+			DividerFocusForeground: theme.Primary,
 			DividerBackground:      theme.Background,
 			DividerFocusBackground: theme.Background,
 		}

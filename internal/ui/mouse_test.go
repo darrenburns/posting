@@ -9,6 +9,7 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
+	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/model"
 )
 
@@ -88,6 +89,66 @@ func pressText(tt *testing.T, app *App, text string, nth, count int, mod uv.KeyM
 		}
 	}
 	tt.Fatalf("%q (occurrence %d) is not on screen", text, nth)
+}
+
+func TestSidebarDividerDragHighlight(tt *testing.T) {
+	for _, side := range []string{"left", "right"} {
+		tt.Run(side, func(tt *testing.T) {
+			app := settingsApp(tt, func(s *config.Settings) {
+				s.CollectionBrowser.Position = side
+				s.SidebarGradient = "lantern" // Drag uses the app's theme, not this palette.
+			})
+			p := t.NewPilot(tt, app, snapW, snapH)
+			theme, _ := t.GetTheme("galaxy")
+			glyph := "▏"
+			if side == "right" {
+				glyph = "▕"
+			}
+			colors := func() (int, []string) {
+				tt.Helper()
+				buf := t.SerializeBuffer(p.Buffer(), snapW, snapH)
+				for x := 0; x < snapW; x++ {
+					if buf.Cells[x].Content != glyph {
+						continue
+					}
+					var fg []string
+					for y := 0; y < snapH-1; y++ {
+						cell := buf.Cells[y*snapW+x]
+						if cell.Content != glyph || !strings.EqualFold(cell.Bg, theme.Background.Hex()) {
+							tt.Fatalf("divider stroke or background changed at %d,%d: %+v", x, y, cell)
+						}
+						fg = append(fg, cell.Fg)
+					}
+					return x, fg
+				}
+				tt.Fatal("sidebar divider not found")
+				return 0, nil
+			}
+			x, normal := colors()
+			p.MouseMove(x, 3)
+			_, hover := colors()
+			p.MouseDown(x, 3, uv.MouseLeft, 0)
+			p.MouseMove(x+4, 3)
+			movedX, drag := colors()
+			if movedX != x+4 {
+				tt.Fatalf("drag moved divider to %d, want %d", movedX, x+4)
+			}
+			want := theme.Hover.BlendOver(theme.Primary).Hex()
+			for y, fg := range drag {
+				if !strings.EqualFold(fg, want) {
+					tt.Fatalf("drag colour at row %d = %s, want app primary with hover tint %s", y, fg, want)
+				}
+			}
+			p.MouseUp(movedX, 3, uv.MouseLeft, 0)
+			if _, got := colors(); !slices.Equal(got, hover) {
+				tt.Fatal("release did not restore the hovered gradient")
+			}
+			p.MouseMove(0, snapH-1)
+			if _, got := colors(); !slices.Equal(got, normal) {
+				tt.Fatal("leaving the divider did not restore the normal gradient")
+			}
+		})
+	}
 }
 
 func TestClickBodyAndAuthChoices(tt *testing.T) {

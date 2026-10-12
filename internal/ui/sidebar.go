@@ -59,7 +59,10 @@ func (a *App) cursorFolder() string {
 }
 
 // sidebar is the collection browser.
-type sidebar struct{ app *App }
+type sidebar struct {
+	app        *App
+	background t.ColorProvider
+}
 
 func (sb sidebar) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), t.Flex(1) }
 
@@ -82,7 +85,7 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 		top.Children = []t.Widget{t.Spacer{Height: t.Cells(1)}, tabs}
 	}
 	return t.Column{
-		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Left: 2, Right: 1}, BackgroundColor: a.sidebarBackground(ctx.Theme())},
+		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Left: 2, Right: 1}, BackgroundColor: sb.background},
 		Spacing: a.gap(),
 		Children: []t.Widget{
 			top,
@@ -98,16 +101,16 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 	}
 }
 
-// sidebarBackground borrows only the selected theme's hues. Keeping the
-// active background as the base preserves contrast even across light/dark
-// theme pairings, without recolouring the sidebar's text and controls.
-func (a *App) sidebarBackground(theme t.ThemeData) t.ColorProvider {
+// sidebarColors lights the background and divider with the selected theme's
+// hues. The active theme supplies their bases so contrast is preserved even
+// across light/dark pairings, without recolouring text and controls.
+func (a *App) sidebarColors(theme t.ThemeData) (background, divider t.ColorProvider) {
 	name := a.sidebarGradient.Get()
 	if preview := a.sidebarGradientPreview.Get(); preview != "" {
 		name = preview
 	}
 	if name == "off" {
-		return nil
+		return nil, nil
 	}
 	palette := theme
 	if name != "theme" {
@@ -116,11 +119,19 @@ func (a *App) sidebarBackground(theme t.ThemeData) t.ColorProvider {
 		}
 	}
 	bg := theme.Background
-	return t.NewGradient(
+	background = t.NewGradient(
 		bg.Blend(palette.Primary, 0.20),
 		bg.Blend(palette.Secondary, 0.10),
 		bg.Blend(palette.Accent, 0.04),
 	).WithAngle(25)
+	// The narrow edge catches more light at the top, fading to the normal
+	// border at the bottom. A vertical gradient stays fixed while resizing.
+	divider = t.NewGradient(
+		theme.Border.Blend(palette.Primary, 0.25),
+		theme.Border.Blend(palette.Secondary, 0.08),
+		theme.Border,
+	).WithAngle(0)
+	return background, divider
 }
 
 // collectionView is the request tree, with a summary of the hovered or
