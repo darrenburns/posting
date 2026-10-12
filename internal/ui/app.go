@@ -956,7 +956,7 @@ func (a *App) jumpTargets() []t.JumpTarget {
 			a.focusSidebarList()
 		}})
 	}
-	if s := a.current(); s != nil {
+	if s := a.session(); s != nil {
 		var keys string
 		var tabs []string
 		for _, tab := range s.requestTabList() {
