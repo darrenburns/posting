@@ -849,6 +849,10 @@ class TestScripts:
             await pilot.pause()
             await pilot.press("enter")
             await pilot.press("ctrl+j")
+            # Collection-supplied scripts now require explicit consent before
+            # they run; approve the trust prompt for this sample collection.
+            await pilot.pause()
+            await pilot.press("y")
             await pilot.app.workers.wait_for_complete()
             await pilot.press("ctrl+o", "f")  # jump to "Scripts"
             await pilot.press("ctrl+m")  # expand response section
