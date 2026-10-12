@@ -137,6 +137,11 @@ func TestSaveAndLoadGRPC(t *testing.T) {
 			Headers:  []model.Header{{Name: "content-type", Value: "application/grpc"}},
 			Trailers: []model.Header{{Name: "grpc-status", Value: "4"}, {Name: "grpc-message", Value: "deadline exceeded"}},
 			GRPC:     &model.GRPCStatus{Code: 4, Message: "deadline exceeded"},
+			Events: []model.MessageEvent{
+				{At: time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC), Kind: model.MessageSent, Body: []byte(`{"author":"Frank Herbert"}`), ContentType: "application/json"},
+				{At: time.Date(2026, 9, 29, 1, 2, 4, 0, time.UTC), Kind: model.MessageReceived, Body: []byte(`{"title":"Dune"}`), ContentType: "application/json"},
+				{At: time.Date(2026, 9, 29, 1, 2, 5, 0, time.UTC), Kind: model.MessageError, Title: "Call ended: DEADLINE_EXCEEDED"},
+			},
 		},
 		SentAt: time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC),
 	}}
@@ -182,6 +187,7 @@ func TestTrimSkipsOversizedEntriesWithoutMutatingInput(t *testing.T) {
 	for _, oversized := range []model.HistoryEntry{
 		{Request: model.Request{Body: model.Body{Type: model.BodyRaw, Raw: largeRaw}}},
 		{Response: &model.Response{Body: largeBody}},
+		{Response: &model.Response{Events: []model.MessageEvent{{Kind: model.MessageSent, Body: largeBody}}}},
 		{Request: model.Request{Body: model.Body{Type: model.BodyRaw, Raw: largeRaw[:MaxBytes/2]}}, Response: &model.Response{Body: largeBody[:MaxBytes/2+1]}},
 	} {
 		oversized.ID = 99

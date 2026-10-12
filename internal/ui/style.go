@@ -405,7 +405,7 @@ func textOf(state *t.TextInputState) string {
 // areas scroll: the view follows the cursor, a scrollbar shows where you
 // are, and the mouse wheel works. The area itself should have no height so
 // it grows with its text; clicking the space below the text focuses it.
-func scrollingArea(id string, scroll *t.ScrollState, background t.Color, area t.Widget) t.Widget {
+func scrollingArea(id string, scroll *t.ScrollState, background t.Color, area t.Widget) t.Scrollable {
 	return t.Scrollable{
 		State: scroll,
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: background},

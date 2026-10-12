@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -173,14 +174,16 @@ func (f Fake) sendGRPC(ctx context.Context, call Call) (*model.Response, error) 
 		status = &model.GRPCStatus{Code: 5, Message: "no such thing"}
 		body = []byte(`{"code": "NOT_FOUND", "message": "no such thing"}`)
 	}
+	var events []model.MessageEvent
 	if call.Stream != nil {
-		body, status = f.echoStream(ctx, call, body)
+		body, status, events = f.echoStream(ctx, call, body)
 	}
 	return &model.Response{
 		Proto:           "gRPC",
 		Headers:         []model.Header{{Name: "content-type", Value: "application/grpc"}, {Name: "server", Value: "posting-fake/3.0"}},
 		Trailers:        []model.Header{{Name: "grpc-status", Value: fmt.Sprint(status.Code)}},
 		Body:            body,
+		Events:          events,
 		BodyContentType: "application/json",
 		GRPC:            status,
 		Elapsed:         time.Since(started),
@@ -192,13 +195,19 @@ func (f Fake) sendGRPC(ctx context.Context, call Call) (*model.Response, error) 
 
 // echoStream answers an open stream: it echoes the call's first message and
 // each one sent through the stream, as they arrive, until the stream ends.
-func (f Fake) echoStream(ctx context.Context, call Call, first []byte) ([]byte, *model.GRPCStatus) {
+func (f Fake) echoStream(ctx context.Context, call Call, first []byte) ([]byte, *model.GRPCStatus, []model.MessageEvent) {
 	var messages [][]byte
-	echo := func(message []byte) {
-		messages = append(messages, message)
-		if call.OnUpdate != nil {
-			call.OnUpdate(&model.Response{Proto: "gRPC", Body: messagesJSON(messages), BodyContentType: "application/json"})
+	live := &progress{streaming: true}
+	if call.OnUpdate != nil {
+		live.report = func(_ metadata.MD, messages [][]byte, events []model.MessageEvent) {
+			call.OnUpdate(&model.Response{Proto: "gRPC", Body: messagesJSON(messages), Events: events, BodyContentType: "application/json"})
 		}
+	}
+	live.event(model.MessageInfo, "Call started", nil)
+	echo := func(message []byte) {
+		live.event(model.MessageSent, "", message)
+		messages = append(messages, message)
+		live.add(nil, message)
 	}
 	echo(first)
 	call.Stream.start(func(text string) ([]proto.Message, error) {
@@ -221,8 +230,11 @@ func (f Fake) echoStream(ctx context.Context, call Call, first []byte) ([]byte, 
 	status := &model.GRPCStatus{}
 	if ctx.Err() != nil {
 		status = &model.GRPCStatus{Code: 1, Message: "the call was cancelled"}
+	} else {
+		live.event(model.MessageInfo, "Sending finished", nil)
 	}
-	return messagesJSON(messages), status
+	live.stop()
+	return messagesJSON(messages), status, live.finish(status.Code, status.Message, nil)
 }
 
 func messagesJSON(messages [][]byte) []byte {

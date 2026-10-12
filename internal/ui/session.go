@@ -122,6 +122,7 @@ type Session struct {
 	responseStatus model.Status
 	// fromHistory is set when the response was loaded from history rather than sent.
 	fromHistory t.AnySignal[*model.HistoryEntry]
+	messages    *messageLog
 	// responseBody holds the formatted response body for the read-only viewer.
 	responseBody               *t.TextAreaState
 	responseBodyScroll         *t.ScrollState
@@ -202,6 +203,7 @@ func newSession(id int, req model.Request) *Session {
 		trace:                  t.NewAnySignal[[]model.TraceEvent](nil),
 		response:               t.NewAnySignal[*model.Response](nil),
 		fromHistory:            t.NewAnySignal[*model.HistoryEntry](nil),
+		messages:               newMessageLog(),
 		responseBody:           t.NewTextAreaState(""),
 		responseBodyScroll:     t.NewScrollState(),
 		responseVisual:         t.NewSignal(false),
@@ -639,13 +641,17 @@ func (s *Session) endStream() {
 // reading earlier messages isn't interrupted.
 func (s *Session) showLive(req model.Request, resp *model.Response) {
 	if !s.live {
-		s.live = true
 		s.sent = req
 		s.showResponse(resp, nil)
+		s.live = true
 		return
 	}
 	s.response.Set(resp)
-	s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
+	if len(resp.Events) > 0 {
+		s.messages.update(s, resp.Events, false)
+	} else {
+		s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
+	}
 	s.responseHeaders.SetRows(resp.Headers)
 }
 
@@ -662,11 +668,16 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 		return
 	}
 	s.trace.Set(resp.Trace)
-	s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
-	s.responseBody.CursorIndex.Set(0)
-	s.responseBodyScroll.SetOffset(0)
-	s.responseBody.SelectionAnchor.Set(-1)
-	s.responseVisual.Set(false)
+	if len(resp.Events) > 0 {
+		keep := s.live && s.phase.Peek() == exchangeSending && entry == nil
+		s.messages.update(s, resp.Events, !keep)
+	} else {
+		s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
+		s.responseBody.CursorIndex.Set(0)
+		s.responseBodyScroll.SetOffset(0)
+		s.responseBody.SelectionAnchor.Set(-1)
+		s.responseVisual.Set(false)
+	}
 	s.responseHeaders.SetRows(resp.Headers)
 	s.responseHeadersScroll.SetOffset(0)
 	s.responseCookies.SetRows(resp.Cookies)

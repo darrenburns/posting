@@ -26,7 +26,7 @@ func (a *App) actions() []action {
 		{id: "send-request", keys: []string{"ctrl+j", "alt+enter"}, name: "Send", help: "Send the request", run: a.send},
 		{id: "jump", keys: []string{t.DefaultJumpKey}, name: "Jump", help: "Jump mode: move focus by typing a label", hidden: true, run: a.jump.Activate},
 		{id: "search-requests", keys: []string{"ctrl+g"}, name: "Search requests", help: "Search the collection", hidden: true, run: a.focusTreeSearch},
-		{id: "stream", keys: []string{"alt+j"}, name: a.streamActionName(), help: "Open a gRPC stream, or end the one open", hidden: !a.isGRPC(), run: a.toggleStream},
+		{id: "stream", keys: []string{"alt+j"}, name: a.streamActionName(), help: "Open a gRPC stream, or finish sending messages", hidden: !a.isGRPC(), run: a.toggleStream},
 		{id: "save-request", keys: []string{"ctrl+s"}, name: "Save", help: "Save the request to the collection", run: a.saveRequest},
 		{id: "new-request", keys: []string{"ctrl+n"}, name: "New tab", help: "Open a new request tab", run: a.newTab},
 		{id: "commands", keys: []string{"ctrl+p"}, name: "Commands", help: "Command palette", run: a.openPalette},
@@ -54,7 +54,7 @@ func (a *App) isGRPC() bool {
 // streamActionName is the stream action's footer label.
 func (a *App) streamActionName() string {
 	if s := a.current(); s != nil && s.streaming.Peek() == streamOpen {
-		return "End stream"
+		return "Finish sending"
 	}
 	return "Stream"
 }

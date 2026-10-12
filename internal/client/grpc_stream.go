@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/darrenburns/posting/internal/model"
+
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
@@ -134,14 +136,51 @@ const updateInterval = 100 * time.Millisecond
 // progress reports a call's messages as they arrive: at once when the last
 // report was long enough ago, otherwise when updateInterval has passed.
 type progress struct {
-	report func(header metadata.MD, messages [][]byte)
+	report    func(header metadata.MD, messages [][]byte, events []model.MessageEvent)
+	streaming bool
 
 	mu       sync.Mutex
 	header   metadata.MD
 	messages [][]byte
+	events   []model.MessageEvent
+	logBytes int
+	limited  bool
 	last     time.Time
 	pending  bool
 	stopped  bool
+}
+
+// Keep long-lived streams' logs bounded, including outgoing-only streams
+// and empty messages. Reaching this limit stops recording, not the call.
+const maxLogEvents = 10_000
+
+func (p *progress) event(kind model.MessageEventKind, title string, body []byte) {
+	if p == nil || !p.streaming {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.record(kind, title, body)
+	p.schedule()
+}
+
+// record appends under mu. Entries and their bodies are never changed, so
+// snapshots can safely share their contents with history and the UI.
+func (p *progress) record(kind model.MessageEventKind, title string, body []byte) {
+	if !p.streaming || p.limited {
+		return
+	}
+	if len(p.events) >= maxLogEvents || p.logBytes+len(body) > maxBodyBytes {
+		p.events = append(p.events, model.MessageEvent{At: time.Now(), Kind: model.MessageInfo, Title: "Log limit reached; further messages are not recorded"})
+		p.limited = true
+		return
+	}
+	e := model.MessageEvent{At: time.Now(), Kind: kind, Title: title, Body: body}
+	if len(body) > 0 {
+		e.ContentType = "application/json"
+	}
+	p.events = append(p.events, e)
+	p.logBytes += len(body)
 }
 
 // add records a message, as JSON, and the metadata the call began with.
@@ -153,7 +192,12 @@ func (p *progress) add(header metadata.MD, message []byte) {
 	defer p.mu.Unlock()
 	p.header = header
 	p.messages = append(p.messages, message)
-	if p.pending || p.stopped {
+	p.record(model.MessageReceived, "", message)
+	p.schedule()
+}
+
+func (p *progress) schedule() {
+	if p.report == nil || p.pending || p.stopped {
 		return
 	}
 	p.pending = true
@@ -162,14 +206,14 @@ func (p *progress) add(header metadata.MD, message []byte) {
 
 func (p *progress) flush() {
 	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.stopped {
-		p.mu.Unlock()
 		return
 	}
 	p.pending, p.last = false, time.Now()
-	header, messages := p.header, slices.Clip(p.messages)
-	p.mu.Unlock()
-	p.report(header, messages)
+	// Serialise callbacks with each other and stop, so an older snapshot
+	// cannot arrive after a newer one or the completed response.
+	p.report(p.header, slices.Clip(p.messages), slices.Clip(p.events))
 }
 
 // stop ends the reports; the call's response follows.
@@ -180,4 +224,23 @@ func (p *progress) stop() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.stopped = true
+}
+
+// finish retains the terminal event even when the message log filled up.
+func (p *progress) finish(code int, message string, body []byte) []model.MessageEvent {
+	if p == nil || !p.streaming {
+		return nil
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	kind := model.MessageInfo
+	if code != 0 {
+		kind = model.MessageError
+	}
+	title := "Call ended: " + model.GRPCCodeName(code)
+	if message != "" {
+		title += " · " + message
+	}
+	p.events = append(p.events, model.MessageEvent{At: time.Now(), Kind: kind, Title: title, Body: body, ContentType: "application/json"})
+	return slices.Clip(p.events)
 }
