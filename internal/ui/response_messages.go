@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 const messagesID = "resp-messages"

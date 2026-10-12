@@ -10,9 +10,9 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/history"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/history"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func TestReviewEscapeStartsNewTreeRange(tt *testing.T) {

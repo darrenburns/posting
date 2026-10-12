@@ -12,9 +12,9 @@ import (
 	"time"
 
 	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/model"
 	t "github.com/darrenburns/terma"
 )
 

@@ -7,7 +7,7 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/config"
+	"github.com/darrenburns/posting/v3/internal/config"
 )
 
 func TestNestedTabStyles(tt *testing.T) {

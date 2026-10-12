@@ -9,8 +9,8 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/config"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/config"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // screen drives an app through the renderer the way the app loop does, so

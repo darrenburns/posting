@@ -5,7 +5,7 @@ package importing
 import (
 	"strings"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // Result is a complete conversion, including diagnostics for source features

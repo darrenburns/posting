@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/darrenburns/posting/internal/env"
+	"github.com/darrenburns/posting/v3/internal/env"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,10 +14,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/importing"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/importing"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func persistedProbe(t *testing.T, data []byte) (model.Request, map[string]string) {

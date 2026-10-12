@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/remote"
+	"github.com/darrenburns/posting/v3/internal/remote"
 )
 
 func TestParseRemoteOptions(t *testing.T) {
@@ -99,6 +99,60 @@ func TestRemoteRequestReadsFilesOutsideTheCollection(t *testing.T) {
 		if err != nil || !reflect.DeepEqual(got, tc.want) {
 			t.Errorf("%+v = %+v, %v; want %+v", tc.opts, got, err, tc.want)
 		}
+	}
+}
+
+func TestRemoteSaveResolvesSymlinkParents(t *testing.T) {
+	dir, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	coll := filepath.Join(dir, "collection")
+	outside := filepath.Join(dir, "outside")
+	for _, path := range []string{filepath.Join(coll, "users"), outside} {
+		if err := os.MkdirAll(path, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	alias := filepath.Join(dir, "alias")
+	for _, link := range []struct{ target, path string }{
+		{coll, alias},
+		{filepath.Join(coll, "users"), filepath.Join(coll, "linked-users")},
+		{outside, filepath.Join(coll, "escape")},
+		{filepath.Join(outside, "missing"), filepath.Join(coll, "dangling")},
+		{filepath.Join(coll, "loop"), filepath.Join(coll, "loop")},
+	} {
+		if err := os.Symlink(link.target, link.path); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, tc := range []struct {
+		name, collection, file, want string
+	}{
+		{"aliased collection", alias, filepath.Join(alias, "users/new.posting.yaml"), "users/new.posting.yaml"},
+		{"aliased file", coll, filepath.Join(alias, "users/new.posting.yaml"), "users/new.posting.yaml"},
+		{"canonical file", alias, filepath.Join(coll, "users/new.posting.yaml"), "users/new.posting.yaml"},
+		{"new directories", alias, filepath.Join(alias, "new/nested/request.posting.yaml"), "new/nested/request.posting.yaml"},
+		{"linked directory", coll, filepath.Join(coll, "linked-users/new.posting.yaml"), "users/new.posting.yaml"},
+		{"outside collection", coll, filepath.Join(outside, "new.posting.yaml"), ""},
+		{"escaped directory", coll, filepath.Join(coll, "escape/new.posting.yaml"), ""},
+		{"escaped new directories", coll, filepath.Join(coll, "escape/new/nested/request.posting.yaml"), ""},
+		{"dangling symlink", coll, filepath.Join(coll, "dangling"), ""},
+		{"dangling parent", coll, filepath.Join(coll, "dangling/new.posting.yaml"), ""},
+		{"symlink loop", coll, filepath.Join(coll, "loop/new.posting.yaml"), ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := remoteRequest(remoteOptions{command: "save", file: tc.file}, remote.Info{Collection: tc.collection}, nil)
+			if tc.want == "" {
+				if err == nil || got.File != "" {
+					t.Fatalf("accepted save outside the collection: %+v, %v", got, err)
+				}
+				return
+			}
+			if err != nil || got.File != tc.want {
+				t.Fatalf("save file = %q, %v; want %q", got.File, err, tc.want)
+			}
+		})
 	}
 }
 

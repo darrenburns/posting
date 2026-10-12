@@ -1,0 +1,5 @@
+name: List orders
+url: ${BASE_URL}/orders
+params:
+  - name: status
+    value: shipped

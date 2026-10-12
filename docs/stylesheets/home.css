@@ -329,8 +329,8 @@ body {
     display: inline-block;
     vertical-align: bottom;
     overflow: hidden;
-    width: 60ch;
-    animation: type 1.5s steps(60, end) 0.4s both;
+    width: 63ch;
+    animation: type 1.5s steps(63, end) 0.4s both;
   }
 }
 

@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func variableRow(t *testing.T, app *App, name string) model.Variable {

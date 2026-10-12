@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/env"
-	"github.com/darrenburns/posting/internal/importing"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/env"
+	"github.com/darrenburns/posting/v3/internal/importing"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 const layeredCollection = `{"info":{"name":"Layers"},

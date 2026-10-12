@@ -14,12 +14,12 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/darrenburns/posting/internal/curl"
-	"github.com/darrenburns/posting/internal/importing"
-	"github.com/darrenburns/posting/internal/importing/bruno"
-	"github.com/darrenburns/posting/internal/importing/openapi"
-	"github.com/darrenburns/posting/internal/importing/postman"
-	"github.com/darrenburns/posting/internal/paths"
+	"github.com/darrenburns/posting/v3/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/importing"
+	"github.com/darrenburns/posting/v3/internal/importing/bruno"
+	"github.com/darrenburns/posting/v3/internal/importing/openapi"
+	"github.com/darrenburns/posting/v3/internal/importing/postman"
+	"github.com/darrenburns/posting/v3/internal/paths"
 )
 
 const importUsage = `Usage: posting import [options] SOURCE [ENVIRONMENT...]

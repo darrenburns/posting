@@ -76,7 +76,7 @@ func startLibrary(t *testing.T, opts libraryOptions) string {
 		serverOpts = append(serverOpts, grpc.Creds(credentials.NewTLS(&tls.Config{Certificates: []tls.Certificate{cert}})))
 	}
 	server := grpc.NewServer(serverOpts...)
-	server.RegisterService(libraryService(svc), struct{}{})
+	server.RegisterService(libraryService(t, svc), struct{}{})
 	if !opts.noReflection {
 		ro := reflection.ServerOptions{Services: server, DescriptorResolver: files, ExtensionResolver: protoregistry.GlobalTypes}
 		if !opts.v1alphaOnly {
@@ -112,7 +112,7 @@ var libraryBooks = []string{
 	`{"isbn": "3", "title": "A Brief History of Time", "author": {"name": "Stephen Hawking", "born": 1942}, "genre": "GENRE_SCIENCE"}`,
 }
 
-func libraryService(svc protoreflect.ServiceDescriptor) *grpc.ServiceDesc {
+func libraryService(t *testing.T, svc protoreflect.ServiceDescriptor) *grpc.ServiceDesc {
 	method := func(name string) protoreflect.MethodDescriptor { return svc.Methods().ByName(protoreflect.Name(name)) }
 	field := func(m *dynamicpb.Message, name string) protoreflect.Value {
 		return m.Get(m.Descriptor().Fields().ByName(protoreflect.Name(name)))
@@ -145,7 +145,8 @@ func libraryService(svc protoreflect.ServiceDescriptor) *grpc.ServiceDesc {
 					}
 				}
 				if isbn == "hang" {
-					<-ctx.Done()
+					// An expired RPC context can still send deadline trailers.
+					<-t.Context().Done()
 					return nil, ctx.Err()
 				}
 				if isbn == "detailed" {
@@ -187,7 +188,7 @@ func libraryService(svc protoreflect.ServiceDescriptor) *grpc.ServiceDesc {
 						}
 						sent++
 						if author == "stall" && sent == 2 {
-							<-stream.Context().Done()
+							<-t.Context().Done()
 							return stream.Context().Err()
 						}
 					}

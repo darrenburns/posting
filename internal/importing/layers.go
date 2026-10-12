@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // layers is what each environment file must contain, in write order: the

@@ -7,7 +7,7 @@
 (function () {
   var root = document.documentElement;
   var KEYS = "posting.home.keys";
-  var INSTALL = "go install github.com/darrenburns/posting/cmd/posting@latest";
+  var INSTALL = "go install github.com/darrenburns/posting/v3/cmd/posting@latest";
   var singleKeys = true;
   try { singleKeys = localStorage.getItem(KEYS) !== "off"; } catch (e) {}
   var extras = [];

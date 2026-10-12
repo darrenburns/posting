@@ -6,7 +6,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/curl"
 )
 
 // runOnText writes text to a temporary file, runs command on it with the
@@ -60,7 +60,7 @@ func (a *App) openInEditor(area *t.TextAreaState, language string) bool {
 	if !ok || area.ReadOnly.Peek() || text == area.GetText() {
 		return false
 	}
-	area.SetText(text)
+	area.ReplaceText(text, area.CursorIndex.Peek())
 	return true
 }
 

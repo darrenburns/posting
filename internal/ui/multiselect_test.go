@@ -9,7 +9,7 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func sidebarScreen(tt *testing.T, app *App, id string) *screen {
@@ -314,6 +314,10 @@ func TestCopySelectedResponseHeaders(tt *testing.T) {
 			p.Press("escape", "shift+up", "y")
 			copied("Set-Cookie: b=2\nX-Empty: ")
 			p.Press("up", "y")
+			copied("a=1")
+			p.Press("n")
+			copied("Set-Cookie")
+			p.Press("b")
 			copied("Set-Cookie: a=1")
 			p.Press("ctrl+a", "y")
 			copied("X-First: first\nSet-Cookie: a=1\nSet-Cookie: b=2\nX-Empty: \nX-Last: é: final")
@@ -336,7 +340,7 @@ func TestCopySelectedResponseHeaders(tt *testing.T) {
 			replacement.Trailers = replacement.Headers
 			s.showResponse(&replacement, nil)
 			p.Press("y")
-			copied("New-C: c")
+			copied("c")
 			p.Press("shift+up", "y")
 			copied("New-B: b\nNew-C: c")
 			p.Click(urlInputID)

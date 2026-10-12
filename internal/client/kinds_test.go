@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // Every kind must be sendable, by the real senders and by the fake the UI

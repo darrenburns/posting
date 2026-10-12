@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // flakySource serves the sample environments and fails for unknown files.

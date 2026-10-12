@@ -6,8 +6,8 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/config"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/config"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func settingsApp(tt *testing.T, change func(*config.Settings)) *App {

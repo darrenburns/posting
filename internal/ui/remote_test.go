@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/model"
-	"github.com/darrenburns/posting/internal/remote"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/model"
+	"github.com/darrenburns/posting/v3/internal/remote"
 )
 
 // remoteHarness carries out remote commands as the running app does: each

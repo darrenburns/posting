@@ -6,7 +6,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // Scrollbars fade after a second of inactivity, using Terma's default fade duration.

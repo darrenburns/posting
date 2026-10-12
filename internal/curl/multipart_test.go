@@ -12,8 +12,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/client"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func TestUploadCurlWire(t *testing.T) {

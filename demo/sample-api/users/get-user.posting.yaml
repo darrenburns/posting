@@ -1,0 +1,6 @@
+name: Get user
+description: Fetch a single user by ID.
+url: ${BASE_URL}/users/:id
+path_params:
+  - name: id
+    value: '1'

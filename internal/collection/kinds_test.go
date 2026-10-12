@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // testdata/golden holds what MarshalRequest wrote for each Posting 2 sample

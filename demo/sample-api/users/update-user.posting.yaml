@@ -1,0 +1,15 @@
+name: Update user
+method: PATCH
+url: ${BASE_URL}/users/:id
+path_params:
+  - name: id
+    value: '1'
+body:
+  content: |-
+    {
+      "role": "editor"
+    }
+  content_type: application/json
+headers:
+  - name: Content-Type
+    value: application/json

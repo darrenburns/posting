@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // IsCommand reports whether text looks like a curl command.

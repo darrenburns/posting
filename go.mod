@@ -1,4 +1,4 @@
-module github.com/darrenburns/posting
+module github.com/darrenburns/posting/v3
 
 go 1.25.5
 
@@ -10,6 +10,7 @@ require (
 	github.com/darrenburns/terma v0.25.0
 	github.com/rivo/uniseg v0.4.7
 	github.com/theory/jsonpath v0.12.2
+	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.11
@@ -33,6 +34,7 @@ require (
 	github.com/petermattis/goid v0.0.0-20260918085751-abfca077860b // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yuin/goldmark v1.8.6 // indirect
+	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect

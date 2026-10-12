@@ -10,7 +10,7 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 const responseTabsID = "resp-tabs"
@@ -239,9 +239,9 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 			Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
 			Children: map[string]t.Widget{
 				"body":     body,
-				"headers":  responseHeaders{app: r.app, id: "resp-headers", state: s.responseHeaders, scroll: s.responseHeadersScroll, empty: "No headers"},
-				"cookies":  responseCookies{session: s},
-				"trailers": responseHeaders{app: r.app, id: "resp-trailers", state: s.responseTrailers, scroll: s.responseTrailersScroll, empty: "No trailers"},
+				"headers":  responseHeaders{app: r.app, session: s, id: "resp-headers", state: s.responseHeaders, scroll: s.responseHeadersScroll, empty: "No headers"},
+				"cookies":  responseCookies{app: r.app, session: s},
+				"trailers": responseHeaders{app: r.app, session: s, id: "resp-trailers", state: s.responseTrailers, scroll: s.responseTrailersScroll, empty: "No trailers"},
 				"trace":    responseTrace{session: s},
 			},
 		},
@@ -376,29 +376,30 @@ func (r responseBodyStatus) Build(ctx t.BuildContext) t.Widget {
 // responseHeaders is a table of headers, or of trailers.
 type responseHeaders struct {
 	fillParent
-	app    *App
-	id     string
-	state  *t.TableState[model.Header]
-	scroll *t.ScrollState
-	empty  string
+	app     *App
+	session *Session
+	id      string
+	state   *t.TableState[model.Header]
+	scroll  *t.ScrollState
+	empty   string
 }
 
 func (h responseHeaders) Keybinds() []t.Keybind {
 	if h.state.RowCount() == 0 {
 		return nil
 	}
-	binds := []t.Keybind{
-		{Key: "y", Name: "Copy", Action: h.copy},
-		{Key: "c", Action: h.copy, Hidden: true},
-		{Key: "ctrl+a", Name: "Select all", Action: h.state.SelectAll},
-	}
+	binds := h.app.rowCopyKeybinds(h.session)
 	if len(h.state.Selection.Peek()) > 0 {
+		binds = []t.Keybind{
+			{Key: "y", Name: "Copy rows", Action: h.copy},
+			{Key: "c", Action: h.copy, Hidden: true},
+		}
 		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: func() {
 			h.state.ClearSelection()
 			h.state.ClearAnchor()
 		}})
 	}
-	return binds
+	return append(binds, t.Keybind{Key: "ctrl+a", Name: "Select all", Action: h.state.SelectAll})
 }
 
 // copy preserves row order and repeated header names. Without a selection,
@@ -447,8 +448,11 @@ func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
 
 type responseCookies struct {
 	fillParent
+	app     *App
 	session *Session
 }
+
+func (c responseCookies) Keybinds() []t.Keybind { return c.app.rowCopyKeybinds(c.session) }
 
 func (c responseCookies) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()

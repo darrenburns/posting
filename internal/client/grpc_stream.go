@@ -7,8 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/darrenburns/posting/internal/model"
-
+	"github.com/darrenburns/posting/v3/internal/model"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )

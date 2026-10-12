@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/darrenburns/posting/internal/remote"
+	"github.com/darrenburns/posting/v3/internal/remote"
 )
 
 // TestSignalsRemoveTheSocket stops a stand-in for Posting with the signals

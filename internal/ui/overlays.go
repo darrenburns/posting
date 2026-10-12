@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 const (
@@ -121,6 +121,9 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			}
 		})},
 		{Label: "Copy response body", Action: a.run(a.copyResponseBody)},
+	}...)
+	items = append(items, a.rowCopyCommands()...)
+	items = append(items, []t.CommandPaletteItem{
 		{Label: "Toggle response wrap", Description: "Wrap long lines in the response body", Action: a.run(func() {
 			if s := a.current(); s != nil {
 				s.responseBody.ToggleWrap()
@@ -142,7 +145,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 			a.palette.SetNextFocusIDOnClose("curl-text")
 			a.run(a.openCurlImport)()
 		}},
-		{Label: "Import curl from clipboard", Description: "Needs a terminal that lets apps read the clipboard", Action: a.run(a.importCurlFromClipboard)},
+		{Label: "Import curl from clipboard", Description: "Over SSH, needs a terminal that lets apps read the clipboard", Action: a.run(a.importCurlFromClipboard)},
 		{Label: "Export as " + a.exportTool(), Description: "Copy the request as a " + a.exportTool() + " command", Action: func() {
 			a.palette.SetNextFocusIDOnClose("curl-text")
 			a.run(a.copyExport)()
@@ -425,6 +428,11 @@ var helpSections = []helpSection{
 		{"↑ from search", "Return to the body, keeping search open"},
 		{"n / N", "Next / previous match in the body"},
 		{"esc", "Leave visual mode, then close search"},
+	}},
+	{"Response headers, cookies, trailers", [][2]string{
+		{"y / c", "Copy the value"},
+		{"n", "Copy the name"},
+		{"b", "Copy both, as Name: value (name=value for a cookie)"},
 	}},
 }
 

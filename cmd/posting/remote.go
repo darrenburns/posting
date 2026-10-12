@@ -13,9 +13,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/darrenburns/posting/internal/paths"
-	"github.com/darrenburns/posting/internal/remote"
-	"github.com/darrenburns/posting/skills"
+	"github.com/darrenburns/posting/v3/internal/paths"
+	"github.com/darrenburns/posting/v3/internal/remote"
+	"github.com/darrenburns/posting/v3/skills"
 )
 
 const remoteUsage = `Usage: posting remote COMMAND [REQUEST] [options]
@@ -375,11 +375,30 @@ func inCollection(dir, file string) (string, bool) {
 	if dir == "" {
 		return "", false
 	}
-	if real, err := filepath.EvalSymlinks(dir); err == nil {
-		dir = real
+	dir, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return "", false
 	}
-	if real, err := filepath.EvalSymlinks(file); err == nil {
-		file = real
+	var missing string
+	for {
+		real, err := filepath.EvalSymlinks(file)
+		if err == nil {
+			file = filepath.Join(real, missing)
+			break
+		}
+		if !errors.Is(err, os.ErrNotExist) {
+			return "", false
+		}
+		// A dangling symlink exists, so it must not become a new path suffix.
+		if _, err := os.Lstat(file); !errors.Is(err, os.ErrNotExist) {
+			return "", false
+		}
+		parent := filepath.Dir(file)
+		if parent == file {
+			return "", false
+		}
+		missing = filepath.Join(filepath.Base(file), missing)
+		file = parent
 	}
 	rel, err := filepath.Rel(dir, file)
 	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {

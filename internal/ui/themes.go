@@ -3,7 +3,7 @@ package ui
 import (
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/themes"
+	"github.com/darrenburns/posting/v3/internal/themes"
 )
 
 // registerUserThemes makes Posting 2 style user themes available to Terma.

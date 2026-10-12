@@ -8,10 +8,10 @@ import (
 
 	t "github.com/darrenburns/terma"
 
-	"github.com/darrenburns/posting/internal/collection"
-	"github.com/darrenburns/posting/internal/curl"
-	"github.com/darrenburns/posting/internal/grpcurl"
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/curl"
+	"github.com/darrenburns/posting/v3/internal/grpcurl"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // kindView is what the UI knows about a kind of request: the parts that

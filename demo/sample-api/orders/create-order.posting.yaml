@@ -1,0 +1,13 @@
+name: Create order
+method: POST
+url: ${BASE_URL}/orders
+body:
+  content: |-
+    {
+      "user_id": 1,
+      "items": [{"sku": "BK-101", "quantity": 2}]
+    }
+  content_type: application/json
+headers:
+  - name: Content-Type
+    value: application/json

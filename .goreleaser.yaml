@@ -1,0 +1,52 @@
+version: 2
+project_name: posting
+
+builds:
+  - main: ./cmd/posting
+    binary: posting
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files: [LICENSE, NOTICE, README.md]
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  prerelease: auto
+  header: |
+    See the [changelog](https://github.com/darrenburns/posting/blob/{{ .Tag }}/docs/CHANGELOG.md) for what's in this release.
+
+# The previous tag is Posting 2's, so a generated changelog would list every
+# commit since then.
+changelog:
+  disable: true
+
+# Posting 2's formula is `posting` in the same tap, so betas get their own
+# cask until Posting 3 is stable.
+homebrew_casks:
+  - name: posting@beta
+    repository:
+      owner: darrenburns
+      name: homebrew-homebrew
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: "https://posting.sh"
+    description: "The modern API client that lives in your terminal."
+    binaries: [posting]
+    commit_msg_template: "Brew cask update for posting@beta version {{ .Tag }}"
+    # The binary isn't signed, so macOS would refuse to run it.
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/posting"]
+          end

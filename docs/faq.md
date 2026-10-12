@@ -10,8 +10,13 @@ enable or disable one. See [Requests](./guide/requests.md#headers).
 
 ### Can I use Posting 3 and Posting 2 on the same collection?
 
-Yes. Both versions use the same request files, config file and `.env` files.
-See [Coming from Posting 2](./guide/migrating.md).
+You can share ordinary HTTP requests that don't use Posting 3 fields. Edit GraphQL, gRPC, and
+requests with scoped variables only in Posting 3. Saving them in Posting 2 removes the fields
+that store their queries, RPC settings, or scoped variables.
+
+Both versions read the same config file and `.env` files, but some settings behave differently.
+Scripts are preserved but aren't run in Posting 3, and each version has separate history.
+See [Coming from Posting 2](./guide/migrating.md) for the compatibility limits.
 
 ### Does Posting 3 run my Posting 2 scripts?
 

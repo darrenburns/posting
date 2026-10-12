@@ -9,7 +9,7 @@ package client
 import (
 	"context"
 
-	"github.com/darrenburns/posting/internal/model"
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // Call is everything a Sender needs to perform one request.
