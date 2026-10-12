@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -72,6 +73,67 @@ func TestSnapshotResponse(tt *testing.T) {
 	s.showResponse(fixedResponse(), nil)
 	s.phase.Set(exchangeDone)
 	t.AssertSnapshot(tt, app, snapW, snapH, "List users opened from the collection with a highlighted JSON response")
+}
+
+func TestJSONValueColors(tt *testing.T) {
+	const body = `{
+  "text": "café true 42",
+  "integer": -27,
+  "decimal": 4.125,
+  "exponent": 6.2e-3,
+  "yes": true,
+  "no": false
+}`
+	for _, theme := range []string{"galaxy", "catppuccin-latte"} {
+		for _, view := range []string{"request", "response"} {
+			tt.Run(theme+"/"+view, func(tt *testing.T) {
+				app := homeApp(theme)
+				app.layout.Set(layoutHorizontal)
+				req := sampleRequest(tt, "Create user")
+				req.Body = model.Body{Type: model.BodyRaw, Raw: body}
+				app.openRequest(req)
+				s := app.current()
+				if view == "request" {
+					s.requestTab.Set("body")
+				} else {
+					resp := fixedResponse()
+					resp.Body = []byte(body)
+					s.showResponse(resp, nil)
+					s.phase.Set(exchangeDone)
+				}
+				const width, height = 160, 48
+				buf := t.SerializeBuffer(t.RenderToBuffer(app, width, height), width, height)
+				colorOf := func(token string) string {
+					tt.Helper()
+					for y := 0; y < height; y++ {
+						var line strings.Builder
+						for x := 0; x < width; x++ {
+							line.WriteString(buf.Cells[y*width+x].Content)
+						}
+						if i := strings.Index(line.String(), token); i >= 0 {
+							x := len([]rune(line.String()[:i]))
+							return buf.Cells[y*width+x].Fg
+						}
+					}
+					tt.Fatalf("%q is not on screen", token)
+					return ""
+				}
+				str, number, boolean := colorOf(`"café true 42"`), colorOf("-27"), colorOf("false")
+				if str == number || str == boolean || number == boolean {
+					tt.Fatalf("string, number and boolean colors must differ: %s, %s, %s", str, number, boolean)
+				}
+				for _, token := range []string{"4.125", "6.2e-3"} {
+					if got := colorOf(token); got != number {
+						tt.Errorf("%s color = %s, want number color %s", token, got, number)
+					}
+				}
+				// Include the comma to avoid matching "true" inside the string.
+				if got := colorOf("true,"); got != boolean {
+					tt.Errorf("true color = %s, want boolean color %s", got, boolean)
+				}
+			})
+		}
+	}
 }
 
 func TestSnapshotJump(tt *testing.T) {

@@ -82,7 +82,6 @@ const (
 type App struct {
 	version    string
 	settings   config.Settings
-	spacing    t.Signal[string]
 	openURL    func(string) error
 	watcher    CollectionWatcher
 	envFile    *envFileForm
@@ -140,9 +139,6 @@ type App struct {
 	panelSplit     *t.SplitPaneState // between the request and response
 	layout         t.Signal[layoutMode]
 	expanded       t.Signal[string] // "", "request" or "response"
-	// compact drops the blank rows between parts of the layout when the
-	// terminal is too short to spare them (see heightProbe).
-	compact t.Signal[bool]
 	// focus is where focus was when focusProbe last reported it.
 	focus focusAt
 
@@ -205,7 +201,6 @@ func New(cfg Config) *App {
 	a := &App{
 		version:        cfg.Version,
 		settings:       settings,
-		spacing:        t.NewSignal(settings.Spacing),
 		icons:          iconsFor(cfg.NerdFonts),
 		openURL:        cfg.OpenURL,
 		runExternal:    t.RunExternal,
@@ -239,7 +234,6 @@ func New(cfg Config) *App {
 		panelSplit:     t.NewSplitPaneState(0.5),
 		layout:         t.NewSignal(layoutMode(settings.Layout)),
 		expanded:       t.NewSignal(""),
-		compact:        t.NewSignal(false),
 		helpScroll:     t.NewScrollState(),
 		menuOpen:       t.NewSignal(false),
 		logoMenuOpen:   t.NewSignal(false),
@@ -296,6 +290,7 @@ func New(cfg Config) *App {
 		}
 	}
 	a.sidebarGradient.Set(gradient)
+	t.SetCursorBlinkStyle(t.CursorBlinkPulse)
 	t.SetCursorBlink(settings.TextInput.BlinkingCursor)
 	switch settings.Focus.OnStartup {
 	case "method":
@@ -890,7 +885,6 @@ func (a *App) Build(ctx t.BuildContext) t.Widget {
 		Body: t.Stack{
 			Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 			Children: []t.Widget{
-				heightProbe{app: a},
 				focusProbe{app: a},
 				t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Right: 1}}, Children: []t.Widget{workspace{app: a}}},
 			},
@@ -1027,29 +1021,6 @@ func tabJumps(stripID, keys string, tabs []string, selectTab func(string)) []t.J
 	return targets
 }
 
-// compactHeight is the height of the area between the header and footer
-// below which the layout drops its blank separator rows. Below it, stacked
-// request and response panels would otherwise show only a line or two each.
-const compactHeight = 28
-
-// heightProbe fills the area between the header and footer and switches the
-// app to compact spacing when it is short. Terma doesn't tell widgets the
-// screen size while they build, so layout reports it instead.
-type heightProbe struct{ app *App }
-
-func (p heightProbe) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), t.Flex(1) }
-func (p heightProbe) Build(t.BuildContext) t.Widget                    { return p }
-func (p heightProbe) Render(*t.RenderContext)                          {}
-
-// OnLayout switches spacing for the next frame. Setting the signal here
-// directly would be lost: the frame being laid out has already built the
-// widgets that read it.
-func (p heightProbe) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
-	if compact := metrics.Box().Height < compactHeight; compact != p.app.compact.Peek() {
-		t.Dispatch(func() { p.app.compact.Set(compact) })
-	}
-}
-
 // focusAt is a focused widget: its ID, in the tab it belongs to. Tabs reuse
 // IDs, so switching tabs can move focus without changing the ID.
 type focusAt struct {
@@ -1059,7 +1030,7 @@ type focusAt struct {
 
 // focusProbe reports focus moving, which Terma has no callback for. It reads
 // the focused widget while it is laid out, so its layout reruns whenever
-// focus moves, and reports the move on the next frame, like heightProbe.
+// focus moves, and reports the move on the next frame.
 type focusProbe struct{ app *App }
 
 func (p focusProbe) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), t.Flex(1) }
@@ -1090,15 +1061,6 @@ func (a *App) focusMoved(at focusAt) {
 	if s := a.current(); s != nil && at.id == "resp-body" {
 		s.messages.following.Set(false)
 	}
-}
-
-// gap is the number of blank rows between parts of the layout: one, or none
-// in compact mode.
-func (a *App) gap() int {
-	if a.spacing.Get() == "compact" || a.compact.Get() {
-		return 0
-	}
-	return 1
 }
 
 // footer shows the keybinds available for the focused widget, or how to use

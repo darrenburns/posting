@@ -36,10 +36,13 @@ func TestLoadsPosting2Config(t *testing.T) {
 
 func TestEnvironmentOverridesTheFile(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "config.yaml")
-	os.WriteFile(file, []byte("theme: nord\nsidebar_gradient: lantern\nheading:\n  show_host: true\nkeymap:\n  send-request: ctrl+r\n"), 0o644)
+	os.WriteFile(file, []byte("theme: nord\nsidebar_gradient: lantern\nspacing: compact\nheading:\n  show_host: true\nkeymap:\n  send-request: ctrl+r\n"), 0o644)
 	fromFile, warnings := load(file, nil)
 	if fromFile.SidebarGradient != "lantern" || len(warnings) != 0 {
 		t.Fatalf("sidebar_gradient from file = %q, warnings: %v", fromFile.SidebarGradient, warnings)
+	}
+	if fromFile.Spacing != "compact" {
+		t.Fatalf("legacy spacing setting should still load: %q", fromFile.Spacing)
 	}
 	s, warnings := load(file, []string{
 		"POSTING_THEME=dracula",

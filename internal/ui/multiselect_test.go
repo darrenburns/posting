@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/model"
@@ -268,5 +269,91 @@ func TestEscapeClearsTheHistorySelection(tt *testing.T) {
 	}
 	if !slices.Equal(ids, []int64{2, 3}) {
 		tt.Fatalf("shift+down after escape selected %v, want a new range from the cursor, [2 3]", ids)
+	}
+}
+
+func TestCopySelectedResponseHeaders(tt *testing.T) {
+	for _, tc := range []struct{ tab, theme string }{
+		{"headers", "galaxy"},
+		{"trailers", "galaxy"},
+		{"headers", "catppuccin-latte"},
+	} {
+		tt.Run(tc.theme+"/"+tc.tab, func(tt *testing.T) {
+			app := homeApp(tc.theme)
+			tab := tc.tab
+			if tab == "trailers" {
+				app.openRequest(model.GRPCKind.New())
+			}
+			s := app.current()
+			s.sent = s.Snapshot()
+			rows := []model.Header{
+				{Name: "X-First", Value: "first"},
+				{Name: "Set-Cookie", Value: "a=1"},
+				{Name: "Set-Cookie", Value: "b=2"},
+				{Name: "X-Empty"},
+				{Name: "X-Last", Value: "é: final"},
+			}
+			resp := fixedResponse()
+			resp.Headers, resp.Trailers = rows, rows
+			s.showResponse(resp, nil)
+			s.phase.Set(exchangeDone)
+			s.responseTab.Set(tab)
+			p := t.NewPilot(tt, app, snapW, snapH)
+			p.Click("resp-" + tab)
+			copied := func(want string) {
+				tt.Helper()
+				if got := p.Clipboard(); got != want {
+					tt.Fatalf("clipboard = %q, want %q", got, want)
+				}
+			}
+
+			p.Press("home", "down", "shift+down", "y")
+			copied("Set-Cookie: a=1\nSet-Cookie: b=2")
+			p.Press("end", "shift+up", "c")
+			copied("X-Empty: \nX-Last: é: final")
+			p.Press("escape", "shift+up", "y")
+			copied("Set-Cookie: b=2\nX-Empty: ")
+			p.Press("up", "y")
+			copied("Set-Cookie: a=1")
+			p.Press("ctrl+a", "y")
+			copied("X-First: first\nSet-Cookie: a=1\nSet-Cookie: b=2\nX-Empty: \nX-Last: é: final")
+
+			bounds, _ := p.Bounds("resp-" + tab)
+			p.ClickAt(bounds.X+1, bounds.Y+1)
+			p.MouseDown(bounds.X+1, bounds.Y+3, uv.MouseLeft, uv.ModShift)
+			p.MouseUp(bounds.X+1, bounds.Y+3, uv.MouseLeft, uv.ModShift)
+			p.Press("y")
+			copied("Set-Cookie: a=1\nSet-Cookie: b=2\nX-Empty: ")
+			p.MouseDown(bounds.X+1, bounds.Y+4, uv.MouseLeft, 0)
+			p.MouseMove(bounds.X+1, bounds.Y+2)
+			p.MouseUp(bounds.X+1, bounds.Y+2, uv.MouseLeft, 0)
+			p.Press("c")
+			copied("Set-Cookie: b=2\nX-Empty: \nX-Last: é: final")
+
+			// Selection must not carry over to unrelated rows in a new response.
+			replacement := *resp
+			replacement.Headers = []model.Header{{Name: "New-A", Value: "a"}, {Name: "New-B", Value: "b"}, {Name: "New-C", Value: "c"}}
+			replacement.Trailers = replacement.Headers
+			s.showResponse(&replacement, nil)
+			p.Press("y")
+			copied("New-C: c")
+			p.Press("shift+up", "y")
+			copied("New-B: b\nNew-C: c")
+			p.Click(urlInputID)
+			bounds, _ = p.Bounds("resp-" + tab)
+			plain := t.FromANSI(p.Buffer().CellAt(bounds.X+1, bounds.Y).Style.Bg)
+			for _, row := range []int{1, 2} {
+				cell := p.Buffer().CellAt(bounds.X+1, bounds.Y+row)
+				selected := t.FromANSI(cell.Style.Bg)
+				if selected == plain {
+					tt.Fatal("selected rows must stay highlighted after focus leaves the table")
+				}
+				if contrast := t.FromANSI(cell.Style.Fg).ContrastRatio(selected); contrast < 4.5 {
+					tt.Fatalf("selected header text has poor contrast: %.2f", contrast)
+				}
+			}
+			p.Type("y")
+			copied("New-B: b\nNew-C: c")
+		})
 	}
 }

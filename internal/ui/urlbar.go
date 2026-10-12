@@ -46,7 +46,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 	}
 	resolve := a.resolver()
 	return t.Column{
-		Style: t.Style{Width: t.Flex(1), Padding: t.EdgeInsetsTRBL(a.gap(), 1, 0, 0)},
+		Style: t.Style{Width: t.Flex(1), Padding: t.EdgeInsetsTRBL(1, 1, 0, 0)},
 		Children: []t.Widget{
 			t.Row{
 				Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), BackgroundColor: theme.Surface},

@@ -289,9 +289,14 @@ func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 	}
 	// The preview tab's title is in italics, as in VS Code, to show that
 	// the next request opened will replace it.
+	label := t.SpanStyle{Foreground: fg, Background: bg, Bold: c.active, Italic: s.preview.Get()}
+	if c.active {
+		label.Underline = t.UnderlineSingle
+		label.UnderlineColor = theme.ActiveCursor
+	}
 	spans := []t.Span{
 		{Text: " " + badge.Badge() + " ", Style: t.SpanStyle{Foreground: requestColor(theme, badge), Background: bg}},
-		{Text: title, Style: t.SpanStyle{Foreground: fg, Background: bg, Bold: c.active, Italic: s.preview.Get()}},
+		{Text: title, Style: label},
 	}
 	if s.phase.Get() == exchangeSending {
 		spans = append(spans, t.Span{Text: " …", Style: t.SpanStyle{Foreground: theme.AccentText, Background: bg}})

@@ -36,7 +36,7 @@ func TestSettingsShapeTheLayout(tt *testing.T) {
 	app.openRequest(sampleRequest(tt, "List users"))
 	app.current().showResponse(fixedResponse(), nil)
 	app.current().phase.Set(exchangeDone)
-	t.AssertSnapshot(tt, app, snapW, snapH, "Configured: side by side, collection on the right, compact spacing, no host, version or response size")
+	t.AssertSnapshot(tt, app, snapW, snapH, "Configured: side by side, collection on the right, legacy compact spacing ignored, no host, version or response size")
 }
 
 func TestSettingsHideTheCollectionAndHeading(tt *testing.T) {
@@ -123,8 +123,8 @@ func TestBlinkingCursorSetting(tt *testing.T) {
 		tt.Fatal("blinking_cursor: false should stop the cursor blinking")
 	}
 	settingsApp(tt, func(s *config.Settings) { s.TextInput.BlinkingCursor = true })
-	if !t.CursorBlink() {
-		tt.Fatal("blinking_cursor: true should make the cursor blink")
+	if !t.CursorBlink() || t.CurrentCursorBlinkStyle() != t.CursorBlinkPulse {
+		tt.Fatal("blinking_cursor: true should make all text cursors pulse")
 	}
 }
 

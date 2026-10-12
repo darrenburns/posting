@@ -167,12 +167,10 @@ The footer at the bottom of the screen always shows the most useful keys for wha
 
 - Try a different look: press ++ctrl+p++, choose **Theme…**, and move through the list to preview
   each theme. See [Themes](./themes.md).
-- Put the request and response side by side with **Layout: side by side** in the command palette,
-  or remove the blank rows between sections with **View: compact spacing**.
+- Put the request and response side by side with **Layout: side by side** in the command palette.
 - Make these choices permanent in your [configuration file](./configuration.md):
 
 ```yaml
 theme: aurora
 layout: horizontal
-spacing: compact
 ```

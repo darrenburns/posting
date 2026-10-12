@@ -376,7 +376,7 @@ func (v grpcMessageView) Build(ctx t.BuildContext) t.Widget {
 		ScrollState:   e.messageScroll,
 		Placeholder:   "Choose a method to fill in its message, or write it as JSON…",
 		Highlighter:   a.bodyHighlighter(theme, "json", substitute),
-		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
 		OnChange:      func(string) { s.touch() },
 		ExtraKeybinds: a.externalKeybinds(e.message, "json", s.touch),
 	}
@@ -400,13 +400,13 @@ func (v grpcMessageView) Build(ctx t.BuildContext) t.Widget {
 	}
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: a.gap(),
+		Spacing: 1,
 		Children: []t.Widget{
 			t.Column{Style: t.Style{Width: t.Flex(1)}, Children: []t.Widget{
 				formRow(ctx, "Method", "", method),
 				grpcCatalogLine{editor: e},
 			}},
-			scrollingArea(grpcMessageID, e.messageScroll, theme.Surface, area),
+			scrollingArea(grpcMessageID, e.messageScroll, theme.Background, area),
 		},
 	}
 }
@@ -486,7 +486,7 @@ func (v grpcProtoView) Build(ctx t.BuildContext) t.Widget {
 	}
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: v.app.gap(),
+		Spacing: 1,
 		Children: []t.Widget{
 			t.Text{
 				Content: "Leave these empty to ask the server for its methods with reflection. Paths are relative to the collection, one per line; .protoset, .binpb and .pb files are descriptor sets.",

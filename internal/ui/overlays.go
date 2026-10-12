@@ -157,11 +157,6 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "View: expand request", Action: a.run(func() { a.expanded.Set("request") })},
 		{Label: "View: expand response", Action: a.run(func() { a.expanded.Set("response") })},
 	}...)
-	spacingLabel := "View: compact spacing"
-	if a.spacing.Peek() == "compact" {
-		spacingLabel = "View: standard spacing"
-	}
-	items = append(items, t.CommandPaletteItem{Label: spacingLabel, Action: a.run(a.toggleSpacing)})
 	if a.expanded.Peek() != "" {
 		items = append(items, t.CommandPaletteItem{Label: "View: restore panels", Hint: "alt+z", Action: a.run(func() { a.expanded.Set("") })})
 	}

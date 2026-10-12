@@ -2,9 +2,12 @@ package ui
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	t "github.com/darrenburns/terma"
+
+	"github.com/darrenburns/posting/internal/model"
 )
 
 // searchFor types query into the collection's search box.
@@ -73,6 +76,56 @@ func TestTreeSearchMatches(tt *testing.T) {
 			tt.Errorf("searching %q shows %q, want %q", tc.query, got, tc.want)
 		}
 	}
+}
+
+func TestTreeSearchCountUpdates(tt *testing.T) {
+	app := testApp()
+	root := model.SampleCollection()
+	root.Children = append(root.Children, &model.Collection{Name: "empty", Path: "empty"})
+	app.replaceCollection(root)
+	app.tree.Collapse([]int{0})
+	app.tree.Collapse([]int{1})
+	p := t.NewPilot(tt, app, snapW, snapH)
+	p.Click(treeSearchID)
+	count := func(want string) {
+		tt.Helper()
+		bounds, visible := p.Bounds(treeSearchID + "-count")
+		if want == "" {
+			if visible {
+				tt.Fatal("the count should be hidden without a search")
+			}
+			return
+		}
+		input, _ := p.Bounds(treeSearchID)
+		if !visible || bounds.Y != input.Y || bounds.X < input.X+input.Width {
+			tt.Fatal("the count should appear to the right of the search box")
+		}
+		if got := strings.TrimSpace(p.TextOf(treeSearchID + "-count")); got != want {
+			tt.Fatalf("searching %q: count = %q, want %q", app.treeSearch.GetText(), got, want)
+		}
+	}
+	count("")
+	p.Type("post")
+	count("2") // Two requests, not the two ancestor folders too.
+	p.Type(" user")
+	count("1")
+	p.Type("x")
+	count("0")
+	p.Press("backspace")
+	count("1")
+	p.Press("escape")
+	count("")
+	p.Click(treeSearchID)
+	p.Type("  ")
+	count("")
+	p.Type("empty")
+	count("0") // A matching empty folder isn't a request.
+	p.Press("ctrl+a")
+	p.Type("auth")
+	count("2") // Matching a folder counts its requests.
+	root.Children[0].Requests = root.Children[0].Requests[:1]
+	app.replaceCollection(root)
+	count("1") // Reloading the collection updates the same search.
 }
 
 func TestTreeSearchKeyboardFlow(tt *testing.T) {

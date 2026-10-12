@@ -2,6 +2,7 @@ package ui
 
 import (
 	"slices"
+	"strconv"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -36,6 +37,18 @@ func (q treeQuery) matches(i treeItem) bool {
 		}
 	}
 	return true
+}
+
+// countRequests excludes folder rows and includes matches inside collapsed folders.
+func (q treeQuery) countRequests(nodes []t.TreeNode[treeItem]) int {
+	count := 0
+	for _, node := range nodes {
+		if node.Data.Request != nil && q.matches(node.Data) {
+			count++
+		}
+		count += q.countRequests(node.Children)
+	}
+	return count
 }
 
 func containsFold(text, term string) bool {
@@ -218,31 +231,43 @@ type requestsPane struct {
 func (p requestsPane) Build(ctx t.BuildContext) t.Widget {
 	a := p.app
 	theme := ctx.Theme()
-	if len(a.tree.Nodes.Get()) == 0 {
+	nodes := a.tree.Nodes.Get()
+	if len(nodes) == 0 {
 		return collectionView{app: a}
+	}
+	search := t.Row{
+		Style: t.Style{Width: t.Flex(1)},
+		Children: []t.Widget{t.TextInput{
+			ID:          treeSearchID,
+			State:       a.treeSearch,
+			Placeholder: "Search requests…",
+			OnChange:    a.searchTree,
+			OnSubmit:    func(string) { a.enterTreeResults() },
+			// An explicitly transparent background keeps the gradient
+			// behind both the text and padding; an unset one uses Surface.
+			Style: t.Style{Width: t.Flex(1), ForegroundColor: theme.Text, BackgroundColor: theme.Background.WithAlpha(0), Padding: t.EdgeInsetsXY(1, 0)},
+			ExtraKeybinds: []t.Keybind{
+				{Key: "down", Name: "Results", Action: a.enterTreeResults, Hidden: true},
+				{Key: "up", Name: "Out", Action: func() { t.RequestFocus(sidebarTabsID) }, Hidden: true},
+				{Key: "escape", Name: "Clear", Action: a.clearTreeSearch},
+			},
+		}},
+	}
+	if query := parseTreeQuery(a.treeFilter.Query.Get()); len(query) > 0 {
+		search.Children = append(search.Children, t.Text{
+			ID:      treeSearchID + "-count",
+			Content: strconv.Itoa(query.countRequests(nodes)),
+			Style:   t.Style{ForegroundColor: theme.TextMuted, Padding: t.EdgeInsets{Right: 1}},
+		})
 	}
 	// The search box sits level with the URL bar, and the tree starts a row
 	// lower than it, level with the request tabs: the URL bar's preview line
-	// is always there, even in compact spacing.
+	// is always there.
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Spacing: 1,
 		Children: []t.Widget{
-			t.TextInput{
-				ID:          treeSearchID,
-				State:       a.treeSearch,
-				Placeholder: "Search requests…",
-				OnChange:    a.searchTree,
-				OnSubmit:    func(string) { a.enterTreeResults() },
-				// An explicitly transparent background keeps the gradient
-				// behind both the text and padding; an unset one uses Surface.
-				Style: t.Style{Width: t.Flex(1), ForegroundColor: theme.Text, BackgroundColor: theme.Background.WithAlpha(0), Padding: t.EdgeInsetsXY(1, 0)},
-				ExtraKeybinds: []t.Keybind{
-					{Key: "down", Name: "Results", Action: a.enterTreeResults, Hidden: true},
-					{Key: "up", Name: "Out", Action: func() { t.RequestFocus(sidebarTabsID) }, Hidden: true},
-					{Key: "escape", Name: "Clear", Action: a.clearTreeSearch},
-				},
-			},
+			search,
 			collectionView{app: a},
 		},
 	}

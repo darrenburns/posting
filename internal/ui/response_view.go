@@ -210,16 +210,15 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 			Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
 			Children: map[string]t.Widget{
 				"body":     body,
-				"headers":  responseHeaders{id: "resp-headers", state: s.responseHeaders, scroll: s.responseHeadersScroll, empty: "No headers"},
+				"headers":  responseHeaders{app: r.app, id: "resp-headers", state: s.responseHeaders, scroll: s.responseHeadersScroll, empty: "No headers"},
 				"cookies":  responseCookies{session: s},
-				"trailers": responseHeaders{id: "resp-trailers", state: s.responseTrailers, scroll: s.responseTrailersScroll, empty: "No trailers"},
+				"trailers": responseHeaders{app: r.app, id: "resp-trailers", state: s.responseTrailers, scroll: s.responseTrailersScroll, empty: "No trailers"},
 				"trace":    responseTrace{session: s},
 			},
 		},
 	)
 	// The tab strip is on the panel's heading row (see responsePanel).
-	gap := r.app.gap()
-	return t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Top: gap}}, Spacing: gap, Children: children}
+	return t.Column{Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Top: 1}}, Spacing: 1, Children: children}
 }
 
 // responseBody is a read-only, highlighted view of the body.
@@ -343,10 +342,49 @@ func (r responseBodyStatus) Build(ctx t.BuildContext) t.Widget {
 // responseHeaders is a table of headers, or of trailers.
 type responseHeaders struct {
 	fillParent
+	app    *App
 	id     string
 	state  *t.TableState[model.Header]
 	scroll *t.ScrollState
 	empty  string
+}
+
+func (h responseHeaders) Keybinds() []t.Keybind {
+	if h.state.RowCount() == 0 {
+		return nil
+	}
+	binds := []t.Keybind{
+		{Key: "y", Name: "Copy", Action: h.copy},
+		{Key: "c", Action: h.copy, Hidden: true},
+		{Key: "ctrl+a", Name: "Select all", Action: h.state.SelectAll},
+	}
+	if len(h.state.Selection.Peek()) > 0 {
+		binds = append(binds, t.Keybind{Key: "escape", Name: "Clear selection", Action: func() {
+			h.state.ClearSelection()
+			h.state.ClearAnchor()
+		}})
+	}
+	return binds
+}
+
+// copy preserves row order and repeated header names. Without a selection,
+// it copies just the row under the cursor.
+func (h responseHeaders) copy() {
+	rows := h.state.SelectedRows()
+	if len(rows) == 0 {
+		if row, ok := h.state.SelectedRow(); ok {
+			rows = []model.Header{row}
+		}
+	}
+	if len(rows) == 0 {
+		return
+	}
+	lines := make([]string, len(rows))
+	for i, row := range rows {
+		lines[i] = row.Name + ": " + row.Value
+	}
+	t.SetClipboard(t.SystemClipboard, strings.Join(lines, "\n"))
+	h.app.notify("Copied "+pluralize(len(rows), "row"), toastSuccess)
 }
 
 func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
@@ -360,9 +398,14 @@ func (h responseHeaders) Build(ctx t.BuildContext) t.Widget {
 		ID:            h.id,
 		State:         h.state,
 		SelectionMode: t.TableSelectionRow,
+		MultiSelect:   true,
 		Columns:       []t.TableColumn{{Width: t.Cells(nameColumnWidth(rows, func(h model.Header) string { return h.Name }))}, {Width: t.Flex(1)}},
 		RenderCell: func(row model.Header, rowIndex, col int, active, selected bool) t.Widget {
-			return tableCell(theme, active, focused, col == 0, []string{row.Name, row.Value}[col])
+			cell := tableCell(theme, active, focused, col == 0, []string{row.Name, row.Value}[col]).(t.Text)
+			if selected && !(active && focused) {
+				cell.Style.BackgroundColor = theme.Selection
+			}
+			return cell
 		},
 		Style: t.Style{Width: t.Flex(1)},
 	})

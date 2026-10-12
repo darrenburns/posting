@@ -308,8 +308,8 @@
   <text x="772.4" y="37.4" fill="#9A96BE">05</text>
   <text x="806.0" y="37.4" fill="#9A96BE">✕</text>
   <text x="831.2" y="37.4" fill="#DDA8FB">GET</text>
-  <text x="864.8" y="37.4" class="bold" fill="#F5F5F6">Request</text>
-  <text x="932.0" y="37.4" class="bold" fill="#F5F5F6">06</text>
+  <text x="864.8" y="37.4" class="bold" fill="#F5F5F6">Request 06</text>
+  <path d="M 864.80 45.70 H 948.80" fill="none" stroke="#FF69B4" stroke-width="1.00"/>
   <text x="965.6" y="37.4" fill="#9A96BE">✕</text>
   <text x="990.8" y="37.4" fill="#DDA8FB">GET</text>
   <text x="1032.8" y="37.4" class="bold" fill="#FAAFD5">›</text>
