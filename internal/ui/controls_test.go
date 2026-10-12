@@ -10,6 +10,132 @@ import (
 	"github.com/darrenburns/posting/internal/config"
 )
 
+func TestNestedTabStyles(tt *testing.T) {
+	for _, tc := range []struct {
+		strip, active, inactive, blur string
+		next                          [2]string
+		show                          func(*App)
+	}{
+		{"req-body-type", "Raw", "Form", "req-body-text", [2]string{"Form", "None"}, func(a *App) { a.current().requestTab.Set("body") }},
+		{"req-body-content-type", "JSON", "XML", "req-body-text", [2]string{"Text", "XML"}, func(a *App) { a.current().requestTab.Set("body") }},
+		{"req-auth-type", "Bearer token", "Basic", tabID(requestTabsID, "auth"), [2]string{"None", "Basic"}, func(a *App) { a.current().requestTab.Set("auth") }},
+		{"curl-resolve", "Values", "Variables", "curl-text", [2]string{"Variables", "Values"}, func(a *App) { a.copyExport() }},
+	} {
+		tt.Run(tc.strip, func(tt *testing.T) {
+			// Aurora's accent differs from its cursor, unlike Galaxy's.
+			app := homeApp("aurora")
+			app.openRequest(sampleRequest(tt, "Create user"))
+			tc.show(app)
+			p := t.NewPilot(tt, app, snapW, snapH)
+			theme, _ := t.GetTheme("aurora")
+			p.Click(tc.blur)
+			bounds, ok := p.Bounds(tc.strip)
+			if !ok {
+				tt.Fatalf("%s is not visible", tc.strip)
+			}
+			x, y := findText(tt, p.ScreenText(), tc.active, bounds.X, bounds.X+bounds.Width)
+			style := p.Buffer().CellAt(x, y).Style
+			if style.Attrs&uv.AttrBold == 0 || style.Underline != uv.UnderlineSingle || t.FromANSI(style.UnderlineColor) != theme.ActiveCursor {
+				tt.Fatal("selected, unfocused choice should be bold with a cursor-coloured underline")
+			}
+			p.ClickAt(x, y)
+			style = p.Buffer().CellAt(x, y).Style
+			if p.FocusedID() != tc.strip || t.FromANSI(style.Bg) != theme.ActiveCursor || t.FromANSI(style.Fg) != theme.SelectionText || style.Underline != uv.UnderlineNone {
+				tt.Fatalf("focused choice should use the cursor fill and selection text; focus=%s style=%+v", p.FocusedID(), style)
+			}
+			// Repeated keys must use the latest selected value after each rebuild.
+			for _, next := range tc.next {
+				p.Press("right")
+				x, y := findText(tt, p.ScreenText(), next, bounds.X, bounds.X+bounds.Width)
+				if t.FromANSI(p.Buffer().CellAt(x, y).Style.Bg) != theme.ActiveCursor {
+					tt.Fatalf("right should select %s", next)
+				}
+			}
+			p.Press("left", "left")
+			if t.FromANSI(p.Buffer().CellAt(x, y).Style.Bg) != theme.ActiveCursor {
+				tt.Fatal("keyboard navigation did not return to the original choice")
+			}
+			p.Click(tc.blur)
+			x, y = findText(tt, p.ScreenText(), tc.inactive, bounds.X, bounds.X+bounds.Width)
+			before := *p.Buffer().CellAt(x, y)
+			p.MouseMove(x, y)
+			if got := t.FromANSI(p.Buffer().CellAt(x, y).Style.Bg); got != theme.Hover.BlendOver(t.FromANSI(before.Style.Bg)) {
+				tt.Fatal("inactive choice did not gain the theme's hover tint")
+			}
+			p.MouseMove(0, 0)
+			if !p.Buffer().CellAt(x, y).Equal(&before) {
+				tt.Fatal("leaving the choice did not restore its appearance")
+			}
+			p.ClickAt(x, y)
+			if t.FromANSI(p.Buffer().CellAt(x, y).Style.Bg) != theme.ActiveCursor {
+				tt.Fatal("clicking the inactive choice did not select it")
+			}
+		})
+	}
+}
+
+func TestPaneTabHover(tt *testing.T) {
+	for _, name := range []string{"galaxy", "catppuccin-latte"} {
+		tt.Run(name, func(tt *testing.T) {
+			app := settingsApp(tt, func(s *config.Settings) {
+				s.Theme = name
+				s.SidebarGradient = "lantern"
+			})
+			app.openRequest(sampleRequest(tt, "Create user"))
+			app.current().showResponse(fixedResponse(), nil)
+			app.current().phase.Set(exchangeDone)
+			p := t.NewPilot(tt, app, snapW, snapH)
+			theme, _ := t.GetTheme(name)
+			for _, tab := range []struct{ strip, active, inactive string }{
+				{sidebarTabsID, "requests", "history"},
+				{requestTabsID, "headers", "body"},  // Includes the content marker.
+				{responseTabsID, "body", "headers"}, // Includes the count badge.
+			} {
+				p.MouseMove(0, snapH-1)
+				id := tabID(tab.strip, tab.inactive)
+				bounds, ok := p.Bounds(id)
+				if !ok {
+					tt.Fatalf("tab %s not on screen", id)
+				}
+				before := make([]uv.Cell, bounds.Width)
+				for i := range before {
+					before[i] = *p.Buffer().CellAt(bounds.X+i, bounds.Y)
+				}
+				// Hover includes both padding cells, not only the label.
+				for _, x := range []int{bounds.X, bounds.X + bounds.Width - 1, 0} {
+					p.MouseMove(x, bounds.Y)
+					for i, want := range before {
+						got := *p.Buffer().CellAt(bounds.X+i, bounds.Y)
+						bg := t.FromANSI(want.Style.Bg)
+						if x != 0 {
+							bg = theme.Hover.BlendOver(bg)
+						}
+						if t.FromANSI(got.Style.Bg) != bg {
+							tt.Fatalf("%s cell %d: background = %v, want %s (pointer x=%d)", id, i, got.Style.Bg, bg.Hex(), x)
+						}
+						got.Style.Bg = want.Style.Bg
+						if !got.Equal(&want) {
+							tt.Fatalf("%s cell %d: hover changed more than the background", id, i)
+						}
+					}
+				}
+				// Active styling wins over hover, with and without keyboard focus.
+				activeID := tabID(tab.strip, tab.active)
+				for _, focusID := range []string{activeID, urlInputID} {
+					p.Click(focusID)
+					p.MouseMove(0, snapH-1)
+					activeBounds, _ := p.Bounds(activeID)
+					before := *p.Buffer().CellAt(activeBounds.X+1, activeBounds.Y)
+					p.Hover(activeID)
+					if got := p.Buffer().CellAt(activeBounds.X+1, activeBounds.Y); !got.Equal(&before) {
+						tt.Fatalf("hover changed the active tab %s (focus on %s)", activeID, focusID)
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestSelectedTabUnderlineMatchesCursor(tt *testing.T) {
 	// Aurora's accent and cursor colours differ, so using Accent fails.
 	app := settingsApp(tt, func(s *config.Settings) { s.Theme = "aurora" })
@@ -51,7 +177,7 @@ func TestTabStripRevealScrollsOnlyAsFarAsNeeded(tt *testing.T) {
 		tabs = append(tabs, tabItem{Key: key, Label: key})
 	}
 	view := newTabView()
-	strip := tabStrip{ID: "strip", Tabs: tabs, Active: t.NewSignal("Tab0"), View: view}
+	strip := tabStrip{ID: "strip", Tabs: tabs, Active: "Tab0", View: view}
 
 	strip.selectKey("Tab4")
 	if got := view.first.Peek(); got != 0 {

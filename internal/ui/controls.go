@@ -17,12 +17,12 @@ type tabItem struct {
 	Marked bool
 }
 
-// tabStrip is a focusable row of tabs. It only switches the active key; the
-// caller renders the matching content (usually with a Switcher).
+// tabStrip is a focusable row of tabs. The caller owns the active key and
+// renders the matching content (usually with a Switcher).
 type tabStrip struct {
 	ID       string
 	Tabs     []tabItem
-	Active   t.Signal[string]
+	Active   string
 	Disabled bool
 	OnChange func(key string)
 	// View, when set, lets the strip scroll in a panel too narrow for every
@@ -98,7 +98,7 @@ func (s tabStrip) step(delta int) {
 	if len(s.Tabs) == 0 {
 		return
 	}
-	index := (s.indexOf(s.Active.Peek()) + delta + len(s.Tabs)) % len(s.Tabs)
+	index := (s.indexOf(s.Active) + delta + len(s.Tabs)) % len(s.Tabs)
 	s.selectKey(s.Tabs[index].Key)
 }
 
@@ -106,7 +106,6 @@ func (s tabStrip) selectKey(key string) {
 	if s.Disabled {
 		return
 	}
-	s.Active.Set(key)
 	s.reveal(key)
 	if s.OnChange != nil {
 		s.OnChange(key)
@@ -173,7 +172,7 @@ func tabID(stripID, key string) string { return stripID + "-" + key }
 // the label itself is underlined, never the padding around it.
 func (s tabStrip) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
-	active := s.Active.Get()
+	active := s.Active
 	focused := ctx.IsFocused(s)
 	first := 0
 	if s.View != nil && len(s.Tabs) > 0 {
@@ -218,9 +217,10 @@ func (s tabStrip) Build(ctx t.BuildContext) t.Widget {
 		}
 		spans = append(spans, pad)
 		children = append(children, tabLabel{
-			id:       tabID(s.ID, key),
-			spans:    spans,
-			activate: func() { s.selectKey(key) },
+			id:        tabID(s.ID, key),
+			spans:     spans,
+			hoverable: !s.Disabled && key != active,
+			activate:  func() { s.selectKey(key) },
 		})
 	}
 	if s.View == nil {
@@ -270,9 +270,10 @@ func (p widthProbe) Render(ctx *t.RenderContext)       { p.view.width = ctx.Widt
 
 // tabLabel is one clickable tab. Its ID lets the jump map label it.
 type tabLabel struct {
-	id       string
-	spans    []t.Span
-	activate func()
+	id        string
+	spans     []t.Span
+	hoverable bool
+	activate  func()
 }
 
 func (l tabLabel) WidgetID() string { return l.id }
@@ -282,76 +283,10 @@ func (l tabLabel) WidgetID() string { return l.id }
 func (l tabLabel) OnClick(t.MouseEvent) { l.activate() }
 
 func (l tabLabel) Build(ctx t.BuildContext) t.Widget {
-	return t.Text{Spans: l.spans}
-}
-
-// choice is one option in a segmented control.
-type choice struct {
-	Value string
-	Label string
-}
-
-// segmented is a focusable single-choice control rendered as joined chips,
-// used instead of dropdowns for small option sets (body type, auth type...).
-type segmented struct {
-	ID       string
-	Options  []choice
-	Selected string
-	OnChange func(value string)
-}
-
-func (s segmented) WidgetID() string            { return s.ID }
-func (s segmented) IsFocusable() bool           { return true }
-func (s segmented) OnKey(event t.KeyEvent) bool { return false }
-
-func (s segmented) Keybinds() []t.Keybind {
-	return []t.Keybind{
-		{Key: "left", Name: "Previous", Action: func() { s.step(-1) }, Hidden: true},
-		{Key: "h", Name: "Previous", Action: func() { s.step(-1) }, Hidden: true},
-		{Key: "right", Name: "Next", Action: func() { s.step(1) }, Hidden: true},
-		{Key: "l", Name: "Next", Action: func() { s.step(1) }, Hidden: true},
+	var bg t.Color
+	if l.hoverable && !ctx.IsDisabled() && ctx.IsHovered(l) {
+		// Keep the tint translucent so it blends over sidebar gradients too.
+		bg = ctx.Theme().Hover
 	}
-}
-
-func (s segmented) step(delta int) {
-	if len(s.Options) == 0 || s.OnChange == nil {
-		return
-	}
-	index := 0
-	for i, option := range s.Options {
-		if option.Value == s.Selected {
-			index = i
-		}
-	}
-	index = (index + delta + len(s.Options)) % len(s.Options)
-	s.OnChange(s.Options[index].Value)
-}
-
-func (s segmented) Build(ctx t.BuildContext) t.Widget {
-	theme := ctx.Theme()
-	focused := ctx.IsFocused(s)
-	children := make([]t.Widget, 0, len(s.Options))
-	for _, option := range s.Options {
-		value := option.Value
-		style := t.Style{ForegroundColor: theme.TextMuted, BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)}
-		if value == s.Selected {
-			style.ForegroundColor = theme.TextOnPrimary
-			style.BackgroundColor = theme.Primary
-			style.Bold = true
-			if focused {
-				style.BackgroundColor = theme.Accent
-				style.ForegroundColor = theme.TextOnAccent
-			}
-		}
-		children = append(children, t.Text{
-			Content: option.Label,
-			Style:   style,
-			Click: func(t.MouseEvent) {
-				if s.OnChange != nil {
-					s.OnChange(value)
-				}
-			},
-		})
-	}
-	return t.Row{Style: t.Style{Height: t.Cells(1)}, Children: children}
+	return t.Text{Spans: l.spans, Style: t.Style{BackgroundColor: bg}}
 }

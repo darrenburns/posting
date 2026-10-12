@@ -76,7 +76,7 @@ func (sb sidebar) GetContentDimensions() (t.Dimension, t.Dimension) { return t.F
 func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 	a := sb.app
 	historyCount := len(a.history.Get())
-	tabs := tabStrip{ID: sidebarTabsID, Active: a.sidebarTab, Down: a.focusBelowSidebarTabs, Tabs: []tabItem{
+	tabs := tabStrip{ID: sidebarTabsID, Active: a.sidebarTab.Get(), OnChange: a.sidebarTab.Set, Down: a.focusBelowSidebarTabs, Tabs: []tabItem{
 		{Key: "requests", Label: a.icons.requests + "Requests"},
 		{Key: "history", Label: a.icons.history + "History", Badge: countBadge(historyCount)},
 	}}

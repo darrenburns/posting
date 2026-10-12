@@ -29,12 +29,13 @@ func (s *Session) requestTabs() tabStrip {
 		tabs[i] = tab.item()
 	}
 	return tabStrip{
-		ID:     requestTabsID,
-		Active: s.requestTab,
-		View:   s.requestTabView,
-		Down:   func() { t.RequestFocus(s.contentFocusID(s.requestTab.Peek())) },
-		Up:     func() { t.RequestFocus(urlInputID) },
-		Tabs:   tabs,
+		ID:       requestTabsID,
+		Active:   s.requestTab.Get(),
+		OnChange: s.requestTab.Set,
+		View:     s.requestTabView,
+		Down:     func() { t.RequestFocus(s.contentFocusID(s.requestTab.Peek())) },
+		Up:       func() { t.RequestFocus(urlInputID) },
+		Tabs:     tabs,
 	}
 }
 
@@ -140,11 +141,11 @@ type bodyEditor struct {
 	session *Session
 }
 
-var contentTypes = []choice{
-	{Value: "application/json", Label: "JSON"},
-	{Value: "text/plain", Label: "Text"},
-	{Value: "application/xml", Label: "XML"},
-	{Value: "text/html", Label: "HTML"},
+var contentTypes = []tabItem{
+	{Key: "application/json", Label: "JSON"},
+	{Key: "text/plain", Label: "Text"},
+	{Key: "application/xml", Label: "XML"},
+	{Key: "text/html", Label: "HTML"},
 }
 
 func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
@@ -152,14 +153,14 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 	s := b.session
 	bodyType := s.bodyType.Get()
 	controls := []t.Widget{
-		segmented{
+		tabStrip{
 			ID: "req-body-type",
-			Options: []choice{
-				{Value: string(model.BodyNone), Label: "None"},
-				{Value: string(model.BodyRaw), Label: "Raw"},
-				{Value: string(model.BodyForm), Label: "Form"},
+			Tabs: []tabItem{
+				{Key: string(model.BodyNone), Label: "None"},
+				{Key: string(model.BodyRaw), Label: "Raw"},
+				{Key: string(model.BodyForm), Label: "Form"},
 			},
-			Selected: string(bodyType),
+			Active:   string(bodyType),
 			OnChange: func(value string) { s.bodyType.Set(model.BodyType(value)); s.touch() },
 		},
 		t.Spacer{},
@@ -168,10 +169,10 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 	switch bodyType {
 	case model.BodyRaw:
 		contentType := s.contentType.Get()
-		controls = append(controls, segmented{
+		controls = append(controls, tabStrip{
 			ID:       "req-body-content-type",
-			Options:  contentTypes,
-			Selected: contentType,
+			Tabs:     contentTypes,
+			Active:   contentType,
 			OnChange: func(value string) { s.contentType.Set(value); s.touch() },
 		})
 		var area t.Widget = t.TextArea{
@@ -256,21 +257,21 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 	authType := s.authType.Get()
 	kind := s.requestKind()
 	touch := func(string) { s.touch() }
-	options := []choice{{Value: string(model.AuthNone), Label: "None"}, {Value: string(model.AuthBasic), Label: "Basic"}}
+	options := []tabItem{{Key: string(model.AuthNone), Label: "None"}, {Key: string(model.AuthBasic), Label: "Basic"}}
 	if kind.Fields.Has(model.FieldDigestAuth) {
-		options = append(options, choice{Value: string(model.AuthDigest), Label: "Digest"})
+		options = append(options, tabItem{Key: string(model.AuthDigest), Label: "Digest"})
 	}
-	options = append(options, choice{Value: string(model.AuthBearer), Label: "Bearer token"})
+	options = append(options, tabItem{Key: string(model.AuthBearer), Label: "Bearer token"})
 	generated := "The Authorization header is generated when the request is sent."
 	if !kind.OverHTTP() {
 		generated = "The authorization metadata is generated when the request is sent."
 	}
 	rows := []formField{
 		field(t.Column{Children: []t.Widget{
-			segmented{
+			tabStrip{
 				ID:       "req-auth-type",
-				Options:  options,
-				Selected: string(authType),
+				Tabs:     options,
+				Active:   string(authType),
 				OnChange: func(value string) { s.authType.Set(model.AuthType(value)); s.touch() },
 			},
 			t.Text{Content: generated, Style: t.Style{ForegroundColor: theme.TextMuted, Margin: t.EdgeInsetsTRBL(1, 0, 0, 0), Padding: inset}},

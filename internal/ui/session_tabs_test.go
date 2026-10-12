@@ -69,6 +69,53 @@ func (s *screen) showTab(tt *testing.T, title string) {
 	tt.Fatalf("no tab titled %q", title)
 }
 
+func TestSessionTabHover(tt *testing.T) {
+	app := homeApp("aurora")
+	openTabs(app, 1)
+	p := t.NewPilot(tt, app, snapW, snapH)
+	theme, _ := t.GetTheme("aurora")
+	bounds, _ := p.Bounds(sessionTabsID)
+	for _, title := range []string{"Untitled", "Request 01"} {
+		x, y := findText(tt, p.ScreenText(), title, bounds.X, bounds.X+bounds.Width)
+		row := []rune(strings.Split(p.ScreenText(), "\n")[y])
+		closeX := x + len(title)
+		for row[closeX] != '✕' {
+			closeX++
+		}
+		base := t.FromANSI(p.Buffer().CellAt(x, y).Style.Bg)
+		tinted := base
+		if title == "Untitled" {
+			tinted = theme.Hover.BlendOver(base)
+		}
+		for _, target := range []int{x, closeX, x, 0} {
+			p.MouseMove(target, y)
+			want := tinted
+			if target == 0 {
+				want = base
+			}
+			// Method badge, title, marker, close control and padding share the tint.
+			for cellX := x - 5; cellX <= closeX+1; cellX++ {
+				if got := t.FromANSI(p.Buffer().CellAt(cellX, y).Style.Bg); got != want {
+					tt.Fatalf("%s background at %d = %s, want %s (pointer x=%d)", title, cellX, got.Hex(), want.Hex(), target)
+				}
+			}
+			closeFG := theme.TextMuted
+			if target == closeX {
+				closeFG = theme.Text
+			}
+			if got := t.FromANSI(p.Buffer().CellAt(closeX, y).Style.Fg); got != closeFG {
+				tt.Fatalf("%s close foreground = %s, want %s", title, got.Hex(), closeFG.Hex())
+			}
+			assertActive(tt, app, "Request 01")
+		}
+	}
+	// A hovered close button still closes without selecting the inactive tab.
+	x, y := findText(tt, p.ScreenText(), "✕", bounds.X, bounds.X+bounds.Width)
+	p.MouseMove(x, y)
+	p.ClickAt(x, y)
+	assertTabs(tt, app, "Request 01")
+}
+
 func TestSessionTabsDragToReorder(tt *testing.T) {
 	for _, tc := range []struct {
 		name     string

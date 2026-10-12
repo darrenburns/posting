@@ -281,6 +281,9 @@ func (c sessionChip) marker() string {
 func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	s := c.session
+	id := s.id
+	dragID := fmt.Sprintf("%s-%d", sessionTabsID, id)
+	closeHovered := !ctx.IsDisabled() && ctx.IsHovered(t.Text{ID: dragID + "-close"})
 	badge := s.badgeRequest()
 	title := truncate(s.title.Get(), 28)
 	bg := theme.Background
@@ -288,6 +291,8 @@ func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 	if c.active {
 		bg = theme.Surface
 		fg = theme.Text
+	} else if !ctx.IsDisabled() && (closeHovered || ctx.IsHovered(t.Text{ID: dragID + "-label"})) {
+		bg = theme.Hover.BlendOver(bg)
 	}
 	// The preview tab's title is in italics, as in VS Code, to show that
 	// the next request opened will replace it.
@@ -304,8 +309,6 @@ func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 		spans = append(spans, t.Span{Text: " …", Style: t.SpanStyle{Foreground: theme.AccentText, Background: bg}})
 	}
 	spans = append(spans, t.Span{Text: c.marker(), Style: t.SpanStyle{Foreground: theme.WarningText, Background: bg}})
-	id := s.id
-	dragID := fmt.Sprintf("%s-%d", sessionTabsID, id)
 	// A double-click keeps a preview tab open.
 	children := []t.Widget{t.Text{ID: dragID + "-label", Spans: spans, Click: func(e t.MouseEvent) {
 		c.app.active.Set(id)
@@ -314,13 +317,18 @@ func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 		}
 	}}}
 	if c.closable {
+		closeFG := theme.TextMuted
+		if closeHovered {
+			closeFG = theme.Text
+		}
 		children = append(children, t.Text{
+			ID:      dragID + "-close",
 			Content: c.closer(),
-			Style:   t.Style{ForegroundColor: theme.TextMuted, BackgroundColor: bg},
+			Style:   t.Style{ForegroundColor: closeFG, BackgroundColor: bg},
 			Click:   func(t.MouseEvent) { c.app.closeSession(id) },
 		})
 	} else {
-		children = append(children, t.Text{Content: c.closer(), Style: t.Style{BackgroundColor: bg}})
+		children = append(children, t.Text{ID: dragID + "-close", Content: c.closer(), Style: t.Style{BackgroundColor: bg}})
 	}
 	return t.DropTarget[int]{
 		ID:     dragID + "-drop",

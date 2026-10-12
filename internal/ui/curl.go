@@ -206,10 +206,10 @@ func (o curlOverlay) Build(ctx t.BuildContext) t.Widget {
 			t.Button{ID: "curl-import", Label: "Import", Variant: t.ButtonSuccess, OnPress: a.submitCurlImport, Click: func(t.MouseEvent) { a.submitCurlImport() }},
 		}
 	} else if f.mode.Get() == "export" {
-		toggle = segmented{
-			ID:       "curl-resolve",
-			Options:  []choice{{Value: "resolved", Label: "Values"}, {Value: "variables", Label: "Variables"}},
-			Selected: map[bool]string{true: "resolved", false: "variables"}[f.resolve.Get()],
+		toggle = tabStrip{
+			ID:     "curl-resolve",
+			Tabs:   []tabItem{{Key: "resolved", Label: "Values"}, {Key: "variables", Label: "Variables"}},
+			Active: map[bool]string{true: "resolved", false: "variables"}[f.resolve.Get()],
 			OnChange: func(value string) {
 				f.resolve.Set(value == "resolved")
 				a.refreshExport()

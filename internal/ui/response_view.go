@@ -172,9 +172,10 @@ func (s *Session) responseTabs(resp *model.Response) tabStrip {
 		items = append(items, tabs[key].item)
 	}
 	return tabStrip{
-		ID:     responseTabsID,
-		Active: s.responseTab,
-		View:   s.responseTabView,
+		ID:       responseTabsID,
+		Active:   s.responseTab.Get(),
+		OnChange: s.responseTab.Set,
+		View:     s.responseTabView,
 		Down: func() {
 			if tab := tabs[s.responseTab.Peek()]; !tab.empty {
 				t.RequestFocus(tab.focusID)
