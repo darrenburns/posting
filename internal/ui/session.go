@@ -128,6 +128,8 @@ type Session struct {
 	responseBodyScroll         *t.ScrollState
 	responseBodyViewportHeight int
 	responseBodyViewportCursor int
+	responseSearch             *t.TextInputState
+	responseSearchOpen         t.Signal[bool]
 	// responseVisual is the body viewer's visual mode, where moving selects.
 	responseVisual        t.Signal[bool]
 	responseHeaders       *t.TableState[model.Header]
@@ -207,6 +209,8 @@ func newSession(id int, req model.Request) *Session {
 		messages:               newMessageLog(),
 		responseBody:           t.NewTextAreaState(""),
 		responseBodyScroll:     t.NewScrollState(),
+		responseSearch:         t.NewTextInputState(""),
+		responseSearchOpen:     t.NewSignal(false),
 		responseVisual:         t.NewSignal(false),
 		responseHeaders:        t.NewTableState[model.Header](nil),
 		responseHeadersScroll:  t.NewScrollState(),

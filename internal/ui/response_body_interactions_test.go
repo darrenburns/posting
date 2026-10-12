@@ -65,7 +65,7 @@ func TestResponseBodySmartHomeResetsColumn(tt *testing.T) {
 func TestResponseBodyLegacyPagingKeys(tt *testing.T) {
 	app, _ := bodyApp(tt, "text/plain", strings.Repeat("hello world\n", 100))
 	keys := bodyKeys(tt, app)
-	for _, key := range []string{"ctrl+b", "ctrl+f", "ctrl+d", "ctrl+u"} {
+	for _, key := range []string{"ctrl+b", "pgdown", "ctrl+d", "ctrl+u"} {
 		if !keys[key] {
 			tt.Errorf("missing legacy paging binding %s", key)
 		}
@@ -245,7 +245,7 @@ func TestResponseBodyPagingGeometry(tt *testing.T) {
 			down, up string
 			divisor  int
 		}{
-			{"pgdown", "pgup", 1}, {"ctrl+f", "ctrl+b", 1}, {"ctrl+d", "ctrl+u", 2},
+			{"pgdown", "pgup", 1}, {"pgdown", "ctrl+b", 1}, {"ctrl+d", "ctrl+u", 2},
 		} {
 			bodyScreenKey(tt, screen, "g")
 			bodyScreenKey(tt, screen, "l")

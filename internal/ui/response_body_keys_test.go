@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -250,4 +251,134 @@ func TestSnapshotResponseVisualMode(tt *testing.T) {
 	t.RequestFocus("resp-body")
 	press(tt, app, "j", "j", "v", "j", "j", "$")
 	t.AssertSnapshot(tt, app, snapW, snapH, "Response body in visual mode: lines 3 to 5 selected, a VISUAL badge and the cursor position 5:20 in the bar under the body")
+}
+
+func TestResponseBodySearch(tt *testing.T) {
+	text := "Café.* first\n" + strings.Repeat("not a match\n", 80) + "CAFÉ.* last"
+	app, s := bodyApp(tt, "text/plain", text)
+	p := t.NewPilot(tt, app, snapW, snapH)
+	p.Click("resp-body")
+	p.Press("g", "v", "ctrl+f")
+	if p.FocusedID() != responseSearchID || s.responseVisual.Peek() {
+		tt.Fatalf("find should leave visual mode and focus search: focus=%q visual=%v", p.FocusedID(), s.responseVisual.Peek())
+	}
+	p.Type("café.*")
+	check := func(count, selected, visible string) {
+		tt.Helper()
+		if got := strings.TrimSpace(p.TextOf(responseSearchID + "-count")); got != count {
+			tt.Fatalf("search count = %q, want %q", got, count)
+		}
+		if got := s.responseBody.GetSelectedText(); got != selected {
+			tt.Fatalf("selected %q, want %q", got, selected)
+		}
+		if !strings.Contains(p.TextOf("resp-body"), visible) {
+			tt.Fatalf("search did not reveal %q", visible)
+		}
+	}
+	check("1/2", "Café.*", "first")
+	p.Press("shift+enter")
+	check("2/2", "CAFÉ.*", "last")
+	p.Press("enter")
+	check("1/2", "Café.*", "first")
+	p.Press("up")
+	if p.FocusedID() != "resp-body" {
+		tt.Fatal("up from search should focus the body")
+	}
+	p.Press("n")
+	check("2/2", "CAFÉ.*", "last")
+	p.Press("N")
+	check("1/2", "Café.*", "first")
+	p.Press("v", "n")
+	check("2/2", "CAFÉ.*", "last")
+	p.Press("escape")
+	if p.FocusedID() != "resp-body" || s.responseBody.SearchQuery.Peek() != "" || s.responseSearchOpen.Peek() {
+		tt.Fatal("escape should close search, clear highlights and return to the body")
+	}
+	p.Press("/")
+	if s.responseSearch.GetSelectedText() != "café.*" {
+		tt.Fatal("reopening search should select the previous query for replacement")
+	}
+	check("2/2", "CAFÉ.*", "last")
+	p.Type("absent")
+	p.Press("enter", "shift+enter")
+	check("No matches", "", "last")
+	p.Press("ctrl+a", "backspace")
+	if s.responseBody.SearchQuery.Peek() != "" || len(s.responseBody.SearchMatches()) != 0 {
+		tt.Fatal("clearing the input should clear the search")
+	}
+	p.Type("café.*")
+	p.Press("up", "v", "n", "y")
+	if got := p.Clipboard(); got != "CAFÉ.*" {
+		tt.Fatalf("copying a search match after visual mode copied %q", got)
+	}
+	if got := s.responseBody.GetText(); got != text {
+		tt.Fatal("searching modified the read-only body")
+	}
+}
+
+func TestResponseBodySearchStaysWithItsSession(tt *testing.T) {
+	app, first := bodyApp(tt, "text/plain", "one two one")
+	p := t.NewPilot(tt, app, snapW, snapH)
+	p.Click("resp-body")
+	p.Press("g", "/")
+	p.Type("one")
+	second := app.openSession(sampleRequest(tt, "Create user"))
+	second.showResponse(fixedResponse(), nil)
+	second.phase.Set(exchangeDone)
+	t.RequestFocus("resp-body")
+	p.Advance(0)
+	if second.responseSearchOpen.Peek() || second.responseBody.SearchQuery.Peek() != "" {
+		tt.Fatal("search leaked into another session")
+	}
+	p.Press("/", "escape", "alt+left")
+	if app.current() != first {
+		tt.Fatal("did not return to the first session")
+	}
+	t.RequestFocus("resp-body")
+	p.Advance(0)
+	p.Press("n")
+	if got := strings.TrimSpace(p.TextOf(responseSearchID + "-count")); got != "2/2" {
+		tt.Fatalf("session lost its search: %q", got)
+	}
+	// A replacement response must search the new body, not cached old matches.
+	resp := fixedResponse()
+	resp.Headers = []model.Header{{Name: "Content-Type", Value: "text/plain"}}
+	resp.Body = []byte("a new one")
+	first.showResponse(resp, nil)
+	p.Advance(0)
+	p.Press("n")
+	if got := strings.TrimSpace(p.TextOf(responseSearchID + "-count")); got != "1/1" {
+		tt.Fatalf("new response count = %q, want 1/1", got)
+	}
+	p.Press("y")
+	if got := p.Clipboard(); got != "one" {
+		tt.Fatalf("new response match copied %q", got)
+	}
+	// Search consumes Escape before the app's request cancellation binding.
+	first.phase.Set(exchangeSending)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	first.cancel = cancel
+	p.Advance(0)
+	p.Press("escape")
+	if ctx.Err() != nil {
+		tt.Fatal("closing search cancelled the request")
+	}
+	p.Press("escape")
+	if ctx.Err() != context.Canceled {
+		tt.Fatal("escape after closing search should still cancel the request")
+	}
+}
+
+func TestSnapshotResponseSearch(tt *testing.T) {
+	app, _ := bodyApp(tt, "application/json", `{"users": [{"name": "Ada"}, {"name": "Grace"}, {"name": "ADA"}]}`)
+	p := t.NewPilot(tt, app, snapW, snapH)
+	p.Click("resp-body")
+	p.Press("g", "ctrl+f")
+	p.Type("name")
+	p.AssertSnapshot("ResponseSearch_matches", "Live response search: three highlighted matches, the first selected, with focus in the search input")
+	p.Resize(82, snapH)
+	p.Press("ctrl+f")
+	p.Type("missing")
+	p.AssertSnapshot("ResponseSearch_empty", "A narrow response pane shows No matches while keeping the search input and close control visible")
 }

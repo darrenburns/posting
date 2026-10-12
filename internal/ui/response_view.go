@@ -256,18 +256,23 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 		s.messages.following.Set(false)
 		return false
 	}
+	children := []t.Widget{
+		responseBodyViewport{
+			session: s,
+			Column: t.Column{
+				Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+				Children: []t.Widget{viewport},
+			},
+		},
+	}
+	if s.responseSearchOpen.Get() {
+		children = append(children, responseBodySearch{session: s})
+	}
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Children: []t.Widget{
-			responseBodyViewport{
-				session: s,
-				Column: t.Column{
-					Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-					Children: []t.Widget{viewport},
-				},
-			},
+		Children: append(children,
 			responseBodyStatus{session: s, contentType: contentType, copyBody: copyBody},
-		},
+		),
 	}
 }
 

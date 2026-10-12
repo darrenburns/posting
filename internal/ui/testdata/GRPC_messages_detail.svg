@@ -3305,16 +3305,14 @@
   <text x="142.4" y="703.8" fill="#706B91">d</text>
   <text x="150.8" y="703.8" fill="#706B91">e</text>
   <text x="159.2" y="703.8" fill="#706B91">v</text>
-  <text x="201.2" y="703.8" fill="#FF69B4">y</text>
-  <text x="218.0" y="703.8" fill="#9A96BE">Copy</text>
-  <text x="260.0" y="703.8" fill="#FF69B4">v</text>
-  <text x="276.8" y="703.8" fill="#9A96BE">Visual</text>
-  <text x="335.6" y="703.8" fill="#FF69B4">F3</text>
-  <text x="360.8" y="703.8" fill="#9A96BE">Pager</text>
-  <text x="411.2" y="703.8" fill="#FF69B4">F4</text>
-  <text x="436.4" y="703.8" fill="#9A96BE">Editor</text>
-  <text x="495.2" y="703.8" fill="#FF69B4">Esc</text>
-  <text x="528.8" y="703.8" fill="#9A96BE">Back</text>
-  <text x="570.8" y="703.8" fill="#9A96BE">to</text>
-  <text x="596.0" y="703.8" fill="#9A96BE">log</text>
+  <text x="201.2" y="703.8" fill="#FF69B4">^f</text>
+  <text x="226.4" y="703.8" fill="#9A96BE">Find</text>
+  <text x="268.4" y="703.8" fill="#FF69B4">y</text>
+  <text x="285.2" y="703.8" fill="#9A96BE">Copy</text>
+  <text x="327.2" y="703.8" fill="#FF69B4">v</text>
+  <text x="344.0" y="703.8" fill="#9A96BE">Visual</text>
+  <text x="402.8" y="703.8" fill="#FF69B4">F3</text>
+  <text x="428.0" y="703.8" fill="#9A96BE">Pager</text>
+  <text x="478.4" y="703.8" fill="#FF69B4">F4</text>
+  <text x="503.6" y="703.8" fill="#9A96BE">Editor</text>
 </svg>
