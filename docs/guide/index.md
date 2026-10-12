@@ -34,6 +34,14 @@ If you prefer, you can install Posting via [`pipx`](https://pipx.pypa.io/stable/
 pipx install posting
 ```
 
+### Debian
+
+Posting is included in Debian and Debian-based distributions such as Ubuntu as of January 2026. If you distribution release is new enough, you can install Posting via apt.
+
+```bash
+sudo apt install posting
+```
+
 ---
 
 The methods above will both install Posting globally, in an isolated environment. Do *not* attempt to install Posting with `pip`.
