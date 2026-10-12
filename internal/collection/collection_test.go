@@ -278,3 +278,14 @@ func TestMarshalPreservesWhitespaceInEditableValues(t *testing.T) {
 		})
 	}
 }
+
+func TestRejectInvalidCaptureFiles(t *testing.T) {
+	for _, captures := range []string{
+		"{BAD-NAME: data.id}", "{ID: 'data[?(@.id ==)]'}", "{ID: ''}",
+		"{ID: [data.id]}", "{ID: data.id, ID: data.other}", "[data.id]",
+	} {
+		if _, err := ParseRequest([]byte("url: https://example.test\ncaptures: "+captures), ""); err == nil {
+			t.Errorf("accepted invalid captures: %s", captures)
+		}
+	}
+}

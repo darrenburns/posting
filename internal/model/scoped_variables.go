@@ -127,7 +127,10 @@ func scopedVariables(variables []Variable, scope *VariableScope, fallback func(s
 
 // VariablesForRequest resolves only the templates used by this snapshot, so
 // an unused alias cannot prevent sending an otherwise independent request.
+// Each generated variable is evaluated once, shared by direct references and
+// templates, and discarded after this send. Editing never calls this function.
 func VariablesForRequest(req Request, variables []Variable, fallback func(string) (string, bool)) ([]Variable, error) {
+	variables = Merge(variables, generatedVariables())
 	roots := make([]string, 0)
 	_, _ = Resolve(req, func(name string) (string, bool) {
 		roots = append(roots, name)

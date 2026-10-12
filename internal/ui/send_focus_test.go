@@ -39,7 +39,9 @@ func TestSendCompletionKeepsBackgroundTabSelection(tt *testing.T) {
 	} {
 		tt.Run(tc.name, func(tt *testing.T) {
 			app := settingsApp(tt, func(s *config.Settings) { s.Focus.OnResponse = tc.onResponse })
-			app.openRequest(sampleRequest(tt, "List users"))
+			req := sampleRequest(tt, "List users")
+			req.Captures = map[string]string{"USER_ID": "users[0].id"}
+			app.openRequest(req)
 			sending := app.current()
 			sending.responseTab.Set("headers")
 			// Standalone Terma dispatches inline. Queue callbacks as the real app
@@ -112,6 +114,9 @@ func TestSendCompletionKeepsBackgroundTabSelection(tt *testing.T) {
 			}
 			if sending.response.Peek() != response || sending.phase.Peek() != exchangeDone {
 				tt.Error("sending request did not receive its response")
+			}
+			if !tc.emptyBody && app.sessionVars.Peek()["USER_ID"] != "1" {
+				tt.Error("background response didn't capture its own request's variables")
 			}
 			if got := app.history.Peek(); len(got) != 1 || got[0].Request.File != sending.file.Peek() {
 				tt.Errorf("history did not retain the sending request: %+v", got)

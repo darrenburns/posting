@@ -22,7 +22,7 @@ const FileSuffix = ".posting.yaml"
 // requestFile mirrors Posting 2's RequestModel. Field order is the order
 // Posting 2 writes them in, and fields at their default value are left out,
 // as Posting 2 does, so files stay short and diffs stay small. Kind, its block
-// (graphql, grpc), and variable_scope are Posting 3 fields that Posting 2
+// (graphql, grpc), captures and variable_scope are Posting 3 fields that Posting 2
 // ignores.
 type requestFile struct {
 	Name        yamlString      `yaml:"name,omitempty"`
@@ -40,6 +40,7 @@ type requestFile struct {
 	Scripts     *scriptsFile    `yaml:"scripts,omitempty"`
 	Options     *optionsFile    `yaml:"options,omitempty"`
 
+	Captures      map[string]string    `yaml:"captures,omitempty"`
 	VariableScope *model.VariableScope `yaml:"variable_scope,omitempty"`
 }
 
@@ -113,8 +114,12 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 	if err := yaml.Unmarshal(data, &in); err != nil {
 		return model.Request{}, err
 	}
+	if err := model.ValidateCaptures(in.Captures); err != nil {
+		return model.Request{}, err
+	}
 	req := model.NewRequest()
 	req.File = file
+	req.Captures = in.Captures
 	req.VariableScope = in.VariableScope
 	req.Name = string(in.Name)
 	req.Description = string(in.Description)
@@ -206,8 +211,12 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 
 // MarshalRequest encodes req in Posting 2's format.
 func MarshalRequest(req model.Request) ([]byte, error) {
+	if err := model.ValidateCaptures(req.Captures); err != nil {
+		return nil, err
+	}
 	req = model.Normalize(req)
 	out := requestFile{
+		Captures:      req.Captures,
 		VariableScope: req.VariableScope,
 		Name:          yamlString(req.Name),
 		Description:   yamlString(req.Description),

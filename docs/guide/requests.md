@@ -634,7 +634,8 @@ Only settings that differ from the defaults are written, so most files are short
 | `grpc` | A gRPC request's `method`, `message` and `proto` (`files` and `import_paths`). Any other key in it is an error. |
 | `auth` | `type` is `basic`, `digest` or `bearer_token`, with credentials under a key of the same name (`basic: {username, password}`, `bearer_token: {token}`). |
 | `options` | Any of `follow_redirects`, `verify_ssl`, `attach_cookies`, `substitute_body_variables`, `proxy_url` and `timeout`. |
+| `captures` | Maps session variable names to JSON response paths, e.g. `{SESSION_ID: data.id}`. See [Response captures](./environments.md#response-captures). |
 | `scripts` | Posting 2 scripts. Posting 3 keeps them but doesn't run them; see [Scripting](./scripting.md). |
 
 HTTP requests with none, raw or URL-encoded form bodies use Posting 2's format. Multipart and file
-bodies require Posting 3.
+bodies, generated values and response captures require Posting 3.

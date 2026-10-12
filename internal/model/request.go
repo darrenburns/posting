@@ -5,6 +5,7 @@
 package model
 
 import (
+	"maps"
 	"slices"
 	"strings"
 )
@@ -162,6 +163,8 @@ type Request struct {
 	Auth        Auth
 	Options     Options
 	Scripts     Scripts
+	// Captures maps session variable names to paths in the JSON response body.
+	Captures map[string]string `json:",omitempty"`
 	// Payload is the part of the request only its kind understands, such as
 	// a GraphQL document. Nil is a plain HTTP request. The kind is derived
 	// from Payload's type rather than stored beside it, so they can't disagree.
@@ -186,6 +189,7 @@ func NewRequest() Request {
 // Clone returns a deep copy so edits never alias another request's slices.
 func (r Request) Clone() Request {
 	r.VariableScope = r.VariableScope.Clone()
+	r.Captures = maps.Clone(r.Captures)
 	r.Headers = cloneKV(r.Headers)
 	r.Query = cloneKV(r.Query)
 	r.PathParams = cloneKV(r.PathParams)

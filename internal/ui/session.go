@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/url"
 	"slices"
 	"strconv"
@@ -82,6 +83,7 @@ type Session struct {
 	// Posting 2 request doesn't drop them.
 	scripts       model.Scripts
 	variableScope *model.VariableScope
+	captures      map[string]string
 	// payloads edit the payload of each kind that has one, for the
 	// session's whole life, so switching kinds loses nothing.
 	payloads   map[model.KindID]payloadEditor
@@ -293,6 +295,7 @@ func (s *Session) Snapshot() model.Request {
 		},
 		Scripts:       s.scripts,
 		VariableScope: s.variableScope.Clone(),
+		Captures:      maps.Clone(s.captures),
 		File:          s.file.Peek(),
 	}
 	if req.Body.Type == model.BodyMultipart {
@@ -363,6 +366,7 @@ func (s *Session) Load(req model.Request) {
 	s.file.Set(req.File)
 	s.scripts = req.Scripts
 	s.variableScope = req.VariableScope.Clone()
+	s.captures = req.Captures
 	s.follow.SetChecked(req.Options.FollowRedirects)
 	s.verifySSL.SetChecked(req.Options.VerifySSL)
 	s.cookies.SetChecked(req.Options.AttachCookies)

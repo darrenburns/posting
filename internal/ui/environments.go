@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -121,7 +122,30 @@ func variableSource(v model.Variable) string {
 
 func (a *App) resolver() func(string) bool {
 	values := a.variableValues()
+	for _, g := range model.Generators {
+		values[g.Name] = ""
+	}
 	return func(name string) bool { _, ok := values[name]; return ok }
+}
+
+// captureResponse updates the session atomically, using the request snapshot
+// that produced the response, even if its tab is no longer active.
+func (a *App) captureResponse(req model.Request, resp *model.Response) {
+	values, err := model.CaptureValues(req.Captures, resp.Body)
+	if err != nil {
+		a.notify("Couldn't capture response: "+err.Error(), toastWarning)
+		return
+	}
+	if len(values) == 0 {
+		return
+	}
+	vars := make(map[string]string, len(a.sessionVars.Peek())+len(values))
+	maps.Copy(vars, a.sessionVars.Peek())
+	maps.Copy(vars, values)
+	a.sessionVars.Set(vars)
+	if a.overlay.Peek() == "variables" {
+		a.refreshVariableRows()
+	}
 }
 
 // envName is the active environment's name, or "" when none is active.
