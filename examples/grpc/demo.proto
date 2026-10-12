@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package demo.v1;
+
+service Greeter {
+  rpc SayHello(HelloRequest) returns (Reply);
+  rpc StreamGreetings(HelloRequest) returns (stream Reply);
+  rpc CollectNames(stream HelloRequest) returns (NameList);
+  rpc Chat(stream ChatMessage) returns (stream Reply);
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message ChatMessage {
+  string text = 1;
+}
+
+message Reply {
+  string text = 1;
+  int32 sequence = 2;
+}
+
+message NameList {
+  repeated string names = 1;
+  int32 count = 2;
+}

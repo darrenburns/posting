@@ -600,6 +600,7 @@ func (a *App) toggleStream() {
 	case s.streaming.Peek() == streamOpen:
 		s.stream.Close()
 		s.streaming.Set(streamEnded)
+		s.streamShimmer.Stop()
 	default:
 		a.start(s, client.NewStream())
 	}

@@ -44,7 +44,7 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	// Everything about the response as a whole sits together on the
 	// heading row, just before the title: what is happening or the status,
 	// then the size and time.
-	var info []string
+	var info []t.Text
 	switch {
 	case phase == exchangeSending && s.uploadProgress.Get().active:
 		progress := s.uploadProgress.Get()
@@ -54,21 +54,30 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 		}
 		info = []string{escapeMarkup(label)}
 	case live:
-		label := "RECEIVING"
-		class := model.StatusClassWarning
+		fg, bg := statusColors(theme, model.StatusClassWarning)
+		status := t.ParseMarkupToText(fmt.Sprintf("[%s on %s] RECEIVING [/]", fg.Hex(), bg.Hex()), theme)
 		if streaming == streamOpen {
-			label = "STREAM OPEN"
-			class = model.StatusClassSuccess
+			status = t.Text{
+				Spans: []t.Span{{Text: "Streaming"}},
+				Style: t.Style{ForegroundColor: t.Shimmer{
+					State:     s.streamShimmer,
+					Base:      theme.SuccessText,
+					Highlight: theme.SuccessText.Lighten(0.25),
+					BandWidth: 4,
+				}},
+			}
 		}
-		fg, bg := statusColors(theme, class)
-		info = []string{p.streamHints(streaming), fmt.Sprintf("[%s on %s] %s [/]", fg.Hex(), bg.Hex(), label)}
+		info = []t.Text{
+			t.ParseMarkupToText(p.streamHints(streaming), theme),
+			status,
+		}
 	case resp != nil:
 		status := s.responseStatus
 		fg, bg := statusColors(theme, status.Class)
 		if p.app.settings.Response.ShowSizeAndTime {
-			info = append(info, fmt.Sprintf("[$Text]%s[/] [$TextMuted]in %s[/][$Text]%s[/]", model.FormatBytes(resp.Size()), p.app.icons.elapsed, model.FormatDuration(resp.Elapsed)))
+			info = append(info, t.ParseMarkupToText(fmt.Sprintf("[$Text]%s[/] [$TextMuted]in %s[/][$Text]%s[/]", model.FormatBytes(resp.Size()), p.app.icons.elapsed, model.FormatDuration(resp.Elapsed)), theme))
 		}
-		info = append(info, fmt.Sprintf("[%s on %s] %s [/]", fg.Hex(), bg.Hex(), statusText(status)))
+		info = append(info, t.ParseMarkupToText(fmt.Sprintf("[%s on %s] %s [/]", fg.Hex(), bg.Hex(), statusText(status)), theme))
 	}
 
 	var content t.Widget

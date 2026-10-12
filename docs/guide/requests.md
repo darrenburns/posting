@@ -358,7 +358,7 @@ call ends.
 
 To send messages one at a time while a call runs, open a stream instead. Press ++alt+j++, or choose
 **Open gRPC stream** in the command palette. Posting calls the method, sends the message, and keeps
-its side of the call open. The response panel's title shows `STREAM OPEN`. While the stream is open:
+its side of the call open. The response panel's title shows `Streaming`. While the stream is open:
 
 - Press ++ctrl+j++ to send the message in the editor. Edit the message between sends to send a
   different one. For a client-streaming or bidirectional method, a JSON array sends each object as

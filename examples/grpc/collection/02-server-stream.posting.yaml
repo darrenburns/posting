@@ -1,0 +1,8 @@
+name: 02 · Server stream
+description: Press Ctrl+J. Three greetings arrive a second apart.
+kind: grpc
+url: grpc://127.0.0.1:50051
+grpc:
+  method: demo.v1.Greeter/StreamGreetings
+  message: |
+    {"name": "Grace"}

@@ -146,6 +146,7 @@ type Session struct {
 	responseTrailers       *t.TableState[model.Header]
 	responseTrailersScroll *t.ScrollState
 	spinner                *t.SpinnerState
+	streamShimmer          *t.ShimmerState
 	generation             uint64
 	cancel                 context.CancelFunc
 	// live is set once the exchange in flight has shown part of its response.
@@ -231,6 +232,7 @@ func newSession(id int, req model.Request) *Session {
 		responseTrailers:       t.NewTableState[model.Header](nil),
 		responseTrailersScroll: t.NewScrollState(),
 		spinner:                t.NewSpinnerState(t.SpinnerDots),
+		streamShimmer:          t.NewShimmerState(2 * time.Second),
 		dispatch:               t.Dispatch,
 	}
 	s.urlVars, s.usernameVars, s.passwordVars = newCompletion(), newCompletion(), newCompletion()
@@ -600,6 +602,7 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, stream
 					s.streaming.Set(streamEnded)
 					if stream.TakesMessages() {
 						s.streaming.Set(streamOpen)
+						s.streamShimmer.Start()
 					}
 				}
 			})
@@ -671,6 +674,7 @@ func (s *Session) Stop() {
 }
 
 func (s *Session) endStream() {
+	s.streamShimmer.Stop()
 	s.stream = nil
 	s.streaming.Set(streamNone)
 }

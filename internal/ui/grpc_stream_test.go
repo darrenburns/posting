@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -89,12 +90,42 @@ func TestGRPCLiveResponseShowsOnScreen(tt *testing.T) {
 	tt.Cleanup(s.Stop)
 	app.toggleStream()
 	drainUntil(tt, updates, func() bool { return s.streaming.Peek() == streamOpen && bodyHas(s, "hi") })
-	sc := newScreen(app, snapW, snapH)
-	sc.render()
-	for _, want := range []string{"STREAM OPEN", "Messages", "↑ {", "↓ {", "↓ Received", `"text": "hi"`} {
-		if !sc.shows(want) {
-			tt.Errorf("screen doesn't show %q:\n%s", want, sc.renderer.ScreenText())
+	p := t.NewPilot(tt, app, snapW, snapH)
+	for _, want := range []string{"Streaming", "Messages", "↑ {", "↓ {", "↓ Received", `"text": "hi"`} {
+		if !strings.Contains(p.ScreenText(), want) {
+			tt.Errorf("screen doesn't show %q:\n%s", want, p.ScreenText())
 		}
+	}
+	labelColors := func() []string {
+		tt.Helper()
+		buf := t.SerializeBuffer(p.Buffer(), snapW, snapH)
+		for y, line := range strings.Split(p.ScreenText(), "\n") {
+			if at := strings.Index(line, "Streaming"); at >= 0 {
+				x := len([]rune(line[:at]))
+				background := buf.Cells[y*snapW+x-1].Bg
+				var colors []string
+				for _, cell := range buf.Cells[y*snapW+x : y*snapW+x+len("Streaming")] {
+					if cell.Bg != background {
+						tt.Fatal("the live label should have no badge background")
+					}
+					colors = append(colors, cell.Fg)
+				}
+				return colors
+			}
+		}
+		tt.Fatal("Streaming is missing")
+		return nil
+	}
+	before := labelColors()
+	p.Advance(750 * time.Millisecond)
+	if slices.Equal(before, labelColors()) {
+		tt.Fatal("the live label's highlight did not move")
+	}
+	app.toggleStream()
+	drainUntil(tt, updates, func() bool { return s.phase.Peek() == exchangeDone })
+	p.Advance(time.Second)
+	if strings.Contains(p.ScreenText(), "Streaming") || !strings.Contains(p.ScreenText(), "Call ended: OK") {
+		tt.Fatalf("the live label should give way to the completed call:\n%s", p.ScreenText())
 	}
 }
 

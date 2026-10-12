@@ -108,7 +108,7 @@ type section struct {
 	Prefix string // focus-within prefix for the children's IDs
 	Title  string
 	Tabs   *tabStrip   // tab strip on the left of the heading row, if any
-	Info   []string    // markup parts shown before the title (e.g. a status chip)
+	Info   []t.Text    // styled spans shown before the title (e.g. a status chip)
 	Fit    *headingFit // the heading's width, so parts that don't fit can go
 	Child  t.Widget
 	Width  t.Dimension
@@ -129,9 +129,7 @@ func (s section) Build(ctx t.BuildContext) t.Widget {
 	// The parts as shown, Info then the title, and the order they go in
 	// when there isn't room for them all.
 	parts := make([]t.Text, 0, len(s.Info)+1)
-	for _, info := range s.Info {
-		parts = append(parts, t.ParseMarkupToText(info, theme))
-	}
+	parts = append(parts, s.Info...)
 	parts = append(parts, t.ParseMarkupToText(title, theme))
 	dropOrder := []int{len(parts) - 1}
 	for i := range s.Info {
