@@ -80,6 +80,25 @@ type TraceEvent struct {
 	Duration time.Duration
 }
 
+// MessageEvent is one immutable entry in a streaming exchange's log. Times
+// are local observation times; bodies are decoded payloads, not wire frames.
+type MessageEvent struct {
+	At          time.Time
+	Kind        MessageEventKind
+	Title       string `json:",omitempty"`
+	Body        []byte `json:",omitempty"`
+	ContentType string `json:",omitempty"`
+}
+
+type MessageEventKind string
+
+const (
+	MessageSent     MessageEventKind = "sent"
+	MessageReceived MessageEventKind = "received"
+	MessageInfo     MessageEventKind = "info"
+	MessageError    MessageEventKind = "error"
+)
+
 // Response is the result of sending a Request.
 type Response struct {
 	// StatusCode and Reason are the HTTP status. A gRPC response has none:
@@ -93,6 +112,9 @@ type Response struct {
 	Trailers []Header `json:",omitempty"`
 	Cookies  []Cookie
 	Body     []byte
+	// Events is the chronological log of a streaming exchange. Unary calls
+	// and older history entries have none and use the body viewer instead.
+	Events []MessageEvent `json:",omitempty"`
 	// BodyContentType is the media type of Body when Body isn't what came
 	// over the wire, as when gRPC messages are decoded to JSON.
 	BodyContentType string      `json:",omitempty"`

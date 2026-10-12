@@ -109,7 +109,8 @@ func (c *grpcCall) start(ctx context.Context) context.CancelFunc {
 // UNAVAILABLE for a refused connection, is an error, as a failed HTTP
 // request is. A call the server answered is a response even when ctx is
 // cancelled, so cancelling a stream keeps what arrived, with the status
-// CANCELLED.
+// CANCELLED. Once a streaming call starts, keep its log even if it ends
+// before the server replies, so sent messages aren't lost either.
 func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	defer call.Stream.end()
 	c, err := prepare(call)
@@ -172,22 +173,23 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	}
 
 	marshal := protojson.MarshalOptions{EmitDefaultValues: true, Resolver: typesOf(files)}
-	var live *progress
+	live := &progress{streaming: md.IsStreamingClient() || md.IsStreamingServer()}
 	if call.OnUpdate != nil {
-		live = &progress{report: func(header metadata.MD, messages [][]byte) {
+		live.report = func(header metadata.MD, messages [][]byte, events []model.MessageEvent) {
 			call.OnUpdate(&model.Response{
 				Proto:           "gRPC",
 				Headers:         metadataHeaders(header),
 				Body:            messagesBody(md, messages),
+				Events:          events,
 				BodyContentType: "application/json",
 				Elapsed:         time.Since(started),
 				URL:             c.req.URL,
 			})
-		}}
+		}
 	}
 	ex := invoke(c.ctx, conn, md, in, call.Stream, trace, g.maxResponse, marshal, live)
 	live.stop()
-	if !trace.answered() {
+	if !trace.answered() && !live.streaming {
 		trace.end(model.TraceFailed)
 		return nil, c.explain(ctx, ex.status.Err())
 	}
@@ -199,6 +201,7 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	}
 	trace.end(model.TraceComplete)
 	resp := responseOf(md, ex, marshal)
+	resp.Events = live.finish(int(ex.status.Code()), ex.status.Message(), statusBody(ex.status, marshal))
 	resp.Elapsed = time.Since(started)
 	resp.ReceivedAt = time.Now()
 	resp.Trace = trace.trace()
@@ -652,13 +655,14 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 		ex.status = status.Convert(err)
 		return ex
 	}
+	live.event(model.MessageInfo, "Call started", nil)
 	sending := open
 	if !md.IsStreamingClient() {
 		sending = nil
 	}
 	sent := make(chan error, 1)
 	go func() {
-		err := sendAll(ctx, stream, in, sending)
+		err := sendAll(ctx, stream, in, sending, marshal, live)
 		if err != nil {
 			cancel()
 		}
@@ -708,13 +712,16 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 // sendAll sends every message, then those sent through open until it is
 // closed, and closes the client's side. io.EOF from SendMsg means the server
 // ended the call early, and RecvMsg has its status.
-func sendAll(ctx context.Context, stream grpc.ClientStream, in []proto.Message, open *Stream) error {
+func sendAll(ctx context.Context, stream grpc.ClientStream, in []proto.Message, open *Stream, marshal protojson.MarshalOptions, live *progress) error {
 	for {
 		for _, msg := range in {
 			if err := stream.SendMsg(msg); err == io.EOF {
 				return nil
 			} else if err != nil {
 				return err
+			}
+			if live.streaming {
+				live.event(model.MessageSent, "", marshalJSON(marshal, msg))
 			}
 		}
 		if open == nil {
@@ -724,7 +731,11 @@ func sendAll(ctx context.Context, stream grpc.ClientStream, in []proto.Message, 
 			break
 		}
 	}
-	return stream.CloseSend()
+	err := stream.CloseSend()
+	if err == nil && ctx.Err() == nil {
+		live.event(model.MessageInfo, "Sending finished", nil)
+	}
+	return err
 }
 
 // responseOf shows an exchange the server answered: its status, metadata

@@ -133,6 +133,9 @@ func Trim(entries []model.HistoryEntry) []model.HistoryEntry {
 		size := e.Request.PayloadSize()
 		if e.Response != nil {
 			size += len(e.Response.Body)
+			for _, event := range e.Response.Events {
+				size += len(event.Body) + len(event.Title) + len(event.ContentType) + 128
+			}
 		}
 		if size > MaxBytes {
 			continue

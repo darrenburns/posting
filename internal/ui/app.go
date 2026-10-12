@@ -615,7 +615,7 @@ func (a *App) toggleStream() {
 // opening a stream reads kindViews.
 func (a *App) streamCommand(s *Session) t.CommandPaletteItem {
 	if s.streaming.Peek() == streamOpen {
-		return t.CommandPaletteItem{Label: "End gRPC stream", Description: "Stop sending, and wait for the server to end the call", Action: a.run(a.toggleStream)}
+		return t.CommandPaletteItem{Label: "Finish sending gRPC messages", Description: "Stop sending, and wait for the server to end the call", Action: a.run(a.toggleStream)}
 	}
 	return t.CommandPaletteItem{Label: "Open gRPC stream", Description: "Call the method and keep sending messages until you end the stream", Action: a.run(a.toggleStream)}
 }
@@ -650,14 +650,17 @@ func (a *App) start(s *Session, stream *client.Stream) {
 		a.setHistory(append([]model.HistoryEntry{entry}, a.history.Peek()...))
 		// A response in a background tab must not interrupt the request the
 		// user is working on. Switching back before it arrives still applies
-		// the configured response focus behavior.
-		if a.current() != s {
+		// the configured response focus behavior. Completing a live stream
+		// must also leave an inspection already in progress alone.
+		if a.current() != s || (s.live && len(resp.Events) > 0 && !s.messages.following.Peek()) {
 			return
 		}
 		switch a.settings.Focus.OnResponse {
 		case "body":
 			s.responseTab.Set("body")
-			if len(resp.Body) > 0 {
+			if len(resp.Events) > 0 && !s.messages.detail.Peek() {
+				t.RequestFocus(messagesID)
+			} else if len(resp.Body) > 0 {
 				t.RequestFocus("resp-body")
 			} else {
 				t.RequestFocus(responseTabsID)
@@ -1080,6 +1083,9 @@ func (a *App) focusMoved(at focusAt) {
 	a.focus = at
 	if s := a.current(); s != nil && at.id == grpcMethodID {
 		s.payloads[model.KindGRPC].(*grpcEditor).describe(a, false)
+	}
+	if s := a.current(); s != nil && at.id == "resp-body" {
+		s.messages.following.Set(false)
 	}
 }
 

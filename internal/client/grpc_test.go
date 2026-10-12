@@ -90,6 +90,9 @@ func TestGRPCUnaryCall(t *testing.T) {
 	if resp.StatusCode != 0 || resp.Proto != "gRPC" || resp.ContentType() != "application/json" {
 		t.Errorf("StatusCode %d, Proto %q, ContentType %q", resp.StatusCode, resp.Proto, resp.ContentType())
 	}
+	if len(resp.Events) != 0 {
+		t.Fatal("a unary response should use the body viewer, not a message log")
+	}
 	assertJSON(t, resp.Body, `{
 		"isbn": "2", "title": "Dune Messiah", "author": {"name": "Frank Herbert", "born": 1920},
 		"genre": "GENRE_FICTION", "tags": [], "labels": {}, "editors": {}
@@ -996,6 +999,39 @@ func TestGRPCUpdatesShowMessagesBeforeTheCallEnds(t *testing.T) {
 	if err := json.Unmarshal(resp.Body, &kept); err != nil || len(kept) != 2 {
 		t.Fatalf("body = %s, want the two books that arrived", resp.Body)
 	}
+	assertMessageLog(t, resp, 1, 2, model.MessageError)
+	last := resp.Events[len(resp.Events)-1]
+	if !strings.Contains(last.Title, "CANCELLED") {
+		t.Fatalf("cancelled log ends with %+v", last)
+	}
+}
+
+// Check the public exchange log without assuming send/receive interleaving.
+func assertMessageLog(t *testing.T, resp *model.Response, sent, received int, end model.MessageEventKind) {
+	t.Helper()
+	if len(resp.Events) < 2 || resp.Events[0].Title != "Call started" {
+		t.Fatalf("missing call-start event: %+v", resp.Events)
+	}
+	var previous time.Time
+	var gotSent, gotReceived int
+	for _, event := range resp.Events {
+		if event.At.IsZero() || event.At.Before(previous) {
+			t.Fatalf("log timestamps aren't chronological: %+v", event)
+		}
+		previous = event.At
+		switch event.Kind {
+		case model.MessageSent:
+			gotSent++
+		case model.MessageReceived:
+			gotReceived++
+		}
+	}
+	if gotSent != sent || gotReceived != received {
+		t.Fatalf("log has %d sent, %d received; want %d, %d", gotSent, gotReceived, sent, received)
+	}
+	if last := resp.Events[len(resp.Events)-1]; last.Kind != end || !strings.HasPrefix(last.Title, "Call ended:") {
+		t.Fatalf("missing terminal event: %+v", last)
+	}
 }
 
 // openStream starts a call that keeps its sending side open, returning the
@@ -1044,6 +1080,17 @@ func TestGRPCOpenStreamTakesMoreMessages(t *testing.T) {
 		t.Fatalf("status = %+v", got)
 	}
 	assertJSON(t, resp.Body, `[{"text": "HI"}, {"text": "THERE"}, {"text": "A"}, {"text": "B"}]`)
+	assertMessageLog(t, resp, 4, 4, model.MessageInfo)
+	want := map[model.MessageEventKind][]string{
+		model.MessageSent:     {`{"text":"hi"}`, `{"text":"there"}`, `{"text":"a"}`, `{"text":"b"}`},
+		model.MessageReceived: {`{"text":"HI"}`, `{"text":"THERE"}`, `{"text":"A"}`, `{"text":"B"}`},
+	}
+	for _, event := range resp.Events {
+		if bodies := want[event.Kind]; len(bodies) > 0 {
+			assertJSON(t, event.Body, bodies[0])
+			want[event.Kind] = bodies[1:]
+		}
+	}
 	if err := stream.Send(`{"text": "late"}`); err == nil {
 		t.Error("a stream whose call ended took a message")
 	}
@@ -1061,7 +1108,57 @@ func TestGRPCOpenClientStreamRepliesWhenEnded(t *testing.T) {
 	if err := stream.Send(`{"title": "Late"}`); err == nil {
 		t.Error("an ended stream took a message")
 	}
-	assertJSON(t, (<-result).Body, `{"shelved": 2, "titles": ["Dune", "Emma"]}`)
+	resp := <-result
+	assertJSON(t, resp.Body, `{"shelved": 2, "titles": ["Dune", "Emma"]}`)
+	assertMessageLog(t, resp, 2, 1, model.MessageInfo)
+	finished := false
+	for _, event := range resp.Events {
+		finished = finished || event.Title == "Sending finished"
+	}
+	if !finished {
+		t.Fatal("the log must distinguish finishing sending from ending the call")
+	}
+}
+
+func TestGRPCCancellingBeforeAStreamingReplyKeepsSentMessages(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	req := grpcRequest(addr, "library.v1.Library/ShelveBooks", `{"title":"Dune"}`)
+	resp, err := NewGRPC("posting-test", TLSSettings{}, "").Send(ctx, Call{
+		Request: req, Stream: NewStream(),
+		OnUpdate: func(resp *model.Response) {
+			for _, event := range resp.Events {
+				if event.Kind == model.MessageSent {
+					cancel()
+				}
+			}
+		},
+	})
+	if err != nil || resp == nil {
+		t.Fatalf("cancelling lost the sent message: %v", err)
+	}
+	assertMessageLog(t, resp, 1, 0, model.MessageError)
+	if resp.GRPC.Code != int(codes.Canceled) {
+		t.Fatalf("status = %+v", resp.GRPC)
+	}
+}
+
+func TestGRPCMessageLogLimitKeepsTheFinalStatus(t *testing.T) {
+	addr := startLibrary(t, libraryOptions{})
+	req := grpcRequest(addr, "library.v1.Library/ShelveBooks", "["+strings.Repeat(`{"title":"Dune"},`, 10_000)+`{"title":"Emma"}]`)
+	resp := mustCallGRPC(t, req)
+	if resp.GRPC.Code != 0 || len(resp.Events) > 10_002 {
+		t.Fatalf("the log limit must bound recording without ending the call: status %+v, %d events", resp.GRPC, len(resp.Events))
+	}
+	last := resp.Events[len(resp.Events)-2:]
+	if !strings.Contains(last[0].Title, "Log limit reached") || last[1].Title != "Call ended: OK" {
+		t.Fatalf("a full log must still show the recording limit and final status: %+v", last)
+	}
+	var summary struct{ Shelved int }
+	if err := json.Unmarshal(resp.Body, &summary); err != nil || summary.Shelved != 10_001 {
+		t.Fatalf("the recording limit stopped sending: %d books, %v", summary.Shelved, err)
+	}
 }
 
 func TestGRPCOpenStreamRejectsWhatItCantSend(t *testing.T) {
@@ -1079,7 +1176,7 @@ func TestGRPCOpenStreamRejectsWhatItCantSend(t *testing.T) {
 	}
 	u.waitFor(t, 2)
 	stream.Close()
-	<-result
+	assertMessageLog(t, <-result, 2, 2, model.MessageInfo)
 
 	u = newUpdates()
 	stream, result, cancel := openStream(t, grpcRequest(addr, "library.v1.Library/ListBooks", `{"author": "stall"}`), nil, u)

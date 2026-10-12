@@ -201,6 +201,9 @@ func (s *Session) copyBody() string {
 	if selected {
 		return "Copied " + pluralize(utf8.RuneCountInString(text), "character")
 	}
+	if resp := s.response.Peek(); resp != nil && len(resp.Events) > 0 {
+		return "Copied message"
+	}
 	return "Copied response body"
 }
 

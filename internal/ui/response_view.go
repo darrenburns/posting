@@ -43,10 +43,12 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	switch {
 	case live:
 		label := "RECEIVING"
+		class := model.StatusClassWarning
 		if streaming == streamOpen {
 			label = "STREAM OPEN"
+			class = model.StatusClassSuccess
 		}
-		fg, bg := statusColors(theme, model.StatusClassWarning)
+		fg, bg := statusColors(theme, class)
 		info = []string{p.streamHints(streaming), fmt.Sprintf("[%s on %s] %s [/]", fg.Hex(), bg.Hex(), label)}
 	case resp != nil:
 		status := s.responseStatus
@@ -119,7 +121,7 @@ func (p responsePanel) streamHints(streaming streamPhase) string {
 	}
 	var hints []string
 	if streaming == streamOpen {
-		hints = append(hints, hint(p.app.keyHint("send-request"), "sends the message"), hint(p.app.keyHint("stream"), "ends the stream"))
+		hints = append(hints, hint(p.app.keyHint("send-request"), "sends the message"), hint(p.app.keyHint("stream"), "finishes sending"))
 	}
 	hints = append(hints, hint("esc", "stops the call"))
 	return strings.Join(hints, "[$TextMuted] · [/]")
@@ -157,6 +159,14 @@ func (s *Session) responseTabs(resp *model.Response) tabStrip {
 		"trailers": {tabItem{Key: "trailers", Label: "Trailers", Badge: countBadge(len(resp.Trailers))}, "resp-trailers", len(resp.Trailers) == 0},
 		"trace":    {tabItem{Key: "trace", Label: "Trace"}, "resp-trace-scroll", false},
 	}
+	if len(resp.Events) > 0 {
+		tab := tabs["body"]
+		tab.item.Label, tab.focusID, tab.empty = "Messages", messagesID, false
+		if s.messages.detail.Peek() {
+			tab.focusID = "resp-body"
+		}
+		tabs["body"] = tab
+	}
 	var items []tabItem
 	for _, key := range responseTabKeys(s.sent) {
 		items = append(items, tabs[key].item)
@@ -180,6 +190,10 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 	s, resp := r.session, r.response
 	history := s.fromHistory.Get()
 	children := []t.Widget{}
+	var body t.Widget = responseBody{app: r.app, session: s, response: resp}
+	if len(resp.Events) > 0 {
+		body = responseMessages{app: r.app, session: s}
+	}
 	if history != nil {
 		// The URL bar above already shows what was sent.
 		children = append(children, t.Text{
@@ -195,7 +209,7 @@ func (r responseTabs) Build(ctx t.BuildContext) t.Widget {
 			Active: s.responseTab.Get(),
 			Style:  t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: inset},
 			Children: map[string]t.Widget{
-				"body":     responseBody{app: r.app, session: s, response: resp},
+				"body":     body,
 				"headers":  responseHeaders{id: "resp-headers", state: s.responseHeaders, scroll: s.responseHeadersScroll, empty: "No headers"},
 				"cookies":  responseCookies{session: s},
 				"trailers": responseHeaders{id: "resp-trailers", state: s.responseTrailers, scroll: s.responseTrailersScroll, empty: "No trailers"},
@@ -238,6 +252,11 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 		MouseDown:     func(t.MouseEvent) { s.responseVisual.Set(false) },
 		ExtraKeybinds: append(s.responseBodyKeybinds(copyBody, s.responseVisual.Get()), b.app.externalKeybinds(s.responseBody, languageFor(contentType), nil)...),
 	}
+	viewport := scrollingArea("resp-body", s.responseBodyScroll, theme.Background, area)
+	viewport.MouseWheel = func(t.MouseEvent) bool {
+		s.messages.following.Set(false)
+		return false
+	}
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
@@ -245,7 +264,7 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 				height: &s.responseBodyViewportHeight,
 				Column: t.Column{
 					Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-					Children: []t.Widget{scrollingArea("resp-body", s.responseBodyScroll, theme.Background, area)},
+					Children: []t.Widget{viewport},
 				},
 			},
 			responseBodyStatus{session: s, contentType: contentType, copyBody: copyBody},
