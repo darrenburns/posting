@@ -2,11 +2,15 @@ package ui
 
 import (
 	"strings"
+	"time"
 
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/model"
 )
+
+// Scrollbars fade after a second of inactivity, using Terma's default fade duration.
+const scrollbarFadeDelay = time.Second
 
 // methodColor is the colour used for a method everywhere it appears.
 func methodColor(theme t.ThemeData, m model.Method) t.Color {
@@ -407,10 +411,11 @@ func textOf(state *t.TextInputState) string {
 // it grows with its text; clicking the space below the text focuses it.
 func scrollingArea(id string, scroll *t.ScrollState, background t.Color, area t.Widget) t.Scrollable {
 	return t.Scrollable{
-		State: scroll,
-		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: background},
-		Child: area,
-		Click: func(t.MouseEvent) { t.RequestFocus(id) },
+		State:              scroll,
+		ScrollbarFadeDelay: scrollbarFadeDelay,
+		Style:              t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: background},
+		Child:              area,
+		Click:              func(t.MouseEvent) { t.RequestFocus(id) },
 	}
 }
 
@@ -422,8 +427,9 @@ func scrollingArea(id string, scroll *t.ScrollState, background t.Color, area t.
 func scrollingTable[T any](scroll *t.ScrollState, table t.Table[T]) t.Widget {
 	table.ScrollState = scroll
 	return t.Scrollable{
-		State: scroll,
-		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Child: table,
+		State:              scroll,
+		ScrollbarFadeDelay: scrollbarFadeDelay,
+		Style:              t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		Child:              table,
 	}
 }

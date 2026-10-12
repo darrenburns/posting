@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
@@ -124,7 +125,7 @@ func TestFocusScrollsSaveButtonsIntoView(tt *testing.T) {
 	}
 }
 
-func TestSidebarScrollbarTrackMatchesFractionalThumb(tt *testing.T) {
+func TestSidebarScrollbarTrackAndFade(tt *testing.T) {
 	for _, tab := range []string{"requests", "history"} {
 		tt.Run(tab, func(tt *testing.T) {
 			app := testApp()
@@ -151,9 +152,10 @@ func TestSidebarScrollbarTrackMatchesFractionalThumb(tt *testing.T) {
 				Children: []t.Widget{view},
 			}
 			const width, height = 40, 20
-			t.RenderToBuffer(root, width, height)
+			p := t.NewPilot(tt, root, width, height)
 			state.SetOffset(7)
-			buf := t.SerializeBuffer(t.RenderToBuffer(root, width, height), width, height)
+			p.Advance(0)
+			buf := t.SerializeBuffer(p.Buffer(), width, height)
 			track := buf.Cells[width-1].Bg
 			thumb := strings.ToLower(theme.ScrollbarThumb.Hex())
 			if track == thumb || track == strings.ToLower(theme.ScrollbarTrack.Hex()) {
@@ -173,6 +175,36 @@ func TestSidebarScrollbarTrackMatchesFractionalThumb(tt *testing.T) {
 			}
 			if partial != 2 {
 				tt.Fatalf("need both fractional thumb ends, got %d", partial)
+			}
+
+			p.Advance(900 * time.Millisecond)
+			if got := t.SerializeBuffer(p.Buffer(), width, height).Cells[width-1].Bg; got != track {
+				tt.Fatalf("scrollbar faded before the idle delay: %s, want %s", got, track)
+			}
+			p.Advance(225 * time.Millisecond)
+			fading := t.SerializeBuffer(p.Buffer(), width, height).Cells[width-1].Bg
+			if fading == track || strings.EqualFold(fading, background.ColorAt(width, height, width-1, 0).Hex()) {
+				tt.Fatalf("scrollbar should be partway through fading, got %s", fading)
+			}
+			p.Advance(125 * time.Millisecond)
+			hidden := t.SerializeBuffer(p.Buffer(), width, height)
+			for y := 0; y < height; y++ {
+				cell := hidden.Cells[y*width+width-1]
+				if strings.TrimSpace(cell.Content) != "" || !strings.EqualFold(cell.Bg, background.ColorAt(width, height, width-1, y).Hex()) {
+					tt.Errorf("idle scrollbar at row %d is still visible: %+v", y, cell)
+				}
+				for x := 0; x < width-1; x++ {
+					if i := y*width + x; hidden.Cells[i] != buf.Cells[i] {
+						tt.Fatalf("fading changed content at %d,%d", x, y)
+					}
+				}
+			}
+			p.Scroll(2, 2, 1)
+			if state.GetOffset() <= 7 {
+				tt.Fatal("wheel didn't scroll the content")
+			}
+			if got := t.SerializeBuffer(p.Buffer(), width, height).Cells[width-1].Bg; got != track {
+				tt.Fatalf("wheel didn't reveal the scrollbar: %s, want %s", got, track)
 			}
 		})
 	}
