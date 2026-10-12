@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	uv "github.com/charmbracelet/ultraviolet"
@@ -120,5 +121,59 @@ func TestFocusScrollsSaveButtonsIntoView(tt *testing.T) {
 	s.focusID(tt, "save-submit")
 	if !s.visible("save-submit") {
 		tt.Error("focusing the save button didn't scroll it into view")
+	}
+}
+
+func TestSidebarScrollbarTrackMatchesFractionalThumb(tt *testing.T) {
+	for _, tab := range []string{"requests", "history"} {
+		tt.Run(tab, func(tt *testing.T) {
+			app := testApp()
+			collection := &model.Collection{Name: "Requests"}
+			var history []model.HistoryEntry
+			for i := 0; i < 61; i++ {
+				req := model.NewRequest()
+				req.Name = fmt.Sprintf("Request %02d", i)
+				collection.Requests = append(collection.Requests, req)
+				history = append(history, model.HistoryEntry{ID: int64(i + 1), Request: req})
+			}
+			app.tree.Nodes.Set(buildTree(collection))
+			app.history.Set(history)
+			app.historyList.SetItems(history)
+			var view t.Widget = collectionView{app: app}
+			state := app.treeScroll
+			if tab == "history" {
+				view, state = historyView{app: app}, app.historyScroll
+			}
+			theme, _ := t.GetTheme("galaxy")
+			background, _ := app.sidebarColors(theme)
+			root := t.Column{
+				Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), BackgroundColor: background},
+				Children: []t.Widget{view},
+			}
+			const width, height = 40, 20
+			t.RenderToBuffer(root, width, height)
+			state.SetOffset(7)
+			buf := t.SerializeBuffer(t.RenderToBuffer(root, width, height), width, height)
+			track := buf.Cells[width-1].Bg
+			thumb := strings.ToLower(theme.ScrollbarThumb.Hex())
+			if track == thumb || track == strings.ToLower(theme.ScrollbarTrack.Hex()) {
+				tt.Fatal("track must be softened without changing the thumb")
+			}
+			partial := 0
+			for y := 0; y < height; y++ {
+				cell := buf.Cells[y*width+width-1]
+				if cell.Content != "" && strings.Contains("▁▂▃▄▅▆▇", cell.Content) {
+					partial++
+					if !((cell.Fg == track && cell.Bg == thumb) || (cell.Fg == thumb && cell.Bg == track)) {
+						tt.Errorf("fractional thumb at row %d = %+v, want track %s and thumb %s", y, cell, track, thumb)
+					}
+				} else if cell.Bg != track && cell.Bg != thumb {
+					tt.Errorf("scrollbar at row %d = %+v, want track %s or thumb %s", y, cell, track, thumb)
+				}
+			}
+			if partial != 2 {
+				tt.Fatalf("need both fractional thumb ends, got %d", partial)
+			}
+		})
 	}
 }
