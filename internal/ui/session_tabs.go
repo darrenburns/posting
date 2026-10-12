@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+	"slices"
 	"unicode/utf8"
 
 	uv "github.com/charmbracelet/ultraviolet"
@@ -303,8 +305,9 @@ func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 	}
 	spans = append(spans, t.Span{Text: c.marker(), Style: t.SpanStyle{Foreground: theme.WarningText, Background: bg}})
 	id := s.id
+	dragID := fmt.Sprintf("%s-%d", sessionTabsID, id)
 	// A double-click keeps a preview tab open.
-	children := []t.Widget{t.Text{Spans: spans, Click: func(e t.MouseEvent) {
+	children := []t.Widget{t.Text{ID: dragID + "-label", Spans: spans, Click: func(e t.MouseEvent) {
 		c.app.active.Set(id)
 		if e.ClickCount == 2 {
 			c.app.keepSession(id)
@@ -319,7 +322,32 @@ func (c sessionChip) Build(ctx t.BuildContext) t.Widget {
 	} else {
 		children = append(children, t.Text{Content: c.closer(), Style: t.Style{BackgroundColor: bg}})
 	}
-	return t.Row{Children: children}
+	return t.DropTarget[int]{
+		ID:     dragID + "-drop",
+		Accept: func(source int) bool { return source != id },
+		OnDrop: func(source int) { c.app.moveSession(source, id) },
+		Child: t.Draggable[int]{
+			ID:       dragID,
+			Payload:  id,
+			HandleID: dragID + "-label", // The close button is not a drag handle.
+			Child:    t.Row{Children: children},
+		},
+	}
+}
+
+// moveSession places the dragged session at the target's index, leaving
+// session contents and the active request unchanged.
+func (a *App) moveSession(id, target int) {
+	sessions := a.sessions.Peek()
+	from := slices.IndexFunc(sessions, func(s *Session) bool { return s.id == id })
+	to := slices.IndexFunc(sessions, func(s *Session) bool { return s.id == target })
+	if from < 0 || to < 0 || from == to {
+		return
+	}
+	s := sessions[from]
+	next := slices.Delete(slices.Clone(sessions), from, from+1)
+	a.sessions.Set(slices.Insert(next, to, s))
+	a.sessionView.revealActive()
 }
 
 // ---------------------------------------------------------------------------
