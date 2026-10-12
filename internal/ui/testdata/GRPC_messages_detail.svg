@@ -1988,19 +1988,19 @@
   <rect x="545.6" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="554.0" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="562.4" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="570.8" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="579.2" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="587.6" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="596.0" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="604.4" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="612.8" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="621.2" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="629.6" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="638.0" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="646.4" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="654.8" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="663.2" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
-  <rect x="671.6" y="400.0" width="8.4" height="19.6" fill="#0A614A"/>
+  <rect x="570.8" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="579.2" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="587.6" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="596.0" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="604.4" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="612.8" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="621.2" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="629.6" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="638.0" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="646.4" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="654.8" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="663.2" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="671.6" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="680.0" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="688.4" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="209.60" y="400.00" width="1.05" height="19.60" fill="#4C4481"/>
@@ -2010,8 +2010,7 @@
   <text x="377.6" y="409.8" fill="#9A96BE">1</text>
   <text x="402.8" y="409.8" fill="#9A96BE">Trailers</text>
   <text x="486.8" y="409.8" fill="#9A96BE">Trace</text>
-  <text x="579.2" y="409.8" fill="#7BF8C8">STREAM</text>
-  <text x="638.0" y="409.8" fill="#7BF8C8">OPEN</text>
+  <text x="604.4" y="409.8" fill="#7BF8C8">Streaming</text>
   <rect x="8.0" y="419.6" width="8.4" height="19.6" fill="#1F1B35"/>
   <rect x="16.4" y="419.6" width="8.4" height="19.6" fill="#1F1B34"/>
   <rect x="24.8" y="419.6" width="8.4" height="19.6" fill="#1E1B33"/>
@@ -3305,16 +3304,14 @@
   <text x="142.4" y="703.8" fill="#706B91">d</text>
   <text x="150.8" y="703.8" fill="#706B91">e</text>
   <text x="159.2" y="703.8" fill="#706B91">v</text>
-  <text x="201.2" y="703.8" fill="#FF69B4">y</text>
-  <text x="218.0" y="703.8" fill="#9A96BE">Copy</text>
-  <text x="260.0" y="703.8" fill="#FF69B4">v</text>
-  <text x="276.8" y="703.8" fill="#9A96BE">Visual</text>
-  <text x="335.6" y="703.8" fill="#FF69B4">F3</text>
-  <text x="360.8" y="703.8" fill="#9A96BE">Pager</text>
-  <text x="411.2" y="703.8" fill="#FF69B4">F4</text>
-  <text x="436.4" y="703.8" fill="#9A96BE">Editor</text>
-  <text x="495.2" y="703.8" fill="#FF69B4">Esc</text>
-  <text x="528.8" y="703.8" fill="#9A96BE">Back</text>
-  <text x="570.8" y="703.8" fill="#9A96BE">to</text>
-  <text x="596.0" y="703.8" fill="#9A96BE">log</text>
+  <text x="201.2" y="703.8" fill="#FF69B4">^f</text>
+  <text x="226.4" y="703.8" fill="#9A96BE">Find</text>
+  <text x="268.4" y="703.8" fill="#FF69B4">y</text>
+  <text x="285.2" y="703.8" fill="#9A96BE">Copy</text>
+  <text x="327.2" y="703.8" fill="#FF69B4">v</text>
+  <text x="344.0" y="703.8" fill="#9A96BE">Visual</text>
+  <text x="402.8" y="703.8" fill="#FF69B4">F3</text>
+  <text x="428.0" y="703.8" fill="#9A96BE">Pager</text>
+  <text x="478.4" y="703.8" fill="#FF69B4">F4</text>
+  <text x="503.6" y="703.8" fill="#9A96BE">Editor</text>
 </svg>

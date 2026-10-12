@@ -1151,6 +1151,8 @@
   <text x="386.0" y="155.0" class="bold" fill="#F5F5F6">Raw</text>
   <path d="M 386.00 163.30 H 411.20" fill="none" stroke="#FF69B4" stroke-width="1.00"/>
   <text x="428.0" y="155.0" fill="#9A96BE">Form</text>
+  <text x="478.4" y="155.0" fill="#9A96BE">Multipart</text>
+  <text x="570.8" y="155.0" fill="#9A96BE">File</text>
   <text x="898.4" y="155.0" class="bold" fill="#F5F5F6">JSON</text>
   <path d="M 898.40 163.30 H 932.00" fill="none" stroke="#FF69B4" stroke-width="1.00"/>
   <text x="948.8" y="155.0" fill="#9A96BE">Text</text>

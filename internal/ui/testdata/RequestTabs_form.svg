@@ -1151,6 +1151,8 @@
   <text x="386.0" y="155.0" fill="#9A96BE">Raw</text>
   <text x="428.0" y="155.0" class="bold" fill="#F5F5F6">Form</text>
   <path d="M 428.00 163.30 H 461.60" fill="none" stroke="#FF69B4" stroke-width="1.00"/>
+  <text x="478.4" y="155.0" fill="#9A96BE">Multipart</text>
+  <text x="570.8" y="155.0" fill="#9A96BE">File</text>
   <rect x="8.0" y="164.8" width="8.4" height="19.6" fill="#2C1D44"/>
   <rect x="16.4" y="164.8" width="8.4" height="19.6" fill="#2C1D44"/>
   <rect x="24.8" y="164.8" width="8.4" height="19.6" fill="#2C1D43"/>

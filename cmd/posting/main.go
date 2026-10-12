@@ -203,6 +203,8 @@ func appConfig(opts options) (ui.Config, error) {
 		watch = store
 	}
 	rpc := client.NewGRPC("posting/"+version, tlsSettings, store.Root)
+	httpClient := client.NewHTTP("posting/"+version, tlsSettings)
+	httpClient.Root = store.Root
 	return ui.Config{
 		Watch:            watch,
 		Reload:           store,
@@ -213,7 +215,7 @@ func appConfig(opts options) (ui.Config, error) {
 		NerdFonts:        settings.UseNerdFonts(os.LookupEnv),
 		HostVariables:    host,
 		UserThemes:       userThemes,
-		Sender:           client.ByKind{HTTP: client.NewHTTP("posting/"+version, tlsSettings), GRPC: rpc},
+		Sender:           client.ByKind{HTTP: httpClient, GRPC: rpc},
 		Describer:        rpc,
 		Collection:       root,
 		Store:            store,

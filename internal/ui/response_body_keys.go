@@ -34,10 +34,12 @@ var bodyMotions = []bodyMotion{
 }
 
 // responseBodyKeybinds are the response body's keys, ahead of the text
-// area's own. escape leaves visual mode, and is otherwise left to cancel a
-// request in flight.
+// area's own. Escape leaves visual mode, then search, before reaching the
+// app to cancel a request in flight.
 func (s *Session) responseBodyKeybinds(copyBody func(), visual bool) []t.Keybind {
 	binds := []t.Keybind{
+		{Key: "ctrl+f", Name: "Find", Action: s.openBodySearch},
+		{Key: "/", Action: s.openBodySearch, Hidden: true},
 		{Key: "y", Name: "Copy", Action: copyBody},
 		{Key: "c", Action: copyBody, Hidden: true},
 		{Key: "v", Name: "Visual", Action: func() { s.setBodyVisual(!s.responseVisual.Peek()) }},
@@ -47,6 +49,13 @@ func (s *Session) responseBodyKeybinds(copyBody func(), visual bool) []t.Keybind
 	}
 	if visual {
 		binds = append(binds, t.Keybind{Key: "escape", Name: "Normal", Action: func() { s.setBodyVisual(false) }})
+	}
+	if s.responseSearchOpen.Get() {
+		binds = append(binds,
+			t.Keybind{Key: "n", Name: "Next match", Action: s.nextBodyMatch},
+			t.Keybind{Key: "N", Name: "Previous match", Action: s.previousBodyMatch},
+			t.Keybind{Key: "escape", Name: "Close search", Action: s.closeBodySearch},
+		)
 	}
 	for _, motion := range bodyMotions {
 		for _, key := range motion.keys {
@@ -61,7 +70,7 @@ func (s *Session) responseBodyKeybinds(copyBody func(), visual bool) []t.Keybind
 		direction, divisor int
 	}{
 		{[]string{"pgup", "ctrl+b"}, -1, 1},
-		{[]string{"pgdown", "ctrl+f"}, 1, 1},
+		{[]string{"pgdown"}, 1, 1},
 		{[]string{"ctrl+u"}, -1, 2},
 		{[]string{"ctrl+d"}, 1, 2},
 	} {

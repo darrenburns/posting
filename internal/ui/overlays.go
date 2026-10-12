@@ -420,7 +420,11 @@ var helpSections = []helpSection{
 		{"v", "Visual mode: moving selects"},
 		{"V / f6, f7", "Select the line, select all"},
 		{"y / c", "Copy the selection, or the whole body"},
-		{"esc", "Leave visual mode"},
+		{"ctrl+f / /", "Find in the response body"},
+		{"enter / shift+enter", "Next / previous match in the search box"},
+		{"↑ from search", "Return to the body, keeping search open"},
+		{"n / N", "Next / previous match in the body"},
+		{"esc", "Leave visual mode, then close search"},
 	}},
 }
 

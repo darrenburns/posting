@@ -600,6 +600,7 @@ func (a *App) toggleStream() {
 	case s.streaming.Peek() == streamOpen:
 		s.stream.Close()
 		s.streaming.Set(streamEnded)
+		s.streamShimmer.Stop()
 	default:
 		a.start(s, client.NewStream())
 	}
@@ -635,6 +636,7 @@ func (a *App) start(s *Session, stream *client.Stream) {
 		return
 	}
 	s.Send(a.sender, variables, stream, func(req model.Request, resp *model.Response, status model.Status) {
+		a.captureResponse(req, resp)
 		if req.Kind() == model.GRPCKind {
 			// The call has just reached the server, so asking it for its
 			// methods contacts no one new.

@@ -41,6 +41,8 @@ cursor's line and column.
 | ++shift+v++ / ++f6++ | Select the line |
 | ++f7++ | Select the whole body |
 | ++y++ / ++c++ | Copy the selection, or the whole body if nothing is selected |
+| ++ctrl+f++ / `/` | Find text in the body |
+| ++n++ / ++shift+n++ | Next / previous match while search is open |
 | ++f3++ | Open the body in your [pager](./external_tools.md) |
 | ++f4++ | Open the body in your [editor](./external_tools.md) |
 
@@ -50,10 +52,21 @@ line. In visual mode, the character under the cursor is part of the selection, a
 Click **copy** or **wrap on**/**wrap off** below the body to copy it or turn line wrapping on or off,
 or choose **Copy response body** or **Toggle response wrap** in the command palette.
 
-!!! tip "Searching a response"
+### Searching a response
 
-    Posting doesn't have a search in the response body yet. Open the body in a pager such as `less`,
-    or a JSON viewer such as [`fx`](https://fx.wtf), with ++f3++. See [External Tools](./external_tools.md).
+With the body focused, press ++ctrl+f++ or `/` to open Find. Matches highlight as you type, and the
+search bar shows the current match and total, or **No matches**. Search is literal (not a regular
+expression) and ignores case.
+
+Press ++enter++ for the next match or ++shift+enter++ for the previous one; both wrap around at the
+ends of the body. Press ++up++ to return to the body while keeping search open, then use ++n++ and
+++shift+n++ to navigate matches, or ++y++ to copy the selected match.
+
+++escape++ closes search and clears its highlights, leaving the result selected for copying.
+Reopening Find selects the previous query so you can replace it. Each request tab keeps its own search.
+
+Unlike Posting 2, ++ctrl+f++ opens Find rather than paging down. Use ++page-down++ for a full page or
+++ctrl+d++ for half a page (++ctrl+u++ moves up half a page).
 
 ## Headers
 

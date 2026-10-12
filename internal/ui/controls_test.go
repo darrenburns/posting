@@ -16,7 +16,7 @@ func TestNestedTabStyles(tt *testing.T) {
 		next                          [2]string
 		show                          func(*App)
 	}{
-		{"req-body-type", "Raw", "Form", "req-body-text", [2]string{"Form", "None"}, func(a *App) { a.current().requestTab.Set("body") }},
+		{"req-body-type", "Raw", "Form", "req-body-text", [2]string{"Form", "Multipart"}, func(a *App) { a.current().requestTab.Set("body") }},
 		{"req-body-content-type", "JSON", "XML", "req-body-text", [2]string{"Text", "XML"}, func(a *App) { a.current().requestTab.Set("body") }},
 		{"req-auth-type", "Bearer token", "Basic", tabID(requestTabsID, "auth"), [2]string{"None", "Basic"}, func(a *App) { a.current().requestTab.Set("auth") }},
 		{"curl-resolve", "Values", "Variables", "curl-text", [2]string{"Variables", "Values"}, func(a *App) { a.copyExport() }},

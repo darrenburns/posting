@@ -2329,6 +2329,7 @@
   <text x="470.0" y="311.8" fill="#9A96BE">the</text>
   <text x="503.6" y="311.8" fill="#9A96BE">URL</text>
   <text x="537.2" y="311.8" fill="#9A96BE">bar</text>
+  <rect x="856.40" y="314.25" width="8.40" height="7.35" fill="#0F0F1F"/>
   <rect x="890.00" y="302.00" width="2.10" height="19.60" fill="#C45AFF"/>
   <rect x="8.0" y="321.6" width="8.4" height="19.6" fill="#141225"/>
   <rect x="16.4" y="321.6" width="8.4" height="19.6" fill="#131225"/>
@@ -2430,7 +2431,7 @@
   <rect x="831.2" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="839.6" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="848.0" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="856.4" y="321.6" width="8.4" height="19.6" fill="#C45AFF"/>
+  <rect x="856.4" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="864.8" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="873.2" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="881.6" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2469,7 +2470,6 @@
   <text x="596.0" y="331.4" fill="#9A96BE">kind</text>
   <text x="638.0" y="331.4" fill="#9A96BE">of</text>
   <text x="663.2" y="331.4" fill="#9A96BE">request</text>
-  <rect x="856.40" y="328.95" width="8.40" height="12.25" fill="#0F0F1F"/>
   <rect x="890.00" y="321.60" width="2.10" height="19.60" fill="#C45AFF"/>
   <rect x="8.0" y="341.2" width="8.4" height="19.6" fill="#131225"/>
   <rect x="16.4" y="341.2" width="8.4" height="19.6" fill="#131225"/>

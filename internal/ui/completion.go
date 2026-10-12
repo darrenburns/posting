@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	t "github.com/darrenburns/terma"
+	"github.com/rivo/uniseg"
 
 	"github.com/darrenburns/posting/internal/model"
 )
@@ -40,6 +41,11 @@ func (a *App) variableChoices() variableChoices {
 		list = append(list, t.Suggestion{Label: "${" + name + "}", Value: "${" + name + "}", Description: description})
 		key.WriteString(name + "=" + description + "\x00")
 	}
+	for _, g := range model.Generators {
+		label := "${" + g.Name + "}"
+		list = append(list, t.Suggestion{Label: label, Value: label, Description: g.Description})
+		key.WriteString(label + "\x00")
+	}
 	return variableChoices{list: list, key: key.String()}
 }
 
@@ -62,12 +68,22 @@ func (c *completion) wrap(theme t.ThemeData, child t.Widget, choices variableCho
 		c.state.SetSuggestions(choices.list)
 	}
 	return t.Autocomplete{
-		State:                 c.state,
-		Child:                 child,
-		Width:                 width,
-		TriggerChars:          []rune{'$'},
-		TriggerAnywhere:       true, // Variables sit mid-URL: /users/$ID.
-		Insert:                t.InsertFromTrigger,
+		State:           c.state,
+		Child:           child,
+		Width:           width,
+		TriggerChars:    []rune{'$'},
+		TriggerAnywhere: true, // Variables sit mid-URL: /users/$ID.
+		Insert: func(text string, cursor int, suggestion t.Suggestion, trigger int) (string, int) {
+			graphemes := uniseg.NewGraphemes(text)
+			pos := 0
+			for i := 0; i < trigger && graphemes.Next(); i++ {
+				_, pos = graphemes.Positions()
+			}
+			if strings.HasSuffix(text[:pos], "${") {
+				trigger -= 2 // Replace the outer ${ too when completing ${$name}.
+			}
+			return t.InsertFromTrigger(text, cursor, suggestion, trigger)
+		},
 		MatchMode:             t.FilterFuzzy,
 		MaxVisible:            8,
 		DismissWhenEmpty:      true,

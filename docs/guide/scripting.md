@@ -31,6 +31,8 @@ Some common uses of scripts can be handled without them in Posting 3:
 | With a script, you'd… | In Posting 3 |
 |-----------------------|--------------|
 | Set a variable for later requests | Set a session value on the [variables screen](./environments.md#the-variables-screen) (++ctrl+shift+v++) |
+| Generate an idempotency key or timestamp for each send | Use [generated values](./environments.md#generated-values), such as `${$uuid}` |
+| Extract a token or ID from a response | Declare [response captures](./environments.md#response-captures) in the request file |
 | Choose values per environment | Use [layered environment files](./environments.md#layered-environments) |
 | Read secrets from somewhere else | Refer to shell variables from your environment files, e.g. `API_TOKEN="${STAGING_TOKEN}"`, or turn on [`use_host_environment`](./environments.md#using-your-shells-environment) |
 | Add authentication | Use the [Auth tab](./requests.md#auth) with variables, e.g. a Bearer token of `${API_TOKEN}` |

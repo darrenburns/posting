@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// VariableRef is a $NAME or ${NAME} reference found in a string.
+// VariableRef is a $NAME, ${NAME} or generated ${$name} reference in a string.
 type VariableRef struct {
 	Name string
 	// Start and End are byte offsets of the whole reference (including $ and braces).
@@ -30,7 +30,7 @@ func FindVariables(s string) []VariableRef {
 				continue
 			}
 			name := s[i+2 : i+2+end]
-			if isIdentifier(name) {
+			if isIdentifier(name) || (strings.HasPrefix(name, "$") && isIdentifier(name[1:])) {
 				refs = append(refs, VariableRef{Name: name, Start: i, End: i + 3 + end})
 			}
 			i += 2 + end

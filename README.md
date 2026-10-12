@@ -46,6 +46,8 @@ See [Coming from Posting 2](https://posting.sh/guide/migrating/) for what's chan
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. To build Posting 3 from a clone of this repository, run `go build ./cmd/posting`, and run the tests with `go test ./...`.
 
+Try gRPC locally with the [example server and collection](examples/grpc/README.md), including an interactive bidirectional streaming walkthrough.
+
 ## Learn More
 
 Learn more about Posting at [https://posting.sh](https://posting.sh).

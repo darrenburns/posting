@@ -124,6 +124,10 @@ func (s *Session) contentFocusID(tab string) string {
 			id = "req-body-text"
 		case model.BodyForm:
 			id = s.form.FirstInputID()
+		case model.BodyMultipart:
+			id = partsID
+		case model.BodyFile:
+			id = "req-file-path"
 		default:
 			id = "req-body-type"
 		}
@@ -159,6 +163,8 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 				{Key: string(model.BodyNone), Label: "None"},
 				{Key: string(model.BodyRaw), Label: "Raw"},
 				{Key: string(model.BodyForm), Label: "Form"},
+				{Key: string(model.BodyMultipart), Label: "Multipart"},
+				{Key: string(model.BodyFile), Label: "File"},
 			},
 			Active:   string(bodyType),
 			OnChange: func(value string) { s.bodyType.Set(model.BodyType(value)); s.touch() },
@@ -202,6 +208,10 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 			form.Choices = b.app.variableChoices()
 			content = form
 		}
+	case model.BodyMultipart:
+		content = multipartView{app: b.app, session: s}
+	case model.BodyFile:
+		content = fileBodyEditor{app: b.app, session: s}
 	default:
 		content = emptyState{Title: "No request body", Lines: []string{"Choose [b]Raw[/] for JSON, XML or text, or [b]Form[/] for URL-encoded fields"}}
 	}

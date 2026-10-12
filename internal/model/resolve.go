@@ -89,9 +89,18 @@ func Resolve(req Request, lookup func(string) (string, bool)) (Request, error) {
 	out.Options.ProxyURL = sub(out.Options.ProxyURL)
 	if req.Options.SubstituteBodyVariables {
 		out.Body.Raw = sub(out.Body.Raw)
+		out.Body.File = sub(out.Body.File)
+		if req.Body.Type == BodyFile {
+			out.Body.ContentType = sub(out.Body.ContentType)
+		}
 		for i := range out.Body.Form {
 			out.Body.Form[i].Name = sub(out.Body.Form[i].Name)
 			out.Body.Form[i].Value = sub(out.Body.Form[i].Value)
+		}
+		for i := range out.Body.Multipart {
+			p := &out.Body.Multipart[i]
+			p.Name, p.Value, p.File = sub(p.Name), sub(p.Value), sub(p.File)
+			p.Filename, p.ContentType = sub(p.Filename), sub(p.ContentType)
 		}
 	}
 	if req.Payload != nil {

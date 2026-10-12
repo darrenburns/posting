@@ -73,8 +73,11 @@ func (tree urlTree) suggestions(text string, cursor int, variables variableChoic
 	// An unfinished variable takes priority, even in a query string. Completed
 	// ${BASE_URL} references are ordinary, literal tree segments.
 	if start := strings.LastIndexByte(before, '$'); start >= 0 {
+		if strings.HasSuffix(before[:start], "${") {
+			start -= 2 // The inner $ of ${$uuid} belongs to the same reference.
+		}
 		query := before[start+1:]
-		name := strings.TrimPrefix(query, "{")
+		name := strings.TrimPrefix(strings.TrimPrefix(query, "{"), "$")
 		if !strings.ContainsFunc(name, func(r rune) bool {
 			return r != '_' && !unicode.IsLetter(r) && !unicode.IsDigit(r)
 		}) {

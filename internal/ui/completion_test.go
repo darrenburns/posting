@@ -27,6 +27,12 @@ func TestVariableChoices(tt *testing.T) {
 	if got["${API_TOKEN}"] != "••••••••" || got["${PASSWORD}"] != "••••••••" {
 		tt.Fatalf("secrets must be masked: %v", got)
 	}
+	if !strings.Contains(got["${$uuid}"], "every send") || !app.resolver()("$uuid") || app.resolver()("$unknown") {
+		tt.Fatal("generators must be discoverable and highlighted without generating values")
+	}
+	if choices.key != app.variableChoices().key {
+		tt.Fatal("editing generated variables must not change completion values")
+	}
 
 	before := choices.key
 	app.switchEnvironment([]string{"staging.env"})
@@ -43,6 +49,32 @@ func TestDollarCompletesVariablesMidURL(tt *testing.T) {
 	pasteInto(tt, app, urlInputID, "$")
 	if !s.urlVars.state.Visible.Peek() {
 		tt.Fatal("typing $ after a / should offer the variables")
+	}
+}
+
+func TestGeneratedCompletionInFields(tt *testing.T) {
+	for _, field := range []string{"req-auth-token", "req-body-text"} {
+		tt.Run(field, func(tt *testing.T) {
+			app := testApp()
+			s := app.current()
+			s.authType.Set(model.AuthBearer)
+			s.bodyType.Set(model.BodyRaw)
+			s.requestTab.Set("auth")
+			if field == "req-body-text" {
+				s.requestTab.Set("body")
+			}
+			screen := sidebarScreen(tt, app, field)
+			screen.focus.Focused().(t.PasteHandler).HandlePaste("café 🐈 ${$uu")
+			screen.render()
+			screen.pressKey(tt, "enter")
+			got := s.token.GetText()
+			if field == "req-body-text" {
+				got = s.body.GetText()
+			}
+			if got != "café 🐈 ${$uuid}" {
+				tt.Fatalf("completed %q", got)
+			}
+		})
 	}
 }
 
@@ -129,6 +161,8 @@ func TestURLCompletionBoundaries(tt *testing.T) {
 		{"literal template", "${BASE_URL}/us", "", "${BASE_URL}/users"},
 		{"variable priority", "http://localhost:3000/$BASE", "", "http://localhost:3000/${BASE_URL}"},
 		{"variable suffix", "${BAS", "E_URL}/users", "${BASE_URL}/users"},
+		{"generated variable", "http://localhost:3000/$uu", "", "http://localhost:3000/${$uuid}"},
+		{"braced generated variable", "http://localhost:3000/${$uu", "", "http://localhost:3000/${$uuid}"},
 		{"query variable", "http://localhost:3000/users?q=$BASE", "", "http://localhost:3000/users?q=${BASE_URL}"},
 		{"grapheme cursor", "http://localhost:3000/cafe\u0301/日", "wrong?x=1", "http://localhost:3000/cafe\u0301/日本語?x=1"},
 		{"encoded slash", "http://localhost:3000/a%2Fb/", "", "http://localhost:3000/a%2Fb/details"},

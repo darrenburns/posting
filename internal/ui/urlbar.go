@@ -269,6 +269,14 @@ func (p urlPreview) Build(ctx t.BuildContext) t.Widget {
 		if cursorByte < ref.Start || cursorByte > ref.End {
 			continue
 		}
+		for _, g := range model.Generators {
+			if ref.Name == g.Name {
+				return t.Text{Spans: []t.Span{
+					{Text: "${" + g.Name + "}", Style: t.SpanStyle{Foreground: theme.AccentText, Bold: true}},
+					{Text: " · " + g.Description, Style: t.SpanStyle{Foreground: theme.TextMuted}},
+				}, Style: style}
+			}
+		}
 		value, ok := values[ref.Name]
 		spans := []t.Span{{Text: ref.Name, Style: t.SpanStyle{Foreground: theme.AccentText, Bold: true}}, {Text: " = ", Style: t.SpanStyle{Foreground: theme.TextMuted}}}
 		switch {

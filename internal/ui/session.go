@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/url"
 	"slices"
 	"strconv"
@@ -60,6 +61,12 @@ type Session struct {
 	query             *kvEditor
 	pathParams        *kvEditor
 	form              *kvEditor
+	multipart         *multipartEditor
+	upload            *uploadPath
+	uploadType        *t.TextInputState
+	uploadTypeVars    *completion
+	uploadScroll      *formScroll
+	uploadProgress    t.Signal[uploadProgress]
 	bodyType          t.Signal[model.BodyType]
 	contentType       t.Signal[string]
 	body              *t.TextAreaState
@@ -76,6 +83,7 @@ type Session struct {
 	// Posting 2 request doesn't drop them.
 	scripts       model.Scripts
 	variableScope *model.VariableScope
+	captures      map[string]string
 	// payloads edit the payload of each kind that has one, for the
 	// session's whole life, so switching kinds loses nothing.
 	payloads   map[model.KindID]payloadEditor
@@ -128,6 +136,8 @@ type Session struct {
 	responseBodyScroll         *t.ScrollState
 	responseBodyViewportHeight int
 	responseBodyViewportCursor int
+	responseSearch             *t.TextInputState
+	responseSearchOpen         t.Signal[bool]
 	// responseVisual is the body viewer's visual mode, where moving selects.
 	responseVisual        t.Signal[bool]
 	responseHeaders       *t.TableState[model.Header]
@@ -138,6 +148,7 @@ type Session struct {
 	responseTrailers       *t.TableState[model.Header]
 	responseTrailersScroll *t.ScrollState
 	spinner                *t.SpinnerState
+	streamShimmer          *t.ShimmerState
 	generation             uint64
 	cancel                 context.CancelFunc
 	// live is set once the exchange in flight has shown part of its response.
@@ -167,6 +178,12 @@ func newSession(id int, req model.Request) *Session {
 		query:             newKVEditor(fmt.Sprintf("req-query-%d", id), false, nil),
 		pathParams:        newKVEditor(fmt.Sprintf("req-path-%d", id), true, nil),
 		form:              newKVEditor(fmt.Sprintf("req-form-%d", id), false, nil),
+		multipart:         newMultipartEditor(),
+		upload:            newUploadPath(""),
+		uploadType:        t.NewTextInputState(""),
+		uploadTypeVars:    newCompletion(),
+		uploadScroll:      newFormScroll(),
+		uploadProgress:    t.NewSignal(uploadProgress{}),
 		bodyType:          t.NewSignal(model.BodyNone),
 		contentType:       t.NewSignal("application/json"),
 		body:              t.NewTextAreaState(""),
@@ -207,6 +224,8 @@ func newSession(id int, req model.Request) *Session {
 		messages:               newMessageLog(),
 		responseBody:           t.NewTextAreaState(""),
 		responseBodyScroll:     t.NewScrollState(),
+		responseSearch:         t.NewTextInputState(""),
+		responseSearchOpen:     t.NewSignal(false),
 		responseVisual:         t.NewSignal(false),
 		responseHeaders:        t.NewTableState[model.Header](nil),
 		responseHeadersScroll:  t.NewScrollState(),
@@ -215,6 +234,7 @@ func newSession(id int, req model.Request) *Session {
 		responseTrailers:       t.NewTableState[model.Header](nil),
 		responseTrailersScroll: t.NewScrollState(),
 		spinner:                t.NewSpinnerState(t.SpinnerDots),
+		streamShimmer:          t.NewShimmerState(2 * time.Second),
 		dispatch:               t.Dispatch,
 	}
 	s.urlVars, s.usernameVars, s.passwordVars = newCompletion(), newCompletion(), newCompletion()
@@ -256,6 +276,8 @@ func (s *Session) Snapshot() model.Request {
 			Raw:         s.body.GetText(),
 			ContentType: s.contentType.Peek(),
 			Form:        s.form.Values(),
+			Multipart:   s.multipart.values(),
+			File:        s.upload.text.GetText(),
 		},
 		Auth: model.Auth{
 			Type:     s.authType.Peek(),
@@ -273,7 +295,14 @@ func (s *Session) Snapshot() model.Request {
 		},
 		Scripts:       s.scripts,
 		VariableScope: s.variableScope.Clone(),
+		Captures:      maps.Clone(s.captures),
 		File:          s.file.Peek(),
+	}
+	if req.Body.Type == model.BodyMultipart {
+		req.Body.ContentType = ""
+	}
+	if req.Body.Type == model.BodyFile {
+		req.Body.ContentType = s.uploadType.GetText()
 	}
 	if e := s.payloads[s.kind.Peek()]; e != nil {
 		req.Payload = e.payload()
@@ -309,12 +338,18 @@ func (s *Session) Load(req model.Request) {
 	s.pathParams.Load(req.PathParams)
 	s.syncPathParams()
 	s.form.Load(req.Body.Form)
+	s.multipart.load(req.Body.Multipart)
+	s.upload = newUploadPath(req.Body.File)
+	s.uploadType.SetText("")
+	if req.Body.Type == model.BodyFile {
+		s.uploadType.SetText(req.Body.ContentType)
+	}
 	bodyType := req.Body.Type
 	if bodyType == "" {
 		bodyType = model.BodyNone
 	}
 	s.bodyType.Set(bodyType)
-	if req.Body.ContentType != "" {
+	if req.Body.ContentType != "" && req.Body.Type != model.BodyFile {
 		s.contentType.Set(req.Body.ContentType)
 	}
 	s.body.SetText(req.Body.Raw)
@@ -331,6 +366,7 @@ func (s *Session) Load(req model.Request) {
 	s.file.Set(req.File)
 	s.scripts = req.Scripts
 	s.variableScope = req.VariableScope.Clone()
+	s.captures = req.Captures
 	s.follow.SetChecked(req.Options.FollowRedirects)
 	s.verifySSL.SetChecked(req.Options.VerifySSL)
 	s.cookies.SetChecked(req.Options.AttachCookies)
@@ -527,12 +563,20 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, stream
 	s.phase.Set(exchangeSending)
 	s.err.Set(nil)
 	s.trace.Set(nil)
+	s.uploadProgress.Set(uploadProgress{})
 	s.spinner.Start()
 	inFlight := func() bool { return generation == s.generation && s.phase.Peek() == exchangeSending }
 
 	call := client.Call{
 		Request:   req,
 		Variables: variables,
+		OnUpload: func(sent, total int64) {
+			s.dispatch(func() {
+				if inFlight() {
+					s.uploadProgress.Set(uploadProgress{sent: sent, total: total, active: true})
+				}
+			})
+		},
 		OnTrace: func(event model.TraceEvent) {
 			s.dispatch(func() {
 				if generation == s.generation {
@@ -562,6 +606,7 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, stream
 					s.streaming.Set(streamEnded)
 					if stream.TakesMessages() {
 						s.streaming.Set(streamOpen)
+						s.streamShimmer.Start()
 					}
 				}
 			})
@@ -633,6 +678,7 @@ func (s *Session) Stop() {
 }
 
 func (s *Session) endStream() {
+	s.streamShimmer.Stop()
 	s.stream = nil
 	s.streaming.Set(streamNone)
 }

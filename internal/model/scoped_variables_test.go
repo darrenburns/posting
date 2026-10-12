@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func templateVariable(name, template string) Variable {
@@ -120,6 +123,7 @@ func TestRequestScopeSurvivesHistoryJSON(t *testing.T) {
 	req := NewRequest()
 	req.URL = "${base}"
 	req.VariableScope = &VariableScope{Variables: map[string]string{"base": "https://example.test"}}
+	req.Captures = map[string]string{"SESSION_ID": "data.id"}
 	req.Payload = GraphQL{Query: "query Q($id: ID!) { user(id: $id) { name } }"}
 	data, err := json.Marshal(req)
 	if err != nil {
@@ -145,5 +149,72 @@ func TestEnvironmentFileNamedSessionDoesNotOverrideRequestScope(t *testing.T) {
 	}
 	if Values(resolved)["base"] != "https://folder.test" {
 		t.Fatal(resolved)
+	}
+}
+
+func TestGeneratedVariablesAreFreshPerRequest(t *testing.T) {
+	req := NewRequest()
+	req.URL = "https://example.test/${ID}?id=${$uuid}"
+	req.VariableScope = &VariableScope{Variables: map[string]string{"ID": "${$uuid}"}}
+	req.Headers = []KeyValue{{Name: "Idempotency-Key", Value: "${$uuid}", Enabled: true}}
+	req.Body = Body{Type: BodyRaw, Raw: `${$uuid}|$${$uuid}|$$uuid|${$unknown}`}
+	before := time.Now()
+	previous := ""
+	for range 2 {
+		variables, err := VariablesForRequest(req, nil, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		values := Values(variables)
+		id := values["$uuid"]
+		if !regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`).MatchString(id) || id == previous {
+			t.Fatalf("not a fresh UUID v4: %q (previous %q)", id, previous)
+		}
+		previous = id
+		sent, err := Resolve(req, MapLookup(values))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sent.URL != "https://example.test/"+id+"?id="+id || sent.Headers[0].Value != id || sent.Body.Raw != id+"|${$uuid}|$uuid|${$unknown}" {
+			t.Fatalf("generator wasn't shared across fields/templates or escaping changed: %+v", sent)
+		}
+		instant, err := time.Parse(time.RFC3339Nano, values["$isoTimestamp"])
+		if err != nil || instant.Before(before) || instant.After(time.Now()) || !strings.HasSuffix(values["$isoTimestamp"], "Z") {
+			t.Fatalf("invalid generated time: %q (%v)", values["$isoTimestamp"], err)
+		}
+		if values["$timestamp"] != strconv.FormatInt(instant.Unix(), 10) || values["$timestampMs"] != strconv.FormatInt(instant.UnixMilli(), 10) {
+			t.Fatal("timestamp generators disagree on the send time")
+		}
+		n, err := strconv.ParseInt(values["$randomInt"], 10, 64)
+		if err != nil || n < 0 || n > 2147483647 {
+			t.Fatalf("invalid random integer: %q", values["$randomInt"])
+		}
+		req.Options.SubstituteBodyVariables = false
+		literal, err := Resolve(req, MapLookup(values))
+		if err != nil || literal.Body.Raw != req.Body.Raw || literal.Headers[0].Value != id {
+			t.Fatal("body substitution option not respected")
+		}
+		req.Options.SubstituteBodyVariables = true
+		for _, payload := range []Payload{
+			GraphQL{Query: `query Q($id: ID!) { user(id: "${$uuid}") { id } }`, Variables: `{"id":"${ID}"}`},
+			GRPC{Method: "users/Get", Message: `{"id":"${ID}"}`},
+		} {
+			req.Payload = payload
+			wire, err := Resolve(req, MapLookup(values))
+			if err != nil {
+				t.Fatal(err)
+			}
+			switch p := wire.Payload.(type) {
+			case GraphQL:
+				if !strings.Contains(p.Query, id) || !strings.Contains(p.Query, "$id") || p.Variables != `{"id":"`+id+`"}` {
+					t.Fatal(p)
+				}
+			case GRPC:
+				if p.Message != `{"id":"`+id+`"}` {
+					t.Fatal(p)
+				}
+			}
+		}
+		req.Payload = nil
 	}
 }

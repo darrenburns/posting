@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -34,6 +35,8 @@ type HTTP struct {
 	// UserAgent is sent when the request doesn't set one.
 	UserAgent string
 	TLS       TLSSettings
+	// Root is the collection directory that upload paths are relative to.
+	Root string
 
 	once   sync.Once
 	jar    http.CookieJar
@@ -95,16 +98,41 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 		httpClient.Jar = h.jar
 	}
 
-	body, contentType := encodeBody(req.Body)
+	body, err := prepareBody(req.Body, h.Root)
+	if err != nil {
+		return nil, err
+	}
+	if req.Body.Type == model.BodyMultipart {
+		for _, header := range req.Headers {
+			if !header.Enabled || !strings.EqualFold(header.Name, "Content-Type") {
+				continue
+			}
+			typ, params, err := mime.ParseMediaType(header.Value)
+			if err != nil || typ != "multipart/form-data" || len(params) != 0 {
+				return nil, fmt.Errorf("multipart Content-Type is generated with its boundary; remove the manual Content-Type header or set it to multipart/form-data without parameters")
+			}
+		}
+	}
+	var progress func(int64, int64)
+	if req.Body.Type == model.BodyMultipart || req.Body.Type == model.BodyFile {
+		progress = call.OnUpload
+	}
 	tracer := newTracer(call.OnTrace, target.Scheme == "https")
 	started := time.Now()
 	build := func() (*http.Request, error) {
-		r, err := http.NewRequestWithContext(httptrace.WithClientTrace(ctx, tracer.clientTrace()), string(req.Method), req.URL, bytes.NewReader(body))
+		r, err := http.NewRequestWithContext(httptrace.WithClientTrace(ctx, tracer.clientTrace()), string(req.Method), req.URL, nil)
 		if err != nil {
 			return nil, err
 		}
-		if len(body) == 0 {
-			r.Body, r.ContentLength = http.NoBody, 0
+		r.GetBody = func() (io.ReadCloser, error) { return body.open(ctx, progress) }
+		r.Body, err = r.GetBody()
+		if err != nil {
+			return nil, err
+		}
+		r.ContentLength = body.length
+		if body.length == 0 {
+			r.Body.Close()
+			r.Body = http.NoBody
 		}
 		for _, hdr := range req.Headers {
 			if hdr.Enabled && hdr.Name != "" {
@@ -116,8 +144,8 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 				r.Header.Add(hdr.Name, hdr.Value)
 			}
 		}
-		if contentType != "" && r.Header.Get("Content-Type") == "" {
-			r.Header.Set("Content-Type", contentType)
+		if body.contentType != "" && (r.Header.Get("Content-Type") == "" || req.Body.Type == model.BodyMultipart) {
+			r.Header.Set("Content-Type", body.contentType)
 		}
 		if r.Header.Get("User-Agent") == "" && h.UserAgent != "" {
 			r.Header.Set("User-Agent", h.UserAgent)
@@ -135,6 +163,7 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer httpReq.Body.Close()
 	// Remember explicit cookies before Client.Do adds the jar's cookies. A
 	// Digest retry must let the jar attach its current cookies only once,
 	// including any cookies set by the challenge or a redirect.
@@ -161,7 +190,7 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 		if challenge, ok := parseDigestChallenge(resp.Header.Values("WWW-Authenticate")); ok {
 			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxBodyBytes))
 			resp.Body.Close()
-			authorization, authErr := challenge.authorize(resp.Request.Method, resp.Request.URL, req.Auth.Username, req.Auth.Password, body)
+			authorization, authErr := challenge.authorize(resp.Request.Method, resp.Request.URL, req.Auth.Username, req.Auth.Password, nil)
 			if authErr != nil {
 				return nil, authErr
 			}

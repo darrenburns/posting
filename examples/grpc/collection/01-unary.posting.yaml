@@ -1,0 +1,8 @@
+name: 01 · Say hello
+description: One request, one greeting. Press Ctrl+J to send.
+kind: grpc
+url: grpc://127.0.0.1:50051
+grpc:
+  method: demo.v1.Greeter/SayHello
+  message: |
+    {"name": "Ada"}

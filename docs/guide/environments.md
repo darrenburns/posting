@@ -49,6 +49,98 @@ is replaced in its query.)
 The body is then sent exactly as written, while variables in the URL, headers and auth still work.
 The setting is saved with the request.
 
+## Generated values
+
+Use `${$name}` for a value evaluated afresh for each send. For example, an idempotency key:
+
+```yaml
+headers:
+  - name: Idempotency-Key
+    value: ${$uuid}
+```
+
+| Reference | Value |
+|-----------|-------|
+| `${$uuid}` | A cryptographically random UUID v4. |
+| `${$timestamp}` | Current Unix time in seconds. |
+| `${$timestampMs}` | Current Unix time in milliseconds. |
+| `${$isoTimestamp}` | Current UTC time in ISO 8601 format, e.g. `2026-10-12T14:30:00.123Z`. |
+| `${$randomInt}` | A cryptographically random integer from 0 to 2147483647, inclusive. |
+
+Each generator has **one value per send**: `${$uuid}` in a header and the body uses the same UUID.
+Sending again evaluates all generators again (timestamps may stay the same within their clock
+resolution). An open gRPC stream keeps the values from when the call started for subsequent messages.
+Generators work wherever ordinary request variables work, including GraphQL and gRPC payloads.
+
+Type `$` to find generators in completion. The editor shows descriptions, not values that might be
+mistaken for the next send's values. Saving keeps the references; exporting a curl/grpcurl command
+with **Values** evaluates them once for that export. Re-running the exported command reuses those
+literal values. gRPC schema discovery also evaluates generators when it prepares its own request.
+
+Only the braced `${$name}` form generates values. Write `$${$uuid}` to send the literal `${$uuid}`,
+or turn off body substitution to leave the entire body unchanged.
+
+## Response captures
+
+Add a `captures` mapping to a request's `.posting.yaml` file to save values from its JSON response
+as session variables:
+
+```yaml
+name: Start session
+method: POST
+url: https://${API_HOST}/sessions
+captures:
+  SESSION_ID: data.id
+  API_TOKEN: data.token
+```
+
+For a response of `{"data":{"id":"session-123","token":"abc"}}`, later requests can use
+`${SESSION_ID}` and `${API_TOKEN}` in their URL, headers, body or authentication fields.
+Captures are edited in the file and preserved when saving in Posting.
+
+Paths use [JSONPath](https://www.rfc-editor.org/rfc/rfc9535.html) and start at the response body's
+root. You can omit the root prefix: Posting adds `$` before `[` or `$.` before a member name.
+Expressions starting with `$` are used as written. Both forms use the same JSONPath parser;
+there's no separate shorthand language or fallback for invalid expressions.
+
+| Path | Selects |
+|------|---------|
+| `data.id` or `$.data.id` | A nested object field. |
+| `data.users[1].id` | The second user's ID (indexes start at zero). |
+| `[0].id` | A field in the first item of a root array. |
+| `data["session.id"]` or `data['session.id']` | A key containing a dot. |
+| `data.users[-1].id` | The last user's ID. |
+| `data.users[?(@.role == "admin")].id` | The admin user's ID, provided exactly one matches. |
+| `data.users[1:2].id` | The second user's ID, using a slice. |
+| `data.users[*].id` | Each user's ID; succeeds only if exactly one matches. |
+| `$..token` | A token at any depth, provided exactly one matches. |
+| `$` | The entire JSON body. |
+
+Each capture must select **exactly one value**. Selecting `data.users` captures the entire array
+as JSON; selecting `data.users[*]` produces a match for each element, and fails if there are zero
+or multiple elements. Posting never silently picks the first match.
+
+Capture names follow the ordinary [variable naming rules](#using-variables). Strings are stored
+without quotes; numbers, booleans, `null`, arrays and objects are stored as JSON. Captured numbers
+keep their original precision. Numeric comparisons **inside filters** use 64-bit floating point,
+which can round large integers (beyond ±9007199254740991) and high-precision decimals. Capture
+such IDs by path, filter on another field, or compare IDs represented as JSON strings instead.
+
+Captures run after a complete response, regardless of its HTTP status, and also work on GraphQL
+and decoded gRPC JSON responses. They don't run on intermediate stream updates, when loading history,
+or when a request fails without a response. A cancelled or replaced request cannot publish late captures.
+Stopping a gRPC stream that has a response captures from its final retained body.
+
+All captures in a request must succeed. If the body isn't valid JSON or any path matches zero or
+multiple values, Posting shows a warning, keeps the response available, and leaves
+**all existing session values unchanged**.
+An explicit JSON `null` is a value, not a missing field.
+
+Captured values override earlier session values and environment values. They appear on the
+[variables screen](#the-variables-screen), where you can edit or remove them, and are forgotten when
+Posting exits. As with other session values, switching environments keeps them. Captured strings
+are literal: dollar signs inside them aren't expanded again.
+
 ## Environment files
 
 Variables are defined in `.env` files:
@@ -200,7 +292,7 @@ Variables can come from three places. From lowest to highest priority:
 
 1. **Your shell's environment**, if `use_host_environment` is on (see below)
 2. **The environment's files**, in layer order
-3. **Session values**, set on the [variables screen](#the-variables-screen)
+3. **Session values**, set on the [variables screen](#the-variables-screen) or by [response captures](#response-captures)
 
 The variables screen, and the preview under the URL bar, show where each value comes from and what
 it overrides, for example `staging.local.env over posting.env`, or `session over staging.env`.
