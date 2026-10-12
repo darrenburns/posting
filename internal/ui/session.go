@@ -127,6 +127,7 @@ type Session struct {
 	responseBody               *t.TextAreaState
 	responseBodyScroll         *t.ScrollState
 	responseBodyViewportHeight int
+	responseBodyViewportCursor int
 	// responseVisual is the body viewer's visual mode, where moving selects.
 	responseVisual        t.Signal[bool]
 	responseHeaders       *t.TableState[model.Header]

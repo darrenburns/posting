@@ -261,7 +261,7 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
 			responseBodyViewport{
-				height: &s.responseBodyViewportHeight,
+				session: s,
 				Column: t.Column{
 					Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 					Children: []t.Widget{viewport},
@@ -274,15 +274,24 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 
 type responseBodyViewport struct {
 	t.Column
-	height *int
+	session *Session
 }
 
-func (v responseBodyViewport) Build(t.BuildContext) t.Widget { return v }
+func (v responseBodyViewport) Build(t.BuildContext) t.Widget {
+	s := v.session
+	cursor := s.responseBody.CursorIndex.Get()
+	if cursor != s.responseBodyViewportCursor {
+		// Terma reveals direct cursor moves during Render, after scroll layout.
+		s.revealBodyCursor()
+		s.responseBodyViewportCursor = cursor
+	}
+	return v
+}
 
 func (v responseBodyViewport) ChildWidgets() []t.Widget { return v.Children }
 
 func (v responseBodyViewport) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
-	*v.height = metrics.Box().ContentHeight()
+	v.session.responseBodyViewportHeight = metrics.Box().ContentHeight()
 }
 
 // responseBodyStatus is the bar under the response body. It rebuilds as the
