@@ -124,6 +124,7 @@ The table below lists all available configuration options and their environment 
 | `url_bar.hide_secrets_in_value_preview` (`POSTING_URL_BAR__HIDE_SECRETS_IN_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | If enabled, values will be redacted in the value preview when the variable name contains the word `secret` or `key` or `password` or `token`. |
 | `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `"left"`, `"right"` (Default: `"left"`) | The position of the collection browser on screen. |
 | `collection_browser.show_on_startup` (`POSTING_COLLECTION_BROWSER__SHOW_ON_STARTUP`) | `true`, `false` (Default: `true`) | Show/hide the collection browser on startup. Can always be toggled using the command palette. |
+| `collection_browser.open_on_highlight` (`POSTING_COLLECTION_BROWSER__OPEN_ON_HIGHLIGHT`) | `true`, `false` (Default: `false`) | If enabled, highlighting a request in the collection browser opens it in the editor, as if enter had been pressed. The tree keeps focus, so requests can be stepped through with the arrow keys (or `j`/`k`) and sent directly. |
 | `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |
 | `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
 | `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
