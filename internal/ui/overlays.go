@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/charmbracelet/x/ansi"
 	t "github.com/darrenburns/terma"
 
 	"github.com/darrenburns/posting/internal/model"
@@ -277,15 +278,15 @@ func (a *App) restoreTheme() {
 
 // renderMethodItem draws a palette row for a request: its badge in
 // methodFg, then its name with the matched letters highlighted, an optional
-// marker after the name, and the item's hint on the right.
+// marker after the name, and the item's path on a second line below the name.
 func renderMethodItem(theme t.ThemeData, item t.CommandPaletteItem, active bool, match t.MatchResult, methodFg t.Color, methodLabel, marker string) t.Widget {
 	style := t.Style{Width: t.Flex(1), Padding: t.EdgeInsetsXY(1, 0)}
 	label := t.Style{ForegroundColor: theme.Text, Width: t.Flex(1)}
-	hint := t.Style{ForegroundColor: theme.TextMuted}
+	path := t.Style{ForegroundColor: theme.TextMuted, Width: t.Flex(1), Padding: t.EdgeInsets{Left: ansi.StringWidth(methodLabel)}}
 	if active {
 		style.BackgroundColor = theme.ActiveCursor
 		label.ForegroundColor = theme.SelectionText
-		hint.ForegroundColor = theme.SelectionText
+		path.ForegroundColor = theme.SelectionText
 		methodFg = theme.SelectionText
 	}
 	name := t.Text{Content: item.Label, Style: label}
@@ -304,14 +305,28 @@ func renderMethodItem(theme t.ThemeData, item t.CommandPaletteItem, active bool,
 		}
 		name.Spans = append(name.Spans, t.Span{Text: " " + marker, Style: t.SpanStyle{Foreground: markerFg}})
 	}
-	return t.Row{
-		Style: style,
+	rows := []t.Widget{t.Row{
+		Style: t.Style{Width: t.Flex(1)},
 		Children: []t.Widget{
 			t.Text{Content: methodLabel, Style: t.Style{ForegroundColor: methodFg, Bold: true}},
 			name,
-			t.Text{Content: item.Hint, Style: hint},
 		},
+	}}
+	if item.Description != "" {
+		rows = append(rows, palettePath{t.Text{Content: item.Description, Style: path}})
 	}
+	return t.Column{Style: style, Children: rows}
+}
+
+// Keep the filename end of a path when it is wider than the dropdown.
+type palettePath struct{ t.Text }
+
+func (p palettePath) Build(t.BuildContext) t.Widget { return p }
+func (p palettePath) Render(ctx *t.RenderContext) {
+	if width := ansi.StringWidth(p.Content); width > ctx.Width {
+		p.Content = ansi.TruncateLeft(p.Content, width-ctx.Width+1, "…")
+	}
+	p.Text.Render(ctx)
 }
 
 // ---------------------------------------------------------------------------

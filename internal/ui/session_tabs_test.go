@@ -231,6 +231,9 @@ func TestSessionTabsArePlainRow(tt *testing.T) {
 func TestTabSearchFiltersAndSwitchesTabs(tt *testing.T) {
 	app := testApp()
 	openTabs(app, 12)
+	// Saved requests have paths long enough to fill the dropdown on their
+	// own. They must not hide the title users search for.
+	app.sessions.Peek()[7].file.Set("/home/user/projects/api-collection/billing/invoices.posting.yaml")
 	s := newScreen(app, snapW, snapH)
 	s.showTab(tt, "Untitled")
 	if keys := app.keysFor("search-tabs"); len(keys) == 0 || keys[0] != "alt+down" {
@@ -272,10 +275,29 @@ func TestTabSearchFiltersAndSwitchesTabs(tt *testing.T) {
 	hangsFromStrip("without the sidebar")
 
 	input := s.paletteInput(tt, tabSearchID+"-input")
-	input.State.SetText("uest 07")
-	input.OnChange("uest 07")
-	if item, ok := app.tabSearch.CurrentItem(); !ok || item.Label != "Request 07" {
-		tt.Fatalf("filtering should put Request 07 first, not %q", item.Label)
+	for _, query := range []string{"uest 07", "INVOICES", "billing"} {
+		input.State.SetText(query)
+		input.OnChange(query)
+		if item, ok := app.tabSearch.CurrentItem(); !ok || item.Label != "Request 07" {
+			tt.Errorf("filtering by %q should put Request 07 first, not %q", query, item.Label)
+		}
+		s.render()
+		float := s.renderer.TopFloat()
+		var rows []string
+		for _, row := range strings.Split(s.renderer.ScreenText(), "\n")[float.Y : float.Y+float.Height] {
+			rows = append(rows, string([]rune(row)[float.X:float.X+float.Width]))
+		}
+		text := strings.Join(rows, "\n")
+		if !strings.Contains(text, "GET Request 07") || !strings.Contains(text, "invoices.posting.yaml") || strings.Contains(text, "Request 08") {
+			tt.Errorf("searching %q should show the matching title, method and filename, without other tabs:\n%s", query, text)
+		}
+		for i, row := range rows {
+			if strings.Contains(row, "GET Request 07") {
+				if strings.Contains(row, "posting.yaml") || i+1 == len(rows) || !strings.Contains(rows[i+1], "invoices.posting.yaml") {
+					tt.Errorf("the path should be on the line below the title:\n%s", text)
+				}
+			}
+		}
 	}
 	for _, kb := range input.ExtraKeybinds {
 		if kb.Key == "enter" {
@@ -339,7 +361,10 @@ func TestSnapshotSessionTabsOverflow(tt *testing.T) {
 func TestSnapshotTabSearch(tt *testing.T) {
 	app := testApp()
 	openTabs(app, 12)
+	app.sessions.Peek()[10].file.Set("requests/users.posting.yaml")
+	app.sessions.Peek()[11].file.Set("/home/user/projects/api-collection/users/create.posting.yaml")
+	app.current().file.Set("/home/user/projects/api-collection/billing/invoices.posting.yaml")
 	app.current().dirty.Set(true)
 	app.openTabSearch()
-	t.AssertSnapshot(tt, app, snapW, snapH, "The open-tab search dropped down from the right end of the tab strip, on the active (unsaved) Request 12")
+	t.AssertSnapshot(tt, app, snapW, snapH, "The open-tab search shows file paths below titles, on the active (unsaved) Request 12; tabs without paths stay on one line")
 }

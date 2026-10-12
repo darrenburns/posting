@@ -10,6 +10,10 @@ Posting 3 is a rewrite of Posting in Go, distributed as a single binary. It read
 - A `using-posting` skill teaches Claude Code, Codex, Pi, Amp and other coding agents to send API requests through the Posting you have open. Install it with `posting remote skill`. See [Coding Agents](guide/agents.md).
 - `posting import` imports environments. Give Postman environment exports after the collection, or on their own with `--output` to add them to an existing collection. A Bruno collection's `environments` directory is imported too. Collection variables go in `posting.env` and each environment in its own `<name>.env` on top of it. References between variables are kept, so a `BASE_URL` built from `HOST` follows the selected environment (#270).
 
+### Fixed
+
+- Show file paths below request titles in open-tab search, and match searches against both titles and paths.
+
 ## 2.11.0 [26th September 2026]
 
 ### Added
