@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/darrenburns/posting/v3/internal/client"
 	"github.com/darrenburns/posting/v3/internal/collection"
 	"github.com/darrenburns/posting/v3/internal/model"
 	t "github.com/darrenburns/terma"
+	uv "github.com/darrenburns/ultraviolet"
 )
 
 func uploadApp(tt *testing.T) *App {

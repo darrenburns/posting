@@ -159,6 +159,7 @@ type App struct {
 	overlay            t.Signal[string] // "", "help", "variables", "save", "confirm"
 	confirm            t.AnySignal[confirmation]
 	save               *saveForm
+	responseSave       *responseSaveForm
 	variables          *variablesForm
 	curlDialog         *curlForm
 	toast              t.AnySignal[toast]
@@ -266,6 +267,7 @@ func New(cfg Config) *App {
 	a.methodMenu = t.NewMenuState(a.methodMenuItems())
 	a.logoMenu = t.NewMenuState(a.logoMenuItems())
 	a.save = newSaveForm()
+	a.responseSave = newResponseSaveForm()
 	a.variables = newVariablesForm()
 	a.curlDialog = newCurlForm()
 	a.openSession(model.NewRequest())
@@ -476,6 +478,7 @@ func (a *App) openPreview(req model.Request) *Session {
 		// A fresh session rather than reloading the old one, so none of its
 		// response or view state carries over to the new request.
 		old.Cancel()
+		old.responseImage.Set(nil)
 		sessions[i] = s
 	} else {
 		sessions = append(sessions, s)
@@ -538,6 +541,7 @@ func (a *App) closeSession(id int) {
 		if s.id == id {
 			index = i
 			s.Cancel()
+			s.responseImage.Set(nil)
 		}
 	}
 	if index < 0 {

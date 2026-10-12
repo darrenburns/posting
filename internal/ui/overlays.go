@@ -37,6 +37,7 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 		a.tabSearchPalette(theme),
 		helpOverlay{app: a, visible: overlay == "help"},
 		saveOverlay{app: a, visible: overlay == "save"},
+		responseSaveOverlay{app: a, visible: overlay == "response-save"},
 		variablesOverlay{app: a, visible: overlay == "variables"},
 		confirmOverlay{app: a, visible: overlay == "confirm"},
 		curlOverlay{app: a, visible: overlay == "curl"},
@@ -47,6 +48,7 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 
 func (a *App) closeOverlay() {
 	a.overlay.Set("")
+	a.responseSave.response = nil
 }
 
 // ---------------------------------------------------------------------------
@@ -120,17 +122,10 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 				a.confirmDeleteRequests([]model.Request{s.Snapshot()})
 			}
 		})},
-		{Label: "Copy response body", Action: a.run(a.copyResponseBody)},
 	}...)
+	items = append(items, a.responseCommands()...)
 	items = append(items, a.rowCopyCommands()...)
-	items = append(items, []t.CommandPaletteItem{
-		{Label: "Toggle response wrap", Description: "Wrap long lines in the response body", Action: a.run(func() {
-			if s := a.current(); s != nil {
-				s.responseBody.ToggleWrap()
-			}
-		})},
-		{Label: "Reload collection", Description: "Read the collection from disk again", Action: a.run(a.reloadCollection)},
-	}...)
+	items = append(items, t.CommandPaletteItem{Label: "Reload collection", Description: "Read the collection from disk again", Action: a.run(a.reloadCollection)})
 	if s := a.current(); s != nil {
 		if s.kind.Peek() == model.KindGRPC {
 			items = append(items, a.streamCommand(s))
@@ -173,6 +168,31 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		t.CommandPaletteItem{Label: "Quit Posting", Hint: "ctrl+c", Action: t.Quit},
 	)
 	return items
+}
+
+func (a *App) responseCommands() []t.CommandPaletteItem {
+	var items []t.CommandPaletteItem
+	s := a.current()
+	if s != nil && s.responseImage.Peek() != nil {
+		items = append(items,
+			t.CommandPaletteItem{Label: "Toggle image preview", Hint: "f2", Action: a.run(s.toggleImagePreview)},
+			t.CommandPaletteItem{Label: "Save response body…", Description: "Save the original bytes to a file", Action: func() {
+				a.palette.SetNextFocusIDOnClose("response-save-path")
+				a.run(func() { a.openResponseSave(s.response.Peek()) })()
+			}},
+		)
+		if !s.responseAsText.Peek() {
+			return items
+		}
+	}
+	return append(items,
+		t.CommandPaletteItem{Label: "Copy response body", Action: a.run(a.copyResponseBody)},
+		t.CommandPaletteItem{Label: "Toggle response wrap", Description: "Wrap long lines in the response body", Action: a.run(func() {
+			if s := a.current(); s != nil {
+				s.responseBody.ToggleWrap()
+			}
+		})},
+	)
 }
 
 func (a *App) themeItems() []t.CommandPaletteItem {

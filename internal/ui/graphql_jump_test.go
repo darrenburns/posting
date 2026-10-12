@@ -3,8 +3,8 @@ package ui
 import (
 	"testing"
 
-	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
+	uv "github.com/darrenburns/ultraviolet"
 
 	"github.com/darrenburns/posting/v3/internal/model"
 )

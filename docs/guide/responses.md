@@ -69,6 +69,26 @@ Reopening Find selects the previous query so you can replace it. Each request ta
 Unlike Posting 2, ++ctrl+f++ opens Find rather than paging down. Use ++page-down++ for a full page or
 ++ctrl+d++ for half a page (++ctrl+u++ moves up half a page).
 
+### Images
+
+Responses with an `image/*` content type open as a preview. Posting supports PNG, JPEG, GIF
+(the first frame) and static WebP. It also recognises images when the server omits the content type
+or uses `application/octet-stream`; explicit text content types stay in the text viewer.
+
+The image fits inside the Body tab without stretching. Terma uses Kitty or Sixel graphics when
+the terminal supports them, and coloured character cells otherwise. Press ++alt+z++ to expand the
+Response panel for a larger preview. The footer shows the decoded format and pixel dimensions.
+
+With the preview focused, press ++f2++ (or click **text**) to inspect the response as text, and
+++f2++ (or **preview**) to return. Press ++s++ or click **save** to save the original response body
+bytes, not a screenshot or a re-encoded image. The save dialog accepts absolute or relative paths
+and `~/`; it never overwrites an existing file. These actions also appear in the command palette.
+
+Previews are limited to 32 MiB of encoded data, 16,777,216 pixels and 16,384 pixels per side.
+Unsupported formats, corrupt images and larger images show an explanation, with **text** and
+**save** still available. Preview errors do not change the HTTP status or response bytes.
+Images saved in [history](./collections.md#history) can be previewed again when you reopen them.
+
 ## Headers
 
 The response headers, one per row.

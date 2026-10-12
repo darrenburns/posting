@@ -138,6 +138,8 @@ type Session struct {
 	responseBodyViewportCursor int
 	responseSearch             *t.TextInputState
 	responseSearchOpen         t.Signal[bool]
+	responseImage              t.AnySignal[*imagePreview]
+	responseAsText             t.Signal[bool]
 	// responseVisual is the body viewer's visual mode, where moving selects.
 	responseVisual        t.Signal[bool]
 	responseHeaders       *t.TableState[model.Header]
@@ -226,6 +228,8 @@ func newSession(id int, req model.Request) *Session {
 		responseBodyScroll:     t.NewScrollState(),
 		responseSearch:         t.NewTextInputState(""),
 		responseSearchOpen:     t.NewSignal(false),
+		responseImage:          t.NewAnySignal[*imagePreview](nil),
+		responseAsText:         t.NewSignal(false),
 		responseVisual:         t.NewSignal(false),
 		responseHeaders:        t.NewTableState[model.Header](nil),
 		responseHeadersScroll:  t.NewScrollState(),
@@ -725,6 +729,7 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 	}
 	s.response.Set(resp)
 	s.fromHistory.Set(entry)
+	s.prepareImagePreview(resp)
 	if resp == nil {
 		return
 	}
@@ -733,7 +738,13 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 		keep := s.live && s.phase.Peek() == exchangeSending && entry == nil
 		s.messages.update(s, resp.Events, !keep)
 	} else {
-		s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
+		if s.responseImage.Peek() == nil {
+			s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
+		} else {
+			// Don't split binary data into text-area graphemes unless the
+			// user explicitly chooses to view the image as text.
+			s.responseBody.SetText("")
+		}
 		s.responseBody.CursorIndex.Set(0)
 		s.responseBodyScroll.SetOffset(0)
 		s.responseBody.SelectionAnchor.Set(-1)

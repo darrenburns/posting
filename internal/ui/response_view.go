@@ -264,6 +264,10 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 	if len(resp.Body) == 0 {
 		return emptyState{Title: "Empty body", Lines: []string{"The server returned " + statusText(s.responseStatus) + " with no content"}}
 	}
+	image := s.responseImage.Get() != nil
+	if image && !s.responseAsText.Get() {
+		return responseImageView{app: b.app, session: s}
+	}
 	contentType := resp.ContentType()
 	copyBody := func() { b.app.notify(s.copyBody(), toastSuccess) }
 	highlighter := b.app.bodyHighlighter(theme, languageFor(contentType), false)
@@ -279,6 +283,9 @@ func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
 		MouseDown:     func(t.MouseEvent) { s.responseVisual.Set(false) },
 		ExtraKeybinds: append(s.responseBodyKeybinds(copyBody, s.responseVisual.Get()), b.app.externalKeybinds(s.responseBody, languageFor(contentType), nil)...),
+	}
+	if image {
+		area.ExtraKeybinds = append(area.ExtraKeybinds, t.Keybind{Key: "f2", Name: "Image preview", Action: s.toggleImagePreview})
 	}
 	viewport := scrollingArea("resp-body", s.responseBodyScroll, theme.Background, area)
 	viewport.MouseWheel = func(t.MouseEvent) bool {
@@ -362,6 +369,9 @@ func (r responseBodyStatus) Build(ctx t.BuildContext) t.Widget {
 	// The cursor is only drawn while the body has focus.
 	if isFocusedID(ctx, "resp-body") {
 		children = append(children, t.Text{Content: cursorPosition(graphemes, body.CursorIndex.Get()), Style: t.Style{ForegroundColor: theme.TextMuted}})
+	}
+	if r.session.responseImage.Get() != nil {
+		children = append(children, t.Text{Content: "preview", Style: t.Style{ForegroundColor: theme.TextMuted}, Click: func(t.MouseEvent) { r.session.toggleImagePreview() }})
 	}
 	return t.Row{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Cells(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
