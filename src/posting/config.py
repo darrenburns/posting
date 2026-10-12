@@ -112,6 +112,12 @@ class CollectionBrowserSettings(BaseModel):
     show_on_startup: bool = Field(default=True)
     """If enabled, the collection browser will be shown on startup."""
 
+    open_on_highlight: bool = Field(default=False)
+    """If enabled, highlighting a request in the collection browser opens it
+    in the editor, as if enter had been pressed. The tree keeps focus, so
+    requests can be stepped through and sent with arrow keys plus the send
+    binding. Highlighting a folder does nothing."""
+
 
 class HistorySettings(BaseModel):
     enabled: bool = Field(default=True)
