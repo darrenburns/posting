@@ -139,7 +139,7 @@
   <rect x="1074.8" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="8.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="310.40" y="8.00" width="1.05" height="19.60" fill="#45407A"/>
+  <rect x="310.40" y="8.00" width="1.05" height="19.60" fill="#65479B"/>
   <text x="814.4" y="17.8" fill="#9A96BE">sample-api</text>
   <text x="923.6" y="17.8" fill="#FAAFD5">◆</text>
   <text x="940.4" y="17.8" class="bold" fill="#FAAFD5">local</text>
@@ -294,7 +294,7 @@
   <text x="150.8" y="37.4" fill="#9A96BE">o</text>
   <text x="159.2" y="37.4" fill="#9A96BE">r</text>
   <text x="167.6" y="37.4" fill="#9A96BE">y</text>
-  <rect x="310.40" y="27.60" width="1.05" height="19.60" fill="#45407A"/>
+  <rect x="310.40" y="27.60" width="1.05" height="19.60" fill="#624798"/>
   <text x="335.6" y="37.4" fill="#DDA8FB">GET</text>
   <text x="369.2" y="37.4" class="bold" fill="#F5F5F6">Untitled</text>
   <text x="461.6" y="37.4" fill="#9A96BE">+</text>
@@ -441,7 +441,7 @@
   <text x="142.4" y="57.0" fill="#9A96BE">t</text>
   <text x="150.8" y="57.0" fill="#9A96BE">s</text>
   <text x="159.2" y="57.0" fill="#9A96BE">…</text>
-  <rect x="310.40" y="47.20" width="1.05" height="19.60" fill="#45407A"/>
+  <rect x="310.40" y="47.20" width="1.05" height="19.60" fill="#5F4795"/>
   <text x="335.6" y="57.0" fill="#DDA8FB">GET</text>
   <text x="394.4" y="57.0" fill="#9A96BE">▾</text>
   <rect x="411.20" y="47.20" width="2.10" height="19.60" fill="#1E1E3F"/>
@@ -586,7 +586,7 @@
   <rect x="1074.8" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="310.40" y="66.80" width="1.05" height="19.60" fill="#45407A"/>
+  <rect x="310.40" y="66.80" width="1.05" height="19.60" fill="#5C4692"/>
   <rect x="8.0" y="86.4" width="8.4" height="19.6" fill="#2E1D46"/>
   <rect x="16.4" y="86.4" width="8.4" height="19.6" fill="#2D1D45"/>
   <rect x="24.8" y="86.4" width="8.4" height="19.6" fill="#2D1D44"/>
@@ -722,7 +722,7 @@
   <text x="50.0" y="96.2" class="bold" fill="#9A96BE">u</text>
   <text x="58.4" y="96.2" class="bold" fill="#9A96BE">th</text>
   <text x="75.2" y="96.2" class="bold" fill="#9A96BE">/</text>
-  <rect x="310.40" y="86.40" width="1.05" height="19.60" fill="#45407A"/>
+  <rect x="310.40" y="86.40" width="1.05" height="19.60" fill="#59468F"/>
   <text x="327.2" y="96.2" class="bold" fill="#F5F5F6">Headers</text>
   <path d="M 327.20 104.50 H 386.00" fill="none" stroke="#FF69B4" stroke-width="1.00"/>
   <text x="402.8" y="96.2" fill="#9A96BE">Body</text>
@@ -2312,7 +2312,7 @@
   <text x="167.6" y="292.2" fill="#F5F5F6">g</text>
   <text x="176.0" y="292.2" fill="#F5F5F6">h</text>
   <text x="184.4" y="292.2" fill="#F5F5F6">t</text>
-  <rect x="310.40" y="282.40" width="1.05" height="19.60" fill="#45407A"/>
+  <rect x="310.40" y="282.40" width="1.05" height="19.60" fill="#47417C"/>
   <text x="562.4" y="292.2" fill="#9A96BE">Press</text>
   <text x="612.8" y="292.2" class="bold" fill="#9A96BE">ctrl+j</text>
   <text x="671.6" y="292.2" fill="#9A96BE">to</text>
@@ -2449,7 +2449,7 @@
   <rect x="1074.8" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1083.2" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
-  <rect x="310.40" y="302.00" width="1.05" height="19.60" fill="#45407A"/>
+  <rect x="310.40" y="302.00" width="1.05" height="19.60" fill="#46417B"/>
   <rect x="8.0" y="321.6" width="8.4" height="19.6" fill="#1E1B33"/>
   <rect x="16.4" y="321.6" width="8.4" height="19.6" fill="#1E1B33"/>
   <rect x="24.8" y="321.6" width="8.4" height="19.6" fill="#1E1B32"/>
