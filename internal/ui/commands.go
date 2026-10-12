@@ -38,16 +38,6 @@ func (a *App) exportYAML() {
 	a.notify("Copied request YAML to clipboard", toastSuccess)
 }
 
-// toggleSpacing switches between standard and compact spacing for the
-// session.
-func (a *App) toggleSpacing() {
-	if a.spacing.Peek() == "compact" {
-		a.spacing.Set("standard")
-	} else {
-		a.spacing.Set("compact")
-	}
-}
-
 func (a *App) openDocs() {
 	a.openLink("Documentation", docsURL)
 }

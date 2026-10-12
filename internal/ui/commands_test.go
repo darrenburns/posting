@@ -169,15 +169,12 @@ func TestLoadEnvironmentFileByPath(tt *testing.T) {
 	}
 }
 
-func TestToggleSpacing(tt *testing.T) {
+func TestSpacingCommandsAreUnavailable(tt *testing.T) {
 	app := testApp()
-	app.toggleSpacing()
-	if app.gap() != 0 {
-		tt.Fatal("compact spacing should remove the gaps")
-	}
-	app.toggleSpacing()
-	if app.gap() != 1 {
-		tt.Fatal("standard spacing should restore them")
+	for _, item := range app.paletteItems() {
+		if strings.Contains(item.Label, "spacing") {
+			tt.Fatalf("spacing command should not be offered: %s", item.Label)
+		}
 	}
 }
 

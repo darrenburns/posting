@@ -253,8 +253,9 @@ func TestSummaryFollowsTheCursorResizeAndScroll(tt *testing.T) {
 	}
 
 	// Scrolling the tree of a short screen moves the bubble with its row,
-	// and a row scrolled out of view has none.
-	s.renderer.Resize(snapW, 11)
+	// and a row scrolled out of view has none. Leave enough room for the
+	// summary beside Login, including the standard spacing above the tree.
+	s.renderer.Resize(snapW, 12)
 	s.render()
 	before := s.summary(tt)
 	app.treeScroll.SetOffset(1)

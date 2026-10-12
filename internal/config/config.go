@@ -65,7 +65,8 @@ type Settings struct {
 	Keymap map[string]string `yaml:"keymap"`
 	// CurlExportExtraArgs are inserted after "curl" in exported commands.
 	CurlExportExtraArgs string `yaml:"curl_export_extra_args"`
-	// Spacing is "standard", or "compact" to drop blank separator rows.
+	// Spacing accepts "standard" and "compact" for compatibility, but has
+	// no effect. The UI always uses standard spacing for now.
 	Spacing string `yaml:"spacing"`
 	// NerdFonts uses Nerd Font icons. Unset means on in terminals known to
 	// ship them (Ghostty), off elsewhere.

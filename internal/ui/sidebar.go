@@ -86,7 +86,7 @@ func (sb sidebar) Build(ctx t.BuildContext) t.Widget {
 	}
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsets{Left: 2, Right: 1}, BackgroundColor: sb.background},
-		Spacing: a.gap(),
+		Spacing: 1,
 		Children: []t.Widget{
 			top,
 			t.Switcher{
@@ -214,9 +214,10 @@ func (c collectionView) Build(ctx t.BuildContext) t.Widget {
 		Children: []t.Widget{
 			requestSummary{app: a, row: row},
 			t.Scrollable{
-				ID:    treeViewportID,
-				State: a.treeScroll,
-				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+				ID:                  treeViewportID,
+				State:               a.treeScroll,
+				Style:               t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+				ScrollbarTrackColor: theme.ScrollbarTrack.WithAlpha(0.5),
 				Child: collectionTree{app: a, Tree: t.Tree[treeItem]{
 					ID:          treeID,
 					State:       a.tree,
@@ -354,8 +355,9 @@ func (h historyView) Build(ctx t.BuildContext) t.Widget {
 	}
 	focused := isFocusedID(ctx, historyID)
 	return t.Scrollable{
-		State: a.historyScroll,
-		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		State:               a.historyScroll,
+		Style:               t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		ScrollbarTrackColor: theme.ScrollbarTrack.WithAlpha(0.5),
 		Child: t.List[model.HistoryEntry]{
 			ID:          historyID,
 			State:       a.historyList,

@@ -285,8 +285,7 @@
   <rect x="310.40" y="27.60" width="1.05" height="19.60" fill="#423169"/>
   <text x="335.6" y="37.4" fill="#0F0F1F">h</text>
   <text x="352.4" y="37.4" fill="#8B6BA3">T</text>
-  <text x="369.2" y="37.4" class="bold italic" fill="#9999A0">List</text>
-  <text x="411.2" y="37.4" class="bold italic" fill="#9999A0">users</text>
+  <text x="369.2" y="37.4" class="bold italic underline" fill="#9999A0">List users</text>
   <text x="470.0" y="37.4" fill="#62607E">✕</text>
   <text x="495.2" y="37.4" fill="#62607E">+</text>
   <rect x="8.0" y="47.2" width="8.4" height="19.6" fill="#231839"/>
@@ -3697,7 +3696,7 @@
   <rect x="310.40" y="498.00" width="1.05" height="19.60" fill="#322E59"/>
   <text x="386.0" y="507.8" fill="#8B6BA3">&#34;id&#34;</text>
   <text x="419.6" y="507.8" fill="#62607E">:</text>
-  <text x="436.4" y="507.8" fill="#509B84">1</text>
+  <text x="436.4" y="507.8" fill="#9C9056">1</text>
   <text x="444.8" y="507.8" fill="#62607E">,</text>
   <rect x="8.0" y="517.6" width="8.4" height="19.6" fill="#18162B"/>
   <rect x="16.4" y="517.6" width="8.4" height="19.6" fill="#18162A"/>
@@ -4365,7 +4364,7 @@
   <rect x="310.40" y="596.00" width="1.05" height="19.60" fill="#312D57"/>
   <text x="352.4" y="605.8" fill="#8B6BA3">&#34;page&#34;</text>
   <text x="402.8" y="605.8" fill="#62607E">:</text>
-  <text x="419.6" y="605.8" fill="#509B84">1</text>
+  <text x="419.6" y="605.8" fill="#9C9056">1</text>
   <text x="428.0" y="605.8" fill="#62607E">,</text>
   <rect x="8.0" y="615.6" width="8.4" height="19.6" fill="#171529"/>
   <rect x="16.4" y="615.6" width="8.4" height="19.6" fill="#171529"/>

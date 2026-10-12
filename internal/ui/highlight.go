@@ -160,9 +160,9 @@ func (h *syntaxHighlighter) styleFor(tt chroma.TokenType) (t.SpanStyle, bool) {
 		return t.SpanStyle{Foreground: theme.PrimaryText}, true
 	case tt.InCategory(chroma.Comment):
 		return t.SpanStyle{Foreground: theme.TextMuted, Italic: true}, true
-	case tt.InCategory(chroma.LiteralString):
+	case tt.InSubCategory(chroma.LiteralString):
 		return t.SpanStyle{Foreground: theme.SuccessText}, true
-	case tt.InCategory(chroma.LiteralNumber):
+	case tt.InSubCategory(chroma.LiteralNumber):
 		return t.SpanStyle{Foreground: theme.WarningText}, true
 	case tt.InCategory(chroma.Keyword), tt == chroma.NameBuiltin:
 		return t.SpanStyle{Foreground: theme.AccentText}, true

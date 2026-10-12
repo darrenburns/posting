@@ -110,16 +110,16 @@ func (v graphQLQueryView) Build(ctx t.BuildContext) t.Widget {
 		ScrollState:   e.queryScroll,
 		Placeholder:   "Enter a GraphQL query…",
 		Highlighter:   v.app.queryHighlighter(theme, s.substitute.Checked.Get()),
-		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
 		OnChange:      touch,
 		ExtraKeybinds: v.app.externalKeybinds(e.query, "graphql", s.touch),
 	}
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: v.app.gap(),
+		Spacing: 1,
 		Children: []t.Widget{
 			formRow(ctx, "Operation", "", input{ID: graphQLOperationID, State: e.operation, Placeholder: "Operation to run when the query defines several", OnChange: touch}),
-			scrollingArea(graphQLQueryID, e.queryScroll, theme.Surface, area),
+			scrollingArea(graphQLQueryID, e.queryScroll, theme.Background, area),
 		},
 	}
 }
@@ -142,14 +142,14 @@ func (v graphQLVariablesView) Build(ctx t.BuildContext) t.Widget {
 		ScrollState:   e.variablesScroll,
 		Placeholder:   `{"id": "${USER_ID}"}`,
 		Highlighter:   v.app.bodyHighlighter(theme, "json", substitute),
-		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
 		OnChange:      func(string) { s.touch() },
 		ExtraKeybinds: v.app.externalKeybinds(e.variables, "json", s.touch),
 	}
 	if substitute {
 		area = e.variablesVars.wrap(theme, area, v.app.variableChoices(), t.Flex(1))
 	}
-	return scrollingArea(graphQLVariablesID, e.variablesScroll, theme.Surface, area)
+	return scrollingArea(graphQLVariablesID, e.variablesScroll, theme.Background, area)
 }
 
 // queryHighlighter highlights a GraphQL document, and the ${NAME}

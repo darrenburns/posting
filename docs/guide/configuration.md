@@ -40,7 +40,6 @@ Here's an example:
 ```yaml
 theme: aurora
 layout: horizontal
-spacing: compact
 response:
   prettify_json: false
 heading:
@@ -128,7 +127,7 @@ Each can also be set with the environment variable shown in brackets.
 | `load_user_themes` (`POSTING_LOAD_USER_THEMES`) | `true`, `false` (Default: `true`) | Load the themes in `theme_directory`. |
 | `load_builtin_themes` (`POSTING_LOAD_BUILTIN_THEMES`) | `true`, `false` (Default: `true`) | When `false` and you have at least one theme of your own, the theme picker lists only your themes. |
 | `layout` (`POSTING_LAYOUT`) | `vertical`, `horizontal` (Default: `vertical`) | `vertical` stacks the response below the request; `horizontal` puts them side by side. |
-| `spacing` (`POSTING_SPACING`) | `standard`, `compact` (Default: `standard`) | `compact` removes the blank rows between parts of the UI. Posting also switches to compact spacing on its own when the terminal is short. |
+| `spacing` (`POSTING_SPACING`) | `standard`, `compact` (Default: `standard`) | Accepted for compatibility; currently has no effect. Posting always uses standard spacing, including in short terminals. |
 | `nerd_fonts` (`POSTING_NERD_FONTS`) | `true`, `false` (Default: detected) | Draw icons from a [Nerd Font](https://www.nerdfonts.com/). When unset, icons are used in terminals known to ship Nerd Font symbols (Ghostty), and plain characters elsewhere. |
 | `use_host_environment` (`POSTING_USE_HOST_ENVIRONMENT`) | `true`, `false` (Default: `false`) | Make your shell's environment variables available as variables in requests. See [Environments](./environments.md#using-your-shells-environment). |
 | `watch_env_files` (`POSTING_WATCH_ENV_FILES`) | `true`, `false` (Default: `true`) | Reload the active environment when its files change on disk. |
@@ -145,7 +144,7 @@ Each can also be set with the environment variable shown in brackets.
 | `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `left`, `right` (Default: `left`) | Which side of the screen the sidebar is on. |
 | `collection_browser.show_on_startup` (`POSTING_COLLECTION_BROWSER__SHOW_ON_STARTUP`) | `true`, `false` (Default: `true`) | Show the sidebar when Posting starts. Toggle it any time with ++ctrl+h++. |
 | `command_palette.theme_preview` (`POSTING_COMMAND_PALETTE__THEME_PREVIEW`) | `true`, `false` (Default: `true`) | Preview themes and sidebar gradients as you move through their pickers. |
-| `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | Blink the cursor in inputs and text areas. |
+| `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | Pulse the cursor in all inputs and text areas. Set to `false` for a steady cursor. |
 | `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `url`, `method`, `collection` (Default: `url`) | What to focus when Posting starts. |
 | `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `body`, `tabs` (Default: unset) | Move focus to the response body, or the response tabs, when a response arrives. |
 | `focus.on_request_open` (`POSTING_FOCUS__ON_REQUEST_OPEN`) | `url`, `method`, `headers`, `body`, `path`, `query`, `info` (Default: unset) | What to focus when you open a request from the collection. |

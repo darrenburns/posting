@@ -282,8 +282,8 @@
   <text x="167.6" y="37.4" fill="#9A96BE">y</text>
   <rect x="310.40" y="27.60" width="1.05" height="19.60" fill="#64479A"/>
   <text x="335.6" y="37.4" fill="#FF69B4">RPC</text>
-  <text x="369.2" y="37.4" class="bold italic" fill="#F5F5F6">Say</text>
-  <text x="402.8" y="37.4" class="bold italic" fill="#F5F5F6">hello</text>
+  <text x="369.2" y="37.4" class="bold italic" fill="#F5F5F6">Say hello</text>
+  <path d="M 369.20 45.70 H 444.80" fill="none" stroke="#FF69B4" stroke-width="1.00"/>
   <text x="461.6" y="37.4" fill="#9A96BE">✕</text>
   <text x="486.8" y="37.4" fill="#9A96BE">+</text>
   <rect x="8.0" y="47.2" width="8.4" height="19.6" fill="#311E4A"/>

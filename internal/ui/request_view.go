@@ -44,7 +44,6 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	variables := variableHighlighter(theme, resolve)
 	choices := p.app.variableChoices()
-	gap := p.app.gap()
 	shared := map[string]t.Widget{
 		"headers": kvEditorView{
 			Editor:           s.headers,
@@ -71,9 +70,9 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 			ValueHighlighter: variables,
 			Choices:          choices,
 		},
-		"auth":    authEditor{session: s, variables: variables, choices: choices, gap: gap},
-		"info":    infoEditor{session: s, gap: gap},
-		"options": optionsEditor{session: s, variables: variables, choices: choices, gap: gap},
+		"auth":    authEditor{session: s, variables: variables, choices: choices},
+		"info":    infoEditor{session: s},
+		"options": optionsEditor{session: s, variables: variables, choices: choices},
 	}
 	views := map[string]t.Widget{}
 	for _, tab := range s.requestTabList() {
@@ -93,7 +92,7 @@ func (p requestPanel) Build(ctx t.BuildContext) t.Widget {
 		Height: t.Flex(1),
 		Child: t.Switcher{
 			Active:   s.requestTab.Get(),
-			Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsetsTRBL(gap, 0, 0, 1)},
+			Style:    t.Style{Width: t.Flex(1), Height: t.Flex(1), Padding: t.EdgeInsetsTRBL(1, 0, 0, 1)},
 			Children: views,
 		},
 	}
@@ -181,7 +180,7 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 			ScrollState:   s.bodyScroll,
 			Placeholder:   "Request body…",
 			Highlighter:   b.app.bodyHighlighter(theme, languageFor(contentType), s.substitute.Checked.Get()),
-			Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},
+			Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
 			OnChange:      func(string) { s.touch() },
 			ExtraKeybinds: b.app.externalKeybinds(s.body, languageFor(contentType), s.touch),
 		}
@@ -189,7 +188,7 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 		if s.substitute.Checked.Get() {
 			area = s.bodyVars.wrap(theme, area, b.app.variableChoices(), t.Flex(1))
 		}
-		content = scrollingArea("req-body-text", s.bodyScroll, theme.Surface, area)
+		content = scrollingArea("req-body-text", s.bodyScroll, theme.Background, area)
 	case model.BodyForm:
 		content = kvEditorView{
 			Editor:           s.form,
@@ -207,7 +206,7 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 	}
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: b.app.gap(),
+		Spacing: 1,
 		Children: []t.Widget{
 			t.Row{Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)}, Children: controls},
 			content,
@@ -249,7 +248,6 @@ type authEditor struct {
 	session   *Session
 	variables t.Highlighter
 	choices   variableChoices
-	gap       int
 }
 
 func (e authEditor) Build(ctx t.BuildContext) t.Widget {
@@ -275,7 +273,7 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 				Selected: string(authType),
 				OnChange: func(value string) { s.authType.Set(model.AuthType(value)); s.touch() },
 			},
-			t.Text{Content: generated, Style: t.Style{ForegroundColor: theme.TextMuted, Margin: t.EdgeInsetsTRBL(e.gap, 0, 0, 0), Padding: inset}},
+			t.Text{Content: generated, Style: t.Style{ForegroundColor: theme.TextMuted, Margin: t.EdgeInsetsTRBL(1, 0, 0, 0), Padding: inset}},
 		}}, "req-auth-type"),
 	}
 	switch authType {
@@ -295,7 +293,7 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 	default:
 		rows = append(rows, field(emptyState{Title: "No authentication", Lines: []string{"This request is sent without credentials"}}))
 	}
-	return scrollForm{State: s.authScroll, Spacing: e.gap, Rows: rows}
+	return scrollForm{State: s.authScroll, Spacing: 1, Rows: rows}
 }
 
 // formLabelWidth fits the longest form label ("Post-response") with room to
@@ -327,7 +325,6 @@ func formRow(ctx t.BuildContext, label, hint string, field t.Widget) t.Widget {
 type infoEditor struct {
 	fillParent
 	session *Session
-	gap     int
 }
 
 func (e infoEditor) Build(ctx t.BuildContext) t.Widget {
@@ -343,7 +340,7 @@ func (e infoEditor) Build(ctx t.BuildContext) t.Widget {
 	// fields after it.
 	return t.Column{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Spacing: e.gap,
+		Spacing: 1,
 		Children: []t.Widget{
 			formRow(ctx, "Name", "", input{ID: "req-info-name", State: s.name, Placeholder: "Enter a name…", OnChange: func(string) { s.touch() }}),
 			t.Row{Children: []t.Widget{
@@ -374,7 +371,6 @@ type optionsEditor struct {
 	session   *Session
 	variables t.Highlighter
 	choices   variableChoices
-	gap       int
 }
 
 func (e optionsEditor) Build(ctx t.BuildContext) t.Widget {
@@ -396,7 +392,7 @@ func (e optionsEditor) Build(ctx t.BuildContext) t.Widget {
 	// Each checkbox is its own row so tabbing through them scrolls one
 	// line at a time; the fields below keep a gap above them.
 	gap := func(w t.Widget) t.Widget {
-		return t.Column{Style: t.Style{Width: t.Flex(1), Margin: t.EdgeInsetsTRBL(e.gap, 0, 0, 0)}, Children: []t.Widget{w}}
+		return t.Column{Style: t.Style{Width: t.Flex(1), Margin: t.EdgeInsetsTRBL(1, 0, 0, 0)}, Children: []t.Widget{w}}
 	}
 	fields := map[string]formField{
 		"req-opt-follow":     field(check("req-opt-follow", s.follow, "Follow redirects", "Follow 3xx responses to their destination"), "req-opt-follow"),

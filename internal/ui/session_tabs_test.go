@@ -68,6 +68,44 @@ func (s *screen) showTab(tt *testing.T, title string) {
 	tt.Fatalf("no tab titled %q", title)
 }
 
+func TestSessionTabsUnderlineOnlyTheActiveTitle(tt *testing.T) {
+	// Aurora's cursor and accent colours differ.
+	app := homeApp("aurora")
+	openTabs(app, 1)
+	p := t.NewPilot(tt, app, snapW, snapH)
+	theme, _ := t.GetTheme("aurora")
+	bounds, _ := p.Bounds(sessionTabsID)
+	for _, active := range []string{"Request 01", "Untitled"} {
+		row := strings.Split(p.ScreenText(), "\n")[bounds.Y]
+		position := func(title string) int {
+			index := strings.Index(row, title)
+			if index < 0 {
+				tt.Fatalf("tab %q is missing from %q", title, row)
+			}
+			return len([]rune(row[:index]))
+		}
+		p.ClickAt(position(active), bounds.Y)
+		for _, title := range []string{"Untitled", "Request 01"} {
+			x := position(title)
+			for i := range len(title) {
+				style := p.Buffer().CellAt(x+i, bounds.Y).Style
+				if title == active {
+					if style.Attrs&uv.AttrBold == 0 || style.Underline != uv.UnderlineSingle || t.FromANSI(style.UnderlineColor) != theme.ActiveCursor {
+						tt.Fatalf("active tab %q should be bold with a cursor-coloured underline", title)
+					}
+				} else if style.Underline != uv.UnderlineNone {
+					tt.Fatalf("inactive tab %q should not be underlined", title)
+				}
+			}
+			for _, pad := range []int{x - 1, x + len(title)} {
+				if p.Buffer().CellAt(pad, bounds.Y).Style.Underline != uv.UnderlineNone {
+					tt.Fatal("tab padding should not be underlined")
+				}
+			}
+		}
+	}
+}
+
 func TestSessionTabsMarkOverflowOnlyWhenTabsAreHidden(tt *testing.T) {
 	app := testApp()
 	openTabs(app, 2)

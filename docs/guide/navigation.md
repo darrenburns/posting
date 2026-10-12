@@ -30,13 +30,8 @@ the rest of the session:
 - **View: expand request** / **View: expand response** makes one panel fill the screen.
   ++alt+z++ expands the Request or Response panel, whichever has focus (the Request panel if neither
   does), and pressing it again restores both.
-- **View: compact spacing** / **View: standard spacing** removes or restores the blank rows between
-  parts of the screen.
 
-Posting also switches to compact spacing on its own when your terminal is too short to spare
-the blank rows.
-
-To make any of these permanent, set `layout`, `spacing`, `collection_browser.show_on_startup` or
+To make any of these permanent, set `layout`, `collection_browser.show_on_startup` or
 `collection_browser.position` in your [configuration](./configuration.md).
 
 ## Jump mode

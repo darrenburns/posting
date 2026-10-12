@@ -76,7 +76,6 @@ their name to say what they'll do, like **Layout: side by side** and **Layout: s
 | View: expand request | | Make the Request panel fill the screen |
 | View: expand response | | Make the Response panel fill the screen |
 | View: restore panels | ++alt+z++ | Show both panels again (only shown while one is expanded) |
-| View: compact spacing / View: standard spacing | | Remove or restore the blank rows between parts of the screen |
 | Theme… | | Choose a [theme](./themes.md), previewing each as you go |
 | Sidebar gradient… | | Follow the app theme, borrow another theme's gradient colours, or turn the gradient off. Preview each option as you go; ++esc++ cancels the preview. |
 
@@ -90,4 +89,4 @@ their name to say what they'll do, like **Layout: side by side** and **Layout: s
 | Quit Posting | ++ctrl+c++ | Quit |
 
 Changes made from the **View** group and **Theme…** last until you quit. To make them permanent,
-set `layout`, `spacing`, `theme` and `sidebar_gradient` in your [configuration](./configuration.md).
+set `layout`, `theme` and `sidebar_gradient` in your [configuration](./configuration.md).

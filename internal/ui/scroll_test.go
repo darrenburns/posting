@@ -7,6 +7,7 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
 
+	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/model"
 )
 
@@ -21,8 +22,7 @@ type screen struct {
 
 func newScreen(app *App, width, height int) *screen {
 	s := &screen{app: app, focus: t.NewFocusManager(), focused: t.NewAnySignal[t.Focusable](nil)}
-	// One frame is enough: work the frame dispatches, such as the switch
-	// to compact spacing on a short screen, settles before it returns.
+	// One frame is enough: work the frame dispatches settles before it returns.
 	s.renderer = t.NewRenderer(uv.NewBuffer(width, height), width, height, s.focus, s.focused, t.NewAnySignal[t.Widget](nil))
 	s.render()
 	return s
@@ -47,16 +47,21 @@ func (s *screen) visible(id string) bool {
 	return entry != nil && !entry.Visible.IsEmpty()
 }
 
-func TestShortTerminalIsCompact(tt *testing.T) {
-	// The URL bar sits under the request tabs, with a blank row between them
-	// unless the terminal is short.
-	for _, tc := range []struct {
-		height, urlRow int
-	}{{snapH, 3}, {20, 2}} {
-		s := newScreen(testApp(), snapW, tc.height)
-		if got := s.renderer.WidgetByID(urlInputID).Visible.Y; got != tc.urlRow {
-			tt.Errorf("%d rows: URL bar on row %d, want %d", tc.height, got, tc.urlRow)
-		}
+func TestStandardSpacingSurvivesResizeAndLegacyConfig(tt *testing.T) {
+	for _, spacing := range []string{"standard", "compact"} {
+		tt.Run(spacing, func(tt *testing.T) {
+			app := settingsApp(tt, func(s *config.Settings) { s.Spacing = spacing })
+			p := t.NewPilot(tt, app, snapW, snapH)
+			for _, height := range []int{snapH, 28, 20, snapH} {
+				p.Resize(snapW, height)
+				for _, id := range []string{urlInputID, treeSearchID} {
+					bounds, ok := p.Bounds(id)
+					if !ok || bounds.Y != 3 {
+						tt.Errorf("%d rows: %s on row %d, want 3 with a blank row above it", height, id, bounds.Y)
+					}
+				}
+			}
+		})
 	}
 }
 
