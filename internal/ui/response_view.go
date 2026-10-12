@@ -531,11 +531,12 @@ func (r responseTrace) Build(ctx t.BuildContext) t.Widget {
 		{Text: padLeft(model.FormatDuration(total), 10), Style: t.SpanStyle{Foreground: theme.Text, Bold: true}},
 	}})
 	return t.Scrollable{
-		ID:        "resp-trace-scroll",
-		State:     r.session.traceScroll,
-		Focusable: true,
-		Style:     t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		Child:     t.Column{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: rows},
+		ID:                 "resp-trace-scroll",
+		State:              r.session.traceScroll,
+		Focusable:          true,
+		ScrollbarFadeDelay: scrollbarFadeDelay,
+		Style:              t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+		Child:              t.Column{Style: t.Style{Width: t.Flex(1), Padding: inset}, Children: rows},
 	}
 }
 

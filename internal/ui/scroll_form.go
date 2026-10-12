@@ -90,8 +90,9 @@ func (f scrollForm) Build(ctx t.BuildContext) t.Widget {
 	}
 	f.State.reveal(focused, row)
 	return t.Scrollable{
-		State: f.State.scroll,
-		Style: t.Style{Width: t.Flex(1), Height: f.height()},
+		State:              f.State.scroll,
+		ScrollbarFadeDelay: scrollbarFadeDelay,
+		Style:              t.Style{Width: t.Flex(1), Height: f.height()},
 		Child: formColumn{
 			Column: t.Column{Style: t.Style{Width: t.Flex(1)}, Spacing: f.Spacing, Children: children},
 			state:  f.State,

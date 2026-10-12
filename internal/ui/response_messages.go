@@ -148,7 +148,8 @@ func (v responseMessages) Build(ctx t.BuildContext) t.Widget {
 	}
 	list := t.Scrollable{
 		State: m.scroll, Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
-		MouseWheel: func(t.MouseEvent) bool { m.following.Set(false); return false },
+		ScrollbarFadeDelay: scrollbarFadeDelay,
+		MouseWheel:         func(t.MouseEvent) bool { m.following.Set(false); return false },
 		Child: t.List[messageRow]{
 			ID: messagesID, State: m.list, ScrollState: m.scroll, ItemHeight: 1,
 			OnSelect: inspect, ActivateOnClick: m.narrow.Get(),
