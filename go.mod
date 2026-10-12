@@ -7,7 +7,7 @@ require (
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/charmbracelet/ultraviolet v0.0.0-20251217160852-6b0c0e26fad9
 	github.com/charmbracelet/x/ansi v0.11.3
-	github.com/darrenburns/terma v0.22.2-0.20261011212142-1d56d50fa370
+	github.com/darrenburns/terma v0.24.0
 	github.com/rivo/uniseg v0.4.7
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800
 	google.golang.org/grpc v1.84.0

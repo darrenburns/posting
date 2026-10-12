@@ -528,6 +528,7 @@
   <rect x="948.8" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="957.2" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="66.8" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="66.8" width="8.4" height="19.6" fill="#121225"/>
   <rect x="982.4" y="66.8" width="8.4" height="19.6" fill="#121225"/>
   <rect x="990.8" y="66.8" width="8.4" height="19.6" fill="#121225"/>
   <rect x="999.2" y="66.8" width="8.4" height="19.6" fill="#121225"/>
@@ -545,7 +546,7 @@
   <text x="33.2" y="76.6" fill="#3D3A54">Search</text>
   <text x="92.0" y="76.6" fill="#3D3A54">requ</text>
   <rect x="125.60" y="66.80" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="66.80" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="66.80" width="6.30" height="19.60" fill="#151226"/>
   <text x="150.8" y="76.6" class="bold" fill="#F5F5F6">Variables</text>
   <rect x="243.20" y="66.80" width="8.40" height="2.45" fill="#C45AFF"/>
   <rect x="251.60" y="66.80" width="8.40" height="2.45" fill="#C45AFF"/>
@@ -752,6 +753,7 @@
   <rect x="948.8" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="957.2" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -767,7 +769,7 @@
   <rect x="1083.2" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="86.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="86.40" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="86.40" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="86.40" width="6.30" height="19.60" fill="#141226"/>
   <rect x="974.00" y="86.40" width="2.10" height="19.60" fill="#C45AFF"/>
   <rect x="8.0" y="106.0" width="8.4" height="19.6" fill="#151227"/>
   <rect x="16.4" y="106.0" width="8.4" height="19.6" fill="#151227"/>
@@ -883,6 +885,7 @@
   <rect x="948.8" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="957.2" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="106.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -901,7 +904,7 @@
   <text x="41.6" y="115.8" fill="#3D3A54">au</text>
   <text x="58.4" y="115.8" fill="#3D3A54">th/</text>
   <rect x="125.60" y="106.00" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="106.00" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="106.00" width="6.30" height="19.60" fill="#141226"/>
   <rect x="150.80" y="106.00" width="2.10" height="19.60" fill="#1E1E3F"/>
   <text x="159.2" y="115.8" fill="#9A96BE">Filter</text>
   <text x="218.0" y="115.8" fill="#9A96BE">variables…</text>
@@ -1023,6 +1026,7 @@
   <rect x="948.8" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="957.2" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="125.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1042,7 +1046,7 @@
   <text x="58.4" y="135.4" fill="#513F66">GET</text>
   <text x="92.0" y="135.4" fill="#585664">Curr</text>
   <rect x="125.60" y="125.60" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="125.60" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="125.60" width="6.30" height="19.60" fill="#141226"/>
   <rect x="974.00" y="125.60" width="2.10" height="19.60" fill="#C45AFF"/>
   <rect x="8.0" y="145.2" width="8.4" height="19.6" fill="#151227"/>
   <rect x="16.4" y="145.2" width="8.4" height="19.6" fill="#151227"/>
@@ -1158,6 +1162,7 @@
   <rect x="948.8" y="145.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="145.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="145.2" width="8.4" height="19.6" fill="#121225"/>
   <rect x="982.4" y="145.2" width="8.4" height="19.6" fill="#121225"/>
   <rect x="990.8" y="145.2" width="8.4" height="19.6" fill="#121225"/>
   <rect x="999.2" y="145.2" width="8.4" height="19.6" fill="#121225"/>
@@ -1179,7 +1184,7 @@
   <text x="92.0" y="155.0" fill="#585664">Lo</text>
   <text x="108.8" y="155.0" fill="#585664">gi</text>
   <rect x="125.60" y="145.20" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="145.20" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="145.20" width="6.30" height="19.60" fill="#141225"/>
   <text x="159.2" y="155.0" class="bold" fill="#DDA8FB">VAR_07</text>
   <text x="360.8" y="155.0" fill="#F5F5F6">value</text>
   <text x="411.2" y="155.0" fill="#F5F5F6">7</text>
@@ -1299,6 +1304,7 @@
   <rect x="948.8" y="164.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="164.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1317,7 +1323,7 @@
   <text x="41.6" y="174.6" fill="#3D3A54">u</text>
   <text x="50.0" y="174.6" fill="#3C3A54">sers/</text>
   <rect x="125.60" y="164.80" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="164.80" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="164.80" width="6.30" height="19.60" fill="#141225"/>
   <text x="159.2" y="174.6" class="bold" fill="#DDA8FB">VAR_08</text>
   <text x="360.8" y="174.6" fill="#F5F5F6">value</text>
   <text x="411.2" y="174.6" fill="#F5F5F6">8</text>
@@ -1437,6 +1443,7 @@
   <rect x="948.8" y="184.4" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="184.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1457,7 +1464,7 @@
   <text x="75.2" y="194.2" fill="#503F65">T</text>
   <text x="92.0" y="194.2" fill="#585664">Get</text>
   <rect x="125.60" y="184.40" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="184.40" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="184.40" width="6.30" height="19.60" fill="#141225"/>
   <text x="159.2" y="194.2" class="bold" fill="#DDA8FB">VAR_09</text>
   <text x="360.8" y="194.2" fill="#F5F5F6">value</text>
   <text x="411.2" y="194.2" fill="#F5F5F6">9</text>
@@ -1577,6 +1584,7 @@
   <rect x="948.8" y="204.0" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="204.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1596,7 +1604,7 @@
   <text x="58.4" y="213.8" fill="#503F65">GET</text>
   <text x="92.0" y="213.8" fill="#585664">List</text>
   <rect x="125.60" y="204.00" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="204.00" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="204.00" width="6.30" height="19.60" fill="#131225"/>
   <text x="159.2" y="213.8" class="bold" fill="#DDA8FB">VAR_10</text>
   <text x="360.8" y="213.8" fill="#F5F5F6">value</text>
   <text x="411.2" y="213.8" fill="#F5F5F6">10</text>
@@ -1716,6 +1724,7 @@
   <rect x="948.8" y="223.6" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="223.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1736,7 +1745,7 @@
   <text x="92.0" y="233.4" fill="#585664">Cr</text>
   <text x="108.8" y="233.4" fill="#575664">ea</text>
   <rect x="125.60" y="223.60" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="223.60" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="223.60" width="6.30" height="19.60" fill="#131225"/>
   <text x="159.2" y="233.4" class="bold" fill="#DDA8FB">VAR_11</text>
   <text x="360.8" y="233.4" fill="#F5F5F6">value</text>
   <text x="411.2" y="233.4" fill="#F5F5F6">11</text>
@@ -1857,6 +1866,7 @@
   <rect x="948.8" y="243.2" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="243.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -1877,7 +1887,7 @@
   <text x="92.0" y="253.0" fill="#575664">Upd</text>
   <text x="117.2" y="253.0" fill="#575663">a</text>
   <rect x="125.60" y="243.20" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="243.20" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="243.20" width="6.30" height="19.60" fill="#131224"/>
   <text x="159.2" y="253.0" class="bold" fill="#DDA8FB">VAR_12</text>
   <text x="360.8" y="253.0" fill="#F5F5F6">value</text>
   <text x="411.2" y="253.0" fill="#F5F5F6">12</text>
@@ -1997,6 +2007,7 @@
   <rect x="948.8" y="262.8" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="262.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2017,7 +2028,7 @@
   <text x="66.8" y="272.6" fill="#583C3F">EL</text>
   <text x="92.0" y="272.6" fill="#575663">Dele</text>
   <rect x="125.60" y="262.80" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="262.80" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="262.80" width="6.30" height="19.60" fill="#131224"/>
   <text x="159.2" y="272.6" class="bold" fill="#DDA8FB">VAR_13</text>
   <text x="360.8" y="272.6" fill="#F5F5F6">value</text>
   <text x="411.2" y="272.6" fill="#F5F5F6">13</text>
@@ -2137,6 +2148,7 @@
   <rect x="948.8" y="282.4" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="282.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2155,7 +2167,7 @@
   <text x="50.0" y="292.2" fill="#503F65">ET</text>
   <text x="75.2" y="292.2" fill="#575663">Health</text>
   <rect x="125.60" y="282.40" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="282.40" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="282.40" width="6.30" height="19.60" fill="#131224"/>
   <text x="159.2" y="292.2" class="bold" fill="#DDA8FB">VAR_14</text>
   <text x="360.8" y="292.2" fill="#F5F5F6">value</text>
   <text x="411.2" y="292.2" fill="#F5F5F6">14</text>
@@ -2275,6 +2287,7 @@
   <rect x="948.8" y="302.0" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="302.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2294,7 +2307,7 @@
   <text x="75.2" y="311.8" fill="#575663">CORS</text>
   <text x="117.2" y="311.8" fill="#575563">p</text>
   <rect x="125.60" y="302.00" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="302.00" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="302.00" width="6.30" height="19.60" fill="#131124"/>
   <text x="159.2" y="311.8" class="bold" fill="#DDA8FB">VAR_15</text>
   <text x="360.8" y="311.8" fill="#F5F5F6">value</text>
   <text x="411.2" y="311.8" fill="#F5F5F6">15</text>
@@ -2414,6 +2427,7 @@
   <rect x="948.8" y="321.6" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2429,7 +2443,7 @@
   <rect x="1083.2" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="321.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="321.60" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="321.60" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="321.60" width="6.30" height="19.60" fill="#121124"/>
   <text x="159.2" y="331.4" class="bold" fill="#DDA8FB">VAR_16</text>
   <text x="360.8" y="331.4" fill="#F5F5F6">value</text>
   <text x="411.2" y="331.4" fill="#F5F5F6">16</text>
@@ -2549,6 +2563,7 @@
   <rect x="948.8" y="341.2" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2564,7 +2579,7 @@
   <rect x="1083.2" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="341.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="341.20" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="341.20" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="341.20" width="6.30" height="19.60" fill="#121123"/>
   <text x="159.2" y="351.0" class="bold" fill="#DDA8FB">VAR_17</text>
   <text x="360.8" y="351.0" fill="#F5F5F6">value</text>
   <text x="411.2" y="351.0" fill="#F5F5F6">17</text>
@@ -2684,6 +2699,7 @@
   <rect x="948.8" y="360.8" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2699,7 +2715,7 @@
   <rect x="1083.2" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="360.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="360.80" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="360.80" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="360.80" width="6.30" height="19.60" fill="#121123"/>
   <text x="159.2" y="370.6" class="bold" fill="#DDA8FB">VAR_18</text>
   <text x="360.8" y="370.6" fill="#F5F5F6">value</text>
   <text x="411.2" y="370.6" fill="#F5F5F6">18</text>
@@ -2819,6 +2835,7 @@
   <rect x="948.8" y="380.4" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2834,7 +2851,7 @@
   <rect x="1083.2" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="380.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="380.40" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="380.40" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="380.40" width="6.30" height="19.60" fill="#121123"/>
   <text x="159.2" y="390.2" class="bold" fill="#DDA8FB">VAR_19</text>
   <text x="360.8" y="390.2" fill="#F5F5F6">value</text>
   <text x="411.2" y="390.2" fill="#F5F5F6">19</text>
@@ -2967,6 +2984,7 @@
   <rect x="948.8" y="400.0" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -2982,7 +3000,7 @@
   <rect x="1083.2" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="400.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="400.00" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="400.00" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="400.00" width="6.30" height="19.60" fill="#121123"/>
   <text x="159.2" y="409.8" class="bold" fill="#DDA8FB">VAR_20</text>
   <text x="360.8" y="409.8" fill="#F5F5F6">value</text>
   <text x="411.2" y="409.8" fill="#F5F5F6">20</text>
@@ -3103,6 +3121,7 @@
   <rect x="948.8" y="419.6" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3118,7 +3137,7 @@
   <rect x="1083.2" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="419.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="419.60" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="419.60" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="419.60" width="6.30" height="19.60" fill="#121123"/>
   <text x="159.2" y="429.4" class="bold" fill="#DDA8FB">VAR_21</text>
   <text x="360.8" y="429.4" fill="#F5F5F6">value</text>
   <text x="411.2" y="429.4" fill="#F5F5F6">21</text>
@@ -3238,6 +3257,7 @@
   <rect x="948.8" y="439.2" width="8.4" height="19.6" fill="#45407A"/>
   <rect x="957.2" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3253,7 +3273,7 @@
   <rect x="1083.2" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="439.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="439.20" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="439.20" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="439.20" width="6.30" height="19.60" fill="#121123"/>
   <text x="159.2" y="449.0" class="bold" fill="#DDA8FB">VAR_22</text>
   <text x="360.8" y="449.0" fill="#F5F5F6">value</text>
   <text x="411.2" y="449.0" fill="#F5F5F6">22</text>
@@ -3374,6 +3394,7 @@
   <rect x="948.8" y="458.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3389,7 +3410,7 @@
   <rect x="1083.2" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="458.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="458.80" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="458.80" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="458.80" width="6.30" height="19.60" fill="#121123"/>
   <text x="159.2" y="468.6" class="bold" fill="#DDA8FB">VAR_23</text>
   <text x="360.8" y="468.6" fill="#F5F5F6">value</text>
   <text x="411.2" y="468.6" fill="#F5F5F6">23</text>
@@ -3509,6 +3530,7 @@
   <rect x="948.8" y="478.4" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3524,7 +3546,7 @@
   <rect x="1083.2" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="478.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="478.40" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="478.40" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="478.40" width="6.30" height="19.60" fill="#121122"/>
   <text x="159.2" y="488.2" class="bold" fill="#DDA8FB">VAR_24</text>
   <text x="360.8" y="488.2" fill="#F5F5F6">value</text>
   <text x="411.2" y="488.2" fill="#F5F5F6">24</text>
@@ -3644,6 +3666,7 @@
   <rect x="948.8" y="498.0" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3659,7 +3682,7 @@
   <rect x="1083.2" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="498.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="498.00" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="498.00" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="498.00" width="6.30" height="19.60" fill="#121122"/>
   <text x="159.2" y="507.8" class="bold" fill="#DDA8FB">VAR_25</text>
   <text x="360.8" y="507.8" fill="#F5F5F6">value</text>
   <text x="411.2" y="507.8" fill="#F5F5F6">25</text>
@@ -3779,6 +3802,7 @@
   <rect x="948.8" y="517.6" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3794,7 +3818,7 @@
   <rect x="1083.2" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="517.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="517.60" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="517.60" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="517.60" width="6.30" height="19.60" fill="#121122"/>
   <text x="159.2" y="527.4" class="bold" fill="#DDA8FB">VAR_26</text>
   <text x="360.8" y="527.4" fill="#F5F5F6">value</text>
   <text x="411.2" y="527.4" fill="#F5F5F6">26</text>
@@ -3914,6 +3938,7 @@
   <rect x="948.8" y="537.2" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -3929,7 +3954,7 @@
   <rect x="1083.2" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="537.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="537.20" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="537.20" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="537.20" width="6.30" height="19.60" fill="#121122"/>
   <text x="159.2" y="547.0" class="bold" fill="#DDA8FB">VAR_27</text>
   <text x="360.8" y="547.0" fill="#F5F5F6">value</text>
   <text x="411.2" y="547.0" fill="#F5F5F6">27</text>
@@ -4049,6 +4074,7 @@
   <rect x="948.8" y="556.8" width="8.4" height="19.6" fill="#1E1E3F"/>
   <rect x="957.2" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4064,7 +4090,7 @@
   <rect x="1083.2" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="556.8" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="556.80" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="556.80" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="556.80" width="6.30" height="19.60" fill="#121122"/>
   <text x="159.2" y="566.6" class="bold" fill="#0F0F1F">VAR_28</text>
   <text x="360.8" y="566.6" fill="#0F0F1F">value</text>
   <text x="411.2" y="566.6" fill="#0F0F1F">28</text>
@@ -4184,6 +4210,7 @@
   <rect x="948.8" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="957.2" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4199,7 +4226,7 @@
   <rect x="1083.2" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="576.4" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="576.40" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="576.40" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="576.40" width="6.30" height="19.60" fill="#121122"/>
   <rect x="974.00" y="576.40" width="2.10" height="19.60" fill="#C45AFF"/>
   <rect x="8.0" y="596.0" width="8.4" height="19.6" fill="#121122"/>
   <rect x="16.4" y="596.0" width="8.4" height="19.6" fill="#121122"/>
@@ -4315,6 +4342,7 @@
   <rect x="948.8" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="957.2" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4330,7 +4358,7 @@
   <rect x="1083.2" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="596.0" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="596.00" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="596.00" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="596.00" width="6.30" height="19.60" fill="#121122"/>
   <text x="150.8" y="605.8" fill="#9A96BE">Edits</text>
   <text x="201.2" y="605.8" fill="#9A96BE">are</text>
   <text x="234.8" y="605.8" fill="#9A96BE">session</text>
@@ -4460,6 +4488,7 @@
   <rect x="948.8" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="957.2" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4475,7 +4504,7 @@
   <rect x="1083.2" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="615.6" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="615.60" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="615.60" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="615.60" width="6.30" height="19.60" fill="#121122"/>
   <rect x="974.00" y="615.60" width="2.10" height="19.60" fill="#C45AFF"/>
   <rect x="8.0" y="635.2" width="8.4" height="19.6" fill="#121122"/>
   <rect x="16.4" y="635.2" width="8.4" height="19.6" fill="#121122"/>
@@ -4591,6 +4620,7 @@
   <rect x="948.8" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="957.2" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="965.6" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
+  <rect x="974.0" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="982.4" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="990.8" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="999.2" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
@@ -4606,7 +4636,7 @@
   <rect x="1083.2" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="1091.6" y="635.2" width="8.4" height="19.6" fill="#0F0F1F"/>
   <rect x="125.60" y="635.20" width="8.40" height="19.60" fill="#C45AFF"/>
-  <rect x="125.60" y="635.20" width="6.30" height="19.60" fill="#000000"/>
+  <rect x="125.60" y="635.20" width="6.30" height="19.60" fill="#111122"/>
   <rect x="134.00" y="652.35" width="8.40" height="2.45" fill="#C45AFF"/>
   <rect x="142.40" y="652.35" width="8.40" height="2.45" fill="#C45AFF"/>
   <rect x="150.80" y="652.35" width="8.40" height="2.45" fill="#C45AFF"/>
