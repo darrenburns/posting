@@ -9,6 +9,7 @@ require (
 	github.com/darrenburns/terma v0.25.1-0.20261012170958-ec4dc68be91f
 	github.com/darrenburns/ultraviolet v0.0.0-20261012170537-2684fdbe5bed
 	github.com/rivo/uniseg v0.4.7
+	golang.org/x/image v0.45.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.11
@@ -34,5 +35,5 @@ require (
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 )
