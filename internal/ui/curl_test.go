@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
+	uv "github.com/darrenburns/ultraviolet"
 
 	"github.com/darrenburns/posting/internal/curl"
 	"github.com/darrenburns/posting/internal/model"

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
+	uv "github.com/darrenburns/ultraviolet"
 )
 
 func TestDirectResponseCursorMoveRendersInFirstFrame(tt *testing.T) {

@@ -10,8 +10,6 @@ github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
 github.com/charmbracelet/colorprofile v0.4.1 h1:a1lO03qTrSIRaK8c3JRxJDZOvhvIeSco3ej+ngLk1kk=
 github.com/charmbracelet/colorprofile v0.4.1/go.mod h1:U1d9Dljmdf9DLegaJ0nGZNJvoXAhayhmidOdcBwAvKk=
-github.com/charmbracelet/ultraviolet v0.0.0-20251217160852-6b0c0e26fad9 h1:dsDBRP9Iyco0EjVpCsAzl8VGbxk04fP3sa80ySJSAZw=
-github.com/charmbracelet/ultraviolet v0.0.0-20251217160852-6b0c0e26fad9/go.mod h1:Ns3cOzzY9hEFFeGxB6VpfgRnqOJZJFhQAPfRxPqflQs=
 github.com/charmbracelet/x/ansi v0.11.3 h1:6DcVaqWI82BBVM/atTyq6yBoRLZFBsnoDoX9GCu2YOI=
 github.com/charmbracelet/x/ansi v0.11.3/go.mod h1:yI7Zslym9tCJcedxz5+WBq+eUGMJT0bM06Fqy1/Y4dI=
 github.com/charmbracelet/x/term v0.2.2 h1:xVRT/S2ZcKdhhOuSP4t5cLi5o+JxklsoEObBSgfgZRk=
@@ -28,8 +26,10 @@ github.com/clipperhouse/uax29/v2 v2.3.0 h1:SNdx9DVUqMoBuBoW3iLOj4FQv3dN5mDtuqwuh
 github.com/clipperhouse/uax29/v2 v2.3.0/go.mod h1:Wn1g7MK6OoeDT0vL+Q0SQLDz/KpfsVRgg6W7ihQeh4g=
 github.com/creack/pty v1.1.24 h1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=
 github.com/creack/pty v1.1.24/go.mod h1:08sCNb52WyoAwi2QDyzUCTgcvVFhUzewun7wtTfvcwE=
-github.com/darrenburns/terma v0.25.0 h1:FlV9C6lTNFchLyTY3gtmEI3kj0BNt8G3HPofXfNCGD0=
-github.com/darrenburns/terma v0.25.0/go.mod h1:BTGn3dr3UFK7qOZHm0Zbm+tRrH5pqp7wCXheX0BvMDo=
+github.com/darrenburns/terma v0.25.1-0.20261012170958-ec4dc68be91f h1:qmVlc2Lo9pNL0WvYgoSxS3Y0AjOHpOmnh29+CCx17D8=
+github.com/darrenburns/terma v0.25.1-0.20261012170958-ec4dc68be91f/go.mod h1:+XhNd3+Y6kalcJL9gwbiD6Ep7ufpj1z+XfLogMOjxds=
+github.com/darrenburns/ultraviolet v0.0.0-20261012170537-2684fdbe5bed h1:kNX1EcDAUqItAgjZ+kx26Lsq6NsiZBS8j2SVvefjfpk=
+github.com/darrenburns/ultraviolet v0.0.0-20261012170537-2684fdbe5bed/go.mod h1:anw4JEkamdQ5TbARwHimj4Zm4fHfK+cSt0qMos+cWfo=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dlclark/regexp2 v1.11.5 h1:Q/sSnsKerHeCkc/jSTNq1oCm7KiVgUMZRDUoRu0JQZQ=

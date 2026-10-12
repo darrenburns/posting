@@ -7,8 +7,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
+	uv "github.com/darrenburns/ultraviolet"
 
 	"github.com/darrenburns/posting/internal/config"
 	"github.com/darrenburns/posting/internal/model"

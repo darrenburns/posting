@@ -5,8 +5,8 @@ import (
 	"slices"
 	"unicode/utf8"
 
-	uv "github.com/charmbracelet/ultraviolet"
 	t "github.com/darrenburns/terma"
+	uv "github.com/darrenburns/ultraviolet"
 )
 
 const (
