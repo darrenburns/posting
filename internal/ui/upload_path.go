@@ -52,6 +52,8 @@ func (p *uploadPath) inspect(a *App, s *Session) {
 		return
 	}
 	p.checked = key
+	// Old directory entries must not be selectable while the new path is checked.
+	p.suggestions.SetSuggestions(nil)
 	p.hint.Set("Checking file…")
 	p.problem.Set(false)
 	root := a.uploadRoot()
