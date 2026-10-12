@@ -61,6 +61,42 @@ func TestRequestVariableErrorsOnlyFollowUsedDependencies(t *testing.T) {
 	}
 }
 
+func TestRequestVariablesIgnoreInactiveFields(t *testing.T) {
+	for _, field := range []string{"header", "raw body", "auth", "form", "multipart"} {
+		t.Run(field, func(t *testing.T) {
+			for _, active := range []bool{false, true} {
+				req := NewRequest()
+				req.URL = "http://api.test"
+				switch field {
+				case "header":
+					req.Headers = []KeyValue{{Name: "X-Token", Value: "${ALIAS}", Enabled: active}}
+				case "raw body":
+					req.Body = Body{Type: BodyNone, Raw: "${ALIAS}"}
+					if active {
+						req.Body.Type = BodyRaw
+					}
+				case "auth":
+					req.Auth = Auth{Type: AuthNone, Token: "${ALIAS}"}
+					if active {
+						req.Auth.Type = AuthBearer
+					}
+				case "form":
+					req.Body = Body{Type: BodyForm, Form: []KeyValue{{Name: "q", Value: "${ALIAS}", Enabled: active}}}
+				case "multipart":
+					req.Body = Body{Type: BodyMultipart, Multipart: []Part{{Name: "file", Type: PartFile, File: "${ALIAS}", Enabled: active}}}
+				}
+				_, err := VariablesForRequest(req, []Variable{templateVariable("ALIAS", "${MISSING}")}, nil)
+				if !active && err != nil {
+					t.Errorf("inactive %s blocked sending: %v", field, err)
+				}
+				if active && (err == nil || !strings.Contains(err.Error(), "MISSING")) {
+					t.Errorf("active %s must resolve its missing dependency, got %v", field, err)
+				}
+			}
+		})
+	}
+}
+
 func TestVariableHostFallbackCanBeOverriddenBySession(t *testing.T) {
 	req := NewRequest()
 	req.URL = "${base}"

@@ -55,6 +55,13 @@ between versions.
 ### Fixed
 
 - Show file paths below request titles in open-tab search, and match searches against both titles and paths.
+- Stop forwarding authorization after redirects to another host or from HTTPS to HTTP, and recalculate Digest authentication for allowed redirects.
+- Apply the gRPC response limit to displayed JSON, including empty protobuf messages.
+- Load and watch collections whose root directory is a symlink.
+- Include form fields in the history body-size limit.
+- Ignore disabled headers and inactive body and authentication fields when resolving request variables.
+- Preserve empty headers and repeated `--json` bodies when importing or exporting curl commands.
+- Reject empty request input in `posting remote` instead of sending the active tab.
 
 ### Not yet supported
 

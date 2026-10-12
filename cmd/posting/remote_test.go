@@ -39,6 +39,9 @@ func TestParseRemoteOptions(t *testing.T) {
 		{args: []string{"show", "a"}, err: "unexpected argument"},
 		{args: []string{"show", "--curl", "x"}, err: "for open and send"},
 		{args: []string{"send", "--curl"}, err: "needs a value"},
+		{args: []string{"send", "--curl="}, err: "needs a nonempty value"},
+		{args: []string{"send", "--curl", " \t\n"}, err: "needs a nonempty value"},
+		{args: []string{"send", "--yaml="}, err: "needs a nonempty value"},
 		{args: []string{"send", "--verbose"}, err: "unknown option"},
 	} {
 		got, err := parseRemoteOptions(tc.args)
@@ -153,6 +156,63 @@ func TestRemoteSaveResolvesSymlinkParents(t *testing.T) {
 				t.Fatalf("save file = %q, %v; want %q", got.File, err, tc.want)
 			}
 		})
+	}
+}
+
+func TestRemoteRejectsEmptyRequestSources(t *testing.T) {
+	dir, err := os.MkdirTemp("", "pr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+	t.Setenv("XDG_RUNTIME_DIR", dir)
+	t.Setenv("POSTING_INSTANCE", "")
+	server, err := remote.Listen(filepath.Join(dir, "posting"), remote.Info{PID: os.Getpid(), Collection: dir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	sent := make(chan remote.Request, 16)
+	server.Serve(remote.HandlerFunc(func(_ context.Context, req remote.Request) (any, error) {
+		sent <- req
+		return remote.Exchange{Outcome: remote.OutcomeDone, Response: &remote.Response{Status: "200", Body: "hi"}}, nil
+	}))
+	empty := filepath.Join(t.TempDir(), "empty.posting.yaml")
+	space := filepath.Join(t.TempDir(), "space.posting.yaml")
+	for file, content := range map[string]string{empty: "", space: " \t\n"} {
+		if err := os.WriteFile(file, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, tc := range []struct {
+		name, stdin string
+		args        []string
+	}{
+		{name: "empty YAML file", args: []string{"send", "--yaml", empty}},
+		{name: "whitespace YAML file", args: []string{"send", "--yaml", space}},
+		{name: "empty stdin", args: []string{"send", "--yaml", "-"}},
+		{name: "whitespace stdin", stdin: " \t\n", args: []string{"send", "--yaml", "-"}},
+		{name: "empty outside request", args: []string{"send", empty}},
+		{name: "whitespace outside request", args: []string{"send", space}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			if code := remoteCommand(tc.args, strings.NewReader(tc.stdin), &stdout, &stderr); code != 1 || !strings.Contains(stderr.String(), "request YAML is empty") {
+				t.Fatalf("empty source exited %d, stdout=%q, stderr=%q", code, stdout.String(), stderr.String())
+			}
+			select {
+			case req := <-sent:
+				t.Fatalf("empty source sent command %+v", req)
+			default:
+			}
+		})
+	}
+	var stdout, stderr bytes.Buffer
+	if code := remoteCommand([]string{"send"}, nil, &stdout, &stderr); code != 0 {
+		t.Fatalf("send active request exited %d: %s", code, stderr.String())
+	}
+	if req := <-sent; req.Command != remote.CommandSend || req.Ref != "" || req.Curl != "" || req.YAML != "" {
+		t.Fatalf("send active request sent %+v", req)
 	}
 }
 

@@ -671,17 +671,25 @@ func invoke(ctx context.Context, conn *grpc.ClientConn, md protoreflect.MethodDe
 	}()
 	var truncated *status.Status
 	received := 0
+	if md.IsStreamingServer() {
+		received = 2
+	}
 	for {
 		out := dynamicpb.NewMessage(md.Output())
 		if err = stream.RecvMsg(out); err != nil {
 			break
 		}
-		if received += proto.Size(out); received > limit {
+		message := marshalJSON(marshal, out)
+		pretty := indentJSON(message)
+		size := len(pretty)
+		if md.IsStreamingServer() {
+			size += 2*bytes.Count(pretty, []byte{'\n'}) + 4
+		}
+		if received += size; received > limit {
 			truncated = status.Newf(codes.Canceled, "response truncated at %s", model.FormatBytes(limit))
 			cancel()
 			break
 		}
-		message := marshalJSON(marshal, out)
 		ex.messages = append(ex.messages, message)
 		if len(ex.messages) == 1 {
 			ex.header, _ = stream.Header()

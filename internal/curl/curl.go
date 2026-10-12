@@ -50,11 +50,15 @@ func Parse(command string) (model.Request, error) {
 	if len(tokens) == 0 || tokens[0] != "curl" {
 		return model.Request{}, fmt.Errorf("not a curl command")
 	}
+	type dataPart struct {
+		value string
+		json  bool
+	}
 	req := model.NewRequest()
 	var (
 		method     string
 		rawURL     string
-		data       []string
+		data       []dataPart
 		dataIsJSON bool
 		form       []model.Part
 		bodyFile   string
@@ -142,12 +146,11 @@ func Parse(command string) (model.Request, error) {
 			if flag != "--data-raw" && strings.HasPrefix(value, "@") {
 				return model.Request{}, fmt.Errorf("file-backed %s is not supported; use --data-binary @path", flag)
 			}
-			data = append(data, value)
+			data = append(data, dataPart{value: value})
 		case "--data-urlencode":
-			data = append(data, urlencodeData(value))
+			data = append(data, dataPart{value: urlencodeData(value)})
 		case "--json":
-			data = append(data, value)
-			dataIsJSON = true
+			data = append(data, dataPart{value: value, json: true})
 		case "-F", "--form", "--form-string":
 			part, err := parsePart(value, flag == "--form-string")
 			if err != nil {
@@ -219,7 +222,15 @@ func Parse(command string) (model.Request, error) {
 		}
 	}
 
-	joined := strings.Join(data, "&")
+	var body strings.Builder
+	for _, part := range data {
+		if body.Len() > 0 && !part.json {
+			body.WriteByte('&')
+		}
+		body.WriteString(part.value)
+		dataIsJSON = dataIsJSON || part.json
+	}
+	joined := body.String()
 	switch {
 	case getMode && len(data) > 0:
 		// -G sends the data as the query string, before any fragment.

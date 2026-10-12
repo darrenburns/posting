@@ -232,6 +232,9 @@ func (r Request) SortRank() int {
 func (r Request) PayloadSize() int {
 	if r.Payload == nil {
 		n := len(r.Body.Raw) + len(r.Body.File)
+		for _, field := range r.Body.Form {
+			n += len(field.Name) + len(field.Value)
+		}
 		for _, p := range r.Body.Multipart {
 			n += len(p.Name) + len(p.Value) + len(p.File) + len(p.Filename) + len(p.ContentType)
 		}

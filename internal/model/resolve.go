@@ -80,27 +80,48 @@ func Resolve(req Request, lookup func(string) (string, bool)) (Request, error) {
 	out.Query = nil
 
 	for i := range out.Headers {
+		if !out.Headers[i].Enabled || out.Headers[i].Name == "" {
+			continue
+		}
 		out.Headers[i].Name = sub(out.Headers[i].Name)
 		out.Headers[i].Value = sub(out.Headers[i].Value)
 	}
-	out.Auth.Username = sub(out.Auth.Username)
-	out.Auth.Password = sub(out.Auth.Password)
-	out.Auth.Token = sub(out.Auth.Token)
+	switch out.Auth.Type {
+	case AuthBasic, AuthDigest:
+		out.Auth.Username = sub(out.Auth.Username)
+		out.Auth.Password = sub(out.Auth.Password)
+	case AuthBearer:
+		out.Auth.Token = sub(out.Auth.Token)
+	}
 	out.Options.ProxyURL = sub(out.Options.ProxyURL)
 	if req.Options.SubstituteBodyVariables {
-		out.Body.Raw = sub(out.Body.Raw)
-		out.Body.File = sub(out.Body.File)
-		if req.Body.Type == BodyFile {
+		switch req.Body.Type {
+		case BodyRaw:
+			out.Body.Raw = sub(out.Body.Raw)
+		case BodyFile:
+			out.Body.File = sub(out.Body.File)
 			out.Body.ContentType = sub(out.Body.ContentType)
-		}
-		for i := range out.Body.Form {
-			out.Body.Form[i].Name = sub(out.Body.Form[i].Name)
-			out.Body.Form[i].Value = sub(out.Body.Form[i].Value)
-		}
-		for i := range out.Body.Multipart {
-			p := &out.Body.Multipart[i]
-			p.Name, p.Value, p.File = sub(p.Name), sub(p.Value), sub(p.File)
-			p.Filename, p.ContentType = sub(p.Filename), sub(p.ContentType)
+		case BodyForm:
+			for i := range out.Body.Form {
+				field := &out.Body.Form[i]
+				if field.Enabled && field.Name != "" {
+					field.Name, field.Value = sub(field.Name), sub(field.Value)
+				}
+			}
+		case BodyMultipart:
+			for i := range out.Body.Multipart {
+				p := &out.Body.Multipart[i]
+				if !p.Enabled {
+					continue
+				}
+				p.Name = sub(p.Name)
+				if p.Type == PartFile {
+					p.File = sub(p.File)
+				} else {
+					p.Value = sub(p.Value)
+				}
+				p.Filename, p.ContentType = sub(p.Filename), sub(p.ContentType)
+			}
 		}
 	}
 	if req.Payload != nil {

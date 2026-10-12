@@ -41,16 +41,20 @@ func (e LoadError) Error() string { return e.File + ": " + e.Err.Error() }
 // files are still included, so newly created folders show up.
 func (d Dir) Load() (*model.Collection, []LoadError) {
 	root := &model.Collection{Name: filepath.Base(d.Root)}
+	resolved, err := filepath.EvalSymlinks(d.Root)
+	if err != nil {
+		return root, []LoadError{{File: d.Root, Err: err}}
+	}
 	var problems []LoadError
-	err := filepath.WalkDir(d.Root, func(p string, entry fs.DirEntry, err error) error {
+	err = filepath.WalkDir(resolved, func(p string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			if p == d.Root {
+			if p == resolved {
 				return err
 			}
 			problems = append(problems, LoadError{File: p, Err: err})
 			return nil
 		}
-		rel, relErr := filepath.Rel(d.Root, p)
+		rel, relErr := filepath.Rel(resolved, p)
 		if relErr != nil || rel == "." {
 			return nil
 		}
@@ -203,13 +207,17 @@ func EnsureFolder(root *model.Collection, folderPath string) *model.Collection {
 // Signature summarises the request files on disk (their paths, sizes and
 // modification times) so a watcher can tell cheaply when to reload.
 func (d Dir) Signature() string {
+	resolved, err := filepath.EvalSymlinks(d.Root)
+	if err != nil {
+		return ""
+	}
 	var b strings.Builder
-	_ = filepath.WalkDir(d.Root, func(p string, entry fs.DirEntry, err error) error {
+	_ = filepath.WalkDir(resolved, func(p string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}
 		if entry.IsDir() {
-			if p != d.Root && (strings.HasPrefix(entry.Name(), ".") || entry.Name() == "__pycache__" || entry.Name() == "node_modules") {
+			if p != resolved && (strings.HasPrefix(entry.Name(), ".") || entry.Name() == "__pycache__" || entry.Name() == "node_modules") {
 				return filepath.SkipDir
 			}
 			return nil

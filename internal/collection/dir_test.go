@@ -188,3 +188,45 @@ func TestDirRejectsAbsoluteInternalParentSymlink(t *testing.T) {
 		t.Fatalf("symlink target changed: data = %q, error = %v", data, err)
 	}
 }
+
+func TestDirLoadsAndWatchesRootSymlink(t *testing.T) {
+	base := t.TempDir()
+	real := filepath.Join(base, "real")
+	if err := os.Mkdir(real, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	alias := filepath.Join(base, "alias")
+	if err := os.Symlink(real, alias); err != nil {
+		t.Fatal(err)
+	}
+	dir := Dir{Root: alias}
+	req := model.NewRequest()
+	req.File, req.Name = "nested/request.posting.yaml", "Saved through the collection link"
+	if err := dir.Save(req); err != nil {
+		t.Fatal(err)
+	}
+	root, problems := dir.Load()
+	if len(problems) != 0 || root.Name != "alias" || len(root.Children) != 1 || len(root.Children[0].Requests) != 1 {
+		t.Fatalf("loaded root = %+v, problems = %v", root, problems)
+	}
+	if got := root.Children[0].Requests[0]; got.File != req.File || got.Name != req.Name {
+		t.Fatalf("loaded request = %+v", got)
+	}
+	signature := dir.Signature()
+	if signature == "" {
+		t.Fatal("saved request is missing from the signature")
+	}
+	req.URL = "https://api.test/updated"
+	if err := dir.Save(req); err != nil {
+		t.Fatal(err)
+	}
+	if dir.Signature() == signature {
+		t.Fatal("editing the request did not change the signature")
+	}
+	if err := dir.Delete(req.File); err != nil {
+		t.Fatal(err)
+	}
+	if got := dir.Signature(); got != "" {
+		t.Fatalf("deleted request remains in signature %q", got)
+	}
+}

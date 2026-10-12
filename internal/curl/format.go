@@ -59,7 +59,11 @@ func Format(req model.Request, opts FormatOptions) string {
 		headers = append(headers, model.KeyValue{Name: "Content-Type", Value: orDefault(req.Body.ContentType, model.FileContentType(req.Body.File)), Enabled: true})
 	}
 	for _, h := range headers {
-		parts = append(parts, "-H", Quote(h.Name+": "+h.Value))
+		value := h.Name + ": " + h.Value
+		if h.Value == "" {
+			value = h.Name + ";"
+		}
+		parts = append(parts, "-H", Quote(value))
 	}
 
 	switch req.Auth.Type {

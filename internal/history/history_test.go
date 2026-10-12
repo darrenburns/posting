@@ -116,6 +116,25 @@ func TestTrimCountsGraphQLPayloads(t *testing.T) {
 	}
 }
 
+func TestTrimCountsFormPayloads(t *testing.T) {
+	oversized := model.NewRequest()
+	oversized.Body = model.Body{Type: model.BodyForm, Form: []model.KeyValue{{Name: "q", Value: strings.Repeat("x", MaxBytes), Enabled: true}}}
+	kept := Trim([]model.HistoryEntry{{ID: 1, Request: oversized}, {ID: 2, Request: model.NewRequest()}})
+	if len(kept) != 1 || kept[0].ID != 2 {
+		t.Fatalf("oversized form must be skipped, retained %d entries", len(kept))
+	}
+	half := model.NewRequest()
+	half.Body = model.Body{Type: model.BodyForm, Form: []model.KeyValue{{Name: "q", Value: strings.Repeat("x", MaxBytes/2-1), Enabled: true}}}
+	kept = Trim([]model.HistoryEntry{
+		{ID: 3, Request: half},
+		{ID: 2, Request: half},
+		{ID: 1, Response: &model.Response{Body: []byte("x")}},
+	})
+	if len(kept) != 2 || kept[0].ID != 3 || kept[1].ID != 2 {
+		t.Fatalf("aggregate form budget must keep only the newest two entries, retained %d", len(kept))
+	}
+}
+
 func TestSaveAndLoadGraphQL(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/c")
 	entries := []model.HistoryEntry{{ID: 1, Request: model.GraphQLKind.Example(), SentAt: time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC)}}

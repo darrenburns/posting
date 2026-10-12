@@ -136,6 +136,9 @@ func parseRemoteOptions(args []string) (remoteOptions, error) {
 			i++
 			value = args[i]
 		}
+		if (name == "curl" || name == "yaml") && strings.TrimSpace(value) == "" {
+			return opts, fmt.Errorf("--%s needs a nonempty value", name)
+		}
 		*target = value
 	}
 	if len(positional) == 0 {
@@ -341,6 +344,9 @@ func remoteRequest(opts remoteOptions, instance remote.Info, stdin io.Reader) (r
 			return req, err
 		}
 		req.Ref, req.YAML = "", string(data)
+	}
+	if (opts.yaml != "" || opts.ref != "") && req.Ref == "" && strings.TrimSpace(req.YAML) == "" {
+		return req, errors.New("the request YAML is empty")
 	}
 	return req, nil
 }
