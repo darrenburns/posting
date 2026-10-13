@@ -21,13 +21,14 @@ type uploadPath struct {
 	vars        *completion
 	suggestions *t.AutocompleteState
 	checked     string
+	directory   string
 	hint        t.Signal[string]
 	problem     t.Signal[bool]
 }
 
 func newUploadPath(path string) *uploadPath {
 	return &uploadPath{text: t.NewTextInputState(path), vars: newCompletion(), suggestions: t.NewAutocompleteState(),
-		hint: t.NewSignal(""), problem: t.NewSignal(false)}
+		hint: t.NewSignal("Checking file…"), problem: t.NewSignal(false)}
 }
 
 func (a *App) uploadRoot() string {
@@ -47,16 +48,22 @@ func (a *App) resolvedUploadPath(s *Session, path string) string {
 func (p *uploadPath) inspect(a *App, s *Session) {
 	raw := p.text.GetText()
 	resolved := a.resolvedUploadPath(s, raw)
-	key := a.uploadRoot() + "\x00" + raw + "\x00" + resolved
+	root := a.uploadRoot()
+	key := root + "\x00" + raw + "\x00" + resolved
 	if p.checked == key {
 		return
 	}
 	p.checked = key
-	// Old directory entries must not be selectable while the new path is checked.
-	p.suggestions.SetSuggestions(nil)
-	p.hint.Set("Checking file…")
-	p.problem.Set(false)
-	root := a.uploadRoot()
+	prefix, _ := filepath.Split(raw)
+	resolvedDir, _ := filepath.Split(resolved)
+	directory := root + "\x00" + prefix + "\x00" + resolvedDir
+	// Keep filtering the current entries while typing within a directory.
+	// A different prefix or resolved directory makes those entries unsafe.
+	if p.directory != directory {
+		p.directory = directory
+		p.suggestions.SetSuggestions(nil)
+	}
+	// Leave the previous hint and its color in place until the result is ready.
 	go func() {
 		hint, bad := "Choose a file", false
 		if resolved != "" {
@@ -73,8 +80,6 @@ func (p *uploadPath) inspect(a *App, s *Session) {
 			}
 		}
 		var suggestions []t.Suggestion
-		prefix, _ := filepath.Split(raw)
-		resolvedDir, _ := filepath.Split(resolved)
 		entries, _ := uploadDirectory(model.UploadPath(root, resolvedDir))
 		for _, entry := range entries {
 			value := prefix + entry.Name()

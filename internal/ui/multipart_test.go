@@ -243,6 +243,88 @@ func TestUploadPathCompletion(tt *testing.T) {
 	}
 }
 
+func TestUploadPathWhileChecking(tt *testing.T) {
+	for _, mode := range []model.BodyType{model.BodyFile, model.BodyMultipart} {
+		tt.Run(string(mode), func(tt *testing.T) {
+			a := uploadApp(tt)
+			s := a.current()
+			s.bodyType.Set(mode)
+			id := "req-file-path"
+			s.upload.text.SetText("fixtures/r")
+			path := func() string { return s.Snapshot().Body.File }
+			if mode == model.BodyMultipart {
+				s.multipart.list.SelectIndex(1)
+				s.multipart.list.GetItems()[1].path.text.SetText("fixtures/r")
+				id = "req-part-path"
+				path = func() string { return s.Snapshot().Body.Multipart[1].File }
+			}
+			// Hold filesystem results so the intermediate frame is deterministic,
+			// even when the local disk responds faster than a terminal can render.
+			updates := make(chan func(), 16)
+			a.dispatch = func(fn func()) { updates <- fn }
+			p := t.NewPilot(tt, a, 150, 46)
+			next := func() func() {
+				tt.Helper()
+				select {
+				case update := <-updates:
+					return update
+				case <-time.After(time.Second):
+					tt.Fatal("file inspection did not finish")
+					return nil
+				}
+			}
+			apply := func(update func()) { t.Dispatch(update); p.Advance(0) }
+			apply(next())
+			bounds, _ := p.Bounds(id)
+			hintColor := p.Buffer().CellAt(bounds.X, bounds.Y+1).Style.Fg
+			t.RequestFocus(id)
+			p.Advance(0)
+			p.Press("end")
+			p.Type("e")
+			if !strings.Contains(p.ScreenText(), "fixtures/report.pdf") {
+				tt.Error("matching completion disappeared while checking the next character\n" + p.ScreenText())
+			}
+			p.Press("escape") // Uncover the helper text beneath the popup.
+			if !strings.Contains(p.ScreenText(), "File not found") || strings.Contains(p.ScreenText(), "Checking file") {
+				tt.Error("helper text flickered while checking the next character\n" + p.ScreenText())
+			}
+			if got := p.Buffer().CellAt(bounds.X, bounds.Y+1).Style.Fg; !reflect.DeepEqual(got, hintColor) {
+				tt.Error("helper text changed color while checking the next character")
+			}
+			apply(next())
+
+			// A retained candidate is usable immediately, and an older lookup
+			// must not overwrite the metadata for the accepted file.
+			t.RequestFocus(id)
+			p.Advance(0)
+			p.Type("p")
+			older := next()
+			p.Press("enter")
+			if got := path(); got != "fixtures/report.pdf" {
+				tt.Fatalf("completion during inspection = %q", got)
+			}
+			apply(next())
+			apply(older)
+			if !strings.Contains(p.ScreenText(), "24 B · application/pdf") {
+				tt.Fatal("outdated inspection replaced the accepted file's metadata\n" + p.ScreenText())
+			}
+
+			// Crossing a directory boundary must still invalidate old entries,
+			// even if fuzzy matching would find them in the new input.
+			p.Press("ctrl+a")
+			p.Type("r")
+			if strings.Contains(p.ScreenText(), "fixtures/report.pdf") {
+				tt.Error("completion from the old directory is still visible\n" + p.ScreenText())
+			}
+			p.Press("enter")
+			if got := path(); got != "r" {
+				tt.Fatalf("accepted a completion from the old directory: %q", got)
+			}
+			apply(next())
+		})
+	}
+}
+
 func TestUploadEscapeCancels(tt *testing.T) {
 	for _, mode := range []model.BodyType{model.BodyMultipart, model.BodyFile} {
 		tt.Run(string(mode), func(tt *testing.T) {

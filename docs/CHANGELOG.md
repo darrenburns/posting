@@ -54,6 +54,7 @@ between versions.
 
 ### Fixed
 
+- Stop file-path completions and helper text flickering while typing in multipart and whole-file request bodies.
 - Show file paths below request titles in open-tab search, and match searches against both titles and paths.
 - Stop forwarding authorization after redirects to another host or from HTTPS to HTTP, and recalculate Digest authentication for allowed redirects.
 - Apply the gRPC response limit to displayed JSON, including empty protobuf messages.
