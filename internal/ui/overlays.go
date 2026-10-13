@@ -566,7 +566,8 @@ func (a *App) submitSave() {
 	}
 	req := s.Snapshot()
 	req.Name, req.Description, req.File = name, f.description.GetText(), path
-	if !a.storeRequest(req) {
+	if err := a.createRequest(req); err != nil {
+		f.err.Set("Couldn't save " + path + ": " + err.Error())
 		return
 	}
 	s.savedAs(req)

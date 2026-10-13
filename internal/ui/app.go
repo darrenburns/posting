@@ -780,6 +780,19 @@ func (a *App) writeRequest(req model.Request) error {
 	if err := a.store.Save(req); err != nil {
 		return err
 	}
+	a.recordRequest(req)
+	return nil
+}
+
+func (a *App) createRequest(req model.Request) error {
+	if err := a.store.Create(req); err != nil {
+		return err
+	}
+	a.recordRequest(req)
+	return nil
+}
+
+func (a *App) recordRequest(req model.Request) {
 	root := a.collection.Peek()
 	folderPath, _ := splitFile(req.File)
 	folder := collection.EnsureFolder(root, folderPath)
@@ -795,7 +808,6 @@ func (a *App) writeRequest(req model.Request) error {
 	}
 	root.Sort()
 	a.refreshTree()
-	return nil
 }
 
 // deleteRequests deletes files from the store and the collection, stopping

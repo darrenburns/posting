@@ -306,8 +306,9 @@ func TestRemoteSwitchesEnvironment(tt *testing.T) {
 // savedStore records what's saved.
 type savedStore struct{ saved []model.Request }
 
-func (s *savedStore) Save(r model.Request) error { s.saved = append(s.saved, r); return nil }
-func (s *savedStore) Delete(string) error        { return nil }
+func (s *savedStore) Save(r model.Request) error   { s.saved = append(s.saved, r); return nil }
+func (s *savedStore) Create(r model.Request) error { return s.Save(r) }
+func (s *savedStore) Delete(string) error          { return nil }
 
 func TestRemoteSavesTheActiveTab(tt *testing.T) {
 	h := newRemoteHarness(tt)

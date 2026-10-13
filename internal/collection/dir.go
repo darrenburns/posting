@@ -17,6 +17,8 @@ import (
 // Store persists requests. The UI saves and deletes through it, so it never
 // touches the filesystem itself.
 type Store interface {
+	// Create writes a new request, returning fs.ErrExist if its path is occupied.
+	Create(req model.Request) error
 	// Save writes req to req.File, creating folders as needed.
 	Save(req model.Request) error
 	// Delete removes the request stored at file.
@@ -106,6 +108,15 @@ func pruneEmpty(c *model.Collection) bool {
 
 // Save writes req to its file, replacing any existing file atomically.
 func (d Dir) Save(req model.Request) error {
+	return d.write(req, false)
+}
+
+// Create publishes a complete new request without replacing an existing path.
+func (d Dir) Create(req model.Request) error {
+	return d.write(req, true)
+}
+
+func (d Dir) write(req model.Request, create bool) error {
 	target, err := d.resolve(req.File)
 	if err != nil {
 		return err
@@ -142,6 +153,9 @@ func (d Dir) Save(req model.Request) error {
 	}
 	if err := tmp.Close(); err != nil {
 		return err
+	}
+	if create {
+		return parent.Link(tempName, filepath.Base(target))
 	}
 	return parent.Rename(tempName, filepath.Base(target))
 }
@@ -238,5 +252,6 @@ func (d Dir) Signature() string {
 // Memory is a Store that keeps nothing, for tests and the built-in sample.
 type Memory struct{}
 
-func (Memory) Save(model.Request) error { return nil }
-func (Memory) Delete(string) error      { return nil }
+func (Memory) Save(model.Request) error   { return nil }
+func (Memory) Create(model.Request) error { return nil }
+func (Memory) Delete(string) error        { return nil }

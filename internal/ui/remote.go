@@ -344,7 +344,11 @@ func (a *App) saveRemote(req remote.Request) (*Session, error) {
 		snapshot.Name = strings.TrimSuffix(base, collection.FileSuffix)
 	}
 	snapshot.File = file
-	if err := a.writeRequest(snapshot); err != nil {
+	write := a.writeRequest
+	if file != s.file.Peek() {
+		write = a.createRequest
+	}
+	if err := write(snapshot); err != nil {
 		return nil, fmt.Errorf("couldn't save %s: %w", file, err)
 	}
 	// A saved tab is never reused for unsaved requests (see openUnsaved).

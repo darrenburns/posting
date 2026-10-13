@@ -22,6 +22,8 @@ func (r *recordingStore) Save(req model.Request) error {
 	return nil
 }
 
+func (r *recordingStore) Create(req model.Request) error { return r.Save(req) }
+
 func (r *recordingStore) Delete(file string) error {
 	if r.fail != nil {
 		return r.fail

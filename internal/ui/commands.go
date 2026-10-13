@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -98,11 +100,20 @@ func (a *App) saveCopy(req model.Request) (model.Request, bool) {
 	dup.Name = strings.TrimSpace(dup.Name + " (copy)")
 	base := strings.TrimSuffix(dup.File, collection.FileSuffix)
 	candidate := base + "-copy" + collection.FileSuffix
-	for n := 2; a.fileExists(candidate); n++ {
+	for n := 2; ; n++ {
+		if !a.fileExists(candidate) {
+			dup.File = candidate
+			err := a.createRequest(dup)
+			if err == nil {
+				return dup, true
+			}
+			if !errors.Is(err, fs.ErrExist) {
+				a.notify("Couldn't save "+candidate+": "+err.Error(), toastError)
+				return dup, false
+			}
+		}
 		candidate = base + "-copy-" + strconv.Itoa(n) + collection.FileSuffix
 	}
-	dup.File = candidate
-	return dup, a.storeRequest(dup)
 }
 
 // deleteListLimit is how many names the confirmation for deleting several
