@@ -58,7 +58,7 @@ between versions.
 - Keep automatic gRPC method discovery tied to the request that was sent, even when the editor or environment changes during the call.
 - Resolve aliases first used in later gRPC stream messages against the call's original variables.
 - Prevent Save As, Duplicate, and remote save from overwriting files absent from the loaded collection.
-- Preserve concurrent history additions and deletions across Posting processes, and finish pending writes when closing.
+- Preserve concurrent history additions and deletions across Posting processes, and finish pending writes on normal app quit.
 - Import a single curl `--json @path` as a file upload with JSON headers, read when sending.
 - Use `ctrl+r` to toggle table rows and multipart parts instead of `ctrl+space`, which conflicts with the macOS input-source switcher.
 - Stop file-path completions and helper text flickering while typing in multipart and whole-file request bodies.

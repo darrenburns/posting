@@ -87,6 +87,12 @@ func (f file) decoded() []model.HistoryEntry {
 
 // Load reads the latest committed history. Unknown request kinds stay on disk.
 func (s *Store) Load() ([]model.HistoryEntry, error) {
+	lock, err := s.lock()
+	if err != nil {
+		return nil, err
+	}
+	defer lock.Close()
+	defer unlockFile(lock)
 	f, err := s.read()
 	if err != nil {
 		return nil, err
@@ -130,7 +136,7 @@ func (s *Store) Clear() ([]model.HistoryEntry, error) {
 	return s.change(func(f *file) error { f.Entries = nil; return nil })
 }
 
-func (s *Store) change(apply func(*file) error) ([]model.HistoryEntry, error) {
+func (s *Store) lock() (*os.File, error) {
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
 		return nil, err
 	}
@@ -138,11 +144,20 @@ func (s *Store) change(apply func(*file) error) ([]model.HistoryEntry, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer lock.Close()
 	// The sidecar stays in place: replacing it would allow two independent locks.
 	if err := lockFile(lock); err != nil {
+		lock.Close()
 		return nil, err
 	}
+	return lock, nil
+}
+
+func (s *Store) change(apply func(*file) error) ([]model.HistoryEntry, error) {
+	lock, err := s.lock()
+	if err != nil {
+		return nil, err
+	}
+	defer lock.Close()
 	defer unlockFile(lock)
 	f, err := s.read()
 	if err != nil {

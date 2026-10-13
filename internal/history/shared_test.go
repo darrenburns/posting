@@ -23,8 +23,10 @@ func TestHistoryProcess(t *testing.T) {
 	}
 	store := ForCollection(dir, "/shared")
 	action := os.Getenv("POSTING_HISTORY_ACTION")
-	if _, err := store.Load(); err != nil {
-		t.Fatal(err)
+	if action == "delete" || action == "clear" {
+		if _, err := store.Load(); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if action == "hold" {
 		lock, err := os.OpenFile(store.Path()+".lock", os.O_CREATE|os.O_RDWR, 0o600)
@@ -41,13 +43,32 @@ func TestHistoryProcess(t *testing.T) {
 	}
 	waitForFile(t, os.Getenv("POSTING_HISTORY_GATE"))
 	switch action {
-	case "append":
+	case "append", "append-large":
 		count, _ := strconv.Atoi(os.Getenv("POSTING_HISTORY_COUNT"))
 		for i := 0; i < count; i++ {
 			req := model.NewRequest()
 			req.Name = fmt.Sprintf("%s-%d", os.Getenv("POSTING_HISTORY_LABEL"), i)
+			if action == "append-large" {
+				req.Body = model.Body{Type: model.BodyRaw, Raw: strings.Repeat(req.Name, 1024)}
+			}
 			if _, err := store.Append(model.HistoryEntry{Request: req}); err != nil {
 				t.Fatal(err)
+			}
+		}
+	case "load":
+		count, _ := strconv.Atoi(os.Getenv("POSTING_HISTORY_COUNT"))
+		for i := 0; i < count; i++ {
+			entries, err := store.Load()
+			if err != nil {
+				t.Fatal(err)
+			}
+			for j, entry := range entries {
+				if entry.ID <= 0 || j > 0 && entry.ID >= entries[j-1].ID {
+					t.Fatalf("read unordered history at entry %d: ID %d", j, entry.ID)
+				}
+				if entry.Request.Body.Raw != strings.Repeat(entry.Request.Name, 1024) {
+					t.Fatalf("read incomplete body for %q", entry.Request.Name)
+				}
 			}
 		}
 	case "delete":
@@ -162,6 +183,47 @@ func TestProcessAppendsRetainEverySend(t *testing.T) {
 	for id := int64(1); id <= 48; id++ {
 		if !ids[id] {
 			t.Fatalf("missing allocated ID %d", id)
+		}
+	}
+}
+
+func TestProcessLoadWaitsForHeldLock(t *testing.T) {
+	dir := t.TempDir()
+	gate, loadGate := filepath.Join(dir, "release"), filepath.Join(dir, "load")
+	holder := startHistoryProcess(t, dir, gate, "hold", "", 0)
+	reader := startHistoryProcess(t, dir, loadGate, "load", "", 1)
+	releaseHistoryProcesses(t, loadGate)
+	select {
+	case err := <-reader.done:
+		t.Fatalf("load bypassed held lock: %v\n%s", err, reader.output.String())
+	case <-time.After(50 * time.Millisecond):
+	}
+	releaseHistoryProcesses(t, gate)
+	holder.wait(t)
+	reader.wait(t)
+}
+
+func TestProcessLoadsAndAppendsShareLock(t *testing.T) {
+	dir := t.TempDir()
+	gate := filepath.Join(dir, "go")
+	var processes []*historyProcess
+	for i := 0; i < 3; i++ {
+		processes = append(processes, startHistoryProcess(t, dir, gate, "load", "", 40))
+	}
+	for i := 0; i < 2; i++ {
+		processes = append(processes, startHistoryProcess(t, dir, gate, "append-large", strconv.Itoa(i), 24))
+	}
+	releaseHistoryProcesses(t, gate)
+	for _, p := range processes {
+		p.wait(t)
+	}
+	entries, err := ForCollection(dir, "/shared").Load()
+	if err != nil || len(entries) != 48 {
+		t.Fatalf("concurrent reads and appends retained %d sends, want 48: %v", len(entries), err)
+	}
+	for i, entry := range entries {
+		if entry.ID != int64(48-i) {
+			t.Fatalf("entry %d has ID %d, want %d", i, entry.ID, 48-i)
 		}
 	}
 }
