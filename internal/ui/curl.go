@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"errors"
 	"strings"
 
 	t "github.com/darrenburns/terma"
@@ -112,6 +113,9 @@ func (a *App) exportCommand(resolve bool) (string, error) {
 		return "", nil
 	}
 	req := s.Snapshot()
+	if req.Auth.Type == model.AuthOAuth2 {
+		return "", errors.New("OAuth tokens aren't exported; use Posting to send this request, or export its YAML configuration")
+	}
 	if resolve {
 		variables, err := a.requestVariableValues(req)
 		if err != nil {
@@ -148,8 +152,12 @@ func (a *App) refreshExport() {
 	command, err := a.exportCommand(f.resolve.Peek())
 	f.err.Set("")
 	if err != nil {
-		f.err.Set(err.Error() + " — showing the command with variables left in")
-		command, _ = a.exportCommand(false)
+		f.err.Set(err.Error())
+		var fallbackErr error
+		command, fallbackErr = a.exportCommand(false)
+		if fallbackErr == nil {
+			f.err.Set(err.Error() + " — showing the command with variables left in")
+		}
 	}
 	f.text.SetText(command)
 	f.text.CursorIndex.Set(0)

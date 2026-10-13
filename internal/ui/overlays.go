@@ -127,6 +127,9 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 	items = append(items, a.rowCopyCommands()...)
 	items = append(items, t.CommandPaletteItem{Label: "Reload collection", Description: "Read the collection from disk again", Action: a.run(a.reloadCollection)})
 	if s := a.current(); s != nil {
+		if s.authType.Peek() == model.AuthOAuth2 && a.oauth != nil {
+			items = append(items, t.CommandPaletteItem{Label: "Forget OAuth token", Description: "Clear cached credentials; the next send authorizes again", Action: a.run(a.forgetOAuth)})
+		}
 		if s.kind.Peek() == model.KindGRPC {
 			items = append(items, a.streamCommand(s))
 		}

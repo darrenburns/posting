@@ -11,7 +11,9 @@ require (
 	github.com/rivo/uniseg v0.4.7
 	github.com/theory/jsonpath v0.12.2
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78
+	github.com/zalando/go-keyring v0.2.8
 	golang.org/x/image v0.45.0
+	golang.org/x/oauth2 v0.36.0
 	golang.org/x/sys v0.47.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800
 	google.golang.org/grpc v1.84.0
@@ -28,7 +30,9 @@ require (
 	github.com/clipperhouse/displaywidth v0.6.1 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
+	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
+	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect

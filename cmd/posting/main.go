@@ -213,9 +213,12 @@ func appConfig(opts options) (ui.Config, error) {
 	if settings.WatchCollectionFiles {
 		watch = store
 	}
-	rpc := client.NewGRPC("posting/"+version, tlsSettings, store.Root)
+	oauth := client.NewOAuth(store.Root, tlsSettings, terma.OpenURL)
 	httpClient := client.NewHTTP("posting/"+version, tlsSettings)
+	httpClient.OAuth = oauth
 	httpClient.Root = store.Root
+	rpc := client.NewGRPC("posting/"+version, tlsSettings, store.Root)
+	rpc.OAuth = oauth
 	return ui.Config{
 		Watch:            watch,
 		Reload:           store,
@@ -227,6 +230,7 @@ func appConfig(opts options) (ui.Config, error) {
 		HostVariables:    host,
 		UserThemes:       userThemes,
 		Sender:           client.ByKind{HTTP: httpClient, GRPC: rpc},
+		OAuth:            oauth,
 		Describer:        rpc,
 		Collection:       root,
 		Store:            store,

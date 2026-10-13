@@ -271,7 +271,7 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 	if kind.Fields.Has(model.FieldDigestAuth) {
 		options = append(options, tabItem{Key: string(model.AuthDigest), Label: "Digest"})
 	}
-	options = append(options, tabItem{Key: string(model.AuthBearer), Label: "Bearer token"})
+	options = append(options, tabItem{Key: string(model.AuthBearer), Label: "Bearer token"}, tabItem{Key: string(model.AuthOAuth2), Label: "OAuth 2.0"})
 	generated := "The Authorization header is generated when the request is sent."
 	if !kind.OverHTTP() {
 		generated = "The authorization metadata is generated when the request is sent."
@@ -288,6 +288,8 @@ func (e authEditor) Build(ctx t.BuildContext) t.Widget {
 		}}, "req-auth-type"),
 	}
 	switch authType {
+	case model.AuthOAuth2:
+		rows = append(rows, e.oauthRows(ctx)...)
 	case model.AuthBasic, model.AuthDigest:
 		rows = append(rows,
 			field(formRow(ctx, "Username", "", input{ID: "req-auth-username", State: s.username, Placeholder: "Enter a username", Highlighter: e.variables, OnChange: touch, Completion: s.usernameVars, Choices: e.choices}), "req-auth-username"),

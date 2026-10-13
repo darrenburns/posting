@@ -31,6 +31,7 @@ import (
 type Config struct {
 	Version string
 	Sender  client.Sender
+	OAuth   *client.OAuth
 	// Describer lists the methods gRPC requests can call. Nil uses
 	// client.Fake, as a nil Sender does.
 	Describer  client.Describer
@@ -89,6 +90,7 @@ type App struct {
 	userThemes []string
 	icons      iconSet
 	sender     client.Sender
+	oauth      *client.OAuth
 	describer  client.Describer
 	store      collection.Store
 	host       string // markup
@@ -211,6 +213,7 @@ func New(cfg Config) *App {
 		watcher:        cfg.Reload,
 		envFile:        newEnvFileForm(),
 		sender:         cfg.Sender,
+		oauth:          cfg.OAuth,
 		describer:      cfg.Describer,
 		store:          cfg.Store,
 		host:           host,

@@ -125,6 +125,38 @@ options:
 	}
 }
 
+func TestOAuthConfigurationRoundTrips(t *testing.T) {
+	const file = `url: https://api.example.com/users
+auth:
+  type: oauth2
+  oauth2:
+    grant_type: authorization_code
+    authorization_url: ${ISSUER}/authorize
+    token_url: ${ISSUER}/token
+    client_id: ${CLIENT_ID}
+    client_secret: ${CLIENT_SECRET}
+    scope: openid profile offline_access
+    redirect_uri: http://127.0.0.1:8765/oauth/callback
+    client_auth: client_secret_basic
+`
+	req, err := ParseRequest([]byte(file), "users.posting.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := model.OAuth2{GrantType: "authorization_code", AuthorizationURL: "${ISSUER}/authorize", TokenURL: "${ISSUER}/token", ClientID: "${CLIENT_ID}", ClientSecret: "${CLIENT_SECRET}", Scope: "openid profile offline_access", RedirectURI: "http://127.0.0.1:8765/oauth/callback", ClientAuth: "client_secret_basic"}
+	if req.Auth.Type != model.AuthOAuth2 || req.Auth.OAuth2 != want {
+		t.Fatalf("OAuth configuration lost: %+v", req.Auth)
+	}
+	data, err := MarshalRequest(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	back, err := ParseRequest(data, req.File)
+	if err != nil || !reflect.DeepEqual(req, back) {
+		t.Fatalf("round trip changed OAuth configuration: %+v, %v", back, err)
+	}
+}
+
 func TestDirSaveAndDelete(t *testing.T) {
 	dir := Dir{Root: t.TempDir()}
 	req := model.NewRequest()

@@ -66,6 +66,7 @@ type authFile struct {
 	Basic       *credentialsFile `yaml:"basic,omitempty"`
 	Digest      *credentialsFile `yaml:"digest,omitempty"`
 	BearerToken *bearerTokenFile `yaml:"bearer_token,omitempty"`
+	OAuth2      *model.OAuth2    `yaml:"oauth2,omitempty"`
 }
 
 type credentialsFile struct {
@@ -186,6 +187,11 @@ func ParseRequest(data []byte, file string) (model.Request, error) {
 			if a.BearerToken != nil {
 				req.Auth.Token = string(a.BearerToken.Token)
 			}
+		case model.AuthOAuth2:
+			req.Auth = model.Auth{Type: model.AuthOAuth2}
+			if a.OAuth2 != nil {
+				req.Auth.OAuth2 = *a.OAuth2
+			}
 		}
 	}
 	if s := in.Scripts; s != nil {
@@ -283,6 +289,8 @@ func MarshalRequest(req model.Request) ([]byte, error) {
 		out.Auth = &authFile{Type: string(model.AuthDigest), Digest: &credentialsFile{Username: yamlString(req.Auth.Username), Password: yamlString(req.Auth.Password)}}
 	case model.AuthBearer:
 		out.Auth = &authFile{Type: string(model.AuthBearer), BearerToken: &bearerTokenFile{Token: yamlString(req.Auth.Token)}}
+	case model.AuthOAuth2:
+		out.Auth = &authFile{Type: string(model.AuthOAuth2), OAuth2: &req.Auth.OAuth2}
 	}
 	if s := req.Scripts; s != (model.Scripts{}) {
 		out.Scripts = &scriptsFile{Setup: yamlString(s.Setup), OnRequest: yamlString(s.OnRequest), OnResponse: yamlString(s.OnResponse)}

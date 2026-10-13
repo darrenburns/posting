@@ -28,6 +28,9 @@ type Call struct {
 	// OnUpload reports bytes read for an upload attempt and its total size.
 	// Redirects and authentication retries start a new attempt at zero.
 	OnUpload func(sent, total int64)
+	// OnAuth reports OAuth progress and credential-storage warnings without
+	// credentials. Like OnTrace, it may be called from any goroutine.
+	OnAuth func(string)
 	// OnUpdate, when set, receives a gRPC call's response so far as its
 	// messages arrive, before Send returns the whole of it. It may be called
 	// from any goroutine.

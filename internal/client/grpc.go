@@ -44,6 +44,7 @@ const describeDialTimeout = 3 * time.Second
 type GRPC struct {
 	UserAgent string
 	TLS       TLSSettings
+	OAuth     *OAuth
 	// Root is the directory proto paths are relative to: the collection's.
 	Root string
 
@@ -75,7 +76,7 @@ type grpcCall struct {
 	ctx context.Context
 }
 
-func prepare(call Call) (*grpcCall, error) {
+func (g *GRPC) prepare(ctx context.Context, call Call, interactive bool) (*grpcCall, error) {
 	req, err := model.Resolve(call.Request, call.Lookup)
 	if err != nil {
 		return nil, err
@@ -83,6 +84,10 @@ func prepare(call Call) (*grpcCall, error) {
 	payload, ok := req.Payload.(model.GRPC)
 	if !ok {
 		return nil, fmt.Errorf("%s requests aren't sent over gRPC", req.Kind().Label)
+	}
+	req.Auth, err = g.OAuth.authorize(ctx, req, interactive, call.OnAuth)
+	if err != nil {
+		return nil, err
 	}
 	md, err := outgoingMetadata(req.Headers, req.Auth)
 	if err != nil {
@@ -117,7 +122,7 @@ func (c *grpcCall) start(ctx context.Context) context.CancelFunc {
 // before the server replies, so sent messages aren't lost either.
 func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 	defer call.Stream.end()
-	c, err := prepare(call)
+	c, err := g.prepare(ctx, call, true)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +245,7 @@ func (g *GRPC) Describe(ctx context.Context, call Call) (Schema, error) {
 		}
 		return schemaOf(files), nil
 	}
-	c, err := prepare(call)
+	c, err := g.prepare(ctx, call, false)
 	if err != nil {
 		return Schema{}, err
 	}

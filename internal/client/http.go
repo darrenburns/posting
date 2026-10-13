@@ -35,6 +35,7 @@ type HTTP struct {
 	// UserAgent is sent when the request doesn't set one.
 	UserAgent string
 	TLS       TLSSettings
+	OAuth     *OAuth
 	// Root is the collection directory that upload paths are relative to.
 	Root string
 
@@ -79,6 +80,12 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 	}
 	if target.Scheme != "http" && target.Scheme != "https" {
 		return nil, fmt.Errorf("unsupported scheme %q", target.Scheme)
+	}
+	// Browser authorization has its own budget; the API request's timeout
+	// starts only after login, and runtime credentials never leave this copy.
+	req.Auth, err = h.OAuth.authorize(ctx, req, true, call.OnAuth)
+	if err != nil {
+		return nil, err
 	}
 
 	timeout := req.Options.TimeoutSeconds
@@ -177,6 +184,11 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 		}
 		if len(via) >= 10 {
 			return errors.New("stopped after 10 redirects")
+		}
+		if call.Request.Auth.Type == model.AuthOAuth2 && (r.URL.Scheme != target.Scheme || !strings.EqualFold(r.URL.Host, target.Host)) {
+			// net/http normally forwards credentials to subdomains too.
+			// An OAuth token is only for the original resource origin.
+			r.Header.Del("Authorization")
 		}
 		explicitCookies = append([]string(nil), r.Header.Values("Cookie")...)
 		// A challenge at another host must not acquire the original host's

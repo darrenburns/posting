@@ -92,6 +92,18 @@ func Resolve(req Request, lookup func(string) (string, bool)) (Request, error) {
 		out.Auth.Password = sub(out.Auth.Password)
 	case AuthBearer:
 		out.Auth.Token = sub(out.Auth.Token)
+	case AuthOAuth2:
+		o := &out.Auth.OAuth2
+		fields := []*string{&o.TokenURL, &o.ClientID, &o.ClientSecret, &o.Scope}
+		if o.WithDefaults().GrantType == "authorization_code" {
+			fields = append(fields, &o.AuthorizationURL, &o.RedirectURI)
+		}
+		for _, value := range fields {
+			if missing := undefined(*value, lookup); len(missing) > 0 {
+				return Request{}, UndefinedVariablesError{Names: missing}
+			}
+			*value = sub(*value)
+		}
 	}
 	out.Options.ProxyURL = sub(out.Options.ProxyURL)
 	if req.Options.SubstituteBodyVariables {

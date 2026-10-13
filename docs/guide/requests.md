@@ -141,10 +141,80 @@ Choose how the request authenticates:
 - **Basic** sends a username and password with HTTP Basic authentication.
 - **Digest** answers the server's Digest challenge with a username and password.
 - **Bearer token** sends `Authorization: Bearer <token>`.
+- **OAuth 2.0** obtains and refreshes a bearer token using authorization code with PKCE or client credentials.
 
 The `Authorization` header is created when the request is sent, and replaces any `Authorization`
 header you've added yourself (for Digest auth, once the server has sent its challenge). Credentials can use variables, for example `${API_TOKEN}`, so you can
 keep secrets out of your request files.
+
+#### OAuth 2.0
+
+Choose **OAuth 2.0** in **Auth**, then choose a grant:
+
+- **Code + PKCE** signs in through your browser. Enter the provider's **Auth URL**, **Token URL**,
+  **Client ID**, and space-separated **Scopes**. Public clients leave **Client secret** empty.
+  Register `http://127.0.0.1:8765/oauth/callback` as a redirect URI with the provider, or enter
+  another HTTP loopback IP, port and path in **Redirect URI**. Posting uses S256 PKCE and checks
+  the callback's state. Request the provider's offline-access scope, often `offline_access`, if
+  needed to receive a refresh token.
+- **Client credentials** authenticates an application without a browser. Enter the **Token URL**,
+  **Client ID**, **Client secret** and any **Scopes** the provider requires.
+
+**Client auth** chooses how Posting sends client credentials to the token endpoint: **Body**
+(`client_secret_post`, the default) or **Basic header** (`client_secret_basic`). Public PKCE
+clients use **Body** with no secret. Follow your provider's client registration settings.
+
+Press ++ctrl+j++ to authorize and send. A code grant opens the browser and waits up to three
+minutes; ++escape++ cancels it. The browser must be able to reach the callback on the machine
+running Posting. When using SSH or a container, forward the callback port if the browser is on
+another machine. Port `0` selects an available port, for providers that permit variable loopback
+ports. The API request's timeout starts after authorization finishes.
+
+Posting reuses tokens and refreshes them shortly before expiry, on the next send. It keeps a
+rotated refresh token when the provider returns one. Client credentials grants obtain a new token
+instead. A revoked or expired refresh token needs a new login: choose **Forget OAuth token** in
+the command palette, then send again. Forgetting removes the token for the current configuration
+from memory and the credential store; it doesn't revoke consent at the provider. Posting doesn't
+automatically replay API requests that return `401`.
+
+Tokens are saved in the OS credential store: macOS Keychain, Windows Credential Manager, or a
+Linux Secret Service such as GNOME Keyring. On Linux this requires an available, unlocked store
+on the session D-Bus. If the store is unavailable, Posting warns in **Auth** and keeps the token
+in memory for this session only; it never falls back to a plaintext token file. Tokens are scoped
+to the collection, API origin and resolved OAuth configuration, so changing credentials or scopes
+doesn't reuse another configuration's token.
+
+Use variables such as `${CLIENT_SECRET}` for secrets. **Literal client credentials are saved in
+request YAML**, just like Basic auth credentials. Generated access and refresh tokens aren't
+written to request files, request history configurations, or YAML exports. API responses are
+still recorded normally, so don't use an endpoint that echoes credentials if you want them kept
+out of response history. OAuth requests can't be exported as curl or grpcurl commands.
+
+OAuth endpoints and HTTP API requests require HTTPS, except HTTP on loopback for local testing.
+Token requests use the request's proxy and SSL verification settings and the configured CA/client
+certificates. Token endpoint redirects aren't followed, and API redirects to a different origin
+don't receive the OAuth token. OAuth also works with GraphQL and TLS gRPC calls. gRPC reflection
+can reuse or refresh credentials but doesn't open a browser; send once to sign in first.
+
+A saved OAuth request looks like this:
+
+```yaml
+url: https://api.example.com/me
+auth:
+  type: oauth2
+  oauth2:
+    grant_type: authorization_code
+    authorization_url: https://identity.example.com/authorize
+    token_url: https://identity.example.com/token
+    client_id: ${CLIENT_ID}
+    scope: openid profile offline_access
+    redirect_uri: http://127.0.0.1:8765/oauth/callback
+    client_auth: client_secret_post
+```
+
+For client credentials, use `grant_type: client_credentials`, add `client_secret: ${CLIENT_SECRET}`,
+and omit `authorization_url` and `redirect_uri`. Edit OAuth requests only in Posting 3; Posting 2
+doesn't understand this auth type.
 
 ### Info
 
@@ -468,7 +538,7 @@ Press ++ctrl+j++ (or ++alt+enter++) from anywhere to send the request in the cur
 ++enter++ in the URL bar. Press ++escape++ to cancel it while it's in flight.
 
 Posting sends a `User-Agent` header identifying itself unless you've set your own.
-If the URL's address or path uses a variable that isn't defined, Posting tells you which one
+If the URL's address or path, or an OAuth field, uses a variable that isn't defined, Posting tells you which one
 instead of sending the request. An undefined variable anywhere else, including the query string,
 is sent as written.
 
@@ -634,10 +704,10 @@ Only settings that differ from the defaults are written, so most files are short
 | `body` | One of `content` for a raw body, `form_data` for a URL-encoded form, `multipart` for ordered parts, or `file` for a whole-file body. Raw and file bodies can also specify `content_type`. |
 | `graphql` | A GraphQL request's `query`, `variables` and `operation_name`. Any other key in it is an error. |
 | `grpc` | A gRPC request's `method`, `message` and `proto` (`files` and `import_paths`). Any other key in it is an error. |
-| `auth` | `type` is `basic`, `digest` or `bearer_token`, with credentials under a key of the same name (`basic: {username, password}`, `bearer_token: {token}`). |
+| `auth` | `type` is `basic`, `digest`, `bearer_token` or `oauth2`, with configuration under a key of the same name (`basic: {username, password}`, `bearer_token: {token}`). See [OAuth 2.0](#oauth-20) for `oauth2` fields. |
 | `options` | Any of `follow_redirects`, `verify_ssl`, `attach_cookies`, `substitute_body_variables`, `proxy_url` and `timeout`. |
 | `captures` | Maps session variable names to JSON response paths, e.g. `{SESSION_ID: data.id}`. See [Response captures](./environments.md#response-captures). |
 | `scripts` | Posting 2 scripts. Posting 3 keeps them but doesn't run them; see [Scripting](./scripting.md). |
 
-HTTP requests with none, raw or URL-encoded form bodies use Posting 2's format. Multipart and file
-bodies, generated values and response captures require Posting 3.
+HTTP requests without OAuth and with none, raw or URL-encoded form bodies use Posting 2's format.
+OAuth, multipart and file bodies, generated values and response captures require Posting 3.

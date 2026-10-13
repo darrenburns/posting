@@ -9,6 +9,7 @@ between versions.
 
 ### Added
 
+- OAuth 2.0 authorization code with S256 PKCE and client credentials, automatic token refresh, and token storage in the OS credential store. Configure it in **Auth** and send to authorize; **Forget OAuth token** clears the cached login. If secure storage is unavailable, tokens stay in memory with a warning. See [OAuth 2.0](guide/requests.md#oauth-20).
 - Explore JSON responses with Terma's collapsible JSON tree: press `t` in the body, filter with JSONPath, and copy values with `y` or paths with `Y`. Switch back to the text view without losing its cursor, selection or search. Works with history and decoded gRPC messages too.
 - Search response bodies with `ctrl+f` or `/`: live, case-insensitive highlighting, a match count, and next/previous navigation with `enter`/`shift+enter` or `n`/`N` in the body.
 - Multipart and whole-file request bodies, with a selected-part inspector, path completion, upload progress and curl import/export. File paths are relative to the collection; saved requests and history keep references rather than file contents. See [Multipart and file uploads](guide/requests.md#multipart-and-file-uploads).

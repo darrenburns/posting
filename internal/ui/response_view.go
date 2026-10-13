@@ -90,6 +90,18 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 			message = err.Error()
 		}
 		content = emptyState{Title: "Request failed", Lines: []string{"[$Error]" + escapeMarkup(message) + "[/]", "Press [b]ctrl+j[/] to try again"}}
+	case phase == exchangeSending && strings.HasPrefix(s.oauth.status.Get(), "Waiting for OAuth"):
+		content = t.Column{
+			Style:      t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+			MainAlign:  t.MainAxisCenter,
+			CrossAlign: t.CrossAxisCenter,
+			Children: []t.Widget{
+				t.Text{Content: "Authorize in your browser…", Style: t.Style{ForegroundColor: t.Shimmer{
+					State: s.oauth.shimmer, Base: theme.Text, Highlight: theme.AccentText,
+				}}},
+				t.ParseMarkupToText("[$TextMuted]Waiting for the OAuth callback · [b]esc[/] cancels[/]", theme),
+			},
+		}
 	case phase == exchangeSending && !s.live && streaming != streamNone:
 		label := "Opening stream…"
 		if streaming != streamStarting {

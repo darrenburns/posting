@@ -1138,6 +1138,8 @@
   <text x="444.8" y="155.0" fill="#9A96BE">Digest</text>
   <text x="512.0" y="155.0" class="bold" fill="#F5F5F6">Bearer token</text>
   <path d="M 512.00 163.30 H 612.80" fill="none" stroke="#FF69B4" stroke-width="1.00"/>
+  <text x="629.6" y="155.0" fill="#9A96BE">OAuth</text>
+  <text x="680.0" y="155.0" fill="#9A96BE">2.0</text>
   <rect x="8.0" y="164.8" width="8.4" height="19.6" fill="#2C1D44"/>
   <rect x="16.4" y="164.8" width="8.4" height="19.6" fill="#2C1D44"/>
   <rect x="24.8" y="164.8" width="8.4" height="19.6" fill="#2C1D43"/>
