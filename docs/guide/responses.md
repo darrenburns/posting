@@ -89,6 +89,38 @@ Unsupported formats, corrupt images and larger images show an explanation, with 
 **save** still available. Preview errors do not change the HTTP status or response bytes.
 Images saved in [history](./collections.md#history) can be previewed again when you reopen them.
 
+### JSON tree
+
+For a valid JSON body, click **JSON tree** below the body or press ++t++ while the body has focus.
+The tree uses Terma's JSON viewer, with collapsible objects and arrays and coloured values.
+Posting detects JSON from the body even if the server omits or mislabels its content type. The
+tree also works with responses loaded from history and decoded JSON messages in the gRPC inspector.
+Empty, malformed and non-JSON bodies keep the text view.
+
+Type an RFC 9535 JSONPath in the field below the tree to filter it, for example `$.users[*].name`
+or `$.users[?@.admin == true]`. Matches keep their ancestors for context and include complete
+subtrees; array indices refer to the original response. The bar shows the match count. An invalid
+query displays an error and keeps the last valid results; ++escape++ or **×** clears the filter.
+
+| Key | Action |
+|-----|--------|
+| ++up++ / ++down++, ++k++ / ++j++ | Move between nodes |
+| ++left++ / ++right++, ++h++ / ++l++ | Collapse / expand a node |
+| ++home++ / ++end++ | First / last visible node |
+| ++e++ / ++shift+e++ | Expand / collapse all nodes |
+| ++ctrl+f++ / `/` | Focus JSONPath, selecting the previous query |
+| ++enter++ in JSONPath | Return to the tree |
+| ++y++ / ++c++ | Copy the current node's value as JSON, including its complete subtree |
+| ++shift+y++ | Copy the current node's JSONPath |
+| ++t++ | Return to the text view |
+
+Click **Text view** or press ++t++ to return to text search, selection and wrapping; the text
+cursor, selection and search are preserved. Each request tab keeps its own view and filter.
+A new response or selected message clears the filter so it cannot hide the new data. Object keys
+are sorted in the tree; the text view retains their original order. **Copy response body** in the
+command palette and the ++f3++/++f4++ external tools still use the complete, unfiltered body.
+Tree rows do not wrap; use the text view to read long values with wrapping enabled.
+
 ## Headers
 
 The response headers, one per row.

@@ -4,7 +4,9 @@
 
 Posting is an HTTP client, not unlike Postman and Insomnia. As a TUI application, it can be used over SSH and enables efficient keyboard-centric workflows. Your requests are stored locally in simple YAML files, so they're easy to read and version control.
 
-<img width="1400" alt="Posting 3 opening requests from a collection with jump mode, sending them, adding a header, and showing the response headers and trace" src="docs/assets/readme.gif" />
+<img width="968" alt="Posting cycling through six dark themes, with request tabs, a populated collection, header autocomplete, and a JSON response" src="docs/assets/themes/themes.gif" />
+
+Full-size screenshots: [Galaxy](docs/assets/themes/galaxy.png) · [Aurora](docs/assets/themes/aurora.png) · [Lantern](docs/assets/themes/lantern.png) · [Midnight Ember](docs/assets/themes/midnight-ember.png) · [Neon Reef](docs/assets/themes/neon-reef.png) · [Cyberdeck](docs/assets/themes/cyberdeck.png).
 
 Some notable features include:
 

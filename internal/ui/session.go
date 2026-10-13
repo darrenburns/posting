@@ -141,6 +141,10 @@ type Session struct {
 	responseSearchOpen         t.Signal[bool]
 	responseImage              t.AnySignal[*imagePreview]
 	responseAsText             t.Signal[bool]
+	responseJSON               t.AnySignal[*t.JSONViewerState]
+	responseJSONTree           t.Signal[bool]
+	responseJSONQuery          *t.TextInputState
+	responseJSONError          t.Signal[string]
 	// responseVisual is the body viewer's visual mode, where moving selects.
 	responseVisual        t.Signal[bool]
 	responseHeaders       *t.TableState[model.Header]
@@ -231,6 +235,10 @@ func newSession(id int, req model.Request) *Session {
 		responseSearchOpen:     t.NewSignal(false),
 		responseImage:          t.NewAnySignal[*imagePreview](nil),
 		responseAsText:         t.NewSignal(false),
+		responseJSON:           t.NewAnySignal[*t.JSONViewerState](nil),
+		responseJSONTree:       t.NewSignal(false),
+		responseJSONQuery:      t.NewTextInputState(""),
+		responseJSONError:      t.NewSignal(""),
 		responseVisual:         t.NewSignal(false),
 		responseHeaders:        t.NewTableState[model.Header](nil),
 		responseHeadersScroll:  t.NewScrollState(),
@@ -722,6 +730,7 @@ func (s *Session) showLive(req model.Request, resp *model.Response) {
 		s.messages.update(s, resp.Events, false)
 	} else {
 		s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
+		s.setResponseJSON(resp.Body)
 	}
 	s.responseHeaders.SetRows(resp.Headers)
 }
@@ -737,6 +746,7 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 	s.fromHistory.Set(entry)
 	s.prepareImagePreview(resp)
 	if resp == nil {
+		s.setResponseJSON(nil)
 		return
 	}
 	s.trace.Set(resp.Trace)
@@ -751,6 +761,7 @@ func (s *Session) showResponse(resp *model.Response, entry *model.HistoryEntry) 
 			// user explicitly chooses to view the image as text.
 			s.responseBody.SetText("")
 		}
+		s.setResponseJSON(resp.Body)
 		s.responseBody.CursorIndex.Set(0)
 		s.responseBodyScroll.SetOffset(0)
 		s.responseBody.SelectionAnchor.Set(-1)

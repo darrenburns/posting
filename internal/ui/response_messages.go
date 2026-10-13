@@ -85,6 +85,7 @@ func (m *messageLog) showSelected(s *Session) {
 	m.shown = row.index
 	resp := messageResponse(row.event)
 	s.responseBody.SetText(formatBody(resp, s.prettifyJSON))
+	s.setResponseJSON(resp.Body)
 	s.responseBody.CursorIndex.Set(0)
 	s.responseBody.ClearSelection()
 	s.responseBodyScroll.SetOffset(0)

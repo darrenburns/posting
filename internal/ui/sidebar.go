@@ -119,17 +119,22 @@ func (a *App) sidebarColors(theme t.ThemeData) (background, divider t.ColorProvi
 		}
 	}
 	bg := theme.Background
+	bottom := bg.Blend(palette.Accent, 0.04)
 	background = t.NewGradient(
 		bg.Blend(palette.Primary, 0.20),
 		bg.Blend(palette.Secondary, 0.10),
-		bg.Blend(palette.Accent, 0.04),
+		bottom,
 	).WithAngle(25)
-	// The narrow edge catches more light at the top, fading to the normal
-	// border at the bottom. A vertical gradient stays fixed while resizing.
+	// Keep the bright upper edge, but let its lower half blend into dark
+	// sidebars. Light themes retain their normal border at the bottom.
+	dividerBottom := theme.Border
+	if !theme.IsLight {
+		dividerBottom = dividerBottom.Blend(bottom, 0.75)
+	}
 	divider = t.NewGradient(
 		theme.Border.Blend(palette.Primary, 0.25),
 		theme.Border.Blend(palette.Secondary, 0.08),
-		theme.Border,
+		dividerBottom,
 	).WithAngle(0)
 	return background, divider
 }

@@ -1089,7 +1089,7 @@ func (a *App) focusMoved(at focusAt) {
 	if s := a.current(); s != nil && at.id == grpcMethodID {
 		s.payloads[model.KindGRPC].(*grpcEditor).describe(a, false)
 	}
-	if s := a.current(); s != nil && at.id == "resp-body" {
+	if s := a.current(); s != nil && (at.id == "resp-body" || at.id == responseJSONQueryID) {
 		s.messages.following.Set(false)
 	}
 }

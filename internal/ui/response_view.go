@@ -258,11 +258,25 @@ type responseBody struct {
 	response *model.Response
 }
 
+func (b responseBody) Keybinds() []t.Keybind {
+	if b.session.responseJSON.Peek() == nil {
+		return nil
+	}
+	name := "JSON tree"
+	if b.session.responseJSONTree.Peek() {
+		name = "Text view"
+	}
+	return []t.Keybind{{Key: "t", Name: name, Action: b.session.toggleBodyView}}
+}
+
 func (b responseBody) Build(ctx t.BuildContext) t.Widget {
 	theme := ctx.Theme()
 	s, resp := b.session, b.response
 	if len(resp.Body) == 0 {
 		return emptyState{Title: "Empty body", Lines: []string{"The server returned " + statusText(s.responseStatus) + " with no content"}}
+	}
+	if state := s.responseJSON.Get(); state != nil && s.responseJSONTree.Get() {
+		return responseJSON{app: b.app, session: s, state: state}
 	}
 	image := s.responseImage.Get() != nil
 	if image && !s.responseAsText.Get() {
@@ -362,9 +376,13 @@ func (r responseBodyStatus) Build(ctx t.BuildContext) t.Widget {
 		}
 	}
 	children = append(children,
-		t.Text{Content: orDefault(r.contentType, "unknown type"), Style: t.Style{ForegroundColor: theme.AccentText}},
-		t.Text{Content: pluralize(lines, "line"), Style: t.Style{ForegroundColor: theme.TextMuted}},
-		t.Spacer{},
+		t.Text{
+			Spans: []t.Span{
+				{Text: orDefault(r.contentType, "unknown type"), Style: t.SpanStyle{Foreground: theme.AccentText}},
+				{Text: "  " + pluralize(lines, "line"), Style: t.SpanStyle{Foreground: theme.TextMuted}},
+			},
+			Style: t.Style{Width: t.Flex(1)},
+		},
 	)
 	// The cursor is only drawn while the body has focus.
 	if isFocusedID(ctx, "resp-body") {
@@ -372,6 +390,12 @@ func (r responseBodyStatus) Build(ctx t.BuildContext) t.Widget {
 	}
 	if r.session.responseImage.Get() != nil {
 		children = append(children, t.Text{Content: "preview", Style: t.Style{ForegroundColor: theme.TextMuted}, Click: func(t.MouseEvent) { r.session.toggleImagePreview() }})
+	}
+	if r.session.responseJSON.Get() != nil {
+		children = append(children, t.Text{
+			ID: "resp-body-json", Content: "JSON tree", Style: t.Style{ForegroundColor: theme.AccentText},
+			Click: func(t.MouseEvent) { r.session.toggleBodyView() },
+		})
 	}
 	return t.Row{
 		Style:   t.Style{Width: t.Flex(1), Height: t.Cells(1), BackgroundColor: theme.Surface, Padding: t.EdgeInsetsXY(1, 0)},

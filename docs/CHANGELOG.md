@@ -9,6 +9,7 @@ between versions.
 
 ### Added
 
+- Explore JSON responses with Terma's collapsible JSON tree: press `t` in the body, filter with JSONPath, and copy values with `y` or paths with `Y`. Switch back to the text view without losing its cursor, selection or search. Works with history and decoded gRPC messages too.
 - Search response bodies with `ctrl+f` or `/`: live, case-insensitive highlighting, a match count, and next/previous navigation with `enter`/`shift+enter` or `n`/`N` in the body.
 - Multipart and whole-file request bodies, with a selected-part inspector, path completion, upload progress and curl import/export. File paths are relative to the collection; saved requests and history keep references rather than file contents. See [Multipart and file uploads](guide/requests.md#multipart-and-file-uploads).
 - A `using-posting` skill teaches Claude Code, Codex, Pi, Amp and other coding agents to send API requests through the Posting you have open. Install it with `posting remote skill`. See [Coding Agents](guide/agents.md).
@@ -41,6 +42,7 @@ between versions.
 
 ### Changed
 
+- The sidebar divider fades into the sidebar in its lower half on dark themes; light themes are unchanged.
 - Install Posting 3 with Homebrew, a release download, or `go install`. Existing `uv` and `pipx`
   installations remain on Posting 2. See [Installation](guide/index.md#installation).
 - `ctrl+n` opens a new request tab, `ctrl+g` searches the collection, and `alt+z` expands a panel.
