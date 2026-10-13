@@ -2,13 +2,11 @@ package ui
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"path"
 	"slices"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/darrenburns/posting/v3/internal/collection"
 	"github.com/darrenburns/posting/v3/internal/curl"
@@ -409,37 +407,6 @@ func (a *App) exchange(s *Session) remote.Exchange {
 		return e
 	}
 	e.Outcome = remote.OutcomeDone
-	e.Response = remoteResponse(resp, s.responseStatus)
+	e.Response = remote.NewResponse(resp, s.responseStatus)
 	return e
-}
-
-func remoteResponse(resp *model.Response, status model.Status) *remote.Response {
-	out := &remote.Response{
-		Method:      string(resp.Method),
-		URL:         resp.URL,
-		Status:      status.Code,
-		Reason:      status.Text,
-		StatusCode:  resp.StatusCode,
-		Proto:       resp.Proto,
-		Headers:     remoteHeaders(resp.Headers),
-		Trailers:    remoteHeaders(resp.Trailers),
-		ContentType: resp.ContentType(),
-		Size:        resp.Size(),
-		ElapsedMS:   float64(resp.Elapsed.Microseconds()) / 1000,
-		ReceivedAt:  resp.ReceivedAt,
-	}
-	if utf8.Valid(resp.Body) {
-		out.Body = string(resp.Body)
-	} else {
-		out.BodyBase64 = base64.StdEncoding.EncodeToString(resp.Body)
-	}
-	return out
-}
-
-func remoteHeaders(in []model.Header) []remote.Header {
-	out := make([]remote.Header, len(in))
-	for i, h := range in {
-		out[i] = remote.Header{Name: h.Name, Value: h.Value}
-	}
-	return out
 }

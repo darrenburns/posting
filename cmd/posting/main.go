@@ -60,6 +60,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return locate(args[1:], stdout, stderr)
 		case "remote":
 			return remoteCommand(args[1:], os.Stdin, stdout, stderr)
+		case "run":
+			return runCommand(args[1:], stdout, stderr)
 		case "version", "--version", "-v":
 			fmt.Fprintln(stdout, "Posting "+version)
 			return 0
@@ -74,6 +76,7 @@ func run(args []string, stdout, stderr io.Writer) int {
        posting locate config|collection|themes
        posting import [--type FORMAT] [-o DIR] SOURCE [ENVIRONMENT...]
        posting remote COMMAND [options]   (see posting remote --help)
+       posting run PATH [options]         (see posting run --help)
 
 A terminal HTTP client.
 

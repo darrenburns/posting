@@ -23,6 +23,9 @@ from it.
 To teach your coding agent to use Posting this way, install the `using-posting` skill. See
 [Coding Agents](./agents.md).
 
+To let an agent run saved requests or entire collections without a running Posting, use
+[`posting run`](./running.md) instead. Its JSON output includes responses for the agent to inspect.
+
 ## Commands
 
 | Command | What it does |

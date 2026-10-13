@@ -47,6 +47,7 @@ nav:
     - "External Tools": "guide/external_tools.md"
     - "Keymaps": "guide/keymap.md"
     - "Importing": "guide/importing.md"
+    - "Headless Runs": "guide/running.md"
     - "Remote Control": "guide/remote_control.md"
     - "Coding Agents": "guide/agents.md"
     - "Configuration": "guide/configuration.md"
