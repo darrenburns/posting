@@ -90,6 +90,7 @@ class BearerTokenForm(Vertical):
     def on_mount(self) -> None:
         token_input = self.token_input
         token_input.validate(token_input.value)
+        self.update_password_mode(token_input.value)
 
     @on(Input.Changed)
     def on_input_changed(self, event: Input.Changed) -> None:
@@ -97,9 +98,11 @@ class BearerTokenForm(Vertical):
         is_valid = False if result is None else result.is_valid
         label = self.query_one("#token-empty-label", Label)
         label.visible = not is_valid
+        self.update_password_mode(event.value)
 
     def set_values(self, token: str) -> None:
         self.token_input.value = token
+        self.update_password_mode(token)
 
     def get_values(self) -> dict[str, str]:
         return {
@@ -109,6 +112,11 @@ class BearerTokenForm(Vertical):
     @property
     def token_input(self) -> Input:
         return self.query_one("#token-input", Input)
+
+    def update_password_mode(self, value: str) -> None:
+        is_variable = value.startswith("$")
+        inp = self.query_one("#token-input", VariableInput)
+        inp.password = not is_variable
 
 
 class RequestAuth(VerticalScroll):
