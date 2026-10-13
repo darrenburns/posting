@@ -26,3 +26,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+
+  homebrew:
+    needs: release
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Install and run the published Homebrew cask
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          brew install darrenburns/homebrew/posting@beta
+          posting --version
+          test "$(posting --version)" = "Posting ${RELEASE_TAG#v}"
+          posting --help
