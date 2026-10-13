@@ -159,7 +159,7 @@ func (tree urlTree) suggestions(text string, cursor int, variables variableChoic
 	return choices
 }
 
-func (c *completion) wrapURL(a *App, theme t.ThemeData, input t.TextInput) t.Widget {
+func (c *completion) wrapURL(a *App, session *Session, theme t.ThemeData, input t.TextInput) t.Widget {
 	tree, variables := a.collectionURLs(), a.variableChoices()
 	// The renderer fills its available width to highlight whole rows and align
 	// descriptions. Size that space from what we display, not the full URL
@@ -172,7 +172,7 @@ func (c *completion) wrapURL(a *App, theme t.ThemeData, input t.TextInput) t.Wid
 		}
 		popupWidth = max(popupWidth, width)
 	}
-	return urlAutocomplete{Autocomplete: t.Autocomplete{
+	return urlAutocomplete{session: session, Autocomplete: t.Autocomplete{
 		State: c.state, Child: input, Width: t.Flex(1),
 		MatchMode: t.FilterFuzzy, MaxVisible: 8,
 		DismissWhenEmpty: true, DisableKeysWhenHidden: true,
@@ -204,16 +204,19 @@ func (c *completion) wrapURL(a *App, theme t.ThemeData, input t.TextInput) t.Wid
 	}}
 }
 
-// Terma 0.20's autocomplete binds Tab but its TextInput doesn't capture it,
-// so the focus manager navigates before consulting that binding. Preserve
-// the built input's handlers and capture Tab only while its popup is visible.
-type urlAutocomplete struct{ t.Autocomplete }
+// Autocomplete wraps concrete TextInputs, so capture edits after it has added
+// completion handlers. Tab must be captured before focus traversal.
+type urlAutocomplete struct {
+	t.Autocomplete
+	session *Session
+}
 
 func (a urlAutocomplete) Build(ctx t.BuildContext) t.Widget {
 	column := a.Autocomplete.Build(ctx).(t.Column)
 	column.Children[0] = urlCompletionInput{
 		TextInput: column.Children[0].(t.TextInput),
 		complete:  a.State.Visible.Get(),
+		session:   a.session,
 	}
 	return column
 }
@@ -221,9 +224,58 @@ func (a urlAutocomplete) Build(ctx t.BuildContext) t.Widget {
 type urlCompletionInput struct {
 	t.TextInput
 	complete bool
+	session  *Session
 }
 
 func (i urlCompletionInput) Build(t.BuildContext) t.Widget { return i }
 func (i urlCompletionInput) CapturesKey(key string) bool {
-	return key == "tab" && i.complete || i.TextInput.CapturesKey(key)
+	return key == "tab" && i.complete || key == "ctrl+z" || key == "ctrl+shift+z" || i.TextInput.CapturesKey(key)
+}
+
+func (i urlCompletionInput) Keybinds() []t.Keybind {
+	input := i.TextInput
+	input.UndoKeys, input.RedoKeys = []string{}, []string{}
+	binds := []t.Keybind{
+		{Key: "ctrl+z", Action: func() { i.session.stepURLHistory(false, i.OnChange) }, Hidden: true},
+		{Key: "ctrl+shift+z", Action: func() { i.session.stepURLHistory(true, i.OnChange) }, Hidden: true},
+	}
+	for _, bind := range input.Keybinds() {
+		action := bind.Action
+		kind := urlSingleEdit
+		switch bind.Key {
+		case "backspace":
+			kind = urlBackspace
+		case "delete", "ctrl+d":
+			kind = urlDelete
+		}
+		bind.Action = func() { i.session.editURL(kind, action) }
+		binds = append(binds, bind)
+	}
+	return binds
+}
+
+func (i urlCompletionInput) OnKey(event t.KeyEvent) (handled bool) {
+	i.session.editURL(urlTyping, func() { handled = i.TextInput.OnKey(event) })
+	return handled
+}
+
+func (i urlCompletionInput) HandlePaste(text string) (handled bool) {
+	i.session.editURL(urlSingleEdit, func() { handled = i.TextInput.HandlePaste(text) })
+	return handled
+}
+
+func (i urlCompletionInput) OnMouseDown(event t.MouseEvent) {
+	i.session.editURL(urlSingleEdit, func() { i.TextInput.OnMouseDown(event) })
+}
+
+func (i urlCompletionInput) OnMouseMove(event t.MouseEvent) {
+	i.session.editURL(urlSingleEdit, func() { i.TextInput.OnMouseMove(event) })
+}
+
+func (i urlCompletionInput) OnMouseUp(event t.MouseEvent) {
+	i.session.editURL(urlSingleEdit, func() { i.TextInput.OnMouseUp(event) })
+}
+
+func (i urlCompletionInput) OnBlur() {
+	i.session.editURL(urlSingleEdit, i.TextInput.OnBlur)
 }

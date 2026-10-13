@@ -57,6 +57,7 @@ type Session struct {
 	kind              t.Signal[model.KindID]
 	method            t.Signal[model.Method]
 	url               *t.TextInputState
+	urlHistory        urlHistory
 	headers           *kvEditor
 	query             *kvEditor
 	pathParams        *kvEditor
@@ -390,6 +391,7 @@ func (s *Session) Load(req model.Request) {
 	s.description.CursorIndex.Set(0)
 	s.bodyScroll.SetOffset(0)
 	s.descriptionScroll.SetOffset(0)
+	s.resetURLHistory()
 }
 
 // setKind changes the kind of request the session edits. The kind's first
@@ -444,10 +446,15 @@ func (s *Session) urlEdited() {
 	if s.syncing {
 		return
 	}
+	before := s.urlHistory.current
 	s.syncing = true
 	s.syncQueryFromURL()
 	s.syncPathParams()
 	s.syncing = false
+	if !s.urlHistory.editing {
+		s.urlHistory.record(before, s.urlSnapshot(), urlSingleEdit)
+		s.url.ClearHistory()
+	}
 	s.touch()
 }
 
@@ -456,9 +463,13 @@ func (s *Session) queryEdited() {
 	if s.syncing {
 		return
 	}
+	before := s.urlHistory.current
+	before.text, before.cursor, before.anchor = s.url.GetText(), s.url.CursorIndex.Peek(), s.url.SelectionAnchor.Peek()
 	s.syncing = true
 	s.writeQueryToURL()
 	s.syncing = false
+	s.urlHistory.record(before, s.urlSnapshot(), urlSingleEdit)
+	s.url.ClearHistory()
 	s.touch()
 }
 

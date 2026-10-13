@@ -56,7 +56,7 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 						Style: t.Style{Width: t.Flex(1), Height: t.Cells(1)},
 						Children: []t.Widget{
 							t.Text{Content: "▎", Style: t.Style{ForegroundColor: barColor, BackgroundColor: theme.Surface}},
-							s.urlVars.wrapURL(a, theme, t.TextInput{
+							s.urlVars.wrapURL(a, s, theme, t.TextInput{
 								ID:          urlInputID,
 								State:       s.url,
 								Placeholder: kindViews[s.kind.Get()].urlPlaceholder,
