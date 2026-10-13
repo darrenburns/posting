@@ -112,7 +112,7 @@ func (v multipartView) Keybinds() []t.Keybind {
 	return []t.Keybind{
 		{Key: "insert", Name: "Add part", Action: v.add},
 		{Key: "ctrl+x", Name: "Delete part", Action: v.remove},
-		{Key: "ctrl+space", Name: "Toggle part", Action: v.toggle},
+		{Key: "ctrl+r", Name: "Toggle part", Action: v.toggle},
 		{Key: "alt+up", Name: "Move part up", Action: func() { v.move(-1) }},
 		{Key: "alt+down", Name: "Move part down", Action: func() { v.move(1) }},
 	}

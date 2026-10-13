@@ -13,17 +13,17 @@ its ID to a key in the `keymap` section:
 
 ```yaml
 keymap:
-  send-request: ctrl+r
+  send-request: f2
 ```
 
-Restart Posting, and ++ctrl+r++ now sends the request. The footer, the help screen and the command
+Restart Posting, and ++f2++ now sends the request. The footer, the help screen and the command
 palette all show the new key.
 
 To bind several keys to the same action, separate them with commas (`jump` only uses the first):
 
 ```yaml
 keymap:
-  send-request: ctrl+r,f5
+  send-request: f2,f8
 ```
 
 A keymap entry *replaces* the default keys for that action. To keep a default key as well as
@@ -31,8 +31,11 @@ adding a new one, list both:
 
 ```yaml
 keymap:
-  send-request: ctrl+r,ctrl+j
+  send-request: f2,ctrl+j
 ```
+
+Focused widgets take precedence over global shortcuts. For example, ++ctrl+r++ toggles a row or
+multipart part while editing it, even if you've also bound it to a global action.
 
 ## Key format
 
@@ -137,7 +140,7 @@ These work on the request tabs, the response tabs and the sidebar tabs.
 |-----|--------|
 | Type in the last row | Add a new row |
 | ++up++ / ++down++ | Move between rows (++up++ from the first row goes back to the tabs, or to the body type in a form) |
-| ++ctrl+space++ | Enable or disable the row |
+| ++ctrl+r++ | Enable or disable the row |
 | ++ctrl+x++ | Delete the row |
 
 The Path table's names come from the URL, so only its values can be edited.

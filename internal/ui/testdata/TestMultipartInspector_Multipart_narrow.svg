@@ -4357,7 +4357,7 @@
   <text x="486.8" y="782.2" fill="#FF69B4">^x</text>
   <text x="512.0" y="782.2" fill="#9A96BE">Delete</text>
   <text x="570.8" y="782.2" fill="#9A96BE">part</text>
-  <text x="612.8" y="782.2" fill="#FF69B4">Ctrl+Space</text>
-  <text x="705.2" y="782.2" fill="#9A96BE">Toggle</text>
-  <text x="764.0" y="782.2" fill="#9A96BE">part</text>
+  <text x="612.8" y="782.2" fill="#FF69B4">^r</text>
+  <text x="638.0" y="782.2" fill="#9A96BE">Toggle</text>
+  <text x="696.8" y="782.2" fill="#9A96BE">part</text>
 </svg>

@@ -32,7 +32,7 @@ empty row appears beneath it. As you type a header's name, Posting suggests comm
 | Key | Action |
 |-----|--------|
 | ++up++ / ++down++ | Move between rows |
-| ++ctrl+space++ | Enable or disable the row |
+| ++ctrl+r++ | Enable or disable the row |
 | ++ctrl+x++ | Delete the row |
 
 You can also click the checkbox at the start of a row to enable or disable it, or the `✕` at its
@@ -59,7 +59,7 @@ See [External Tools](./external_tools.md).
 
 In **Multipart**, select a part in the list to edit its details beside it. On a narrow pane,
 ++enter++ opens the details full-width and ++escape++ returns to the list. Choose **+ Add part**
-or press ++insert++ to add one. Use ++ctrl+space++ to enable or disable the selected part,
+or press ++insert++ to add one. Use ++ctrl+r++ to enable or disable the selected part,
 ++ctrl+x++ to delete it, and ++alt+up++ / ++alt+down++ to reorder it. Disabled parts are saved but
 not sent. Repeated names are kept: to send several files as `attachments`, add a part for each
 file with that name.

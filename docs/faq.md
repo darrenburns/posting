@@ -5,7 +5,7 @@
 ### How do I edit headers or query parameters?
 
 Edit them in place: move to the row with the arrow keys (or click it) and type. Type into the empty
-row at the bottom of a table to add a row, press ++ctrl+x++ to delete one, and ++ctrl+space++ to
+row at the bottom of a table to add a row, press ++ctrl+x++ to delete one, and ++ctrl+r++ to
 enable or disable one. See [Requests](./guide/requests.md#headers).
 
 ### Can I use Posting 3 and Posting 2 on the same collection?

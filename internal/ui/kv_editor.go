@@ -233,7 +233,7 @@ func (r kvRowView) Keybinds() []t.Keybind {
 	}
 	return []t.Keybind{
 		{Key: "ctrl+x", Name: "Delete row", Action: func() { r.editor.remove(r.row.id) }},
-		{Key: "ctrl+space", Name: "Toggle row", Action: func() { r.editor.toggle(r.row.id) }},
+		{Key: "ctrl+r", Name: "Toggle row", Action: func() { r.editor.toggle(r.row.id) }},
 	}
 }
 

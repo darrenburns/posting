@@ -47,7 +47,7 @@ heading:
 focus:
   on_response: body
 keymap:
-  send-request: ctrl+r
+  send-request: f2
 ```
 
 ## Environment variables

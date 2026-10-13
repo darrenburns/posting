@@ -9,6 +9,7 @@ import (
 
 	"github.com/darrenburns/posting/v3/internal/client"
 	"github.com/darrenburns/posting/v3/internal/model"
+	t "github.com/darrenburns/terma"
 )
 
 func TestSessionSnapshotRoundTrip(t *testing.T) {
@@ -82,6 +83,43 @@ func TestKVEditorKeepsOneBlankRow(t *testing.T) {
 	e.remove(e.rows.Peek()[0].id)
 	if n := len(e.rows.Peek()); n != 1 || len(e.Values()) != 0 {
 		t.Fatalf("after removing, want one blank row and no values; got %d rows, %v", n, e.Values())
+	}
+}
+
+func TestToggleRowShortcut(tt *testing.T) {
+	for _, tab := range []string{"headers", "query", "body"} {
+		tt.Run(tab, func(tt *testing.T) {
+			app := testApp()
+			req := model.NewRequest()
+			req.URL = "https://api.test/search"
+			rows := []model.KeyValue{
+				{Name: "first", Value: "one", Enabled: true},
+				{Name: "second", Value: "two", Enabled: true},
+			}
+			req.Headers, req.Query = rows, rows
+			req.Body = model.Body{Type: model.BodyForm, Form: rows}
+			app.openRequest(req)
+			s := app.current()
+			s.requestTab.Set(tab)
+			editor := map[string]*kvEditor{"headers": s.headers, "query": s.query, "body": s.form}[tab]
+			p := t.NewPilot(tt, app, snapW, snapH)
+			for _, column := range []string{"key", "value"} {
+				id := editor.inputID(editor.rows.Peek()[1].id, column)
+				t.RequestFocus(id)
+				p.Advance(0)
+				p.Press("ctrl+r")
+				want := append([]model.KeyValue(nil), rows...)
+				want[1].Enabled = column == "value" // Disable from the name, re-enable from the value.
+				snapshot := s.Snapshot()
+				got := map[string][]model.KeyValue{"headers": snapshot.Headers, "query": snapshot.Query, "body": snapshot.Body.Form}[tab]
+				if !reflect.DeepEqual(got, want) {
+					tt.Fatalf("toggle from %s: got %+v, want %+v", column, got, want)
+				}
+				if p.FocusedID() != id {
+					tt.Fatalf("toggle moved focus from %q to %q", id, p.FocusedID())
+				}
+			}
+		})
 	}
 }
 

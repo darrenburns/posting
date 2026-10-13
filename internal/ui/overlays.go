@@ -420,7 +420,7 @@ var helpSections = []helpSection{
 	{"Headers, query, path, form", [][2]string{
 		{"type in the last row", "Add a new row"},
 		{"↑ / ↓", "Move between rows (↑ from the first row: the tabs)"},
-		{"ctrl+space", "Enable or disable the row"},
+		{"ctrl+r", "Enable or disable the row"},
 		{"ctrl+x", "Delete the row"},
 	}},
 	{"Collection", [][2]string{

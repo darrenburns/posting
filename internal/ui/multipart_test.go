@@ -120,11 +120,17 @@ func TestMultipartInspector(tt *testing.T) {
 	p.MouseDown(x+6, y, uv.MouseLeft, 0)
 	p.MouseMove(x, y)
 	p.MouseUp(x, y, uv.MouseLeft, 0)
-	p.Press("ctrl+space")
+	p.Press("ctrl+r")
 	if s.Snapshot().Body.Multipart[1].Enabled {
 		tt.Fatal("toggle did not disable file")
 	}
-	p.Press("ctrl+space", "alt+down")
+	focus("req-part-name")
+	p.Press("ctrl+r")
+	if !s.Snapshot().Body.Multipart[1].Enabled {
+		tt.Fatal("toggle from inspector did not re-enable file")
+	}
+	focus(partsID)
+	p.Press("alt+down")
 	if got := s.Snapshot().Body.Multipart; got[2].Name != "document" || got[1].Name != "metadata" {
 		tt.Fatal("reordering changed parts", got)
 	}
@@ -149,7 +155,7 @@ func TestMultipartInspector(tt *testing.T) {
 		tt.Fatal("body mode switch lost parts")
 	}
 	focus(partsID)
-	p.Press("end", "ctrl+space", "enter")
+	p.Press("end", "ctrl+r", "enter")
 	p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "File not found") }, time.Second)
 	p.AssertSnapshot("Multipart_missing", "Missing file is visible both in the list and inspector")
 	focus("req-part-path")
