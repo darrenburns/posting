@@ -51,6 +51,7 @@ between versions.
   [documented differences](guide/migrating.md). `POSTING_*` settings come from the shell environment,
   and custom CA bundles must be PEM files.
 - Scrollbar thumbs fade out after a second of inactivity and reappear when scrolling. Their tracks are transparent.
+- Text cursors blink once per second with short fades to 10% opacity, approximating the macOS caret. `text_input.blinking_cursor: false` still keeps a steady cursor.
 
 ### Fixed
 

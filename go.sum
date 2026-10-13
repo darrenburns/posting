@@ -27,8 +27,8 @@ github.com/clipperhouse/uax29/v2 v2.3.0/go.mod h1:Wn1g7MK6OoeDT0vL+Q0SQLDz/KpfsV
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/creack/pty v1.1.24 h1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=
 github.com/creack/pty v1.1.24/go.mod h1:08sCNb52WyoAwi2QDyzUCTgcvVFhUzewun7wtTfvcwE=
-github.com/darrenburns/terma v0.25.1-0.20261012170958-ec4dc68be91f h1:qmVlc2Lo9pNL0WvYgoSxS3Y0AjOHpOmnh29+CCx17D8=
-github.com/darrenburns/terma v0.25.1-0.20261012170958-ec4dc68be91f/go.mod h1:+XhNd3+Y6kalcJL9gwbiD6Ep7ufpj1z+XfLogMOjxds=
+github.com/darrenburns/terma v0.25.1-0.20261013153125-5d6cc40e21fd h1:T9aylgX2mmkdsqz7oAcN3qvSQLBRsCrg9AP4uVv+y00=
+github.com/darrenburns/terma v0.25.1-0.20261013153125-5d6cc40e21fd/go.mod h1:B0xSgLVxJTcL2P+AYusNmV4evp9EZtaCgcl0JMTyqxo=
 github.com/darrenburns/ultraviolet v0.0.0-20261012170537-2684fdbe5bed h1:kNX1EcDAUqItAgjZ+kx26Lsq6NsiZBS8j2SVvefjfpk=
 github.com/darrenburns/ultraviolet v0.0.0-20261012170537-2684fdbe5bed/go.mod h1:anw4JEkamdQ5TbARwHimj4Zm4fHfK+cSt0qMos+cWfo=
 github.com/dlclark/regexp2 v1.11.5 h1:Q/sSnsKerHeCkc/jSTNq1oCm7KiVgUMZRDUoRu0JQZQ=

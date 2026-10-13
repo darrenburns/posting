@@ -292,6 +292,18 @@ func New(cfg Config) *App {
 		}
 	}
 	a.sidebarGradient.Set(gradient)
+	t.SetCursorPulseConfig(t.CursorPulseConfig{
+		MinOpacity: 0.10,
+		Period:     time.Second,
+		Easing: func(progress float64) float64 {
+			// Approximate the macOS caret: hold, then fade for 150 ms of
+			// each 500 ms half-cycle, rather than continuously breathing.
+			if progress <= 0.7 {
+				return 0
+			}
+			return (progress - 0.7) / 0.3
+		},
+	})
 	t.SetCursorBlinkStyle(t.CursorBlinkPulse)
 	t.SetCursorBlink(settings.TextInput.BlinkingCursor)
 	switch settings.Focus.OnStartup {

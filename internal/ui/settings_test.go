@@ -1,8 +1,10 @@
 package ui
 
 import (
+	"math"
 	"strings"
 	"testing"
+	"time"
 
 	t "github.com/darrenburns/terma"
 
@@ -125,6 +127,18 @@ func TestBlinkingCursorSetting(tt *testing.T) {
 	settingsApp(tt, func(s *config.Settings) { s.TextInput.BlinkingCursor = true })
 	if !t.CursorBlink() || t.CurrentCursorBlinkStyle() != t.CursorBlinkPulse {
 		tt.Fatal("blinking_cursor: true should make all text cursors pulse")
+	}
+	pulse := t.CurrentCursorPulseConfig()
+	if pulse.MinOpacity != 0.10 || pulse.Period != time.Second {
+		tt.Fatalf("cursor should pulse to 10%% once per second, got minimum %g and period %s", pulse.MinOpacity, pulse.Period)
+	}
+	// Each half-cycle holds for 350 ms, then fades linearly for 150 ms.
+	for _, sample := range []struct{ progress, want float64 }{
+		{0, 0}, {0.5, 0}, {0.7, 0}, {0.775, 0.25}, {0.85, 0.5}, {1, 1},
+	} {
+		if got := pulse.Easing(sample.progress); math.Abs(got-sample.want) > 1e-9 {
+			tt.Errorf("cursor easing at %g = %g, want %g", sample.progress, got, sample.want)
+		}
 	}
 }
 
