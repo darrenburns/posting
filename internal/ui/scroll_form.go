@@ -6,7 +6,9 @@ import (
 
 // formScroll is where a scrollForm is scrolled to.
 type formScroll struct {
-	scroll *t.ScrollState
+	scroll   *t.ScrollState
+	viewport [2]int
+	resized  t.Signal[int]
 	// rows is where each row landed in the last layout: its top and height.
 	rows [][2]int
 	// revealed is the focused ID last scrolled into view. Revealing only
@@ -14,7 +16,9 @@ type formScroll struct {
 	revealed string
 }
 
-func newFormScroll() *formScroll { return &formScroll{scroll: t.NewScrollState()} }
+func newFormScroll() *formScroll {
+	return &formScroll{scroll: t.NewScrollState(), resized: t.NewSignal(0)}
+}
 
 // reveal scrolls the row holding the focused widget into view, if focus has
 // moved to it since the last reveal.
@@ -65,6 +69,7 @@ func (f scrollForm) height() t.Dimension {
 func (f scrollForm) GetContentDimensions() (t.Dimension, t.Dimension) { return t.Flex(1), f.height() }
 
 func (f scrollForm) Build(ctx t.BuildContext) t.Widget {
+	f.State.resized.Get()
 	rowOf := map[string]int{}
 	children := make([]t.Widget, len(f.Rows))
 	for i, row := range f.Rows {
@@ -89,15 +94,39 @@ func (f scrollForm) Build(ctx t.BuildContext) t.Widget {
 		row = rowOf[focused]
 	}
 	f.State.reveal(focused, row)
-	return t.Scrollable{
-		State:               f.State.scroll,
-		ScrollbarFadeDelay:  scrollbarFadeDelay,
-		ScrollbarTrackColor: t.RGBA(0, 0, 0, 0),
-		Style:               t.Style{Width: t.Flex(1), Height: f.height()},
-		Child: formColumn{
-			Column: t.Column{Style: t.Style{Width: t.Flex(1)}, Spacing: f.Spacing, Children: children},
-			state:  f.State,
-		},
+	return formViewport{state: f.State, Column: t.Column{
+		Style: t.Style{Width: t.Flex(1), Height: f.height()},
+		Children: []t.Widget{t.Scrollable{
+			State:               f.State.scroll,
+			ScrollbarFadeDelay:  scrollbarFadeDelay,
+			ScrollbarTrackColor: t.RGBA(0, 0, 0, 0),
+			Style:               t.Style{Width: t.Flex(1), Height: f.height()},
+			Child: formColumn{
+				Column: t.Column{Style: t.Style{Width: t.Flex(1)}, Spacing: f.Spacing, Children: children},
+				state:  f.State,
+			},
+		}},
+	}}
+}
+
+// Re-reveal the focused field after resizing, even if focus did not move.
+// Doing this on the following build preserves normal wheel scrolling.
+// Keep an actual Scrollable child so Terma retains its scrollbar handling.
+type formViewport struct {
+	t.Column
+	state *formScroll
+}
+
+func (v formViewport) Build(t.BuildContext) t.Widget { return v }
+func (v formViewport) ChildWidgets() []t.Widget      { return v.Children }
+func (v formViewport) OnLayout(_ t.BuildContext, metrics t.LayoutMetrics) {
+	size := [2]int{metrics.Box().ContentWidth(), metrics.Box().ContentHeight()}
+	if v.state.viewport != size {
+		v.state.viewport = size
+		t.Dispatch(func() {
+			v.state.revealed = ""
+			v.state.resized.Set(v.state.resized.Peek() + 1)
+		})
 	}
 }
 

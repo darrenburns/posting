@@ -77,6 +77,7 @@ type Session struct {
 	username          *t.TextInputState
 	password          *t.TextInputState
 	token             *t.TextInputState
+	oauth             *oauthForm
 	name              *t.TextInputState
 	description       *t.TextAreaState
 	file              t.Signal[string]
@@ -200,6 +201,7 @@ func newSession(id int, req model.Request) *Session {
 		username:          t.NewTextInputState(""),
 		password:          t.NewTextInputState(""),
 		token:             t.NewTextInputState(""),
+		oauth:             newOAuthForm(),
 		name:              t.NewTextInputState(""),
 		description:       t.NewTextAreaState(""),
 		file:              t.NewSignal(""),
@@ -317,6 +319,9 @@ func (s *Session) Snapshot() model.Request {
 	if req.Body.Type == model.BodyFile {
 		req.Body.ContentType = s.uploadType.GetText()
 	}
+	if req.Auth.Type == model.AuthOAuth2 {
+		req.Auth.OAuth2 = s.oauth.snapshot()
+	}
 	if e := s.payloads[s.kind.Peek()]; e != nil {
 		req.Payload = e.payload()
 	}
@@ -377,6 +382,7 @@ func (s *Session) Load(req model.Request) {
 	s.username.SetText(req.Auth.Username)
 	s.password.SetText(req.Auth.Password)
 	s.token.SetText(req.Auth.Token)
+	s.oauth.load(req.Auth.OAuth2)
 	s.name.SetText(req.Name)
 	s.description.SetText(req.Description)
 	s.file.Set(req.File)
@@ -601,9 +607,22 @@ func (s *Session) Send(sender client.Sender, call client.Call, onDone func(model
 	s.err.Set(nil)
 	s.trace.Set(nil)
 	s.uploadProgress.Set(uploadProgress{})
+	s.oauth.status.Set("")
 	s.spinner.Start()
 	inFlight := func() bool { return generation == s.generation && s.phase.Peek() == exchangeSending }
 
+	call.OnAuth = func(status string) {
+		s.dispatch(func() {
+			if inFlight() {
+				s.oauth.status.Set(status)
+				if strings.HasPrefix(status, "Waiting for OAuth") {
+					s.oauth.shimmer.Start()
+				} else {
+					s.oauth.shimmer.Stop()
+				}
+			}
+		})
+	}
 	call.OnUpload = func(sent, total int64) {
 		s.dispatch(func() {
 			if inFlight() {
@@ -655,6 +674,7 @@ func (s *Session) Send(sender client.Sender, call client.Call, onDone func(model
 			cancel()
 			s.endStream()
 			s.spinner.Stop()
+			s.oauth.shimmer.Stop()
 			switch {
 			// A call the server answered is a response even once stopped.
 			case err != nil && cancelled:
@@ -697,6 +717,7 @@ func (s *Session) Cancel() {
 	s.generation++
 	s.endStream()
 	s.spinner.Stop()
+	s.oauth.shimmer.Stop()
 	s.phase.Set(exchangeCancelled)
 	s.settle()
 }

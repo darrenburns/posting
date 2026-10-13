@@ -109,6 +109,7 @@ const (
 	AuthBasic  AuthType = "basic"
 	AuthDigest AuthType = "digest"
 	AuthBearer AuthType = "bearer_token"
+	AuthOAuth2 AuthType = "oauth2"
 )
 
 // Auth holds credentials for every scheme; only the fields for Type are used.
@@ -117,6 +118,35 @@ type Auth struct {
 	Username string // basic, digest
 	Password string // basic, digest
 	Token    string // bearer
+	OAuth2   OAuth2
+}
+
+// OAuth2 is shareable configuration, never a token cache. Credentials may
+// reference environment variables; generated tokens belong in the OS vault.
+type OAuth2 struct {
+	GrantType        string `yaml:"grant_type,omitempty"`
+	AuthorizationURL string `yaml:"authorization_url,omitempty"`
+	TokenURL         string `yaml:"token_url,omitempty"`
+	ClientID         string `yaml:"client_id,omitempty"`
+	ClientSecret     string `yaml:"client_secret,omitempty"`
+	Scope            string `yaml:"scope,omitempty"`
+	RedirectURI      string `yaml:"redirect_uri,omitempty"`
+	// ClientAuth is client_secret_basic or client_secret_post. Public
+	// clients use client_secret_post with an empty secret.
+	ClientAuth string `yaml:"client_auth,omitempty"`
+}
+
+func (o OAuth2) WithDefaults() OAuth2 {
+	if o.GrantType == "" {
+		o.GrantType = "authorization_code"
+	}
+	if o.ClientAuth == "" {
+		o.ClientAuth = "client_secret_post"
+	}
+	if o.RedirectURI == "" {
+		o.RedirectURI = "http://127.0.0.1:8765/oauth/callback"
+	}
+	return o
 }
 
 // Options control how a request is sent.

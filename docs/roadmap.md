@@ -71,7 +71,6 @@ Features that are planned for future development but are not immediate prioritie
 - WebSocket and SSE support <span class="tag realtime">Realtime</span>
 - Add rotating logging <span class="tag logging">Logging</span>
 - Create a `_template.posting.yaml` file for request templates <span class="tag requests">Requests</span>
-- OAuth2 implementation (need to scope out what's involved) <span class="tag auth">Auth</span>
 - Adding test framework <span class="tag testing">Testing</span>
 - Cookie editor <span class="tag requests">Requests</span>
 
@@ -102,6 +101,7 @@ Features that have been implemented in Posting 3.
 - Parse cURL commands <span class="tag import">Import</span>
 - Watching environment files for changes & updating the UI <span class="tag environment">Environment</span>
 - Basic, Digest and Bearer token auth <span class="tag auth">Auth</span>
+- OAuth 2.0: authorization code with PKCE, client credentials, refresh and OS credential storage <span class="tag auth">Auth</span>
 - Duplicate and delete requests from the tree <span class="tag collection">Collection</span>
 - Colour-coding for request methods <span class="tag ui">UI</span>
 - Enabling and disabling rows in tables <span class="tag ux">UX</span>
