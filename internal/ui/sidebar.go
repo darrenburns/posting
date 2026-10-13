@@ -444,12 +444,16 @@ func (a *App) deleteHistory(entries []model.HistoryEntry) {
 	if len(entries) == 0 {
 		return
 	}
-	ids := map[int64]bool{}
-	for _, e := range entries {
-		ids[e.ID] = true
+	ids := make([]int64, len(entries))
+	for i, entry := range entries {
+		ids[i] = entry.ID
+	}
+	if a.historyStore != nil {
+		a.queueHistory(func(store HistoryStore) ([]model.HistoryEntry, error) { return store.Delete(ids) }, a.clearHistorySelection)
+		return
 	}
 	a.clearHistorySelection()
-	a.setHistory(slices.DeleteFunc(slices.Clone(a.history.Peek()), func(e model.HistoryEntry) bool { return ids[e.ID] }))
+	a.setHistory(slices.DeleteFunc(slices.Clone(a.history.Peek()), func(e model.HistoryEntry) bool { return slices.Contains(ids, e.ID) }))
 }
 
 // clearHistorySelection drops the selection and the entry shift last
@@ -460,8 +464,13 @@ func (a *App) clearHistorySelection() {
 }
 
 func (a *App) clearHistory() {
+	cleared := func() { a.notify("History cleared", toastInfo) }
+	if a.historyStore != nil {
+		a.queueHistory(func(store HistoryStore) ([]model.HistoryEntry, error) { return store.Clear() }, cleared)
+		return
+	}
 	a.setHistory(nil)
-	a.notify("History cleared", toastInfo)
+	cleared()
 }
 
 func (a *App) fileExists(file string) bool {

@@ -289,6 +289,7 @@ func TestLoadedHistoryReadsGraphQLStatuses(tt *testing.T) {
 	resp.Body = []byte(`{"errors": [{"message": "a"}]}`)
 	stored := &memoryHistory{entries: []model.HistoryEntry{{ID: 1, Request: graphQLRequest(tt), Response: resp, SentAt: time.Now()}}}
 	app := New(Config{Collection: model.SampleCollection(), History: stored, UserHost: "user@host"})
+	defer app.Close()
 	if got := app.history.Peek()[0].Status; got != (model.Status{Code: "200", Text: "1 error", Class: model.StatusClassWarning}) {
 		tt.Fatalf("loaded GraphQL entry reads %+v", got)
 	}

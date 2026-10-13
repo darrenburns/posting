@@ -7,6 +7,7 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -252,7 +253,6 @@ func New(cfg Config) *App {
 			cfg.StartupMessages = append(cfg.StartupMessages, "Couldn't load history: "+err.Error())
 		} else {
 			for i, e := range entries {
-				a.nextHistoryID = max(a.nextHistoryID, e.ID)
 				entries[i].Status = model.StatusOf(e.Request, e.Response)
 			}
 			a.history.Set(entries)
@@ -327,7 +327,9 @@ func New(cfg Config) *App {
 
 // Run starts the UI and blocks until it exits.
 func Run(cfg Config) error {
-	return t.Run(New(cfg))
+	app := New(cfg)
+	err := t.Run(app)
+	return errors.Join(err, app.Close())
 }
 
 // themeAlias maps Posting 2 theme names to their Terma equivalents.
@@ -647,9 +649,7 @@ func (a *App) start(s *Session, stream *client.Stream) {
 		if req.Kind() == model.GRPCKind {
 			s.payloads[model.KindGRPC].(*grpcEditor).describeCompleted(a, call)
 		}
-		a.nextHistoryID++
-		entry := historyEntry(a.nextHistoryID, req, resp, status)
-		a.setHistory(append([]model.HistoryEntry{entry}, a.history.Peek()...))
+		a.appendHistory(historyEntry(0, req, resp, status))
 		// A response in a background tab must not interrupt the request the
 		// user is working on. Switching back before it arrives still applies
 		// the configured response focus behavior. Completing a live stream

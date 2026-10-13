@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -118,7 +119,8 @@ Options:
 		defer server.Close()
 		defer closeOnSignal(server)()
 	}
-	if err := terma.Run(app); err != nil {
+	runErr := terma.Run(app)
+	if err := errors.Join(runErr, app.Close()); err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}

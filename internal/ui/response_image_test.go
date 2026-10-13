@@ -269,7 +269,7 @@ func TestImageResponseTextSaveAndHistory(tt *testing.T) {
 	// Persist/reload bytes, then preview through the ordinary history route.
 	store := history.ForCollection(tt.TempDir(), "/test-collection")
 	entry := sentEntry(1, model.NewRequest(), resp, time.Now())
-	if err := store.Save([]model.HistoryEntry{entry}); err != nil {
+	if _, err := store.Append(entry); err != nil {
 		tt.Fatal(err)
 	}
 	loaded, err := store.Load()

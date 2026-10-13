@@ -11,7 +11,7 @@ import (
 	"github.com/darrenburns/posting/v3/internal/model"
 )
 
-func TestSaveAndLoad(t *testing.T) {
+func TestAppendAndLoad(t *testing.T) {
 	dir := t.TempDir()
 	store := ForCollection(dir, "/some/collection")
 	if entries, err := store.Load(); err != nil || entries != nil {
@@ -30,7 +30,7 @@ func TestSaveAndLoad(t *testing.T) {
 		},
 		SentAt: time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC),
 	}}
-	if err := store.Save(entries); err != nil {
+	if _, err := store.Append(entries[0]); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Load()
@@ -46,27 +46,28 @@ func TestSaveAndLoad(t *testing.T) {
 	}
 }
 
-func TestSaveWritesTheFileAsBefore(t *testing.T) {
+func TestAppendPersistsNextIDAndCompatibleEntries(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/c")
 	entries := []model.HistoryEntry{{
 		ID: 1, Request: model.HTTPKind.Example(),
 		Response: &model.Response{StatusCode: 200, Reason: "OK", Body: []byte(`{"a":"<b>"}`)},
 		SentAt:   time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC),
 	}}
-	if err := store.Save(entries); err != nil {
+	if _, err := store.Append(entries[0]); err != nil {
 		t.Fatal(err)
 	}
 	got, _ := os.ReadFile(store.Path())
 	want, _ := json.Marshal(struct {
 		Version int                  `json:"version"`
+		NextID  int64                `json:"next_id"`
 		Entries []model.HistoryEntry `json:"entries"`
-	}{1, entries})
+	}{1, 2, entries})
 	if string(got) != string(want) {
 		t.Fatalf("history file changed:\n got %s\nwant %s", got, want)
 	}
 }
 
-func TestEntriesThisBuildCantReadSurviveASave(t *testing.T) {
+func TestEntriesThisBuildCantReadSurviveAnAppend(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/c")
 	newer := `{"ID":2,"Request":{"Name":"Stream","Kind":"websocket","Payload":{"Channel":"chat"}},"Response":null,"SentAt":"2026-09-29T01:02:03Z"}`
 	http, _ := json.Marshal(model.HistoryEntry{ID: 1, Request: model.NewRequest(), SentAt: time.Date(2026, 9, 29, 1, 0, 0, 0, time.UTC)})
@@ -77,7 +78,7 @@ func TestEntriesThisBuildCantReadSurviveASave(t *testing.T) {
 	if err != nil || len(loaded) != 1 || loaded[0].ID != 1 {
 		t.Fatalf("loaded %+v, %v; want the HTTP entry", loaded, err)
 	}
-	if err := store.Save(append([]model.HistoryEntry{{ID: 3, Request: model.NewRequest()}}, loaded...)); err != nil {
+	if _, err := store.Append(model.HistoryEntry{Request: model.NewRequest()}); err != nil {
 		t.Fatal(err)
 	}
 	data, _ := os.ReadFile(store.Path())
@@ -135,10 +136,10 @@ func TestTrimCountsFormPayloads(t *testing.T) {
 	}
 }
 
-func TestSaveAndLoadGraphQL(t *testing.T) {
+func TestAppendAndLoadGraphQL(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/c")
 	entries := []model.HistoryEntry{{ID: 1, Request: model.GraphQLKind.Example(), SentAt: time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC)}}
-	if err := store.Save(entries); err != nil {
+	if _, err := store.Append(entries[0]); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Load()
@@ -147,7 +148,7 @@ func TestSaveAndLoadGraphQL(t *testing.T) {
 	}
 }
 
-func TestSaveAndLoadGRPC(t *testing.T) {
+func TestAppendAndLoadGRPC(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/c")
 	entries := []model.HistoryEntry{{
 		ID: 1, Request: model.GRPCKind.Example(),
@@ -164,7 +165,7 @@ func TestSaveAndLoadGRPC(t *testing.T) {
 		},
 		SentAt: time.Date(2026, 9, 29, 1, 2, 3, 0, time.UTC),
 	}}
-	if err := store.Save(entries); err != nil {
+	if _, err := store.Append(entries[0]); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Load()
@@ -176,19 +177,19 @@ func TestSaveAndLoadGRPC(t *testing.T) {
 	}
 }
 
-func TestSaveOversizedExchangePreservesHistory(t *testing.T) {
+func TestAppendOversizedExchangePreservesHistory(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/some/collection")
 	older := []model.HistoryEntry{
 		{ID: 2, Request: model.NewRequest(), Response: &model.Response{Body: []byte("second")}},
 		{ID: 1, Request: model.NewRequest(), Response: &model.Response{Body: []byte("first")}},
 	}
-	if err := store.Save(older); err != nil {
-		t.Fatal(err)
+	for i := len(older) - 1; i >= 0; i-- {
+		if _, err := store.Append(older[i]); err != nil {
+			t.Fatal(err)
+		}
 	}
-	entries := append([]model.HistoryEntry{{
-		ID: 3, Request: model.NewRequest(), Response: &model.Response{Body: make([]byte, MaxBytes+1)},
-	}}, older...)
-	if err := store.Save(entries); err != nil {
+	oversized := model.HistoryEntry{Request: model.NewRequest(), Response: &model.Response{Body: make([]byte, MaxBytes+1)}}
+	if _, err := store.Append(oversized); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Load()
