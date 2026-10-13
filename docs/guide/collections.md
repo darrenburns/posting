@@ -143,6 +143,11 @@ Posting keeps the 100 most recent exchanges, up to a total of 50 MiB of request 
 and deletes the oldest as new ones arrive. Requests that fail without getting a response aren't
 recorded.
 
+Several Posting processes can safely add and remove history for the same collection.
+**Clear history** removes all entries saved when the clear operation runs, including entries
+from other processes. Responses saved afterward remain in history. Other open windows refresh
+their history list when they next save or remove an entry.
+
 History is stored in `$XDG_DATA_HOME/posting/history/` (normally `~/.local/share/posting/history/`),
 outside your collection, so it never ends up in version control.
 

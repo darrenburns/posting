@@ -54,6 +54,12 @@ between versions.
 
 ### Fixed
 
+- Preserve disabled and duplicate query rows when undoing or redoing URL and query-table edits.
+- Keep automatic gRPC method discovery tied to the request that was sent, even when the editor or environment changes during the call.
+- Resolve aliases first used in later gRPC stream messages against the call's original variables.
+- Prevent Save As, Duplicate, and remote save from overwriting files absent from the loaded collection.
+- Preserve concurrent history additions and deletions across Posting processes, and finish pending writes when closing.
+- Import a single curl `--json @path` as a file upload with JSON headers, read when sending.
 - Use `ctrl+r` to toggle table rows and multipart parts instead of `ctrl+space`, which conflicts with the macOS input-source switcher.
 - Stop file-path completions and helper text flickering while typing in multipart and whole-file request bodies.
 - Show file paths below request titles in open-tab search, and match searches against both titles and paths.
