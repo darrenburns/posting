@@ -251,7 +251,7 @@ func TestRemoteWaitsForTheAppToRun(tt *testing.T) {
 func TestRemoteResponseEncodesBinaryBodies(tt *testing.T) {
 	resp := fixedResponse()
 	resp.Body = []byte{0xff, 0x00, 0x10}
-	out := remoteResponse(resp, model.StatusOf(model.NewRequest(), resp))
+	out := remote.NewResponse(resp, model.StatusOf(model.NewRequest(), resp))
 	if out.Body != "" || out.BodyBase64 != "/wAQ" || out.Size != 3 || out.ElapsedMS != 42 {
 		tt.Errorf("binary body gave %+v", out)
 	}

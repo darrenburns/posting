@@ -10,8 +10,12 @@
 package remote
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"time"
+	"unicode/utf8"
+
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 // Commands a running Posting understands.
@@ -179,4 +183,37 @@ type Response struct {
 type Header struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+// NewResponse builds the response representation shared by remote and headless
+// command output, preserving binary bodies without lossy UTF-8 conversion.
+func NewResponse(resp *model.Response, status model.Status) *Response {
+	out := &Response{
+		Method:      string(resp.Method),
+		URL:         resp.URL,
+		Status:      status.Code,
+		Reason:      status.Text,
+		StatusCode:  resp.StatusCode,
+		Proto:       resp.Proto,
+		Headers:     responseHeaders(resp.Headers),
+		Trailers:    responseHeaders(resp.Trailers),
+		ContentType: resp.ContentType(),
+		Size:        resp.Size(),
+		ElapsedMS:   float64(resp.Elapsed.Microseconds()) / 1000,
+		ReceivedAt:  resp.ReceivedAt,
+	}
+	if utf8.Valid(resp.Body) {
+		out.Body = string(resp.Body)
+	} else {
+		out.BodyBase64 = base64.StdEncoding.EncodeToString(resp.Body)
+	}
+	return out
+}
+
+func responseHeaders(in []model.Header) []Header {
+	out := make([]Header, len(in))
+	for i, h := range in {
+		out[i] = Header{Name: h.Name, Value: h.Value}
+	}
+	return out
 }

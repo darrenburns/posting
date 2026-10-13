@@ -10,6 +10,18 @@ the `using-posting` skill. The skill tells the agent when to check for a running
 send requests through it, and when not to, for example for polling loops or risky requests to a
 shared environment.
 
+You don't need to keep Posting open for an agent to use your saved requests. The same skill teaches
+it to use [`posting run`](./running.md) without a running instance:
+
+```bash
+posting run api/health.posting.yaml --env dev --json
+posting run api --env dev --json
+```
+
+The agent gets response statuses, headers and bodies to inspect, using the authentication and
+variables already defined in your files. This doesn't open the UI or write to its history.
+Ask for headless execution to use `run` directly, even if a Posting instance is open.
+
 ## Installing the skill
 
 `posting remote skill` prints the skill, so you can write it wherever your agent looks for skills.

@@ -21,6 +21,9 @@ Posting 3 opens these requests and sends them without running the scripts. The `
 is kept when you save the request, so you can go on using the same collection with Posting 2
 without losing anything.
 
+The [headless runner](./running.md), `posting run`, rejects requests with scripts before sending
+anything, so required setup or response processing isn't silently omitted.
+
 If you rely on scripts, Posting 2 remains available and reads the same collections, so you can use
 both side by side.
 
