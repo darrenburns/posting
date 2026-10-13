@@ -630,7 +630,9 @@ func (a *App) start(s *Session, stream *client.Stream) {
 	// Sending commits to the tab, so its response isn't lost to the next
 	// request opened.
 	s.preview.Set(false)
-	variables, err := a.requestVariableValues(s.Snapshot())
+	req := s.Snapshot()
+	variables := a.requestVariables(req)
+	resolved, err := variables.ForRequest(req)
 	if err != nil {
 		s.Cancel()
 		s.err.Set(err)
@@ -639,12 +641,11 @@ func (a *App) start(s *Session, stream *client.Stream) {
 		a.notify(err.Error(), toastWarning)
 		return
 	}
-	s.Send(a.sender, variables, stream, func(req model.Request, resp *model.Response, status model.Status) {
+	call := client.Call{Request: req, Variables: model.Values(resolved), ResolveBody: variables.Substitute, Stream: stream}
+	s.Send(a.sender, call, func(req model.Request, resp *model.Response, status model.Status) {
 		a.captureResponse(req, resp)
 		if req.Kind() == model.GRPCKind {
-			// The call has just reached the server, so asking it for its
-			// methods contacts no one new.
-			s.payloads[model.KindGRPC].(*grpcEditor).describe(a, true)
+			s.payloads[model.KindGRPC].(*grpcEditor).describeCompleted(a, call)
 		}
 		a.nextHistoryID++
 		entry := historyEntry(a.nextHistoryID, req, resp, status)

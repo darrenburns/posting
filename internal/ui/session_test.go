@@ -148,7 +148,7 @@ func TestSessionSendLifecycle(t *testing.T) {
 	}
 
 	var done *model.Response
-	s.Send(client.Fake{}, nil, nil, func(_ model.Request, resp *model.Response, _ model.Status) { done = resp })
+	s.Send(client.Fake{}, client.Call{Request: s.Snapshot()}, func(_ model.Request, resp *model.Response, _ model.Status) { done = resp })
 	waitForPhase(exchangeDone)
 	if s.response.Peek() == nil || done == nil || s.response.Peek() != done {
 		t.Fatal("completed exchange should publish the response")
@@ -157,13 +157,13 @@ func TestSessionSendLifecycle(t *testing.T) {
 	failing := client.SenderFunc(func(context.Context, client.Call) (*model.Response, error) {
 		return nil, errors.New("connection refused")
 	})
-	s.Send(failing, nil, nil, nil)
+	s.Send(failing, client.Call{Request: s.Snapshot()}, nil)
 	waitForPhase(exchangeFailed)
 	if err := s.err.Peek(); err == nil || err.Error() != "connection refused" {
 		t.Fatalf("err = %v", err)
 	}
 
-	s.Send(client.Fake{StageDelay: time.Hour}, nil, nil, nil)
+	s.Send(client.Fake{StageDelay: time.Hour}, client.Call{Request: s.Snapshot()}, nil)
 	s.Cancel()
 	if s.phase.Peek() != exchangeCancelled {
 		t.Fatalf("phase = %v, want cancelled", s.phase.Peek())

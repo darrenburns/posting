@@ -19,6 +19,9 @@ type Call struct {
 	// Variables are the values available for substitution, already merged
 	// from environment files and session overrides.
 	Variables map[string]string
+	// ResolveBody substitutes later stream messages using the same variable
+	// definitions as the initial request. Nil uses Variables directly.
+	ResolveBody func(string) (string, error)
 	// OnTrace, when set, receives progress for each stage of the exchange.
 	// It may be called from any goroutine; the UI marshals it safely.
 	OnTrace func(model.TraceEvent)

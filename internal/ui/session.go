@@ -569,9 +569,9 @@ func sameKVs(a, b []model.KeyValue) bool {
 // Send starts an exchange using sender. Any in-flight exchange is cancelled.
 // A gRPC call opens stream when it isn't nil. The response shows as it
 // arrives, and onDone runs on the UI goroutine once it has all arrived.
-func (s *Session) Send(sender client.Sender, variables map[string]string, stream *client.Stream, onDone func(model.Request, *model.Response, model.Status)) {
+func (s *Session) Send(sender client.Sender, call client.Call, onDone func(model.Request, *model.Response, model.Status)) {
 	s.Cancel()
-	req := s.Snapshot()
+	req, stream := call.Request, call.Stream
 	ctx, cancel := context.WithCancel(context.Background())
 	s.generation++
 	generation := s.generation
@@ -585,31 +585,26 @@ func (s *Session) Send(sender client.Sender, variables map[string]string, stream
 	s.spinner.Start()
 	inFlight := func() bool { return generation == s.generation && s.phase.Peek() == exchangeSending }
 
-	call := client.Call{
-		Request:   req,
-		Variables: variables,
-		OnUpload: func(sent, total int64) {
-			s.dispatch(func() {
-				if inFlight() {
-					s.uploadProgress.Set(uploadProgress{sent: sent, total: total, active: true})
-				}
-			})
-		},
-		OnTrace: func(event model.TraceEvent) {
-			s.dispatch(func() {
-				if generation == s.generation {
-					s.trace.Set(mergeTrace(s.trace.Peek(), event))
-				}
-			})
-		},
-		OnUpdate: func(resp *model.Response) {
-			s.dispatch(func() {
-				if inFlight() {
-					s.showLive(req, resp)
-				}
-			})
-		},
-		Stream: stream,
+	call.OnUpload = func(sent, total int64) {
+		s.dispatch(func() {
+			if inFlight() {
+				s.uploadProgress.Set(uploadProgress{sent: sent, total: total, active: true})
+			}
+		})
+	}
+	call.OnTrace = func(event model.TraceEvent) {
+		s.dispatch(func() {
+			if generation == s.generation {
+				s.trace.Set(mergeTrace(s.trace.Peek(), event))
+			}
+		})
+	}
+	call.OnUpdate = func(resp *model.Response) {
+		s.dispatch(func() {
+			if inFlight() {
+				s.showLive(req, resp)
+			}
+		})
 	}
 	if stream != nil {
 		s.streaming.Set(streamStarting)

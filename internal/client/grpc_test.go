@@ -1038,8 +1038,14 @@ func assertMessageLog(t *testing.T, resp *model.Response, sent, received int, en
 // stream, a channel that yields the call's result, and its cancel.
 func openStream(t *testing.T, req model.Request, variables map[string]string, u *updates) (*Stream, <-chan *model.Response, context.CancelFunc) {
 	t.Helper()
+	return openStreamCall(t, Call{Request: req, Variables: variables}, u)
+}
+
+func openStreamCall(t *testing.T, call Call, u *updates) (*Stream, <-chan *model.Response, context.CancelFunc) {
+	t.Helper()
 	ctx, cancel := context.WithCancel(context.Background())
 	stream := NewStream()
+	call.Stream, call.OnUpdate = stream, u.report
 	result := make(chan *model.Response, 1)
 	done := make(chan struct{})
 	t.Cleanup(func() {
@@ -1048,7 +1054,7 @@ func openStream(t *testing.T, req model.Request, variables map[string]string, u 
 	})
 	go func() {
 		defer close(done)
-		resp, err := NewGRPC("posting-test", TLSSettings{}, "").Send(ctx, Call{Request: req, Variables: variables, OnUpdate: u.report, Stream: stream})
+		resp, err := NewGRPC("posting-test", TLSSettings{}, "").Send(ctx, call)
 		if err != nil {
 			t.Errorf("Send: %v", err)
 		}

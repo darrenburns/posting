@@ -177,7 +177,31 @@ func (e *grpcEditor) describe(a *App, force bool) {
 		return
 	}
 	variables, variablesErr := a.requestVariableValues(req)
-	key, source, err := catalogKey(req, variables)
+	e.describeCall(a, client.Call{Request: req, Variables: variables}, variablesErr, force)
+}
+
+func (e *grpcEditor) describeCompleted(a *App, call client.Call) {
+	current := e.session.Snapshot()
+	if current.Kind() != model.GRPCKind {
+		return
+	}
+	variables, err := a.requestVariableValues(current)
+	if err != nil {
+		return
+	}
+	currentKey, _, err := catalogKey(current, variables)
+	if err != nil {
+		return
+	}
+	sentKey, _, err := catalogKey(call.Request, call.Variables)
+	if err != nil || currentKey != sentKey {
+		return
+	}
+	e.describeCall(a, call, nil, true)
+}
+
+func (e *grpcEditor) describeCall(a *App, call client.Call, variablesErr error, force bool) {
+	key, source, err := catalogKey(call.Request, call.Variables)
 	if err == nil && source.files == 0 {
 		err = variablesErr
 	}
@@ -203,9 +227,9 @@ func (e *grpcEditor) describe(a *App, force bool) {
 	if force || current.key != key || current.phase != catalogReady {
 		e.catalog.Set(catalog{phase: catalogLoading, key: key, source: source, schema: current.schema})
 	}
-	describer, dispatch := a.describer, s.dispatch
+	describer, dispatch := a.describer, e.session.dispatch
 	go func() {
-		schema, err := describer.Describe(ctx, client.Call{Request: req, Variables: variables})
+		schema, err := describer.Describe(ctx, call)
 		dispatch(func() {
 			if ctx.Err() != nil || e.catalog.Peek().key != key {
 				return

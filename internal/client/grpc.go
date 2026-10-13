@@ -67,9 +67,9 @@ type grpcCall struct {
 	md      metadata.MD
 	// userAgent is the request's user-agent metadata, which grpc-go would
 	// replace with its own, so it goes to the dialer instead. "" is unset.
-	userAgent string
-	timeout   float64
-	lookup    func(string) (string, bool)
+	userAgent   string
+	timeout     float64
+	resolveBody func(string) (string, error)
 	// ctx carries the call's metadata and, once started, its timeout. An
 	// open stream's loses the timeout once it connects.
 	ctx context.Context
@@ -94,7 +94,11 @@ func prepare(call Call) (*grpcCall, error) {
 	if timeout <= 0 {
 		timeout = model.DefaultOptions().TimeoutSeconds
 	}
-	return &grpcCall{req: req, payload: payload, md: md, userAgent: userAgent, timeout: timeout, lookup: call.Lookup}, nil
+	resolveBody := call.ResolveBody
+	if resolveBody == nil {
+		resolveBody = func(text string) (string, error) { return model.Substitute(text, call.Lookup), nil }
+	}
+	return &grpcCall{req: req, payload: payload, md: md, userAgent: userAgent, timeout: timeout, resolveBody: resolveBody}, nil
 }
 
 // start begins the call's timeout.
@@ -214,7 +218,11 @@ func (g *GRPC) Send(ctx context.Context, call Call) (*model.Response, error) {
 func (c *grpcCall) streamParser(md protoreflect.MethodDescriptor, files *protoregistry.Files) func(string) ([]proto.Message, error) {
 	return func(text string) ([]proto.Message, error) {
 		if c.req.Options.SubstituteBodyVariables {
-			text = model.Substitute(text, c.lookup)
+			var err error
+			text, err = c.resolveBody(text)
+			if err != nil {
+				return nil, err
+			}
 		}
 		return parseMessages(md, text, files)
 	}

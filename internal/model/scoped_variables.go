@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"maps"
+	"slices"
 	"strings"
 )
 
@@ -125,16 +126,74 @@ func scopedVariables(variables []Variable, scope *VariableScope, fallback func(s
 	return out, firstError
 }
 
-// VariablesForRequest resolves only the templates used by this snapshot, so
-// an unused alias cannot prevent sending an otherwise independent request.
-// Each generated variable is evaluated once, shared by direct references and
-// templates, and discarded after this send. Editing never calls this function.
-func VariablesForRequest(req Request, variables []Variable, fallback func(string) (string, bool)) ([]Variable, error) {
-	variables = Merge(variables, generatedVariables())
+// VariableSnapshot keeps one call's definitions, generated values, and host
+// fallbacks fixed while later stream messages introduce new dependencies.
+// Each resolution has its own expansion budget and leaves the snapshot intact.
+type VariableSnapshot struct {
+	variables []Variable
+	scope     *VariableScope
+	fallback  map[string]string
+}
+
+func NewVariableSnapshot(variables []Variable, scope *VariableScope, fallback func(string) (string, bool)) *VariableSnapshot {
+	snapshot := &VariableSnapshot{
+		variables: Merge(variables, generatedVariables()),
+		scope:     scope.Clone(),
+		fallback:  make(map[string]string),
+	}
+	capture := func(template string) {
+		if fallback == nil {
+			return
+		}
+		for _, ref := range FindVariables(template) {
+			if value, ok := fallback(ref.Name); ok {
+				snapshot.fallback[ref.Name] = value
+			}
+		}
+	}
+	for i, v := range snapshot.variables {
+		snapshot.variables[i].Overrides = slices.Clone(v.Overrides)
+		if v.Template != nil {
+			template := *v.Template
+			snapshot.variables[i].Template = &template
+			capture(template)
+		}
+	}
+	if snapshot.scope != nil {
+		for _, template := range snapshot.scope.Variables {
+			capture(template)
+		}
+	}
+	return snapshot
+}
+
+// ForRequest evaluates only the templates used by req, so an unused alias
+// cannot prevent sending an otherwise independent request.
+func (s *VariableSnapshot) ForRequest(req Request) ([]Variable, error) {
 	roots := make([]string, 0)
 	_, _ = Resolve(req, func(name string) (string, bool) {
 		roots = append(roots, name)
 		return "", true
 	})
-	return scopedVariables(variables, req.VariableScope, fallback, roots)
+	return scopedVariables(s.variables, s.scope, MapLookup(s.fallback), roots)
+}
+
+// Substitute resolves the templates used by one later stream message.
+// Literal values and escaped references are never expanded recursively.
+func (s *VariableSnapshot) Substitute(text string) (string, error) {
+	roots := make([]string, 0)
+	for _, ref := range FindVariables(text) {
+		roots = append(roots, ref.Name)
+	}
+	resolved, err := scopedVariables(s.variables, s.scope, MapLookup(s.fallback), roots)
+	if err != nil {
+		return "", err
+	}
+	return Substitute(text, MapLookup(Values(resolved))), nil
+}
+
+// VariablesForRequest prepares variables for a single send or export.
+// A streaming call retains a VariableSnapshot for its later messages.
+func VariablesForRequest(req Request, variables []Variable, fallback func(string) (string, bool)) ([]Variable, error) {
+	return NewVariableSnapshot(variables, req.VariableScope, fallback).ForRequest(req)
 }

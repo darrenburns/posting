@@ -91,9 +91,13 @@ func (a *App) variableList() []model.Variable {
 
 // requestVariableValues resolves the exact snapshot being sent or exported.
 func (a *App) requestVariableValues(req model.Request) (map[string]string, error) {
-	variables := a.layerVariables(a.env.active.Peek().Variables, a.sessionVars.Peek())
-	resolved, err := model.VariablesForRequest(req, variables, os.LookupEnv)
+	resolved, err := a.requestVariables(req).ForRequest(req)
 	return model.Values(resolved), err
+}
+
+func (a *App) requestVariables(req model.Request) *model.VariableSnapshot {
+	variables := a.layerVariables(a.env.active.Peek().Variables, a.sessionVars.Peek())
+	return model.NewVariableSnapshot(variables, req.VariableScope, os.LookupEnv)
 }
 
 // variableValues is the value of every variable. Reading it in Build
