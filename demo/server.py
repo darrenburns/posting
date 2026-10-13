@@ -68,6 +68,13 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/users":
             user = {"id": 4, **self.read_json(), "created_at": "2026-10-10T09:41:00Z"}
             self.respond(201, user, {"Location": "/users/4", "Set-Cookie": "session=8c1f; Path=/; HttpOnly"})
+        elif path == "/graphql":
+            # Canned response for the collection's GetUser operation, not a
+            # general-purpose GraphQL server.
+            request = self.read_json()
+            user_id = str(request.get("variables", {}).get("id", "1"))
+            user = next((user for user in USERS if str(user["id"]) == user_id), None)
+            self.respond(200, {"data": {"user": user}})
         elif path == "/auth/login":
             self.respond(200, {"token": "dev-token-123", "expires_in": 3600})
         elif path == "/orders":
