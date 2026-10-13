@@ -44,6 +44,53 @@ func uploadApp(tt *testing.T) *App {
 	return a
 }
 
+func TestMultipartPartButtons(tt *testing.T) {
+	for _, size := range []struct {
+		name  string
+		width int
+	}{{"wide", 150}, {"narrow", 100}} {
+		for _, activation := range []string{"click", "enter", "space"} {
+			tt.Run(size.name+"/"+activation, func(tt *testing.T) {
+				a := uploadApp(tt)
+				s := a.current()
+				before := s.Snapshot().Body.Multipart
+				p := t.NewPilot(tt, a, size.width, 46)
+				activate := func(id string) {
+					if activation == "click" {
+						p.Click(id)
+					} else {
+						t.RequestFocus(id)
+						p.Advance(0)
+						p.Press(activation)
+					}
+				}
+				activate("req-part-add")
+				if got := len(s.Snapshot().Body.Multipart); got != len(before)+1 {
+					tt.Fatalf("Add part produced %d parts, want %d", got, len(before)+1)
+				}
+				if got := p.FocusedID(); got != "req-part-name" {
+					tt.Fatalf("Add part focused %q, want req-part-name", got)
+				}
+				p.Type("extra")
+				want := append(before, model.Part{Type: model.PartText, Name: "extra", Enabled: true})
+				if got := s.Snapshot().Body.Multipart; !reflect.DeepEqual(got, want) {
+					tt.Fatalf("parts after adding and editing = %+v, want %+v", got, want)
+				}
+				// Delete a middle part, preserving both its neighbours and the new part.
+				p.Press("escape", "home", "down")
+				activate("req-part-delete")
+				want = append(want[:1], want[2:]...)
+				if got := s.Snapshot().Body.Multipart; !reflect.DeepEqual(got, want) {
+					tt.Fatalf("parts after deleting document = %+v, want %+v", got, want)
+				}
+				if got := p.FocusedID(); got != partsID {
+					tt.Fatalf("Delete focused %q, want %s", got, partsID)
+				}
+			})
+		}
+	}
+}
+
 func TestMultipartInspector(tt *testing.T) {
 	a := uploadApp(tt)
 	s := a.current()

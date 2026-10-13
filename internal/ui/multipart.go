@@ -128,8 +128,8 @@ func (v multipartView) Build(ctx t.BuildContext) t.Widget {
 				return multipartRow{part: p, active: active, app: v.app, session: s}
 			}, Style: t.Style{Width: t.Flex(1)}}},
 		t.Row{Spacing: 1, Children: []t.Widget{
-			t.Button{ID: "req-part-add", Label: "+ Add part", OnPress: v.add, Click: func(t.MouseEvent) { v.add() }},
-			t.Button{ID: "req-part-delete", Label: "Delete", OnPress: v.remove, Click: func(t.MouseEvent) { v.remove() }},
+			t.Button{ID: "req-part-add", Label: "+ Add part", OnPress: v.add},
+			t.Button{ID: "req-part-delete", Label: "Delete", OnPress: v.remove},
 		}},
 	}}
 	var content t.Widget = list
