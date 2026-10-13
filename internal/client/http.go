@@ -144,7 +144,8 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 				r.Header.Add(hdr.Name, hdr.Value)
 			}
 		}
-		if body.contentType != "" && (r.Header.Get("Content-Type") == "" || req.Body.Type == model.BodyMultipart) {
+		_, contentTypePresent := r.Header["Content-Type"]
+		if body.contentType != "" && (!contentTypePresent || req.Body.Type == model.BodyMultipart) {
 			r.Header.Set("Content-Type", body.contentType)
 		}
 		if r.Header.Get("User-Agent") == "" && h.UserAgent != "" {

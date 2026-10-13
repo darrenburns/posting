@@ -1,8 +1,9 @@
 package client
 
 import (
-	"github.com/darrenburns/posting/v3/internal/model"
 	"testing"
+
+	"github.com/darrenburns/posting/v3/internal/model"
 )
 
 func TestGRPCOpenStreamResolvesAliasesFirstUsedLater(t *testing.T) {

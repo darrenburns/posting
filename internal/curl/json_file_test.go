@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/darrenburns/posting/v3/internal/client"
@@ -25,7 +26,7 @@ func TestJSONFileCurlWire(t *testing.T) {
 	server := bodyHeaderServer(t)
 	root := t.TempDir()
 	file := filepath.Join(root, "payload.json")
-	for _, flags := range []string{"", `-H 'Content-Type: application/vnd.test+json' -H 'Accept: application/vnd.test+json'`} {
+	for _, flags := range []string{"", `-H 'Content-Type: application/vnd.test+json' -H 'Accept: application/vnd.test+json'`, `-H 'Content-Type;' -H 'Accept;'`} {
 		req, err := Parse("curl --json @payload.json " + flags + " " + Quote(server.URL))
 		if err != nil {
 			t.Fatal(err)
@@ -45,7 +46,7 @@ func TestJSONFileCurlWire(t *testing.T) {
 			if err := json.Unmarshal(resp.Body, &got); err != nil {
 				t.Fatal(err)
 			}
-			if got.Body != content || got.Body != actual.Body || got.Headers.Get("Content-Type") != actual.Headers.Get("Content-Type") || got.Headers.Get("Accept") != actual.Headers.Get("Accept") {
+			if got.Body != content || got.Body != actual.Body || !reflect.DeepEqual(got.Headers.Values("Content-Type"), actual.Headers.Values("Content-Type")) || !reflect.DeepEqual(got.Headers.Values("Accept"), actual.Headers.Values("Accept")) {
 				t.Fatalf("Posting sent %+v, curl sent %+v", got, actual)
 			}
 		}
