@@ -3,6 +3,7 @@ package curl
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -87,27 +88,50 @@ func TestFormatEmptyHeaderCurlWire(t *testing.T) {
 }
 
 func TestParseDataChunksCurlWire(t *testing.T) {
+	curlPath, err := exec.LookPath("curl")
+	if err != nil {
+		t.Skip("curl executable is needed for wire interoperability checks")
+	}
+	version, err := exec.Command(curlPath, "--version").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var major, minor, patch int
+	if _, err := fmt.Sscanf(string(version), "curl %d.%d.%d", &major, &minor, &patch); err != nil {
+		t.Fatalf("cannot read curl version: %v\n%s", err, version)
+	}
+	legacyEmptyData := major < 8 || (major == 8 && minor < 6)
+
 	server := bodyHeaderServer(t)
 	for _, tc := range []struct {
-		name, flags, want string
+		name, flags, want, legacyWant string
 	}{
-		{"repeated_json", `--json '{"name":' --json '"Posting"}'`, `{"name":"Posting"}`},
-		{"data_then_json", `--data first --json second`, "firstsecond"},
-		{"json_then_data", `--json first --data second`, "first&second"},
-		{"alternating", `--data first --json second --data-raw third --json fourth`, "firstsecond&thirdfourth"},
-		{"leading_empty_json", `--json '' --data second`, "second"},
-		{"leading_empty_data", `--data '' --json second`, "second"},
-		{"empty_middle_json", `--data first --json '' --data third`, "first&third"},
-		{"json_then_binary", `--json first --data-binary second`, "first&second"},
-		{"json_then_encoded", `--json first --data-urlencode 'name=a b'`, "first&name=a+b"},
-		{"repeated_data", `--data 'a=1' --data 'b=2'`, "a=1&b=2"},
-		{"leading_empty_plain_data", `--data '' --data 'a=1'`, "a=1"},
+		{"repeated_json", `--json '{"name":' --json '"Posting"}'`, `{"name":"Posting"}`, ""},
+		{"data_then_json", `--data first --json second`, "firstsecond", ""},
+		{"json_then_data", `--json first --data second`, "first&second", ""},
+		{"alternating", `--data first --json second --data-raw third --json fourth`, "firstsecond&thirdfourth", ""},
+		{"leading_empty_json", `--json '' --data second`, "second", "&second"},
+		{"leading_empty_data", `--data '' --json second`, "second", ""},
+		{"empty_middle_json", `--data first --json '' --data third`, "first&third", ""},
+		{"json_then_binary", `--json first --data-binary second`, "first&second", ""},
+		{"json_then_encoded", `--json first --data-urlencode 'name=a b'`, "first&name=a+b", ""},
+		{"repeated_data", `--data 'a=1' --data 'b=2'`, "a=1&b=2", ""},
+		{"leading_empty_plain_data", `--data '' --data 'a=1'`, "a=1", "&a=1"},
+		{"multiple_leading_empty_data", `--data '' --data '' --data third`, "third", "&&third"},
+		{"empty_middle_data", `--data first --data '' --data third`, "first&&third", ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			command := "curl " + tc.flags + " " + Quote(server.URL)
 			actual := runBodyHeaderCurl(t, command)
-			if actual.Body != tc.want {
-				t.Fatalf("actual curl body = %q, want %q", actual.Body, tc.want)
+			// curl 8.6.0 changed the separator check from a buffer pointer
+			// to its length: https://github.com/curl/curl/commit/1f4433dad4cb6fbb5c6a85c95ee1fcd8891a4129.
+			// Only curl's expectation varies; Posting follows modern curl.
+			curlWant := tc.want
+			if legacyEmptyData && tc.legacyWant != "" {
+				curlWant = tc.legacyWant
+			}
+			if actual.Body != curlWant {
+				t.Errorf("curl %d.%d.%d body = %q, want %q", major, minor, patch, actual.Body, curlWant)
 			}
 			req, err := Parse(command)
 			if err != nil {
@@ -122,7 +146,7 @@ func TestParseDataChunksCurlWire(t *testing.T) {
 				t.Fatalf("Posting response: %v\n%s", err, response.Body)
 			}
 			if imported.Body != tc.want {
-				t.Errorf("imported request body = %q, actual curl body = %q", imported.Body, actual.Body)
+				t.Errorf("imported request body = %q, want %q", imported.Body, tc.want)
 			}
 		})
 	}
