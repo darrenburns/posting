@@ -487,9 +487,7 @@ func TestGRPCInsertTemplateCommandWithoutAMethodWarns(tt *testing.T) {
 			item.Action()
 		}
 	}
-	if got := app.toast.Peek(); got.message != "Choose a method from the list first" {
-		tt.Fatalf("toast = %+v", got)
-	}
+	assertToast(tt, app, "Choose a method from the list first")
 }
 
 func TestCopyGRPCAsGrpcurl(tt *testing.T) {

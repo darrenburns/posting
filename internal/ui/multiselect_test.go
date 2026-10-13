@@ -139,9 +139,7 @@ func TestDeletingASelection(tt *testing.T) {
 	if !app.fileExists("users/create-user.posting.yaml") {
 		tt.Error("a request outside the selection was deleted")
 	}
-	if got := app.toast.Peek().message; got != "Deleted 2 requests" {
-		tt.Errorf("toast = %q", got)
-	}
+	assertToast(tt, app, "Deleted 2 requests")
 	if got := selectedRows(app); len(got) != 0 {
 		tt.Errorf("%q still selected after the delete", got)
 	}
@@ -164,9 +162,7 @@ func TestDuplicatingASelection(tt *testing.T) {
 	if got := len(app.sessions.Peek()); got != tabs {
 		tt.Errorf("duplicating a selection opened %d tabs", got-tabs)
 	}
-	if got := app.toast.Peek().message; got != "Duplicated 3 requests" {
-		tt.Errorf("toast = %q", got)
-	}
+	assertToast(tt, app, "Duplicated 3 requests")
 }
 
 func TestSidebarOperationsWithoutASelectionActOnTheCursor(tt *testing.T) {
@@ -178,9 +174,7 @@ func TestSidebarOperationsWithoutASelectionActOnTheCursor(tt *testing.T) {
 	if got := app.current().file.Peek(); got != "users/list-users-copy.posting.yaml" {
 		tt.Fatalf("d opened %q, want the copy of List users", got)
 	}
-	if got := app.toast.Peek().message; got != "Duplicated as users/list-users-copy.posting.yaml" {
-		tt.Errorf("toast = %q", got)
-	}
+	assertToast(tt, app, "Duplicated as users/list-users-copy.posting.yaml")
 	s.focusID(tt, treeID)
 	s.pressKey(tt, "backspace")
 	if got := app.confirm.Peek().title; got != "Delete request?" {
@@ -190,9 +184,7 @@ func TestSidebarOperationsWithoutASelectionActOnTheCursor(tt *testing.T) {
 	if !slices.Equal(store.deleted, []string{"users/list-users.posting.yaml"}) {
 		tt.Fatalf("deleted %q", store.deleted)
 	}
-	if got := app.toast.Peek().message; got != "Deleted users/list-users.posting.yaml" {
-		tt.Errorf("toast = %q", got)
-	}
+	assertToast(tt, app, "Deleted users/list-users.posting.yaml")
 }
 
 func TestEnterOpensEachSelectedRequestInATab(tt *testing.T) {

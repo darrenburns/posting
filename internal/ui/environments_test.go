@@ -43,9 +43,10 @@ func TestSwitchingEnvironmentsKeepsSessionVariables(tt *testing.T) {
 
 	// A failed switch leaves the environment alone.
 	app.switchEnvironment([]string{"gone.env"})
-	if app.envName() != "staging" || app.toast.Peek().kind != toastError {
+	if app.envName() != "staging" {
 		tt.Fatalf("failed switch changed the environment to %q", app.envName())
 	}
+	assertToast(tt, app, "Couldn't load environment: no such file")
 
 	app.switchEnvironment(nil)
 	values = app.variableValuesPeek()

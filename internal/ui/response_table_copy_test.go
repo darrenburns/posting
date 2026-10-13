@@ -47,10 +47,9 @@ func TestHeaderRowCopyKeys(tt *testing.T) {
 		{"n", "Server", "Copied Server"},
 		{"b", "Server: example", "Copied the Server header"},
 	} {
+		app.toasts.Clear()
 		pressOn(tt, app, "resp-headers", tc.key)
-		if got := app.toast.Peek().message; got != tc.toast {
-			tt.Errorf("%s: toast %q, want %q", tc.key, got, tc.toast)
-		}
+		assertToast(tt, app, tc.toast)
 		if got := copiedText(tt, s, tc.key); got != tc.text {
 			tt.Errorf("%s copies %q, want %q", tc.key, got, tc.text)
 		}
@@ -61,9 +60,7 @@ func TestCookieRowCopiesAsACookieHeaderWould(tt *testing.T) {
 	app, s := tableApp(tt, "cookies")
 	pressOn(tt, app, "resp-cookies", "down")
 	pressOn(tt, app, "resp-cookies", "b")
-	if got := app.toast.Peek().message; got != "Copied the token cookie" {
-		tt.Errorf("toast %q", got)
-	}
+	assertToast(tt, app, "Copied the token cookie")
 	if got := copiedText(tt, s, "b"); got != "token=eyJhbGciOi.J9" {
 		tt.Errorf("b copies %q", got)
 	}

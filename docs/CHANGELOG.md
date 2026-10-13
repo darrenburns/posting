@@ -54,6 +54,7 @@ between versions.
   and custom CA bundles must be PEM files.
 - Scrollbar thumbs fade out after a second of inactivity and reappear when scrolling. Their tracks are transparent.
 - Text cursors blink once per second with short fades to 10% opacity, approximating the macOS caret. `text_input.blinking_cursor: false` still keeps a steady cursor.
+- Notifications use Terma's toast queue instead of replacing each other: up to three are visible, longer messages wrap, hovering pauses expiry, and clicking dismisses a toast. Startup problems are each shown in full.
 
 ### Fixed
 

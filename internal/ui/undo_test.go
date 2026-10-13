@@ -205,9 +205,7 @@ func TestURLBarUndoAndRedo(tt *testing.T) {
 	if got := s.url.GetText(); got != "" {
 		tt.Fatalf("ctrl+y redid in the URL bar: url = %q", got)
 	}
-	if got := app.toast.Peek().message; got != "Copied URL" {
-		tt.Fatalf("ctrl+y toast = %q, want Copied URL", got)
-	}
+	assertToast(tt, app, "Copied URL")
 	pressOn(tt, app, urlInputID, "ctrl+shift+z")
 	if got := s.url.GetText(); got != "https://api.test/users" {
 		tt.Fatalf("after redo url = %q", got)

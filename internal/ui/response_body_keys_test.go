@@ -60,9 +60,7 @@ func TestVisualModeCopiesTheCharacterUnderTheCursor(tt *testing.T) {
 	if s.responseVisual.Peek() || s.responseBody.HasSelection() {
 		tt.Fatal("copying should leave visual mode and drop the selection")
 	}
-	if got := app.toast.Peek().message; got != "Copied 7 characters" {
-		tt.Fatalf("toast %q", got)
-	}
+	assertToast(tt, app, "Copied 7 characters")
 }
 
 func TestVisualModeCopiesWhatIsHighlightedWhenSelectingBackwards(tt *testing.T) {
@@ -99,9 +97,7 @@ func TestCopyWithoutSelectionCopiesTheWholeBody(tt *testing.T) {
 	if text, selected := s.bodyCopyText(); selected || text != "hello world" {
 		tt.Fatalf("copy without a selection gave %q (selected=%v)", text, selected)
 	}
-	if got := app.toast.Peek().message; got != "Copied response body" {
-		tt.Fatalf("toast %q", got)
-	}
+	assertToast(tt, app, "Copied response body")
 }
 
 func TestVisualModeWithoutMovingCopiesOneCharacter(tt *testing.T) {

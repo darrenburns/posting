@@ -21,5 +21,5 @@ func TestSnapshotNerdFonts(tt *testing.T) {
 	app.current().showResponse(fixedResponse(), nil)
 	app.current().phase.Set(exchangeDone)
 	app.notify("Saved users/list-users.posting.yaml", toastSuccess)
-	t.AssertSnapshot(tt, app, snapW, snapH, "Nerd Font icons on folders, sidebar tabs, the environment, host, send button, timing and toast")
+	t.AssertSnapshot(tt, app, snapW, snapH, "Nerd Font icons on folders, sidebar tabs, the environment, host, send button and timing, with a Terma toast")
 }

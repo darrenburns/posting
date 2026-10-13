@@ -150,9 +150,7 @@ func TestDuplicateAndDeleteFromThePalette(tt *testing.T) {
 
 	app.newTab()
 	app.duplicateRequests([]model.Request{app.current().Snapshot()})
-	if app.toast.Peek().kind != toastWarning {
-		tt.Fatal("duplicating an unsaved request should explain why it can't")
-	}
+	assertToast(tt, app, "Save the request before duplicating it")
 }
 
 func TestLoadEnvironmentFileByPath(tt *testing.T) {
@@ -186,12 +184,11 @@ func TestSnapshotLoadEnvironmentFileDialog(tt *testing.T) {
 
 func TestBrowserOpenFailureIsShown(tt *testing.T) {
 	app := testApp()
+	p := t.NewPilot(tt, app, snapW, snapH)
 	app.openURL = func(string) error { return errors.New("no launcher") }
 	app.openDocs()
-	waitFor(tt, func() bool {
-		toast := app.toast.Peek()
-		return toast.kind == toastError && strings.Contains(toast.message, docsURL) && strings.Contains(toast.message, "no launcher")
-	})
+	p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "no launcher") }, 0)
+	assertToast(tt, app, "Couldn't open "+docsURL+": no launcher")
 }
 
 func TestLoadEnvironmentFileRemembersSuccessfulSwitch(tt *testing.T) {

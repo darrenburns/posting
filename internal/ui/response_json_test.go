@@ -51,10 +51,10 @@ func TestResponseJSONTree(tt *testing.T) {
 	if got := p.Clipboard(); got != "$['users'][1]['name']" {
 		tt.Fatalf("copy path = %q", got)
 	}
+	app.toasts.Clear() // The copy notifications overlay the bottom search bar.
 	if got := strings.TrimSpace(p.TextOf("resp-json-path")); got != "$['users'][1]['name']" {
 		tt.Fatalf("cursor path = %q", got)
 	}
-	app.toast.Set(toast{}) // The copy notification overlays the bottom search bar.
 	p.Press("/", "end")
 	p.Type("[")
 	if !strings.Contains(p.TextOf(responseJSONQueryID+"-error"), "Invalid JSONPath") || !strings.Contains(p.TextOf("resp-body"), "Grace") {
@@ -93,7 +93,7 @@ func TestResponseJSONTree(tt *testing.T) {
 	p.Type("$.users[1].name")
 	p.Resize(82, snapH)
 	t.SetTheme("catppuccin-latte")
-	app.toast.Set(toast{})
+	app.toasts.Clear()
 	p.AssertSnapshot("filtered_light", "Narrow light-theme JSONPath results retain ancestors and the original array index")
 	p.Click("resp-body-text")
 	if p.FocusedID() != "resp-body" || !strings.Contains(p.TextOf("resp-body"), `"users": [`) {
@@ -153,6 +153,7 @@ func TestResponseJSONReplacementAndSessions(tt *testing.T) {
 		if got := p.Clipboard(); got != body {
 			tt.Fatalf("history scalar copy = %q, want %q", got, body)
 		}
+		app.toasts.Clear()
 		p.Press("t")
 	}
 }

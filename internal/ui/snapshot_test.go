@@ -224,6 +224,6 @@ func TestSnapshotOverlays(tt *testing.T) {
 	t.AssertSnapshotNamed(tt, "Overlay_confirm_light", app, snapW, snapH, "Light confirmation has a legible title and the same styling as other dialogs")
 
 	app = testApp()
-	app.toast.Set(toast{message: "Saved List users", kind: toastSuccess})
-	t.AssertSnapshotNamed(tt, "Overlay_toast", app, snapW, snapH, "Success notification with a severity-coloured tall border")
+	app.notify("Saved List users", toastSuccess)
+	t.AssertSnapshotNamed(tt, "Overlay_toast", app, snapW, snapH, "Success notification using Terma's toast stack")
 }

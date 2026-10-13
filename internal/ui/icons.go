@@ -7,8 +7,6 @@ type iconSet struct {
 	requests, history  string
 	environment, host  string
 	send               string
-	info, success      string
-	warning, failure   string
 	elapsed            string
 	docs, donate       string
 	mastodon           string
@@ -30,10 +28,6 @@ var nerdIcons = iconSet{
 	environment: " ",
 	host:        " ",
 	send:        " ",
-	info:        " ",
-	success:     " ",
-	warning:     " ",
-	failure:     " ",
 	elapsed:     " ",
 	docs:        " ",
 	donate:      " ",

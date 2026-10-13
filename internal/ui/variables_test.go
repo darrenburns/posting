@@ -232,9 +232,10 @@ captures: {SESSION_ID: '$.data.sessions[?(@.current == true)].id', API_TOKEN: da
 		before := app.sessionVars.Peek()
 		finish()
 		<-wire
-		if !reflect.DeepEqual(app.sessionVars.Peek(), before) || !strings.Contains(app.toast.Peek().message, tc.warning) {
-			t.Fatalf("%s: failed capture changed session values or didn't warn: %s", tc.path, app.toast.Peek().message)
+		if !reflect.DeepEqual(app.sessionVars.Peek(), before) {
+			t.Fatalf("%s: failed capture changed session values", tc.path)
 		}
+		assertToast(t, app, tc.warning)
 		if !strings.Contains(string(s.response.Peek().Body), "must-not-overwrite") {
 			t.Fatal("capture failure hid response")
 		}

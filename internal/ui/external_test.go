@@ -93,7 +93,8 @@ func TestExternalProgramNeedsConfiguring(tt *testing.T) {
 	app.runExternal = func(*exec.Cmd) error { ran = true; return nil }
 	app.settings.Editor = ""
 	pressOn(tt, app, "req-body-text", "f4")
-	if ran || app.toast.Peek().message == "" {
-		tt.Fatalf("ran = %v, toast = %q", ran, app.toast.Peek().message)
+	if ran {
+		tt.Fatal("ran an editor without a configured command")
 	}
+	assertToast(tt, app, "No editor configured. Set $EDITOR or the editor setting.")
 }

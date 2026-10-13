@@ -154,9 +154,7 @@ func TestHistoryFailurePreservesDisplayAndReportsError(t *testing.T) {
 	if got := app.history.Peek(); len(got) != 1 || got[0].ID != 1 {
 		t.Fatal("failed clear changed displayed history")
 	}
-	if msg := app.toast.Peek().message; !strings.Contains(msg, "disk is full") {
-		t.Fatalf("persistence error was not shown: %q", msg)
-	}
+	assertToast(t, app, "disk is full")
 	if err := app.Close(); err == nil || !strings.Contains(err.Error(), "disk is full") {
 		t.Fatalf("Close did not report persistence error: %v", err)
 	}

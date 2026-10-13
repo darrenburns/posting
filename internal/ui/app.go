@@ -163,8 +163,7 @@ type App struct {
 	responseSave       *responseSaveForm
 	variables          *variablesForm
 	curlDialog         *curlForm
-	toast              t.AnySignal[toast]
-	toastSeq           int
+	toasts             *t.ToastState
 }
 
 // New creates the root widget.
@@ -241,7 +240,7 @@ func New(cfg Config) *App {
 		logoMenuOpen:   t.NewSignal(false),
 		overlay:        t.NewSignal(""),
 		confirm:        t.NewAnySignal(confirmation{}),
-		toast:          t.NewAnySignal(toast{}),
+		toasts:         t.NewToastState(t.ToastOptions{MaxVisible: 3, Timeout: 3 * time.Second}),
 
 		sidebarGradient:        t.NewSignal(settings.SidebarGradient),
 		sidebarGradientPreview: t.NewSignal(""),
@@ -327,11 +326,7 @@ func New(cfg Config) *App {
 	if cfg.Watch != nil {
 		a.watchCollection(cfg.Watch, time.Second)
 	}
-	if n := len(messages); n > 0 {
-		message := messages[0]
-		if n > 1 {
-			message += fmt.Sprintf(" (and %d more)", n-1)
-		}
+	for _, message := range messages {
 		a.notify(message, toastError)
 	}
 	return a
@@ -1240,22 +1235,13 @@ func (w workspace) Build(ctx t.BuildContext) t.Widget {
 	}
 }
 
-// notify shows a transient message in the corner.
-func (a *App) notify(message string, kind toastKind) {
-	a.toastSeq++
-	seq := a.toastSeq
-	a.toast.Set(toast{message: message, kind: kind, seq: seq})
-	duration := 3 * time.Second
+// notify queues a transient message in the corner. Errors stay longer.
+func (a *App) notify(message string, kind t.ToastSeverity) {
+	var timeout time.Duration
 	if kind == toastError {
-		duration = 6 * time.Second
+		timeout = 6 * time.Second
 	}
-	time.AfterFunc(duration, func() {
-		t.Dispatch(func() {
-			if a.toast.Peek().seq == seq {
-				a.toast.Set(toast{})
-			}
-		})
-	})
+	a.toasts.Notify(t.Toast{Message: message, Severity: kind, Timeout: timeout})
 }
 
 // dispatchAfter runs fn on the UI goroutine once d has passed.

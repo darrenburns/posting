@@ -46,9 +46,9 @@ func TestSavingDoesNotLookLikeAChangeOnDisk(tt *testing.T) {
 	if !strings.Contains(s.url.GetText(), "?") {
 		tt.Fatal("the editor should show the query in the URL")
 	}
-	app.toast.Set(toast{})
+	app.toasts.Clear()
 	app.replaceCollection(model.SampleCollection())
-	if app.toast.Peek().message != "" {
-		tt.Fatalf("an unchanged file was reloaded: %q", app.toast.Peek().message)
+	if app.toasts.Len() != 0 {
+		tt.Fatal("an unchanged file was reloaded")
 	}
 }

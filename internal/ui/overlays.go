@@ -42,7 +42,7 @@ func (o overlays) Build(ctx t.BuildContext) t.Widget {
 		confirmOverlay{app: a, visible: overlay == "confirm"},
 		curlOverlay{app: a, visible: overlay == "curl"},
 		envFileOverlay{app: a, visible: overlay == "envfile"},
-		toastOverlay{app: a},
+		t.Toasts{ID: "toasts", State: a.toasts},
 	}}
 }
 
@@ -1005,52 +1005,9 @@ func (o confirmOverlay) Build(ctx t.BuildContext) t.Widget {
 // ---------------------------------------------------------------------------
 // Toasts
 
-type toastKind int
-
 const (
-	toastInfo toastKind = iota
-	toastSuccess
-	toastWarning
-	toastError
+	toastInfo    = t.ToastInfo
+	toastSuccess = t.ToastSuccess
+	toastWarning = t.ToastWarning
+	toastError   = t.ToastError
 )
-
-type toast struct {
-	message string
-	kind    toastKind
-	seq     int
-}
-
-type toastOverlay struct{ app *App }
-
-func (o toastOverlay) Build(ctx t.BuildContext) t.Widget {
-	theme := ctx.Theme()
-	current := o.app.toast.Get()
-	icons := o.app.icons
-	accent, icon := theme.Info, icons.info
-	switch current.kind {
-	case toastSuccess:
-		accent, icon = theme.Success, icons.success
-	case toastWarning:
-		accent, icon = theme.Warning, icons.warning
-	case toastError:
-		accent, icon = theme.Error, icons.failure
-	}
-	return t.Floating{
-		Visible: current.message != "",
-		Config: t.FloatConfig{
-			Position:              t.FloatPositionBottomRight,
-			Offset:                t.Offset{X: -2, Y: -2},
-			DismissOnEsc:          t.BoolPtr(false),
-			DismissOnClickOutside: t.BoolPtr(false),
-		},
-		Child: t.Row{
-			Style: t.Style{BackgroundColor: theme.Surface2, Border: t.TallBorder(accent), Padding: t.EdgeInsetsXY(1, 0)},
-			Children: []t.Widget{
-				t.Text{Spans: []t.Span{
-					{Text: icon, Style: t.SpanStyle{Foreground: accent}},
-					{Text: current.message, Style: t.SpanStyle{Foreground: theme.Text}},
-				}},
-			},
-		},
-	}
-}

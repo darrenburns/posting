@@ -79,7 +79,5 @@ func TestFailedSaveKeepsTheTabDirty(tt *testing.T) {
 	if !s.dirty.Peek() {
 		tt.Fatal("a failed save must leave the tab dirty")
 	}
-	if toast := app.toast.Peek(); toast.kind != toastError {
-		tt.Fatalf("toast = %+v, want an error", toast)
-	}
+	assertToast(tt, app, "Couldn't save users/list-users.posting.yaml: disk full")
 }
