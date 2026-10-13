@@ -543,9 +543,12 @@ Posting understands the options people most often copy from browsers and API doc
 
 - `-F` imports multipart fields, including `@path`, `;filename=` and `;type=`. Use separate
   `-F` fields for multiple files. `--form-string` always imports literal text.
-- `--data-binary @path` imports a whole-file body. Files are not read during import. Relative
-  paths resolve against the collection, not the shell directory the command originally ran in.
-  Stdin, nested multipart, `<file` parts and custom per-part headers aren't supported.
+- `--data-binary @path` and `--json @path` import a whole-file body. Files are read when sending,
+  so each send uses the current contents. Relative paths resolve against the collection, not
+  the shell directory the command originally ran in. `--json` supplies JSON Content-Type and
+  Accept headers unless you set them explicitly. A whole-file body cannot be combined with
+  other data fragments or files. Stdin, nested multipart, `<file` parts and custom per-part
+  headers aren't supported.
 - `$NAME` in a pasted command isn't expanded: it becomes a Posting variable.
 
 ## Exporting as curl

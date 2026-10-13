@@ -150,6 +150,13 @@ func Parse(command string) (model.Request, error) {
 		case "--data-urlencode":
 			data = append(data, dataPart{value: urlencodeData(value)})
 		case "--json":
+			if strings.HasPrefix(value, "@") {
+				if bodyFile != "" || value == "@" || value == "@-" {
+					return model.Request{}, fmt.Errorf("use one regular file with --json @path")
+				}
+				bodyFile, dataIsJSON = value[1:], true
+				continue
+			}
 			data = append(data, dataPart{value: value, json: true})
 		case "-F", "--form", "--form-string":
 			part, err := parsePart(value, flag == "--form-string")
@@ -231,6 +238,17 @@ func Parse(command string) (model.Request, error) {
 		dataIsJSON = dataIsJSON || part.json
 	}
 	joined := body.String()
+	if dataIsJSON {
+		for _, name := range []string{"Content-Type", "Accept"} {
+			present := false
+			for _, h := range req.Headers {
+				present = present || strings.EqualFold(h.Name, name)
+			}
+			if !present {
+				req.Headers = append(req.Headers, model.KeyValue{Name: name, Value: "application/json", Enabled: true})
+			}
+		}
+	}
 	switch {
 	case getMode && len(data) > 0:
 		// -G sends the data as the query string, before any fragment.
@@ -250,18 +268,11 @@ func Parse(command string) (model.Request, error) {
 		req.Body = model.Body{Type: model.BodyFile, File: bodyFile, ContentType: orDefault(headerValue(req.Headers, "Content-Type"), "application/x-www-form-urlencoded")}
 	case len(data) > 0:
 		contentType := headerValue(req.Headers, "Content-Type")
-		if dataIsJSON {
-			contentType = "application/json"
-			if headerValue(req.Headers, "Content-Type") == "" {
-				req.Headers = append(req.Headers, model.KeyValue{Name: "Content-Type", Value: contentType, Enabled: true})
-			}
-			if headerValue(req.Headers, "Accept") == "" {
-				req.Headers = append(req.Headers, model.KeyValue{Name: "Accept", Value: "application/json", Enabled: true})
-			}
-		}
 		mediaType, _, _ := strings.Cut(contentType, ";")
 		mediaType = strings.ToLower(strings.TrimSpace(mediaType))
 		switch {
+		case dataIsJSON:
+			req.Body = model.Body{Type: model.BodyRaw, Raw: joined, ContentType: orDefault(contentType, "application/json")}
 		case mediaType == "application/x-www-form-urlencoded" || (mediaType == "" && looksLikeForm(joined)):
 			req.Body = model.Body{Type: model.BodyForm, Form: parseForm(joined), ContentType: "application/x-www-form-urlencoded"}
 		case mediaType == "" && json.Valid([]byte(joined)):
