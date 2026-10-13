@@ -58,6 +58,8 @@ nav:
 plugins:
   - search
   - tags
+hooks:
+  - docs/scripts/dev_styles.py
 markdown_extensions:
   - abbr
   - admonition

@@ -225,11 +225,13 @@ body {
   margin-left: 0.3ch;
   vertical-align: -0.2em;
   background: var(--accent);
-  animation: blink 1.06s steps(1) infinite;
+  animation: blink 1s linear infinite;
 }
 
 @keyframes blink {
-  50% { opacity: 0; }
+  /* Match Posting: 350 ms holds, 150 ms fades, and a 10% minimum. */
+  0%, 35%, 100% { opacity: 1; }
+  50%, 85% { opacity: 0.1; }
 }
 
 /* ---- Buttons -------------------------------------------------------------- */
@@ -329,8 +331,8 @@ body {
     display: inline-block;
     vertical-align: bottom;
     overflow: hidden;
-    width: 63ch;
-    animation: type 1.5s steps(63, end) 0.4s both;
+    width: 46ch;
+    animation: type 1.5s steps(46, end) 0.4s both;
   }
 }
 
@@ -345,13 +347,6 @@ body {
   grid-template-columns: minmax(0, 1fr);
   gap: 2lh 6ch;
   margin-bottom: 2.5lh;
-}
-
-@media (min-width: 70em) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr) 44ch;
-    align-items: start;
-  }
 }
 
 .hero-main {
@@ -405,65 +400,6 @@ body {
 .lede strong {
   color: var(--text);
   font-weight: 700;
-}
-
-.fetch {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0;
-  min-width: 0;
-}
-
-.fetch-host b { color: var(--primary-text); }
-.fetch-host span { color: var(--muted); }
-.fetch-rule { color: var(--dim); }
-
-.fetch dl div {
-  display: grid;
-  grid-template-columns: 10ch minmax(0, 1fr);
-}
-
-.fetch dt {
-  font-weight: 700;
-  color: var(--accent-text);
-}
-
-.fetch dt::after {
-  content: ":";
-}
-
-.fetch dd {
-  color: var(--body-text);
-}
-
-.fetch .blocks {
-  display: block;
-  justify-self: start;
-  margin-block: 1lh;
-  padding: 0;
-  cursor: pointer;
-  background: none;
-  border: 0;
-}
-
-.fetch .blocks > span {
-  display: flex;
-}
-
-.fetch .blocks i {
-  display: block;
-  width: 3ch;
-  height: 1lh;
-  background: var(--c);
-}
-
-.fetch .blocks:hover i {
-  height: 1lh;
-  box-shadow: inset 0 -0.25lh 0 color-mix(in oklab, var(--bg) 40%, transparent);
-}
-
-.fetch-note {
-  color: var(--muted);
 }
 
 .window {
@@ -870,10 +806,6 @@ body {
 
 .closing .col p:not(.c-comment) {
   color: var(--body-text);
-}
-
-.closing .col .c-comment {
-  margin-bottom: -1lh;
 }
 
 .site-foot {

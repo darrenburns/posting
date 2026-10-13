@@ -1,8 +1,6 @@
 <div id="p3-home">
 
   <p class="statusline">
-    <span class="sl-badge">POSTING 3 BETA</span>
-    <span class="sl-text">rebuilt in Go &middot; one binary</span>
     <span class="sl-right">
       <span class="sl-tip">keys: <b>1</b>&ndash;<b>6</b> panes &middot; <b>^O</b> jump &middot; <b>^P</b> commands</span>
       <span class="sl-theme"><span class="dot" aria-hidden="true">&#9670;</span> <span data-theme-name>galaxy</span></span>
@@ -23,49 +21,31 @@
         <h1 id="home-title">The API client that lives in your terminal.</h1>
 
         <p class="lede">
-          Posting is a keyboard-driven client for HTTP, GraphQL, and gRPC. Compose requests, switch
-          environments and read responses without reaching for the mouse. Run it on your laptop, <strong>over SSH</strong> or
-          inside a container, and keep every request as <strong>plain YAML</strong> next to your code.
+          An <strong>open-source</strong> API client with the tools you expect from a desktop app, right in your terminal.
+          Build <strong>HTTP, GraphQL, and gRPC</strong> requests, inspect responses, and keep your collections in Git alongside your code.
         </p>
 
         <div class="prompt">
-          <code><span class="ps1" aria-hidden="true">~ &#10095; </span><span class="typed">go install github.com/darrenburns/posting/v3/cmd/posting@latest</span></code>
-          <button type="button" class="copy" data-copy="go install github.com/darrenburns/posting/v3/cmd/posting@latest"><b aria-hidden="true">y</b> copy</button>
+          <code><span class="ps1" aria-hidden="true">~ &#10095; </span><span class="typed">brew install darrenburns/homebrew/posting@beta</span></code>
+          <button type="button" class="copy" data-copy="brew install darrenburns/homebrew/posting@beta"><b aria-hidden="true">y</b> copy</button>
         </div>
+        <p><a href="{{ 'guide/' | url }}#installation">Other installation methods</a></p>
 
         <div class="actions">
           <a class="btn primary" href="{{ 'guide/' | url }}">Read the guide</a>
           <a class="btn" href="https://github.com/darrenburns/posting" target="_blank" rel="noopener">GitHub &#8599;</a>
         </div>
       </div>
-
-      <aside class="fetch" aria-label="Posting at a glance">
-        <p class="fetch-host"><b>posting</b><span>@</span><b>3</b></p>
-        <p class="fetch-rule" aria-hidden="true">───────────</p>
-        <dl>
-          <div><dt>build</dt><dd>3.0 beta, one Go binary</dd></div>
-          <div><dt>runs</dt><dd>laptop &middot; SSH &middot; container</dd></div>
-          <div><dt>input</dt><dd>keyboard first, mouse welcome</dd></div>
-          <div><dt>requests</dt><dd>plain YAML files</dd></div>
-          <div><dt>envs</dt><dd><code>.env</code> files, layered</dd></div>
-          <div><dt>themes</dt><dd>37 built in</dd></div>
-          <div><dt>license</dt><dd>Apache 2.0</dd></div>
-        </dl>
-        <button type="button" class="blocks" data-action="theme" aria-label="Change theme">
-          <span aria-hidden="true"><i style="--c:var(--primary)"></i><i style="--c:var(--secondary)"></i><i style="--c:var(--accent)"></i><i style="--c:var(--success)"></i><i style="--c:var(--warning)"></i><i style="--c:var(--error)"></i><i style="--c:var(--info)"></i><i style="--c:var(--muted)"></i></span>
-        </button>
-        <p class="fetch-note">Open a folder of requests with <code>posting -c ./my-api</code> and load variables with <code>-e local.env</code>.</p>
-      </aside>
     </div>
 
     <figure class="pane sub window">
-      <div class="pane-title" aria-hidden="true">~ &#10095; posting -c sample-api -e local.env</div>
-      <div class="pane-meta" aria-hidden="true">130&times;36</div>
+      <div class="pane-title" aria-hidden="true">~ &#10095; posting -c atlas-api -e local.env</div>
+      <div class="pane-meta" aria-hidden="true">120&times;36</div>
       {% include "partials/screens/response.html" %}
     </figure>
 
     <div class="theme-line">
-      <p class="theme-label"><span class="c-comment"># theme</span> Posting ships 37 themes. Pick one and the whole site follows.</p>
+      <p class="theme-label">Try a theme.</p>
       {% include "partials/screens/palette-picker.html" %}
     </div>
   </section>
@@ -73,12 +53,9 @@
   <!-- [2] ------------------------------------------------------------------ -->
   <section class="pane" id="keys" data-pane="2" tabindex="-1" aria-labelledby="tour-title">
     <div class="pane-title" aria-hidden="true"><b>[2]</b> keys</div>
-    <div class="pane-meta" aria-hidden="true">real screens from Posting 3</div>
 
     <header class="pane-head">
-      <p class="c-comment"># keyboard first</p>
-      <h2 id="tour-title">Every action is a keystroke away.</h2>
-      <p>Jump anywhere with a short label, run any command from the palette, and let Posting handle the fiddly parts of HTTP. These are real screens from Posting 3.</p>
+      <h2 id="tour-title">Keyboard first</h2>
     </header>
 
     <div class="tour">
@@ -97,14 +74,14 @@
       </div>
 
       <div class="pane sub tour-stage">
-        <div class="pane-title" aria-hidden="true">~ &#10095; posting -c sample-api -e local.env</div>
+        <div class="pane-title" aria-hidden="true">~ &#10095; posting -c atlas-api -e local.env</div>
         <div role="tabpanel" id="panel-jump" aria-labelledby="tab-jump"><p class="panel-desc">Every pane, tab and request gets a label. Type it to go straight there.</p>{% include "partials/screens/jump.html" %}</div>
         <div role="tabpanel" id="panel-palette" aria-labelledby="tab-palette" hidden><p class="panel-desc">Search every action by name, with its shortcut alongside.</p>{% include "partials/screens/palette.html" %}</div>
-        <div role="tabpanel" id="panel-variables" aria-labelledby="tab-variables" hidden><p class="panel-desc">See every value in the active environment, override one for this session, and keep secrets masked.</p>{% include "partials/screens/variables.html" %}</div>
-        <div role="tabpanel" id="panel-curlhint" aria-labelledby="tab-curlhint" hidden><p class="panel-desc">Paste a curl command into the URL bar and press enter to turn it into a request.</p>{% include "partials/screens/curlhint.html" %}</div>
-        <div role="tabpanel" id="panel-curlexport" aria-labelledby="tab-curlexport" hidden><p class="panel-desc">Copy an HTTP or GraphQL request as a curl command, with its variables filled in.</p>{% include "partials/screens/curlexport.html" %}</div>
-        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" hidden><p class="panel-desc">Every exchange is saved. Reopen one to see its response and how long each stage took.</p>{% include "partials/screens/history.html" %}</div>
-        <div role="tabpanel" id="panel-themes" aria-labelledby="tab-themes" hidden><p class="panel-desc">Preview all 37 built-in themes as you scroll, or load the ones you made for Posting 2.</p>{% include "partials/screens/themes.html" %}</div>
+        <div role="tabpanel" id="panel-variables" aria-labelledby="tab-variables" hidden><p class="panel-desc">Inspect and override environment variables, with secrets masked.</p>{% include "partials/screens/variables.html" %}</div>
+        <div role="tabpanel" id="panel-curlhint" aria-labelledby="tab-curlhint" hidden><p class="panel-desc">Paste a curl command into the URL bar and press enter to import it.</p>{% include "partials/screens/curlhint.html" %}</div>
+        <div role="tabpanel" id="panel-curlexport" aria-labelledby="tab-curlexport" hidden><p class="panel-desc">Copy a request as curl, with variables resolved.</p>{% include "partials/screens/curlexport.html" %}</div>
+        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" hidden><p class="panel-desc">Reopen a saved exchange to inspect its response and timing.</p>{% include "partials/screens/history.html" %}</div>
+        <div role="tabpanel" id="panel-themes" aria-labelledby="tab-themes" hidden><p class="panel-desc">Preview 37 built-in themes, or load your own.</p>{% include "partials/screens/themes.html" %}</div>
       </div>
     </div>
   </section>
@@ -112,14 +89,12 @@
   <!-- [3] ------------------------------------------------------------------ -->
   <section class="pane" id="files" data-pane="3" tabindex="-1" aria-labelledby="files-title">
     <div class="pane-title" aria-hidden="true"><b>[3]</b> files</div>
-    <div class="pane-meta" aria-hidden="true">git-friendly</div>
 
     <div class="files">
       <header class="pane-head">
-        <p class="c-comment"># plain files</p>
         <h2 id="files-title">Your requests are files. Commit them.</h2>
-        <p>A collection is a folder, and each request is a short YAML file. Review changes in pull requests, share them with your team, and branch them alongside your code.</p>
-        <p>Environments are ordinary <code>.env</code> files. Layer several with <code>-e</code>, switch between them while Posting is running, and see edits on disk straight away.</p>
+        <p>Collections are folders of YAML files: version them in Git and review changes in pull requests.</p>
+        <p>Layer <code>.env</code> files with <code>-e</code> and switch environments without restarting. Edits on disk reload automatically.</p>
       </header>
 
       <div class="pane sub shell-pane">
@@ -168,23 +143,21 @@
   <!-- [4] ------------------------------------------------------------------ -->
   <section class="pane" id="toolkit" data-pane="4" tabindex="-1" aria-labelledby="more-title">
     <div class="pane-title" aria-hidden="true"><b>[4]</b> toolkit</div>
-    <div class="pane-meta" aria-hidden="true">10 entries</div>
 
     <header class="pane-head">
-      <p class="c-comment"># in the box</p>
-      <h2 id="more-title">The rest of the toolkit.</h2>
+      <h2 id="more-title">Other features</h2>
     </header>
 
     <dl class="help">
-      <div><dt>autocompletion</dt><dd>Type <code>$</code> in the URL, headers, query, auth or body to complete variable names. Header names complete too, each with a note on what it does.</dd></div>
-      <div><dt>url bar</dt><dd>Checks your work. Variables turn <span class="c-ok">green</span> when they resolve and <span class="c-err">red</span> when they don't, and the finished URL is shown under the bar before you send.</dd></div>
+      <div><dt>autocompletion</dt><dd>Complete variables with <code>$</code> in URLs, headers, query, auth and bodies. Header suggestions include descriptions.</dd></div>
+      <div><dt>url bar</dt><dd>Preview the resolved URL before sending. Variables turn <span class="c-ok">green</span> when resolved and <span class="c-err">red</span> when missing.</dd></div>
       <div><dt>authentication</dt><dd>Basic, Digest (MD5 and SHA-256) and bearer tokens, with variables allowed in every field.</dd></div>
-      <div><dt>responses</dt><dd>Pretty-printed, highlighted JSON with wrap and copy, plus headers, cookies and a timing trace for every request.</dd></div>
-      <div><dt>request tabs</dt><dd>Keep several requests open at once. Unsaved changes are marked with a dot.</dd></div>
+      <div><dt>responses</dt><dd>Highlighted JSON, an expandable tree with JSONPath filtering, headers, cookies and a timing trace.</dd></div>
+      <div><dt>request tabs</dt><dd>Keep several requests open, with unsaved changes marked.</dd></div>
       <div><dt>editor &amp; pager</dt><dd>Press <kbd>F4</kbd> to edit a body in <code>$EDITOR</code>, or <kbd>F3</kbd> to read it in <code>$PAGER</code>.</dd></div>
-      <div><dt>keymaps &amp; config</dt><dd>Rebind any action. Configure Posting with <code>config.yaml</code> or <code>POSTING_*</code> environment variables.</dd></div>
-      <div><dt>layouts</dt><dd>Stack the request and response or put them side by side. Resize panes, switch to compact spacing, and click anything you like.</dd></div>
-      <div><dt>coding agents</dt><dd>Let Claude Code, Codex and other agents send requests through the Posting you have open with <code>posting remote</code>, and watch each one arrive. <a href="{{ 'guide/agents/' | url }}">Set it up</a>.</dd></div>
+      <div><dt>keymaps &amp; config</dt><dd>Rebind actions and configure Posting with <code>config.yaml</code> or <code>POSTING_*</code> environment variables.</dd></div>
+      <div><dt>layouts</dt><dd>Resize panes and arrange the request and response vertically or side by side.</dd></div>
+      <div><dt>coding agents</dt><dd>Let agents send requests through your open Posting session with <code>posting remote</code>. <a href="{{ 'guide/agents/' | url }}">Set it up</a>.</dd></div>
       <div><dt>nerd font icons</dt><dd>Icons switch on automatically in Ghostty, and anywhere else with one setting.</dd></div>
     </dl>
   </section>
@@ -196,7 +169,6 @@
 
     <div class="upgrade">
       <header class="pane-head">
-        <p class="c-comment"># coming from Posting 2?</p>
         <h2 id="upgrade-title">Bring your HTTP collections.</h2>
         <p>Posting 3 opens your Posting 2 collections without conversion. Python scripts are preserved but aren't run, history is separate, and some settings and theme options have changed.</p>
         <div class="actions">
@@ -223,18 +195,16 @@
 
     <div class="closing">
       <div class="col">
-        <p class="c-comment"># install</p>
-        <h2>One binary. Nothing else to install.</h2>
+        <h2>Install with Homebrew.</h2>
         <div class="prompt">
-          <code><span class="ps1" aria-hidden="true">~ &#10095; </span>go install github.com/darrenburns/posting/v3/cmd/posting@latest<span class="cursor" aria-hidden="true"></span></code>
-          <button type="button" class="copy" data-copy="go install github.com/darrenburns/posting/v3/cmd/posting@latest"><b aria-hidden="true">y</b> copy</button>
+          <code><span class="ps1" aria-hidden="true">~ &#10095; </span>brew install darrenburns/homebrew/posting@beta<span class="cursor" aria-hidden="true"></span></code>
+          <button type="button" class="copy" data-copy="brew install darrenburns/homebrew/posting@beta"><b aria-hidden="true">y</b> copy</button>
         </div>
-        <p>It runs the same on your laptop, on a remote server over SSH, or inside a container.</p>
+        <p><a href="{{ 'guide/' | url }}#installation">Other installation methods</a></p>
       </div>
       <div class="col">
-        <p class="c-comment"># open source</p>
-        <h2>Built in the open.</h2>
-        <p>Posting is Apache 2.0 licensed and shaped by the people who use it. Follow the <a href="{{ 'roadmap/' | url }}">roadmap</a>, report a bug or suggest a feature on <a href="https://github.com/darrenburns/posting/issues" target="_blank" rel="noopener">GitHub</a>, or <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">sponsor development</a>.</p>
+        <h2>Contribute.</h2>
+        <p>Follow the <a href="{{ 'roadmap/' | url }}">roadmap</a>, report bugs or suggest features on <a href="https://github.com/darrenburns/posting/issues" target="_blank" rel="noopener">GitHub</a>, or <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">sponsor development</a>.</p>
       </div>
     </div>
 
@@ -246,7 +216,7 @@
         <a href="https://github.com/darrenburns/posting" target="_blank" rel="noopener">github</a>
         <a href="https://github.com/sponsors/darrenburns" target="_blank" rel="noopener">sponsor</a>
       </nav>
-      <p class="exit">&copy; 2026 Darren Burns <span aria-hidden="true">&middot; [process exited 0]</span></p>
+      <p class="exit">&copy; 2026 Darren Burns</p>
     </footer>
   </section>
 
