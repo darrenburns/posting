@@ -741,6 +741,10 @@ func (s *Session) endStream() {
 // reading earlier messages isn't interrupted.
 func (s *Session) showLive(req model.Request, resp *model.Response) {
 	if !s.live {
+		s.uploadProgress.Set(uploadProgress{})
+		if resp.ContentType() == "text/event-stream" {
+			s.streamShimmer.Start()
+		}
 		s.sent = req
 		s.showResponse(resp, nil)
 		s.live = true

@@ -92,8 +92,13 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 	if timeout <= 0 {
 		timeout = model.DefaultOptions().TimeoutSeconds
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(timeout*float64(time.Second)))
-	defer cancel()
+	// Keep the request cancellable while allowing an interactive SSE response
+	// to outlive its initial timeout once its headers have arrived. A caller's
+	// own deadline is still inherited and headless requests keep this budget.
+	ctx, cancel := context.WithCancelCause(ctx)
+	timer := time.AfterFunc(time.Duration(timeout*float64(time.Second)), func() { cancel(context.DeadlineExceeded) })
+	defer cancel(nil)
+	defer timer.Stop()
 
 	transport, err := h.transport(req)
 	if err != nil {
@@ -245,6 +250,13 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 	tracer.complete(model.TraceReceiveHeaders)
 
 	tracer.start(model.TraceReceiveBody)
+	contentType, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+	if contentType == "text/event-stream" && req.Method != model.MethodHead {
+		if call.OnUpdate != nil {
+			timer.Stop()
+		}
+		return receiveSSE(ctx, call, resp, tracer, started, timeout), nil
+	}
 	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes))
 	if err != nil {
 		tracer.fail()
@@ -382,7 +394,7 @@ func cookies(in []*http.Cookie) []model.Cookie {
 
 // describeError turns transport errors into messages worth showing.
 func describeError(ctx context.Context, err error, timeout float64) error {
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+	if errors.Is(context.Cause(ctx), context.DeadlineExceeded) {
 		return fmt.Errorf("request timed out after %gs", timeout)
 	}
 	if errors.Is(ctx.Err(), context.Canceled) {
@@ -466,6 +478,7 @@ func (t *tracer) fail() {
 	for _, stage := range model.TraceStages {
 		if _, began := t.started[stage]; began {
 			if _, done := t.finished[stage]; !done {
+				t.finished[stage] = model.TraceEvent{Stage: stage, State: model.TraceFailed, Duration: time.Since(t.started[stage])}
 				failed = append(failed, stage)
 			}
 		}

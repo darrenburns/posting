@@ -31,9 +31,10 @@ type Call struct {
 	// OnAuth reports OAuth progress and credential-storage warnings without
 	// credentials. Like OnTrace, it may be called from any goroutine.
 	OnAuth func(string)
-	// OnUpdate, when set, receives a gRPC call's response so far as its
-	// messages arrive, before Send returns the whole of it. It may be called
-	// from any goroutine.
+	// OnUpdate, when set, receives a gRPC or SSE response so far as its
+	// messages arrive, before Send returns the whole of it. An SSE response
+	// lifts the request timeout after headers arrive when OnUpdate is set;
+	// the caller's context still cancels it. It may be called from any goroutine.
 	OnUpdate func(*model.Response)
 	// Stream, when set, keeps a gRPC call's sending side open after the
 	// request's own messages, for more sent through it, and lifts the

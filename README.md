@@ -17,6 +17,7 @@ Some notable features include:
 - syntax highlighting
 - response search, a collapsible JSON tree, and JSONPath filtering
 - HTTP, GraphQL, and gRPC, including streaming
+- server-sent events (SSE), with a live event log and JSON payload inspection
 - request timing, and a persistent history of responses
 - customizable keybindings and extensive configuration
 - 37 built-in themes, plus user-defined themes

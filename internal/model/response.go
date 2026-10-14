@@ -88,6 +88,10 @@ type MessageEvent struct {
 	Title       string `json:",omitempty"`
 	Body        []byte `json:",omitempty"`
 	ContentType string `json:",omitempty"`
+	// Event and ID are the SSE event type and last event ID. Event defaults
+	// to "message" for SSE; both fields are empty for other protocols.
+	Event string `json:",omitempty"`
+	ID    string `json:",omitempty"`
 }
 
 type MessageEventKind string
@@ -115,6 +119,9 @@ type Response struct {
 	// Events is the chronological log of a streaming exchange. Unary calls
 	// and older history entries have none and use the body viewer instead.
 	Events []MessageEvent `json:",omitempty"`
+	// StreamError explains an interrupted SSE response. The HTTP status,
+	// received body and completed events remain available for inspection.
+	StreamError string `json:",omitempty"`
 	// BodyContentType is the media type of Body when Body isn't what came
 	// over the wire, as when gRPC messages are decoded to JSON.
 	BodyContentType string      `json:",omitempty"`

@@ -17,6 +17,36 @@ The response has four tabs. Jump to them with ++ctrl+o++ followed by ++a++ ++s++
 A gRPC response has a **Trailers** tab in place of **Cookies**. See
 [gRPC responses](./requests.md#grpc-responses).
 
+## Server-sent events (SSE)
+
+Send an ordinary HTTP request to an SSE endpoint. Posting detects `Content-Type: text/event-stream`
+and replaces **Body** with a live **Events** log. GET and POST both work, including POST requests
+with a JSON body. Headers, authentication, cookies, TLS settings and variables work as usual;
+add `Accept: text/event-stream` if the endpoint requires it.
+
+Events appear as they arrive, with timestamps and event names. Select an event to inspect its
+data and last event ID; JSON data supports highlighting, search and the JSON tree. Multiline
+`data` fields are joined with newlines. Comments are ignored, and an unfinished event isn't
+dispatched when the connection ends. Gzip and deflate responses are decoded while streaming.
+
+The log follows new events until you move through it or inspect a payload. Arrivals then leave
+your selection alone and increment the unread count. Press ++f++ in the log to follow again.
+On narrow panels, ++enter++ opens the full-width inspector and ++escape++ returns to the log.
+
+Press ++escape++ from the log to stop the stream. Received events remain available and are saved
+in history when the stream stops or ends, subject to the usual history size limit. A connection
+failure keeps the received data and shows **Stream interrupted** with an error in the log.
+
+In the UI, the request timeout applies until response headers arrive; an established SSE stream
+stays open until you stop it or the server closes it. Posting does **not** automatically reconnect
+or replay a request, and ignores `retry` fields. Send again to reconnect; add a `Last-Event-ID`
+request header if you want the server to resume from a particular event.
+
+For bounded memory use, Posting stops with an explanation if a stream exceeds 10,000 events,
+64 MiB of decoded response data, or 1 MiB in a single event or line. The retained raw SSE body is
+available to exports and [`posting run --json`](./running.md); headless runs keep their timeout
+for the entire response and report interruptions as failures.
+
 ## Body
 
 The response body, syntax highlighted based on its `Content-Type`. JSON, HTML, XML, CSS, JavaScript
