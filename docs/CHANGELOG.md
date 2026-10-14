@@ -84,6 +84,10 @@ between versions.
 GraphQL, gRPC, and requests with `variable_scope` must be edited in Posting 3. Saving them in
 Posting 2 removes the fields that hold their queries, RPC settings, or scoped variables.
 
+### Added
+
+- A one-time notice on startup announcing the Posting 3 beta, with install instructions and a link to the migration guide. It is shown once per machine.
+
 ## 2.11.2 [5th October 2026]
 
 ### Fixed

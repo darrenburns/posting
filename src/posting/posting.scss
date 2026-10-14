@@ -241,6 +241,20 @@ HelpPanel {
   border-title-style: bold;
 }
 
+Posting3Notice {
+  align: center middle;
+
+  & .modal-body {
+    width: 76;
+    max-width: 90%;
+  }
+
+  & Button {
+    margin-top: 1;
+    width: 100%;
+  }
+}
+
 .section {
   border: round $accent 40%;
   border-title-color: $text-accent 50%;
