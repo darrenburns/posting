@@ -1,0 +1,118 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Test API
+meta:
+  id: wrk_testapi001
+  description: "A test API collection from Insomnia"
+collection:
+  - url: "{{ _.base_url }}/ping"
+    name: Ping
+    meta:
+      id: req_ping001
+      description: "Health check endpoint"
+    method: GET
+    headers:
+      - name: X-Ping-Header
+        value: "Pong"
+  - name: Users
+    meta:
+      id: fld_users001
+      description: "User management folder"
+    children:
+      - url: "{{ _.base_url }}/users"
+        name: Get Users
+        meta:
+          id: req_getusers001
+          description: "List users"
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+            disabled: false
+          - name: limit
+            value: "10"
+            disabled: true
+        headers:
+          - name: Accept
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+      - url: "{{ _.base_url }}/users/auth-check"
+        name: Basic Auth Check
+        meta:
+          id: req_basicauth001
+        method: GET
+        authentication:
+          type: basic
+          username: "{{ _.user_id }}"
+          password: "secret_password"
+      - url: "{{ _.base_url }}/users/digest-check"
+        name: Digest Auth Check
+        meta:
+          id: req_digestauth001
+        method: GET
+        authentication:
+          type: digest
+          username: "digest_user"
+          password: "digest_password"
+      - name: User Details
+        meta:
+          id: fld_userdetails001
+        children:
+          - url: "{{ _.base_url }}/users/{{ _.user_id }}?active=true"
+            name: Get User
+            meta:
+              id: req_getuser001
+              description: "Get single user details"
+            method: GET
+          - url: "{{ _.base_url }}/users"
+            name: Create User
+            meta:
+              id: req_createuser001
+            method: POST
+            headers:
+              - name: Content-Type
+                value: application/json
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "name": "Jane Doe",
+                  "email": "{{ _.email }}"
+                }
+          - url: "{{ _.base_url }}/users/form"
+            name: Submit Form
+            meta:
+              id: req_formuser001
+            method: POST
+            body:
+              mimeType: application/x-www-form-urlencoded
+              params:
+                - name: username
+                  value: "{{ _.user_id }}"
+                  disabled: false
+                - name: status
+                  value: active
+                  disabled: true
+environments:
+  name: Base Environment
+  meta:
+    id: env_base001
+  data:
+    base_url: https://api.example.com
+    email: user@example.com
+    user_id: user-123
+  subEnvironments:
+    - name: Local
+      meta:
+        id: env_sub_local001
+      data:
+        base_url: http://localhost:8080
+        token: local-token-123
+    - name: Production
+      meta:
+        id: env_sub_prod001
+      data:
+        base_url: https://prod.example.com
+        token: prod-token-456

@@ -103,10 +103,13 @@ def locate(thing_to_locate: str) -> None:
     default=None,
 )
 @click.option(
-    "--type", "-t", default="openapi", help="Specify spec type [openapi, postman]"
+    "--type",
+    "-t",
+    default="openapi",
+    help="Specify spec type [openapi, postman, insomnia]",
 )
 def import_spec(spec_path: str, output: str | None, type: str) -> None:
-    """Import an OpenAPI specification into a Posting collection."""
+    """Import an OpenAPI, Postman, or Insomnia specification into a Posting collection."""
     console = Console()
     console.print(
         "Importing is currently an experimental feature.", style="bold yellow"
@@ -151,6 +154,28 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
                 output_path, f"{collection.name}.env", postman_collection.variable
             )
             console.print(f"Created environment file {str(env_file)!r}.")
+        elif type.lower() == "insomnia":
+            from posting.importing.insomnia import (
+                import_insomnia_spec,
+                create_env_file as create_insomnia_env_file,
+            )
+
+            spec_type = "Insomnia"
+            collection, env_files = import_insomnia_spec(spec_path, output)
+            if output_path is None:
+                output_path = (
+                    Path(default_collection_directory()) / f"{collection.name}"
+                )
+
+            output_path.mkdir(parents=True, exist_ok=True)
+            collection.path = output_path
+            collection.save_to_disk(output_path)
+
+            for env_filename, env_vars in env_files.items():
+                env_file = create_insomnia_env_file(
+                    output_path, env_filename, env_vars
+                )
+                console.print(f"Created environment file {str(env_file)!r}.")
         else:
             console.print(f"Unknown spec type: {type!r}", style="red")
             return
@@ -165,6 +190,10 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
         )
         console.print(
             "For Postman collections, use `posting import --type postman <path>`",
+            style="red",
+        )
+        console.print(
+            "For Insomnia collections, use `posting import --type insomnia <path>`",
             style="red",
         )
         console.print(
