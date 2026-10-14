@@ -379,11 +379,20 @@ class JsonBodyGenerator:
             return obj
 
 
-def import_openapi_spec(spec_path: str | Path) -> Collection:
+def import_openapi_spec(
+    spec_path: str | Path, env_dir: Path | None = None
+) -> Collection:
+    """Import an OpenAPI spec.
+
+    Environment files are written to `env_dir`, which defaults to the
+    directory containing the spec.
+    """
     console = Console()
     console.print(f"Importing OpenAPI spec from {spec_path!r}.")
 
     spec_path = Path(spec_path)
+    if env_dir is None:
+        env_dir = spec_path.parent
     with open(spec_path, "r") as file:
         spec = yaml.safe_load(file)
 
@@ -423,7 +432,7 @@ def import_openapi_spec(spec_path: str | Path) -> Collection:
         variables = {**extract_server_variables(server), **security_variables}
         server_url = str(server.get("url", ""))
         env_filename = generate_unique_env_filename(collection_name, server_url)
-        env_file = create_env_file(spec_path.parent, env_filename, variables)
+        env_file = create_env_file(env_dir, env_filename, variables)
         console.print(
             f"Created environment file {str(env_file)!r} for server {server_url!r}."
         )

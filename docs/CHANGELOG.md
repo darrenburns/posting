@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Fixed
+
+- Fix `posting import` failing when the spec is a pipe, such as `posting import <(curl ...)`. Environment files are written to the output directory instead of next to the spec (#356).
+
 ## 2.11.2 [5th October 2026]
 
 ### Fixed
