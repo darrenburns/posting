@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Smart quotes and brackets in structured request bodies, GraphQL queries and variables, gRPC messages, and structured multipart values. Opening delimiters insert a matching closer, selections are wrapped, and typing an existing matching closer moves through it. Enter preserves indentation and expands bracket pairs onto separate lines; paste remains literal.
+
 ## 3.0.0-beta.0 [13th October 2026]
 
 ### Posting 3

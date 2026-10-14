@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/chroma/v2 v2.23.1
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/charmbracelet/x/ansi v0.11.3
-	github.com/darrenburns/terma v0.26.0
+	github.com/darrenburns/terma v0.27.0
 	github.com/darrenburns/ultraviolet v0.0.0-20261012170537-2684fdbe5bed
 	github.com/rivo/uniseg v0.4.7
 	github.com/theory/jsonpath v0.12.2

@@ -243,7 +243,7 @@ func (v partInspector) Build(ctx t.BuildContext) t.Widget {
 		rows = append(rows, field(t.Text{Content: "Paths are relative to the collection.", Wrap: t.WrapSoft, Style: t.Style{Width: t.Flex(1), ForegroundColor: theme.TextMuted, Padding: inset}}))
 	} else {
 		language := languageFor(p.contentType.GetText())
-		var area t.Widget = t.TextArea{ID: "req-part-text", State: p.text, ScrollState: p.textScroll, Placeholder: "Part value…", Highlighter: a.bodyHighlighter(theme, language, s.substitute.Checked.Get()), Style: t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: inset}, OnChange: edit, ExtraKeybinds: a.externalKeybinds(p.text, language, s.touch)}
+		var area t.Widget = t.TextArea{ID: "req-part-text", State: p.text, ScrollState: p.textScroll, Placeholder: "Part value…", Highlighter: a.bodyHighlighter(theme, language, s.substitute.Checked.Get()), Style: t.Style{Width: t.Flex(1), BackgroundColor: theme.Surface, Padding: inset}, BeforeInput: smartInput(p.text, language), OnChange: edit, ExtraKeybinds: a.externalKeybinds(p.text, language, s.touch)}
 		if s.substitute.Checked.Get() {
 			area = p.textVars.wrap(theme, area, choices, t.Flex(1))
 		}

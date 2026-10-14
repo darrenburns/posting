@@ -111,6 +111,7 @@ func (v graphQLQueryView) Build(ctx t.BuildContext) t.Widget {
 		Placeholder:   "Enter a GraphQL query…",
 		Highlighter:   v.app.queryHighlighter(theme, s.substitute.Checked.Get()),
 		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
+		BeforeInput:   smartInput(e.query, "graphql"),
 		OnChange:      touch,
 		ExtraKeybinds: v.app.externalKeybinds(e.query, "graphql", s.touch),
 	}
@@ -143,6 +144,7 @@ func (v graphQLVariablesView) Build(ctx t.BuildContext) t.Widget {
 		Placeholder:   `{"id": "${USER_ID}"}`,
 		Highlighter:   v.app.bodyHighlighter(theme, "json", substitute),
 		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
+		BeforeInput:   smartInput(e.variables, "json"),
 		OnChange:      func(string) { s.touch() },
 		ExtraKeybinds: v.app.externalKeybinds(e.variables, "json", s.touch),
 	}

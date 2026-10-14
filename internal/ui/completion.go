@@ -74,13 +74,15 @@ func (c *completion) wrap(theme t.ThemeData, child t.Widget, choices variableCho
 		TriggerChars:    []rune{'$'},
 		TriggerAnywhere: true, // Variables sit mid-URL: /users/$ID.
 		Insert: func(text string, cursor int, suggestion t.Suggestion, trigger int) (string, int) {
-			graphemes := uniseg.NewGraphemes(text)
-			pos := 0
-			for i := 0; i < trigger && graphemes.Next(); i++ {
-				_, pos = graphemes.Positions()
+			var graphemes []string
+			for g := uniseg.NewGraphemes(text); g.Next(); {
+				graphemes = append(graphemes, g.Str())
 			}
-			if strings.HasSuffix(text[:pos], "${") {
+			if trigger >= 2 && graphemes[trigger-2] == "$" && graphemes[trigger-1] == "{" {
 				trigger -= 2 // Replace the outer ${ too when completing ${$name}.
+			}
+			if trigger >= 0 && trigger+1 < len(graphemes) && graphemes[trigger] == "$" && graphemes[trigger+1] == "{" && cursor < len(graphemes) && graphemes[cursor] == "}" {
+				cursor++ // Reuse an existing (possibly auto-paired) closing brace.
 			}
 			return t.InsertFromTrigger(text, cursor, suggestion, trigger)
 		},

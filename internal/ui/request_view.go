@@ -188,6 +188,7 @@ func (b bodyEditor) Build(ctx t.BuildContext) t.Widget {
 			Placeholder:   "Request body…",
 			Highlighter:   b.app.bodyHighlighter(theme, languageFor(contentType), s.substitute.Checked.Get()),
 			Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
+			BeforeInput:   smartInput(s.body, languageFor(contentType)),
 			OnChange:      func(string) { s.touch() },
 			ExtraKeybinds: b.app.externalKeybinds(s.body, languageFor(contentType), s.touch),
 		}

@@ -398,6 +398,7 @@ func (v grpcMessageView) Build(ctx t.BuildContext) t.Widget {
 		Placeholder:   "Choose a method to fill in its message, or write it as JSON…",
 		Highlighter:   a.bodyHighlighter(theme, "json", substitute),
 		Style:         t.Style{Width: t.Flex(1), BackgroundColor: theme.Background, Padding: t.EdgeInsetsXY(1, 0)},
+		BeforeInput:   smartInput(e.message, "json"),
 		OnChange:      func(string) { s.touch() },
 		ExtraKeybinds: a.externalKeybinds(e.message, "json", s.touch),
 	}
