@@ -51,7 +51,7 @@ go build -o posting ./cmd/posting
 
 ```bash
 $ posting version
-Posting 3.0.0-beta.0
+Posting 3.0.0-beta.1
 ```
 
 `posting --help` lists the options you can start Posting with.

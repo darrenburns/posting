@@ -1,4 +1,4 @@
-## [Unreleased]
+## 3.0.0-beta.1 [15th October 2026]
 
 ### Added
 

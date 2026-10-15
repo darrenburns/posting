@@ -4,12 +4,15 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Run against a release tag to verify an already-published Homebrew cask.
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   release:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: goreleaser
     steps:
@@ -29,6 +32,7 @@ jobs:
 
   homebrew:
     needs: release
+    if: ${{ !cancelled() && (needs.release.result == 'success' || github.event_name == 'workflow_dispatch') }}
     strategy:
       fail-fast: false
       matrix:
