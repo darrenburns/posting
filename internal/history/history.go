@@ -231,7 +231,7 @@ func entrySize(entry model.HistoryEntry) int {
 	if entry.Response != nil {
 		size += len(entry.Response.Body)
 		for _, event := range entry.Response.Events {
-			size += len(event.Body) + len(event.Title) + len(event.ContentType) + 128
+			size += len(event.Body) + len(event.Title) + len(event.ContentType) + len(event.Event) + len(event.ID) + 128
 		}
 	}
 	return size

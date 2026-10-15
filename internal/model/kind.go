@@ -217,10 +217,17 @@ func StatusOf(req Request, resp *Response) Status {
 	if resp == nil {
 		return Status{}
 	}
-	if req.Payload == nil {
-		return httpStatus(resp)
+	status := httpStatus(resp)
+	if req.Payload != nil {
+		status = req.Payload.status(resp)
 	}
-	return req.Payload.status(resp)
+	if resp.StreamError != "" {
+		status.Text = "Stream interrupted"
+		if status.Class != StatusClassError {
+			status.Class = StatusClassWarning
+		}
+	}
+	return status
 }
 
 func httpStatus(resp *Response) Status {

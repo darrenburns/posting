@@ -56,7 +56,7 @@ func (p responsePanel) Build(ctx t.BuildContext) t.Widget {
 	case live:
 		fg, bg := statusColors(theme, model.StatusClassWarning)
 		status := t.ParseMarkupToText(fmt.Sprintf("[%s on %s] RECEIVING [/]", fg.Hex(), bg.Hex()), theme)
-		if streaming == streamOpen {
+		if streaming == streamOpen || resp.ContentType() == "text/event-stream" {
 			status = t.Text{
 				Spans: []t.Span{{Text: "Streaming"}},
 				Style: t.Style{ForegroundColor: t.Shimmer{
@@ -163,7 +163,11 @@ func (p responsePanel) streamHints(streaming streamPhase) string {
 	if streaming == streamOpen {
 		hints = append(hints, hint(p.app.keyHint("send-request"), "sends the message"), hint(p.app.keyHint("stream"), "finishes sending"))
 	}
-	hints = append(hints, hint("esc", "stops the call"))
+	stop := "stops the call"
+	if resp := p.session.response.Peek(); resp != nil && resp.ContentType() == "text/event-stream" {
+		stop = "stops the stream"
+	}
+	hints = append(hints, hint("esc", stop))
 	return strings.Join(hints, "[$TextMuted] · [/]")
 }
 
@@ -202,6 +206,9 @@ func (s *Session) responseTabs(resp *model.Response) tabStrip {
 	if len(resp.Events) > 0 {
 		tab := tabs["body"]
 		tab.item.Label, tab.focusID, tab.empty = "Messages", messagesID, false
+		if resp.ContentType() == "text/event-stream" {
+			tab.item.Label = "Events"
+		}
 		if s.messages.detail.Peek() {
 			tab.focusID = "resp-body"
 		}

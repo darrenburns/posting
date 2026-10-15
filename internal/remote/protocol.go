@@ -170,6 +170,8 @@ type Response struct {
 	Headers     []Header `json:"headers"`
 	Trailers    []Header `json:"trailers,omitempty"`
 	ContentType string   `json:"contentType,omitempty"`
+	// StreamError is set when an SSE stream ended with an error after headers.
+	StreamError string `json:"streamError,omitempty"`
 	// Body is the body as text. A body that isn't UTF-8 is in BodyBase64
 	// instead.
 	Body       string    `json:"body"`
@@ -198,6 +200,7 @@ func NewResponse(resp *model.Response, status model.Status) *Response {
 		Headers:     responseHeaders(resp.Headers),
 		Trailers:    responseHeaders(resp.Trailers),
 		ContentType: resp.ContentType(),
+		StreamError: resp.StreamError,
 		Size:        resp.Size(),
 		ElapsedMS:   float64(resp.Elapsed.Microseconds()) / 1000,
 		ReceivedAt:  resp.ReceivedAt,

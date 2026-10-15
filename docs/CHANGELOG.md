@@ -3,6 +3,10 @@
 ### Added
 
 - Smart quotes and brackets in structured request bodies, GraphQL queries and variables, gRPC messages, and structured multipart values. Opening delimiters insert a matching closer, selections are wrapped, and typing an existing matching closer moves through it. Enter preserves indentation and expands bracket pairs onto separate lines; paste remains literal.
+- Server-sent events (SSE): HTTP responses with `text/event-stream` open a live event log with
+  timestamps, event names, IDs, and text/JSON inspection. Stop a stream without losing received
+  events, revisit it in history, and stream gzip/deflate responses. Reconnection is explicit;
+  headless runs retain their timeout and report stream interruptions as failures.
 
 ## 3.0.0-beta.0 [13th October 2026]
 

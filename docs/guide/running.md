@@ -30,6 +30,14 @@ This is a request-execution command, not an assertion-based test runner. It can 
 smoke checks, but doesn't verify that a successful response contains the right application data.
 Custom response assertions are outside its current scope.
 
+### SSE responses
+
+Headless runs can receive [server-sent events](./responses.md#server-sent-events-sse), but wait for
+the stream to end rather than print events live. Unlike the UI, the request timeout applies to
+the whole response. A timeout, interrupted connection or stream size limit fails the request;
+`--json` retains the received raw SSE body and includes a `streamError` explanation. Posting never
+reconnects automatically.
+
 ## Selecting requests
 
 Give a `.posting.yaml` file to run one request, or a directory to run every request inside it,

@@ -68,7 +68,7 @@ Features that are planned for future development but are not immediate prioritie
 - Request tagging: the ability to add tags to requests, and filter by tag <span class="tag requests">Requests</span>
 - Making it clear which HTTP headers are set automatically <span class="tag ux">UX</span>
 - Collection switcher <span class="tag collection">Collection</span>
-- WebSocket and SSE support <span class="tag realtime">Realtime</span>
+- WebSocket support <span class="tag realtime">Realtime</span>
 - Add rotating logging <span class="tag logging">Logging</span>
 - Create a `_template.posting.yaml` file for request templates <span class="tag requests">Requests</span>
 - Adding test framework <span class="tag testing">Testing</span>
@@ -78,6 +78,7 @@ Features that are planned for future development but are not immediate prioritie
 
 Features that have been implemented in Posting 3.
 
+- SSE responses with a live event log, payload inspection and history <span class="tag realtime">Realtime</span>
 - Multipart form bodies and file uploads <span class="tag requests">Requests</span>
 - Request tabs, with a preview tab for browsing the collection <span class="tag ui">UI</span>
 - Layered environments: `posting.env`, `<name>.env` and `.local.env` files <span class="tag environment">Environment</span>

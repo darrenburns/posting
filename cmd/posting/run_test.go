@@ -219,6 +219,13 @@ func TestRunFailuresAndFailFast(t *testing.T) {
 			http.Redirect(w, r, "/ok", http.StatusTemporaryRedirect)
 		case "/binary":
 			w.Write([]byte{0xff, 0x00, 0x10})
+		case "/sse", "/sse-slow":
+			w.Header().Set("Content-Type", "text/event-stream")
+			fmt.Fprint(w, "data: retained\n\n")
+			w.(http.Flusher).Flush()
+			if r.URL.Path == "/sse-slow" {
+				<-r.Context().Done()
+			}
 		case "/slow":
 			<-r.Context().Done()
 		default:
@@ -240,6 +247,8 @@ func TestRunFailuresAndFailFast(t *testing.T) {
 		{"undefined URL", "url: ${RUN_TEST_UNDEFINED_BASE}/ok\n", "Variable not defined", false},
 		{"timeout", "url: ${BASE}/slow\noptions:\n  timeout: 0.02\n", "timed out", false},
 		{"binary body", "url: ${BASE}/binary\n", "", true},
+		{"finite SSE", "url: ${BASE}/sse\n", "", true},
+		{"SSE timeout", "url: ${BASE}/sse-slow\noptions:\n  timeout: 0.1\n", "Stream interrupted", false},
 	} {
 		for _, failFast := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s/fast=%t", tc.name, failFast), func(t *testing.T) {
@@ -272,6 +281,11 @@ func TestRunFailuresAndFailFast(t *testing.T) {
 				}
 				if tc.name == "binary body" && (result.Response.Body != "" || result.Response.BodyBase64 != "/wAQ") {
 					t.Fatalf("binary response = %+v", result.Response)
+				}
+				if tc.name == "finite SSE" || tc.name == "SSE timeout" {
+					if result.Response == nil || result.Response.Body != "data: retained\n\n" || tc.name == "SSE timeout" && !strings.Contains(result.Response.StreamError, "timed out") {
+						t.Fatalf("SSE response lost data or timeout details: %+v", result.Response)
+					}
 				}
 			})
 		}

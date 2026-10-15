@@ -56,6 +56,9 @@ func (m *messageLog) update(s *Session, events []model.MessageEvent, reset bool)
 		if preview == "" {
 			preview = string(event.Body[:min(len(event.Body), 256)])
 		}
+		if event.Event != "" {
+			preview = event.Event + " · " + preview
+		}
 		rows = append(rows, messageRow{event: event, index: i, preview: strings.Join(strings.Fields(preview), " ")})
 	}
 	m.scroll.PinToBottom = m.following.Peek()
@@ -94,7 +97,7 @@ func (m *messageLog) showSelected(s *Session) {
 
 func messageResponse(event model.MessageEvent) *model.Response {
 	body, contentType := event.Body, event.ContentType
-	if len(body) == 0 {
+	if len(body) == 0 && event.Event == "" {
 		body, contentType = []byte(event.Title), "text/plain"
 	}
 	return &model.Response{Body: body, BodyContentType: contentType}
@@ -196,6 +199,8 @@ func (v responseMessages) Build(ctx t.BuildContext) t.Widget {
 	hint := "↑↓ Select · enter Inspect"
 	if m.detail.Get() {
 		hint = "esc Back to log"
+	} else if m.narrow.Get() && s.phase.Get() == exchangeSending && s.response.Get().ContentType() == "text/event-stream" {
+		hint = "enter Inspect · esc Stop"
 	}
 	return messageLogLayout{
 		state: m,
@@ -250,6 +255,27 @@ func (v messageInspector) Build(ctx t.BuildContext) t.Widget {
 	case model.MessageReceived:
 		label += " Received"
 	}
+	var body t.Widget = responseBody{app: v.app, session: v.session, response: messageResponse(row.event)}
+	if row.event.Event != "" {
+		metadata := row.event.Event
+		if row.event.ID != "" {
+			metadata += " · ID: " + row.event.ID
+		}
+		if len(row.event.Body) == 0 {
+			body = t.Scrollable{
+				ID: "resp-body", State: v.session.responseBodyScroll, Focusable: true,
+				Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+				Child: emptyState{Title: "Empty event data"},
+			}
+		}
+		body = t.Column{
+			Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
+			Children: []t.Widget{
+				messagePreview{t.Text{Content: metadata, Style: t.Style{Width: t.Flex(1), Height: t.Cells(1), ForegroundColor: theme.TextMuted}}},
+				body,
+			},
+		}
+	}
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)},
 		Children: []t.Widget{
@@ -267,7 +293,7 @@ func (v messageInspector) Build(ctx t.BuildContext) t.Widget {
 					t.Text{Content: row.event.At.Local().Format("15:04:05.000"), Style: t.Style{Width: t.Cells(12), ForegroundColor: theme.TextMuted.WithAlpha(0.8)}},
 				},
 			},
-			responseBody{app: v.app, session: v.session, response: messageResponse(row.event)},
+			body,
 		},
 	}
 }
