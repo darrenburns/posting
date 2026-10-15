@@ -10,9 +10,10 @@ import (
 type KindID string
 
 const (
-	KindHTTP    KindID = "http"
-	KindGraphQL KindID = "graphql"
-	KindGRPC    KindID = "grpc"
+	KindHTTP      KindID = "http"
+	KindGraphQL   KindID = "graphql"
+	KindGRPC      KindID = "grpc"
+	KindWebSocket KindID = "websocket"
 )
 
 // Fields is a set of the shared Request fields a kind uses. Normalize resets
@@ -50,7 +51,7 @@ func (f Fields) Has(field Fields) bool { return f&field == field }
 type Kind struct {
 	ID    KindID
 	Label string // "HTTP", "GraphQL", "gRPC"
-	// Badge is the three letter label lists show. HTTP shows the method instead.
+	// Badge is the short label lists show (at most three letters). HTTP shows the method instead.
 	Badge  string
 	Fields Fields
 
@@ -82,12 +83,19 @@ var (
 		decode:  decodePayload[GRPC],
 		example: exampleGRPC,
 	}
+	WebSocketKind = &Kind{
+		ID: KindWebSocket, Label: "WebSocket", Badge: "WS",
+		Fields:  FieldHeaders | FieldQuery | FieldPathParams | FieldAuth | FieldCookies | FieldProxy,
+		zero:    WebSocket{},
+		decode:  decodePayload[WebSocket],
+		example: exampleWebSocket,
+	}
 )
 
 // Kinds lists every kind in menu and sort order. Each layer that keeps a
 // table keyed by kind has a test ranging over this list, so a new kind added
 // here turns those tests red until every layer knows about it.
-var Kinds = []*Kind{HTTPKind, GraphQLKind, GRPCKind}
+var Kinds = []*Kind{HTTPKind, GraphQLKind, GRPCKind, WebSocketKind}
 
 // KindByID finds a kind by its file name.
 func KindByID(id KindID) (*Kind, bool) {

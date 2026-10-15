@@ -127,7 +127,11 @@ func (a *App) exportCommand(resolve bool) (string, error) {
 		}
 		req = resolved
 	}
-	return kindViews[req.Kind().ID].export.format(a, req)
+	format := kindViews[req.Kind().ID].export.format
+	if format == nil {
+		return "", errors.New("this request kind can only be exported as YAML")
+	}
+	return format(a, req)
 }
 
 // copyExport copies the request as a command and shows it.

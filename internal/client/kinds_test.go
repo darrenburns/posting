@@ -17,7 +17,7 @@ import (
 // tests use.
 func TestEveryKindHasASender(t *testing.T) {
 	http, grpc := NewHTTP("", TLSSettings{}), NewGRPC("", TLSSettings{}, "")
-	senders := ByKind{HTTP: http, GRPC: grpc}
+	senders := ByKind{HTTP: http, GRPC: grpc, WebSocket: &WebSocket{HTTP: http}}
 	for _, k := range model.Kinds {
 		t.Run(string(k.ID), func(t *testing.T) {
 			sender := senders.For(k)
@@ -42,13 +42,13 @@ func TestByKindRoutesEachKindToItsSender(t *testing.T) {
 			return &model.Response{}, nil
 		})
 	}
-	senders := ByKind{HTTP: record("http"), GRPC: record("grpc")}
+	senders := ByKind{HTTP: record("http"), GRPC: record("grpc"), WebSocket: record("websocket")}
 	for _, k := range model.Kinds {
 		if _, err := senders.Send(context.Background(), Call{Request: k.New()}); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if want := []string{"http", "http", "grpc"}; !reflect.DeepEqual(got, want) {
+	if want := []string{"http", "http", "grpc", "websocket"}; !reflect.DeepEqual(got, want) {
 		t.Fatalf("sent to %v, want %v", got, want)
 	}
 	if _, err := (ByKind{HTTP: record("http")}).Send(context.Background(), Call{Request: model.GRPCKind.New()}); err == nil || !strings.Contains(err.Error(), "gRPC") {

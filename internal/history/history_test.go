@@ -69,7 +69,7 @@ func TestAppendPersistsNextIDAndCompatibleEntries(t *testing.T) {
 
 func TestEntriesThisBuildCantReadSurviveAnAppend(t *testing.T) {
 	store := ForCollection(t.TempDir(), "/c")
-	newer := `{"ID":2,"Request":{"Name":"Stream","Kind":"websocket","Payload":{"Channel":"chat"}},"Response":null,"SentAt":"2026-09-29T01:02:03Z"}`
+	newer := `{"ID":2,"Request":{"Name":"Stream","Kind":"future-protocol","Payload":{"Channel":"chat"}},"Response":null,"SentAt":"2026-09-29T01:02:03Z"}`
 	http, _ := json.Marshal(model.HistoryEntry{ID: 1, Request: model.NewRequest(), SentAt: time.Date(2026, 9, 29, 1, 0, 0, 0, time.UTC)})
 	if err := os.WriteFile(store.Path(), []byte(`{"version":1,"entries":[`+newer+`,`+string(http)+`]}`), 0o600); err != nil {
 		t.Fatal(err)
@@ -83,7 +83,7 @@ func TestEntriesThisBuildCantReadSurviveAnAppend(t *testing.T) {
 	}
 	data, _ := os.ReadFile(store.Path())
 	if !strings.Contains(string(data), newer) {
-		t.Fatalf("saving dropped or changed the websocket entry:\n%s", data)
+		t.Fatalf("saving dropped or changed the unknown entry:\n%s", data)
 	}
 	if again, err := store.Load(); err != nil || len(again) != 2 || again[0].ID != 3 || again[1].ID != 1 {
 		t.Fatalf("reloaded %+v, %v", again, err)

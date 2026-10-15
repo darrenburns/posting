@@ -31,7 +31,7 @@ type Call struct {
 	// OnAuth reports OAuth progress and credential-storage warnings without
 	// credentials. Like OnTrace, it may be called from any goroutine.
 	OnAuth func(string)
-	// OnUpdate, when set, receives a gRPC or SSE response so far as its
+	// OnUpdate, when set, receives a streaming response so far as its
 	// messages arrive, before Send returns the whole of it. An SSE response
 	// lifts the request timeout after headers arrive when OnUpdate is set;
 	// the caller's context still cancels it. It may be called from any goroutine.
@@ -40,6 +40,9 @@ type Call struct {
 	// request's own messages, for more sent through it, and lifts the
 	// timeout once the call starts.
 	Stream *Stream
+	// Socket keeps a WebSocket open for interactive sends. Unlike a headless
+	// call, it doesn't send the draft automatically or time out after upgrade.
+	Socket *Socket
 }
 
 // Sender performs requests. Implementations must honour ctx cancellation:

@@ -30,6 +30,9 @@ func (f Fake) Send(ctx context.Context, call Call) (*model.Response, error) {
 	if call.Request.Kind() == model.GRPCKind {
 		return f.sendGRPC(ctx, call)
 	}
+	if call.Request.Kind() == model.WebSocketKind {
+		return f.sendWebSocket(ctx, call)
+	}
 	started := time.Now()
 	req, ok := model.Lower(call.Request)
 	if !ok {
@@ -261,4 +264,54 @@ func (f Fake) report(call Call, event model.TraceEvent) {
 	if call.OnTrace != nil {
 		call.OnTrace(event)
 	}
+}
+
+func (f Fake) sendWebSocket(ctx context.Context, call Call) (*model.Response, error) {
+	req, err := model.Resolve(call.Request, call.Lookup)
+	if err != nil {
+		return nil, err
+	}
+	resp := &model.Response{StatusCode: 101, Reason: "Switching Protocols", Proto: "WebSocket", URL: req.URL,
+		Events: []model.MessageEvent{{At: time.Now(), Kind: model.MessageInfo, Title: "WebSocket connected"}}}
+	report := func() {
+		if call.OnUpdate != nil {
+			copy := *resp
+			copy.Events = append([]model.MessageEvent(nil), resp.Events...)
+			call.OnUpdate(&copy)
+		}
+	}
+	echo := func(m socketMessage) {
+		resp.Events = append(resp.Events, socketEvent(model.MessageSent, m), socketEvent(model.MessageReceived, m))
+		report()
+	}
+	if call.Socket != nil {
+		call.Socket.start(call)
+		defer call.Socket.Close()
+		report()
+	loop:
+		for {
+			select {
+			case m := <-call.Socket.queue:
+				if call.Socket.TakesMessages() {
+					echo(m)
+				}
+			case <-call.Socket.closed:
+				break loop
+			case <-ctx.Done():
+				break loop
+			}
+		}
+	} else if req.Payload.(model.WebSocket).Message != "" {
+		m, err := encodeSocketMessage(req.Payload.(model.WebSocket))
+		if err != nil {
+			return nil, err
+		}
+		echo(m)
+	}
+	resp.WebSocket = &model.WebSocketStatus{Code: 1000}
+	resp.Events = append(resp.Events, model.MessageEvent{At: time.Now(), Kind: model.MessageInfo, Title: "WebSocket disconnected: 1000"})
+	resp.Body, _ = json.Marshal(resp.Events)
+	resp.BodyContentType = "application/json"
+	resp.ReceivedAt = time.Now()
+	return resp, nil
 }

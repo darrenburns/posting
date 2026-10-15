@@ -35,6 +35,16 @@ func (f *grpcFile) UnmarshalYAML(node *yaml.Node) error {
 	return decodeStrict(node, "grpc", (*plain)(f))
 }
 
+type webSocketFile struct {
+	Message yamlString `yaml:"message,omitempty"`
+	Binary  bool       `yaml:"binary,omitempty"`
+}
+
+func (f *webSocketFile) UnmarshalYAML(node *yaml.Node) error {
+	type plain webSocketFile
+	return decodeStrict(node, "websocket", (*plain)(f))
+}
+
 // protoSetFile is the `proto:` block of a gRPC request that names its schema
 // files instead of asking the server for it.
 type protoSetFile struct {
@@ -54,6 +64,16 @@ var kindBlocks = map[model.KindID]struct {
 	present func(requestFile) bool
 	decode  func(requestFile) model.Payload
 }{
+	model.KindWebSocket: {
+		key:     "websocket",
+		present: func(in requestFile) bool { return in.WebSocket != nil },
+		decode: func(in requestFile) model.Payload {
+			if f := in.WebSocket; f != nil {
+				return model.WebSocket{Message: string(f.Message), Binary: f.Binary}
+			}
+			return model.WebSocket{}
+		},
+	},
 	model.KindGraphQL: {
 		key:     "graphql",
 		present: func(in requestFile) bool { return in.GraphQL != nil },
@@ -171,6 +191,9 @@ func checkFields(in requestFile, kind *model.Kind) error {
 func encodePayload(req model.Request, out *requestFile) error {
 	switch p := req.Payload.(type) {
 	case nil:
+	case model.WebSocket:
+		out.Kind = string(model.KindWebSocket)
+		out.WebSocket = &webSocketFile{Message: yamlString(p.Message), Binary: p.Binary}
 	case model.GraphQL:
 		out.Kind = string(model.KindGraphQL)
 		out.GraphQL = &graphQLFile{Query: yamlString(p.Query), Variables: yamlString(p.Variables), OperationName: yamlString(p.OperationName)}

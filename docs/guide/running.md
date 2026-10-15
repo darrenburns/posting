@@ -10,7 +10,7 @@ posting run api --env dev --json > results.json
 jq -r '.results[0].response.body' results.json
 ```
 
-It uses the same HTTP, GraphQL and gRPC clients as the UI, including authentication, TLS settings,
+It uses the same HTTP, GraphQL, gRPC and WebSocket clients as the UI, including authentication, TLS settings,
 uploads, request options and variable substitution. It doesn't open tabs, save history, or change
 the UI's environment. To send through a Posting someone is watching, use
 [`posting remote`](./remote_control.md) instead.
@@ -37,6 +37,21 @@ the stream to end rather than print events live. Unlike the UI, the request time
 the whole response. A timeout, interrupted connection or stream size limit fails the request;
 `--json` retains the received raw SSE body and includes a `streamError` explanation. Posting never
 reconnects automatically.
+
+### WebSocket requests
+
+A headless [WebSocket request](./requests.md#websocket-requests) sends its saved nonempty message
+once after connecting, then receives until the server closes or the request timeout expires.
+An empty draft listens without sending. Normal close codes 1000 and 1001 pass; timeouts, abnormal
+closes and message/log limits fail while retaining completed messages.
+
+The response body is a JSON array of timestamped log entries. `Kind` identifies sent/received
+messages, `FrameType` identifies text/binary, and `Body` contains base64-encoded payload bytes
+(including for text). This preserves binary data and message boundaries in exports. For example:
+
+```bash
+posting run events.posting.yaml --json | jq -r '.results[0].response.body | fromjson[] | select(.Kind == "received" and .FrameType == "text") | .Body // "" | @base64d'
+```
 
 ## Selecting requests
 

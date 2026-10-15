@@ -8,6 +8,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.3
 	github.com/darrenburns/terma v0.27.0
 	github.com/darrenburns/ultraviolet v0.0.0-20261012170537-2684fdbe5bed
+	github.com/gorilla/websocket v1.5.3
 	github.com/rivo/uniseg v0.4.7
 	github.com/theory/jsonpath v0.12.2
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78

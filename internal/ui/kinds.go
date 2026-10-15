@@ -60,6 +60,15 @@ var kindViews = map[model.KindID]kindView{
 		responseTabs:   httpResponseTabs,
 		export:         curlExporter,
 	},
+	model.KindWebSocket: {
+		hotkey: "w",
+		color: func(theme t.ThemeData) t.Color {
+			return unlikeMethods(theme, nil, theme.Link, theme.AccentText, theme.SecondaryText)
+		},
+		urlPlaceholder: "Enter a WebSocket URL, e.g. wss://api.example.com/events",
+		newEditor:      newWebSocketEditor,
+		responseTabs:   httpResponseTabs,
+	},
 	model.KindGraphQL: {
 		hotkey:         "q",
 		color:          graphQLColor,

@@ -9,8 +9,9 @@ import (
 
 // ByKind sends each request with the sender for its kind.
 type ByKind struct {
-	HTTP Sender // every kind carried over HTTP
-	GRPC Sender
+	HTTP      Sender // every kind carried over HTTP
+	GRPC      Sender
+	WebSocket Sender
 }
 
 func (k ByKind) Send(ctx context.Context, call Call) (*model.Response, error) {
@@ -29,6 +30,8 @@ func (k ByKind) For(kind *model.Kind) Sender {
 		return k.HTTP
 	case kind == model.GRPCKind:
 		return k.GRPC
+	case kind == model.WebSocketKind:
+		return k.WebSocket
 	}
 	return nil
 }

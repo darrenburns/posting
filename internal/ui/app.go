@@ -593,7 +593,13 @@ func (a *App) send() {
 	}
 	// A stream stays open when the request becomes another kind, until the
 	// next send cancels it.
-	if s.streaming.Peek() == streamOpen && s.kind.Peek() == model.KindGRPC {
+	if s.kind.Peek() == model.KindWebSocket && s.socket != nil {
+		if err := s.socket.Send(s.payloads[model.KindWebSocket].payload().(model.WebSocket)); err != nil {
+			a.notify(err.Error(), toastWarning)
+		}
+		return
+	}
+	if s.streaming.Peek() == streamOpen && s.kind.Peek() == model.KindGRPC && s.stream != nil {
 		message := s.payloads[model.KindGRPC].(*grpcEditor).message.GetText()
 		if err := s.stream.Send(message); err != nil {
 			a.notify(err.Error(), toastWarning)
@@ -609,8 +615,16 @@ func (a *App) toggleStream() {
 	s := a.current()
 	switch {
 	case s == nil:
+	case s.kind.Peek() == model.KindWebSocket:
+		if s.phase.Peek() == exchangeSending && s.socket != nil {
+			s.Stop()
+		} else {
+			a.start(s, nil)
+		}
 	case s.kind.Peek() != model.KindGRPC:
 		a.notify("Only gRPC requests can open a stream", toastWarning)
+	case s.socket != nil:
+		a.start(s, client.NewStream())
 	case s.streaming.Peek() == streamStarting:
 		a.notify("The stream hasn't started yet", toastWarning)
 	case s.streaming.Peek() == streamOpen:
@@ -626,6 +640,13 @@ func (a *App) toggleStream() {
 // the one open. It lives outside grpcCommands, which kindViews holds, since
 // opening a stream reads kindViews.
 func (a *App) streamCommand(s *Session) t.CommandPaletteItem {
+	if s.kind.Peek() == model.KindWebSocket {
+		label := "Connect WebSocket"
+		if s.phase.Peek() == exchangeSending && s.socket != nil {
+			label = "Disconnect WebSocket"
+		}
+		return t.CommandPaletteItem{Label: label, Description: "Connect without sending the draft, or disconnect and keep the message log", Action: a.run(a.toggleStream)}
+	}
 	if s.streaming.Peek() == streamOpen {
 		return t.CommandPaletteItem{Label: "Finish sending gRPC messages", Description: "Stop sending, and wait for the server to end the call", Action: a.run(a.toggleStream)}
 	}
@@ -654,6 +675,9 @@ func (a *App) start(s *Session, stream *client.Stream) {
 		return
 	}
 	call := client.Call{Request: req, Variables: model.Values(resolved), ResolveBody: variables.Substitute, Stream: stream}
+	if req.Kind() == model.WebSocketKind {
+		call.Socket = client.NewSocket()
+	}
 	s.Send(a.sender, call, func(req model.Request, resp *model.Response, status model.Status) {
 		a.captureResponse(req, resp)
 		if req.Kind() == model.GRPCKind {

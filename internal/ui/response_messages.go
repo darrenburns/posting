@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strings"
 
@@ -56,6 +57,11 @@ func (m *messageLog) update(s *Session, events []model.MessageEvent, reset bool)
 		if preview == "" {
 			preview = string(event.Body[:min(len(event.Body), 256)])
 		}
+		if event.FrameType == "binary" {
+			preview = "binary · " + model.FormatBytes(len(event.Body)) + " · " + base64.StdEncoding.EncodeToString(event.Body[:min(len(event.Body), 96)])
+		} else if event.FrameType == "text" && len(event.Body) == 0 {
+			preview = "text · empty message"
+		}
 		if event.Event != "" {
 			preview = event.Event + " · " + preview
 		}
@@ -97,7 +103,10 @@ func (m *messageLog) showSelected(s *Session) {
 
 func messageResponse(event model.MessageEvent) *model.Response {
 	body, contentType := event.Body, event.ContentType
-	if len(body) == 0 && event.Event == "" {
+	if event.FrameType == "binary" {
+		body, contentType = []byte(base64.StdEncoding.EncodeToString(body)), "text/plain"
+	}
+	if len(body) == 0 && event.Event == "" && event.FrameType == "" {
 		body, contentType = []byte(event.Title), "text/plain"
 	}
 	return &model.Response{Body: body, BodyContentType: contentType}
@@ -201,6 +210,8 @@ func (v responseMessages) Build(ctx t.BuildContext) t.Widget {
 		hint = "esc Back to log"
 	} else if m.narrow.Get() && s.phase.Get() == exchangeSending && s.response.Get().ContentType() == "text/event-stream" {
 		hint = "enter Inspect · esc Stop"
+	} else if m.narrow.Get() && s.phase.Get() == exchangeSending && s.sent.Kind() == model.WebSocketKind {
+		hint = "enter Inspect · esc Disconnect"
 	}
 	return messageLogLayout{
 		state: m,
@@ -255,7 +266,17 @@ func (v messageInspector) Build(ctx t.BuildContext) t.Widget {
 	case model.MessageReceived:
 		label += " Received"
 	}
+	if row.event.FrameType != "" {
+		label += " · " + row.event.FrameType
+		if row.event.FrameType == "binary" {
+			label += " (base64)"
+		}
+	}
 	var body t.Widget = responseBody{app: v.app, session: v.session, response: messageResponse(row.event)}
+	if row.event.FrameType != "" && len(row.event.Body) == 0 {
+		body = t.Scrollable{ID: "resp-body", State: v.session.responseBodyScroll, Focusable: true,
+			Style: t.Style{Width: t.Flex(1), Height: t.Flex(1)}, Child: emptyState{Title: "Empty message"}}
+	}
 	if row.event.Event != "" {
 		metadata := row.event.Event
 		if row.event.ID != "" {

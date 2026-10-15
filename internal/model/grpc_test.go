@@ -41,13 +41,13 @@ func TestNormalizeClearsFieldsGRPCDoesNotUse(t *testing.T) {
 	}
 }
 
-func TestDigestAuthIsDroppedOnlyFromGRPC(t *testing.T) {
+func TestDigestAuthIsDroppedFromUnsupportedKinds(t *testing.T) {
 	digest := Auth{Type: AuthDigest, Username: "ada", Password: "secret"}
 	for _, k := range Kinds {
 		r := k.Example()
 		r.Auth = digest
 		want := digest
-		if k == GRPCKind {
+		if k == GRPCKind || k == WebSocketKind {
 			want = Auth{Type: AuthNone}
 		}
 		if got := Normalize(r).Auth; got != want {

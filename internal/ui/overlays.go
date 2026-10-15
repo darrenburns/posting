@@ -2,6 +2,7 @@ package ui
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/charmbracelet/x/ansi"
@@ -130,7 +131,7 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		if s.authType.Peek() == model.AuthOAuth2 && a.oauth != nil {
 			items = append(items, t.CommandPaletteItem{Label: "Forget OAuth token", Description: "Clear cached credentials; the next send authorizes again", Action: a.run(a.forgetOAuth)})
 		}
-		if s.kind.Peek() == model.KindGRPC {
+		if s.kind.Peek() == model.KindGRPC || s.kind.Peek() == model.KindWebSocket {
 			items = append(items, a.streamCommand(s))
 		}
 		if commands := kindViews[s.kind.Peek()].commands; commands != nil {
@@ -158,6 +159,9 @@ func (a *App) paletteItems() []t.CommandPaletteItem {
 		{Label: "View: expand request", Action: a.run(func() { a.expanded.Set("request") })},
 		{Label: "View: expand response", Action: a.run(func() { a.expanded.Set("response") })},
 	}...)
+	if a.isWebSocket() {
+		items = slices.DeleteFunc(items, func(item t.CommandPaletteItem) bool { return item.Label == "Export as "+a.exportTool() })
+	}
 	if a.expanded.Peek() != "" {
 		items = append(items, t.CommandPaletteItem{Label: "View: restore panels", Hint: "alt+z", Action: a.run(func() { a.expanded.Set("") })})
 	}

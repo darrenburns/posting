@@ -304,6 +304,48 @@ Posting 2 doesn't know about GraphQL requests. It opens them as a `GET` of the U
 saving one in Posting 2 removes `kind` and the `graphql` section, which loses the query. Edit
 GraphQL requests only in Posting 3.
 
+## WebSocket requests
+
+Choose **WebSocket** in the method selector (++ctrl+t++, then ++w++). Enter a `ws://` or `wss://`
+URL and press **Connect** or ++ctrl+j++. Connecting does **not** send the draft in the **Message**
+tab. Once connected, **Send** or ++ctrl+j++ sends that draft as one message. Edit it and send again
+as often as needed, including empty messages. Enable **Binary (base64)** to send base64-decoded
+bytes instead of UTF-8 text.
+
+The **Messages** response tab shows sent and received messages with timestamps. JSON messages
+use the existing text and JSON tree inspectors; binary messages are shown as base64. New messages
+appear without keyboard or mouse activity. Select an older message to pause following while new
+messages accumulate; ++f++ resumes following. ++enter++ opens the full inspector and ++escape++
+returns to the log without disconnecting.
+
+Press ++alt+j++ or choose **Disconnect WebSocket** to disconnect. ++escape++ from the log also
+disconnects. The log, handshake headers, close code and reason remain available in history.
+Unsent queued messages are discarded on disconnect. Reconnection is explicit and never replays
+messages. The request timeout bounds connecting and each write; it does not end an established
+interactive connection. A caller's deadline still applies.
+
+Headers, query/path parameters, Basic/Bearer/OAuth authentication, cookies, proxy and TLS settings
+apply to the upgrade handshake. To offer subprotocols, add a `Sec-WebSocket-Protocol` header.
+OAuth requires `wss://` except on loopback. Ping frames receive automatic pong replies. Redirects,
+Digest authentication, per-message compression and automatic reconnect are not supported.
+Messages are limited to 1 MiB; the connection stops when the retained log reaches 10,000 entries
+or 64 MiB of payloads, preserving the log and explaining the limit.
+
+Saved requests use `kind: websocket`:
+
+```yaml
+name: Deployment updates
+kind: websocket
+url: wss://api.example.com/events
+websocket:
+  message: '{"subscribe":"deployments"}'
+  binary: false
+```
+
+Edit these files only in Posting 3. Export as YAML is supported; command export is not.
+See [headless WebSocket runs](./running.md#websocket-requests) for the different send/timeout behavior
+of `posting run`.
+
 ## gRPC requests
 
 To make a gRPC request, open the method selector with ++ctrl+t++ and choose **gRPC**, or press

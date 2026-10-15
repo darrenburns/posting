@@ -64,7 +64,7 @@ func (o *OAuth) entry(ctx context.Context, req model.Request) (string, *oauthEnt
 	// another environment's token. Neither keys nor values contain a secret
 	// outside the credential store.
 	origin := req.URL
-	if req.Kind().OverHTTP() {
+	if req.Kind().OverHTTP() || req.Kind() == model.WebSocketKind {
 		u, err := url.Parse(req.URL)
 		if err != nil {
 			return "", nil, errors.New("invalid OAuth resource URL")
@@ -112,8 +112,12 @@ func (o *OAuth) authorize(ctx context.Context, req model.Request, interactive bo
 	if err != nil {
 		return model.Auth{}, err
 	}
-	if req.Kind().OverHTTP() {
-		if err := secureOAuthURL(req.URL); err != nil {
+	if req.Kind().OverHTTP() || req.Kind() == model.WebSocketKind {
+		resource := req.URL
+		if req.Kind() == model.WebSocketKind {
+			resource = "http" + strings.TrimPrefix(resource, "ws")
+		}
+		if err := secureOAuthURL(resource); err != nil {
 			return model.Auth{}, errors.New("OAuth requests require HTTPS (HTTP is allowed only on loopback)")
 		}
 	} else {

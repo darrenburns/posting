@@ -229,7 +229,7 @@ func appConfig(opts options) (ui.Config, error) {
 		NerdFonts:        settings.UseNerdFonts(os.LookupEnv),
 		HostVariables:    host,
 		UserThemes:       userThemes,
-		Sender:           client.ByKind{HTTP: httpClient, GRPC: rpc},
+		Sender:           client.ByKind{HTTP: httpClient, GRPC: rpc, WebSocket: &client.WebSocket{HTTP: httpClient}},
 		OAuth:            oauth,
 		Describer:        rpc,
 		Collection:       root,

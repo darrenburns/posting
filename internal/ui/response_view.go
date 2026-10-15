@@ -160,6 +160,9 @@ func (p responsePanel) streamHints(streaming streamPhase) string {
 		return "[$TextMuted][b]" + escapeMarkup(key) + "[/] " + what + "[/]"
 	}
 	var hints []string
+	if p.session.sent.Kind() == model.WebSocketKind {
+		return hint(p.app.keyHint("send-request"), "sends the message") + "[$TextMuted] · [/]" + hint("esc", "disconnects")
+	}
 	if streaming == streamOpen {
 		hints = append(hints, hint(p.app.keyHint("send-request"), "sends the message"), hint(p.app.keyHint("stream"), "finishes sending"))
 	}

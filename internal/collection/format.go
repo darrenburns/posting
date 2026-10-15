@@ -32,6 +32,7 @@ type requestFile struct {
 	URL         yamlString      `yaml:"url,omitempty"`
 	GraphQL     *graphQLFile    `yaml:"graphql,omitempty"`
 	GRPC        *grpcFile       `yaml:"grpc,omitempty"`
+	WebSocket   *webSocketFile  `yaml:"websocket,omitempty"`
 	Body        *bodyFile       `yaml:"body,omitempty"`
 	Auth        *authFile       `yaml:"auth,omitempty"`
 	Headers     []kvFile        `yaml:"headers,omitempty"`

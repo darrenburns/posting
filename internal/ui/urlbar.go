@@ -45,6 +45,13 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 		barColor = theme.Error
 	}
 	resolve := a.resolver()
+	sendLabel := a.icons.send + "Send"
+	if s.kind.Get() == model.KindWebSocket && s.streaming.Get() != streamOpen {
+		sendLabel = "Connect"
+		if s.phase.Get() == exchangeSending {
+			sendLabel = "Connecting…"
+		}
+	}
 	return t.Column{
 		Style: t.Style{Width: t.Flex(1), Padding: t.EdgeInsetsTRBL(1, 1, 0, 0)},
 		Children: []t.Widget{
@@ -81,10 +88,9 @@ func (u urlBar) Build(ctx t.BuildContext) t.Widget {
 					t.Button{
 						ID:           sendButtonID,
 						DisableFocus: true,
-						Label:        a.icons.send + "Send",
+						Label:        sendLabel,
 						Variant:      t.ButtonPrimary,
 						OnPress:      a.send,
-						Click:        func(t.MouseEvent) { a.send() },
 					},
 				},
 			},

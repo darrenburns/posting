@@ -2,6 +2,10 @@
 
 ### Added
 
+- WebSocket requests: connect to `ws://` or `wss://`, send text/JSON or base64 binary messages,
+  and inspect a timestamped live message log. Incoming messages repaint while idle; inspecting an
+  older payload pauses following without stopping reception. Disconnect preserves the exchange
+  in history. TLS, headers, authentication, cookies, variables and bounded headless runs are supported.
 - Smart quotes and brackets in structured request bodies, GraphQL queries and variables, gRPC messages, and structured multipart values. Opening delimiters insert a matching closer, selections are wrapped, and typing an existing matching closer moves through it. Enter preserves indentation and expands bracket pairs onto separate lines; paste remains literal.
 - Server-sent events (SSE): HTTP responses with `text/event-stream` open a live event log with
   timestamps, event names, IDs, and text/JSON inspection. Stop a stream without losing received

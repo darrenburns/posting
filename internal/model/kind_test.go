@@ -21,8 +21,8 @@ func TestKindsAreComplete(t *testing.T) {
 			if found, ok := KindByID(k.ID); !ok || found != k {
 				t.Fatalf("KindByID(%q) = %v, %v", k.ID, found, ok)
 			}
-			if k != HTTPKind && len(k.Badge) != 3 {
-				t.Errorf("badge %q is not three letters", k.Badge)
+			if k != HTTPKind && (len(k.Badge) == 0 || len(k.Badge) > 3) {
+				t.Errorf("badge %q must fit within three letters", k.Badge)
 			}
 			if got := k.New().Kind(); got != k {
 				t.Errorf("New().Kind() = %s", got.ID)

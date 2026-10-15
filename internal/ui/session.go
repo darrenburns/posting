@@ -163,6 +163,7 @@ type Session struct {
 	live bool
 	// stream is the open stream of the exchange in flight, if it has one.
 	stream    *client.Stream
+	socket    *client.Socket
 	streaming t.Signal[streamPhase]
 	// dispatch schedules exchange updates on the UI goroutine.
 	dispatch func(func())
@@ -603,6 +604,7 @@ func (s *Session) Send(sender client.Sender, call client.Call, onDone func(model
 	s.cancel = cancel
 	s.live = false
 	s.stream = stream
+	s.socket = call.Socket
 	s.phase.Set(exchangeSending)
 	s.err.Set(nil)
 	s.trace.Set(nil)
@@ -644,18 +646,27 @@ func (s *Session) Send(sender client.Sender, call client.Call, onDone func(model
 			}
 		})
 	}
+	var sending interface {
+		Ready() <-chan struct{}
+		TakesMessages() bool
+	}
 	if stream != nil {
+		sending = stream
+	} else if call.Socket != nil {
+		sending = call.Socket
+	}
+	if sending != nil {
 		s.streaming.Set(streamStarting)
 		go func() {
 			select {
-			case <-stream.Ready():
+			case <-sending.Ready():
 			case <-ctx.Done():
 				return
 			}
 			s.dispatch(func() {
 				if inFlight() && s.streaming.Peek() == streamStarting {
 					s.streaming.Set(streamEnded)
-					if stream.TakesMessages() {
+					if sending.TakesMessages() {
 						s.streaming.Set(streamOpen)
 						s.streamShimmer.Start()
 					}
@@ -725,6 +736,11 @@ func (s *Session) Cancel() {
 // Stop cancels the in-flight exchange but, unlike Cancel, still shows what
 // it returns, so stopping a stream keeps the messages that arrived.
 func (s *Session) Stop() {
+	if s.socket != nil && s.socket.TakesMessages() {
+		s.socket.Close()
+		s.streaming.Set(streamEnded)
+		return
+	}
 	if s.cancel != nil {
 		s.cancel()
 	}
@@ -733,6 +749,7 @@ func (s *Session) Stop() {
 func (s *Session) endStream() {
 	s.streamShimmer.Stop()
 	s.stream = nil
+	s.socket = nil
 	s.streaming.Set(streamNone)
 }
 

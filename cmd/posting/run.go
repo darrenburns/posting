@@ -197,7 +197,7 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 	}
 	httpClient := client.NewHTTP("posting/"+version, tls)
 	httpClient.Root = root
-	sender := client.ByKind{HTTP: httpClient, GRPC: client.NewGRPC("posting/"+version, tls, root)}
+	sender := client.ByKind{HTTP: httpClient, GRPC: client.NewGRPC("posting/"+version, tls, root), WebSocket: &client.WebSocket{HTTP: httpClient}}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	for i, req := range requests {
