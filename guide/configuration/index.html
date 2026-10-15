@@ -1,0 +1,1694 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://posting.sh/guide/configuration/">
+      
+      
+        <link rel="prev" href="../agents/">
+      
+      
+        <link rel="next" href="../scripting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Configuration - Posting</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Schibsted+Grotesk:wght@400..700&display=swap">
+
+    
+      <link rel="stylesheet" href="../../stylesheets/palettes.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/theme.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/terminal.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/home-palettes.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/screens.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+<script>
+  // Restore the visitor's theme before first paint.
+  try {
+    var saved = localStorage.getItem("posting.palette");
+    if (saved && /^[a-z-]+$/.test(saved)) document.documentElement.setAttribute("data-palette", saved);
+  } catch (e) {}
+</script>
+
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Posting" class="md-header__button md-logo" aria-label="Posting" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M536.4-26.3c9.8-3.5 20.6-1 28 6.3s9.8 18.2 6.3 28l-178 496.9c-5 13.9-18.1 23.1-32.8 23.1-14.2 0-27-8.6-32.3-21.7l-64.2-158c-4.5-11-2.5-23.6 5.2-32.6l94.5-112.4c5.1-6.1 4.7-15-.9-20.6s-14.6-6-20.6-.9l-112.4 94.3c-9.1 7.6-21.6 9.6-32.6 5.2L38.1 216.8c-13.1-5.3-21.7-18.1-21.7-32.3 0-14.7 9.2-27.8 23.1-32.8z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Posting
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    <button type="button" class="theme-toggle" popovertarget="theme-menu" aria-expanded="false" aria-label="Change theme" title="Change theme">
+  <span class="sw" aria-hidden="true"><i></i><i></i><i></i></span>
+</button>
+<div class="theme-menu" id="theme-menu" popover>
+  <span class="title">Theme</span>
+  <div class="palette-picker" role="radiogroup" aria-label="Theme"><button type="button" role="radio" aria-checked="false" data-palette="galaxy" style="--sw-bg:#0f0f1f;--sw-fg:#f5f5f6"><span class="sw"><i style="background:#c45aff"></i><i style="background:#a684e8"></i><i style="background:#ff69b4"></i></span><span class="nm">galaxy</span></button><button type="button" role="radio" aria-checked="false" data-palette="aurora" style="--sw-bg:#0a1a2f;--sw-fg:#f5f6f7"><span class="sw"><i style="background:#45ffb3"></i><i style="background:#a1fcdf"></i><i style="background:#df7bff"></i></span><span class="nm">aurora</span></button><button type="button" role="radio" aria-checked="false" data-palette="lantern" style="--sw-bg:#17152b;--sw-fg:#e9e5f4"><span class="sw"><i style="background:#f6ab6c"></i><i style="background:#86cfe0"></i><i style="background:#f297b5"></i></span><span class="nm">lantern</span></button><button type="button" role="radio" aria-checked="false" data-palette="midnight-ember" style="--sw-bg:#12100e;--sw-fg:#f6f5f5"><span class="sw"><i style="background:#ff9a5c"></i><i style="background:#ffb87a"></i><i style="background:#ff6b9e"></i></span><span class="nm">midnight-ember</span></button><button type="button" role="radio" aria-checked="false" data-palette="kintsugi" style="--sw-bg:#1b1a18;--sw-fg:#ece6da"><span class="sw"><i style="background:#e2b964"></i><i style="background:#93aee0"></i><i style="background:#ef9471"></i></span><span class="nm">kintsugi</span></button><button type="button" role="radio" aria-checked="false" data-palette="neon-reef" style="--sw-bg:#0c0e14;--sw-fg:#e0e6f0"><span class="sw"><i style="background:#18d5c4"></i><i style="background:#f0728a"></i><i style="background:#4d8bff"></i></span><span class="nm">neon-reef</span></button><button type="button" role="radio" aria-checked="false" data-palette="cyberdeck" style="--sw-bg:#0a0a10;--sw-fg:#e8e8e0"><span class="sw"><i style="background:#f0e030"></i><i style="background:#e040a0"></i><i style="background:#30e0f0"></i></span><span class="nm">cyberdeck</span></button><button type="button" role="radio" aria-checked="false" data-palette="catppuccin-latte" style="--sw-bg:#eff1f5;--sw-fg:#4c4f69"><span class="sw"><i style="background:#8839ef"></i><i style="background:#ea76cb"></i><i style="background:#179299"></i></span><span class="nm">catppuccin-latte</span></button></div>
+</div>
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/darrenburns/posting" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    darrenburns/posting
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../roadmap/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Roadmap
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../CHANGELOG/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+
+        
+      
+<p class="statusline statusline-docs">
+  <span class="sl-badge">POSTING 3</span>
+  <span class="sl-text">~/guide/configuration/</span>
+  <span class="sl-right">
+    <button type="button" data-cmdp=""><span class="sl-key">^P</span> commands</button>
+    <button type="button" class="sl-theme" data-cmdp="theme " aria-label="Change theme"><span class="dot" aria-hidden="true">&#9670;</span> <span data-theme-name>galaxy</span></button>
+  </span>
+</p>
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Posting" class="md-nav__button md-logo" aria-label="Posting" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M536.4-26.3c9.8-3.5 20.6-1 28 6.3s9.8 18.2 6.3 28l-178 496.9c-5 13.9-18.1 23.1-32.8 23.1-14.2 0-27-8.6-32.3-21.7l-64.2-158c-4.5-11-2.5-23.6 5.2-32.6l94.5-112.4c5.1-6.1 4.7-15-.9-20.6s-14.6-6-20.6-.9l-112.4 94.3c-9.1 7.6-21.6 9.6-32.6 5.2L38.1 216.8c-13.1-5.3-21.7-18.1-21.7-32.3 0-14.7 9.2-27.8 23.1-32.8z"/></svg>
+
+    </a>
+    Posting
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/darrenburns/posting" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    darrenburns/posting
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming from Posting 2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../navigation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../requests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../responses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Responses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../command_palette/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Palette
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../themes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Themes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../external_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    External Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keymap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keymaps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../importing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Importing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../running/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Headless Runs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remote_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remote Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The configuration file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-ssl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring SSL
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring SSL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-ca-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom CA bundle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client-certificates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client certificates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-environment-certificates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-environment certificates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-configuration-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full configuration reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Full configuration reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#settings-not-yet-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings not yet supported
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scripting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../help_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Help
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CHANGELOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Configuration</h1>
+
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Posting reads its settings from a YAML configuration file and from environment variables.
+Every setting has a sensible default, so you only need to write down the ones you want to change.</p>
+<p>Settings are applied in this order, with later sources winning:</p>
+<ol>
+<li>Posting's defaults</li>
+<li>The configuration file</li>
+<li><code>POSTING_*</code> environment variables</li>
+</ol>
+<p>If a setting has a value Posting doesn't recognise (an unknown layout, spacing, sidebar position,
+focus target or theme), that setting falls back to its default and a notification tells you when
+the app starts. If the file isn't valid YAML, or a setting has the wrong type (for example a word
+where <code>true</code> or <code>false</code> is expected), Posting ignores the whole file, uses the defaults, and tells
+you why. Either way, a typo never stops Posting from opening.</p>
+<div class="admonition tip">
+<p class="admonition-title">Coming from Posting 2?</p>
+<p>Posting 3 reads the same <code>config.yaml</code>, in the same place, so your existing configuration
+keeps working. A handful of Posting 2 settings are accepted but have no effect yet; they're
+marked in the <a href="#full-configuration-reference">reference</a> below.</p>
+</div>
+<h2 id="the-configuration-file">The configuration file<a class="headerlink" href="#the-configuration-file" title="Permanent link">&para;</a></h2>
+<p>Run <code>posting locate config</code> to see where Posting looks for its config file:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>posting<span class="w"> </span>locate<span class="w"> </span>config
+Config<span class="w"> </span>file:
+/home/you/.config/posting/config.yaml
+</code></pre></div>
+<p>The file lives at <code>$XDG_CONFIG_HOME/posting/config.yaml</code>, which is <code>~/.config/posting/config.yaml</code>
+unless you've set <code>XDG_CONFIG_HOME</code>. This is the same on macOS, Linux and Windows.
+To use a different file, set <code>POSTING_CONFIG_FILE</code> to its path.</p>
+<p>Here's an example:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">theme</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aurora</span>
+<span class="nt">layout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">horizontal</span>
+<span class="nt">response</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">prettify_json</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">heading</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">show_host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">focus</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">on_response</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">body</span>
+<span class="nt">keymap</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">send-request</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">f2</span>
+</code></pre></div>
+<h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<p>Any setting can also be set with an environment variable. Upper-case the name of the setting
+and prefix it with <code>POSTING_</code>. For nested settings, join the levels with a double underscore:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Environment variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>theme</code></td>
+<td><code>POSTING_THEME</code></td>
+</tr>
+<tr>
+<td><code>heading.show_host</code></td>
+<td><code>POSTING_HEADING__SHOW_HOST</code></td>
+</tr>
+<tr>
+<td><code>history.enabled</code></td>
+<td><code>POSTING_HISTORY__ENABLED</code></td>
+</tr>
+</tbody>
+</table>
+<p>Boolean settings accept <code>true</code>/<code>false</code>, <code>1</code>/<code>0</code>, <code>yes</code>/<code>no</code> and <code>on</code>/<code>off</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nv">POSTING_THEME</span><span class="o">=</span>lantern<span class="w"> </span><span class="nv">POSTING_LAYOUT</span><span class="o">=</span>horizontal<span class="w"> </span>posting
+</code></pre></div>
+<p>Posting reads these from the environment it was started in, not from the <code>.env</code> files you use
+for <a href="../environments/">environments</a>. Those files hold variables for your requests, not
+settings for the app. If an environment file you start Posting with contains <code>POSTING_*</code>
+variables, Posting shows a warning naming them, since Posting 2 did read settings from those files.</p>
+<h2 id="configuring-ssl">Configuring SSL<a class="headerlink" href="#configuring-ssl" title="Permanent link">&para;</a></h2>
+<p>Posting verifies the certificates of HTTPS servers using your operating system's trust store.
+You can switch verification off for a single request in its <a href="../requests/#options">Options tab</a>.</p>
+<h3 id="custom-ca-bundle">Custom CA bundle<a class="headerlink" href="#custom-ca-bundle" title="Permanent link">&para;</a></h3>
+<p>If your servers use certificates signed by a private certificate authority, point Posting at a
+PEM file containing the CA certificates:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">ssl</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ca_bundle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/absolute/path/to/ca-bundle.pem</span>
+</code></pre></div>
+<p>The certificates in the bundle are trusted <em>in addition to</em> the system's. <code>ca_bundle</code> must be a
+file (a directory of certificates isn't supported).</p>
+<h3 id="client-certificates">Client certificates<a class="headerlink" href="#client-certificates" title="Permanent link">&para;</a></h3>
+<p>To present a client certificate to servers that ask for one:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">ssl</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">certificate_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/client-cert.pem</span>
+<span class="w">  </span><span class="nt">key_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/client-key.pem</span><span class="w">  </span><span class="c1"># optional</span>
+</code></pre></div>
+<p>If you leave out <code>key_file</code>, Posting reads the private key from <code>certificate_path</code>, so a single
+PEM containing both the certificate and the key works too.</p>
+<p>If the private key is encrypted, give its password too:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">ssl</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">certificate_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/client-cert.pem</span>
+<span class="w">  </span><span class="nt">key_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/client-key.pem</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-key-password</span>
+</code></pre></div>
+<p>Keys encrypted as PKCS #8 (<code>BEGIN ENCRYPTED PRIVATE KEY</code>) and in OpenSSL's older format (a
+<code>Proc-Type: 4,ENCRYPTED</code> header) both work. Problems loading certificates, including a wrong
+password, are reported when you send a request.</p>
+<h3 id="per-environment-certificates">Per-environment certificates<a class="headerlink" href="#per-environment-certificates" title="Permanent link">&para;</a></h3>
+<p>Because every setting can come from an environment variable, you can pick certificates when you
+start Posting:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">POSTING_SSL__CA_BUNDLE</span><span class="o">=</span>/path/to/dev-ca.pem<span class="w"> </span>posting<span class="w"> </span>--env<span class="w"> </span>dev
+</code></pre></div>
+<h2 id="full-configuration-reference">Full configuration reference<a class="headerlink" href="#full-configuration-reference" title="Permanent link">&para;</a></h2>
+<p>The table below lists every setting, its default value, and what it does.
+Each can also be set with the environment variable shown in brackets.</p>
+<table>
+<thead>
+<tr>
+<th>Config key (env var)</th>
+<th>Values (default)</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>theme</code> (<code>POSTING_THEME</code>)</td>
+<td>Any theme name (Default: <code>galaxy</code>)</td>
+<td>The theme to use. See <a href="../themes/">Themes</a>.</td>
+</tr>
+<tr>
+<td><code>sidebar_gradient</code> (<code>POSTING_SIDEBAR_GRADIENT</code>)</td>
+<td><code>theme</code>, <code>off</code>, or any theme name (Default: <code>theme</code>)</td>
+<td>A subtle sidebar gradient. <code>theme</code> follows the app theme; a name borrows that theme's accent colours, blended into the active background to keep text readable. <code>off</code> restores the plain background. Choose it independently in <strong>Sidebar gradient…</strong> in the command palette.</td>
+</tr>
+<tr>
+<td><code>theme_directory</code> (<code>POSTING_THEME_DIRECTORY</code>)</td>
+<td>A path (Default: <code>$XDG_DATA_HOME/posting/themes</code>)</td>
+<td>Where Posting looks for your own theme files.</td>
+</tr>
+<tr>
+<td><code>load_user_themes</code> (<code>POSTING_LOAD_USER_THEMES</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Load the themes in <code>theme_directory</code>.</td>
+</tr>
+<tr>
+<td><code>load_builtin_themes</code> (<code>POSTING_LOAD_BUILTIN_THEMES</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>When <code>false</code> and you have at least one theme of your own, the theme picker lists only your themes.</td>
+</tr>
+<tr>
+<td><code>layout</code> (<code>POSTING_LAYOUT</code>)</td>
+<td><code>vertical</code>, <code>horizontal</code> (Default: <code>vertical</code>)</td>
+<td><code>vertical</code> stacks the response below the request; <code>horizontal</code> puts them side by side.</td>
+</tr>
+<tr>
+<td><code>spacing</code> (<code>POSTING_SPACING</code>)</td>
+<td><code>standard</code>, <code>compact</code> (Default: <code>standard</code>)</td>
+<td>Accepted for compatibility; currently has no effect. Posting always uses standard spacing, including in short terminals.</td>
+</tr>
+<tr>
+<td><code>nerd_fonts</code> (<code>POSTING_NERD_FONTS</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: detected)</td>
+<td>Draw icons from a <a href="https://www.nerdfonts.com/">Nerd Font</a>. When unset, icons are used in terminals known to ship Nerd Font symbols (Ghostty), and plain characters elsewhere.</td>
+</tr>
+<tr>
+<td><code>use_host_environment</code> (<code>POSTING_USE_HOST_ENVIRONMENT</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>false</code>)</td>
+<td>Make your shell's environment variables available as variables in requests. See <a href="../environments/#using-your-shells-environment">Environments</a>.</td>
+</tr>
+<tr>
+<td><code>watch_env_files</code> (<code>POSTING_WATCH_ENV_FILES</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Reload the active environment when its files change on disk.</td>
+</tr>
+<tr>
+<td><code>watch_collection_files</code> (<code>POSTING_WATCH_COLLECTION_FILES</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Reload the collection when request files are added, changed or removed on disk.</td>
+</tr>
+<tr>
+<td><code>history.enabled</code> (<code>POSTING_HISTORY__ENABLED</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Save <a href="../collections/#history">history</a> to disk so it's there next time. When <code>false</code>, history is kept only until you quit.</td>
+</tr>
+<tr>
+<td><code>response.prettify_json</code> (<code>POSTING_RESPONSE__PRETTIFY_JSON</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Indent JSON responses for display.</td>
+</tr>
+<tr>
+<td><code>response.show_size_and_time</code> (<code>POSTING_RESPONSE__SHOW_SIZE_AND_TIME</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Show the size of the response and how long it took.</td>
+</tr>
+<tr>
+<td><code>heading.visible</code> (<code>POSTING_HEADING__VISIBLE</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Show the header row at the top of the app, which shows the environment and host.</td>
+</tr>
+<tr>
+<td><code>heading.show_host</code> (<code>POSTING_HEADING__SHOW_HOST</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Show <code>user@host</code> in the header.</td>
+</tr>
+<tr>
+<td><code>heading.hostname</code> (<code>POSTING_HEADING__HOSTNAME</code>)</td>
+<td>Text (Default: unset)</td>
+<td>Replace <code>user@host</code> in the header with your own text. Markup such as <code>[b]prod[/]</code> is allowed.</td>
+</tr>
+<tr>
+<td><code>heading.show_version</code> (<code>POSTING_HEADING__SHOW_VERSION</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Show the Posting logo and version in the bottom left corner.</td>
+</tr>
+<tr>
+<td><code>url_bar.show_value_preview</code> (<code>POSTING_URL_BAR__SHOW_VALUE_PREVIEW</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Show the line below the URL bar that previews variable values and the resolved URL.</td>
+</tr>
+<tr>
+<td><code>url_bar.hide_secrets_in_value_preview</code> (<code>POSTING_URL_BAR__HIDE_SECRETS_IN_VALUE_PREVIEW</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Mask the value of a variable in the preview when its name looks secret. See <a href="../environments/#secrets">Environments</a>.</td>
+</tr>
+<tr>
+<td><code>collection_browser.position</code> (<code>POSTING_COLLECTION_BROWSER__POSITION</code>)</td>
+<td><code>left</code>, <code>right</code> (Default: <code>left</code>)</td>
+<td>Which side of the screen the sidebar is on.</td>
+</tr>
+<tr>
+<td><code>collection_browser.show_on_startup</code> (<code>POSTING_COLLECTION_BROWSER__SHOW_ON_STARTUP</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Show the sidebar when Posting starts. Toggle it any time with <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-h">H</kbd></span>.</td>
+</tr>
+<tr>
+<td><code>command_palette.theme_preview</code> (<code>POSTING_COMMAND_PALETTE__THEME_PREVIEW</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Preview themes and sidebar gradients as you move through their pickers.</td>
+</tr>
+<tr>
+<td><code>text_input.blinking_cursor</code> (<code>POSTING_TEXT_INPUT__BLINKING_CURSOR</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Pulse the cursor in all inputs and text areas. Set to <code>false</code> for a steady cursor.</td>
+</tr>
+<tr>
+<td><code>focus.on_startup</code> (<code>POSTING_FOCUS__ON_STARTUP</code>)</td>
+<td><code>url</code>, <code>method</code>, <code>collection</code> (Default: <code>url</code>)</td>
+<td>What to focus when Posting starts.</td>
+</tr>
+<tr>
+<td><code>focus.on_response</code> (<code>POSTING_FOCUS__ON_RESPONSE</code>)</td>
+<td><code>body</code>, <code>tabs</code> (Default: unset)</td>
+<td>Move focus to the response body, or the response tabs, when a response arrives.</td>
+</tr>
+<tr>
+<td><code>focus.on_request_open</code> (<code>POSTING_FOCUS__ON_REQUEST_OPEN</code>)</td>
+<td><code>url</code>, <code>method</code>, <code>headers</code>, <code>body</code>, <code>path</code>, <code>query</code>, <code>info</code> (Default: unset)</td>
+<td>What to focus when you open a request from the collection.</td>
+</tr>
+<tr>
+<td><code>editor</code> (<code>POSTING_EDITOR</code>)</td>
+<td>A command (Default: <code>$EDITOR</code>)</td>
+<td>The editor to open text in. See <a href="../external_tools/">External Tools</a>.</td>
+</tr>
+<tr>
+<td><code>pager</code> (<code>POSTING_PAGER</code>)</td>
+<td>A command (Default: <code>$PAGER</code>)</td>
+<td>The pager to view text in.</td>
+</tr>
+<tr>
+<td><code>pager_json</code> (<code>POSTING_PAGER_JSON</code>)</td>
+<td>A command (Default: unset)</td>
+<td>The pager to view JSON in, instead of <code>pager</code>.</td>
+</tr>
+<tr>
+<td><code>curl_export_extra_args</code> (<code>POSTING_CURL_EXPORT_EXTRA_ARGS</code>)</td>
+<td>Text (Default: empty)</td>
+<td>Inserted straight after <code>curl</code> in <a href="../requests/#exporting-as-curl">exported curl commands</a>, e.g. <code>--silent --show-error</code>.</td>
+</tr>
+<tr>
+<td><code>keymap</code></td>
+<td>Action IDs and keys (Default: empty)</td>
+<td>Change keyboard shortcuts. See <a href="../keymap/">Keymaps</a>.</td>
+</tr>
+<tr>
+<td><code>remote_control.enabled</code> (<code>POSTING_REMOTE_CONTROL__ENABLED</code>)</td>
+<td><code>true</code>, <code>false</code> (Default: <code>true</code>)</td>
+<td>Let <code>posting remote</code> drive Posting from another terminal. See <a href="../remote_control/">Remote Control</a>.</td>
+</tr>
+<tr>
+<td><code>ssl.ca_bundle</code> (<code>POSTING_SSL__CA_BUNDLE</code>)</td>
+<td>Path to a PEM file (Default: unset)</td>
+<td>Extra certificate authorities to trust.</td>
+</tr>
+<tr>
+<td><code>ssl.certificate_path</code> (<code>POSTING_SSL__CERTIFICATE_PATH</code>)</td>
+<td>Path (Default: unset)</td>
+<td>A client certificate to present.</td>
+</tr>
+<tr>
+<td><code>ssl.key_file</code> (<code>POSTING_SSL__KEY_FILE</code>)</td>
+<td>Path (Default: unset)</td>
+<td>The private key for the client certificate.</td>
+</tr>
+<tr>
+<td><code>ssl.password</code> (<code>POSTING_SSL__PASSWORD</code>)</td>
+<td>Text (Default: unset)</td>
+<td>The password of an encrypted private key.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="settings-not-yet-supported">Settings not yet supported<a class="headerlink" href="#settings-not-yet-supported" title="Permanent link">&para;</a></h3>
+<p>These Posting 2 settings are still accepted, so an old config file loads cleanly, but they don't
+do anything in Posting 3 yet:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>watch_themes</code></td>
+<td>Theme files are read when Posting starts. Restart to pick up changes.</td>
+</tr>
+<tr>
+<td><code>use_xresources</code></td>
+<td>X resources themes aren't available.</td>
+</tr>
+<tr>
+<td><code>animation</code></td>
+<td>Posting 3 has no animation levels.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../agents/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Coding Agents">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Coding Agents
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../scripting/" class="md-footer__link md-footer__link--next" aria-label="Next: Scripting">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Scripting
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Darren Burns
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+      
+    
+    
+    
+      
+      
+    
+    <a href="https://fosstodon.org/@darrenburns" target="_blank" rel="noopener me" title="fosstodon.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M433 179.1c0-97.2-63.7-125.7-63.7-125.7-62.5-28.7-228.6-28.4-290.5 0 0 0-63.7 28.5-63.7 125.7 0 115.7-6.6 259.4 105.6 289.1 40.5 10.7 75.3 13 103.3 11.4 50.8-2.8 79.3-18.1 79.3-18.1l-1.7-36.9s-36.3 11.4-77.1 10.1c-40.4-1.4-83-4.4-89.6-54-.6-4.6-.9-9.3-.9-13.9 85.6 20.9 158.7 9.1 178.7 6.7 56.1-6.7 105-41.3 111.2-72.9 9.8-49.8 9-121.5 9-121.5zm-75.1 125.2h-46.6V190.1c0-49.7-64-51.6-64 6.9v62.5H201V197c0-58.5-64-56.6-64-6.9v114.2H90.3c0-122.1-5.2-147.9 18.4-175 25.9-28.9 79.8-30.8 103.8 6.1l11.6 19.5 11.6-19.5c24.1-37.1 78.1-34.8 103.8-6.1 23.7 27.3 18.4 53 18.4 175"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://x.com/_darrenburns" target="_blank" rel="noopener" title="x.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M357.2 48h70.6L273.6 224.2 455 464H313L201.7 318.6 74.5 464H3.8l164.9-188.5L-5.2 48h145.6l100.5 132.9zm-24.8 373.8h39.1L119.1 88h-42z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/darrenburns" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["search.suggest", "search.highlight", "header.autohide", "navigation.tabs", "navigation.tabs.sticky", "navigation.footer", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../javascripts/palette.js"></script>
+      
+        <script src="../../javascripts/commands.js"></script>
+      
+    
+  </body>
+</html>
