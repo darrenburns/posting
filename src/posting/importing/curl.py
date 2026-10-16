@@ -19,6 +19,29 @@ from posting.collection import (
 )
 
 
+def _strip_shell_line_continuations(command: str) -> str:
+    """Remove escaped newlines outside single quotes before shlex parsing."""
+    quote: str | None = None
+    characters: list[str] = []
+    index = 0
+    while index < len(command):
+        char = command[index]
+        if char == "\\" and quote != "'" and index + 1 < len(command):
+            following = command[index + 1]
+            if following != "\n":
+                # Keep escaped quotes from changing the quote state.
+                characters.extend((char, following))
+            index += 2
+            continue
+        if char == quote:
+            quote = None
+        elif quote is None and char in ("'", '"'):
+            quote = char
+        characters.append(char)
+        index += 1
+    return "".join(characters)
+
+
 class CurlImport:
     """
     Parses a curl command string and extracts HTTP request components.
@@ -37,9 +60,9 @@ class CurlImport:
         if curl_command.strip().startswith("curl "):
             curl_command = curl_command.strip()[5:]
 
-        # Replace line breaks and `\`. If we don't do this, argparse can crash when pasting requests from chrome
-        curl_command = curl_command.replace("\\\n", " ")
-        curl_command = curl_command.replace("\\", " ")
+        # Shell continuations join lines without inserting whitespace. Inside
+        # single quotes, backslash-newline is literal request data.
+        curl_command = _strip_shell_line_continuations(curl_command)
 
         # Split the command string into tokens
         tokens = shlex.split(curl_command)
