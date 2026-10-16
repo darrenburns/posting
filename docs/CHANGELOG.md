@@ -98,6 +98,10 @@ between versions.
 GraphQL, gRPC, and requests with `variable_scope` must be edited in Posting 3. Saving them in
 Posting 2 removes the fields that hold their queries, RPC settings, or scoped variables.
 
+### Fixed
+
+- Fixed a crash (`StyleSyntaxError`) when the active theme is one of Textual's builtin `ansi-dark`/`ansi-light` themes, which express colors using the `ansi_<name>` convention that `rich.style.Style.parse` doesn't understand.
+
 ## 2.11.2 [5th October 2026]
 
 ### Fixed
