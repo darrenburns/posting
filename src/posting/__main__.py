@@ -123,12 +123,21 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
             from posting.importing.open_api import import_openapi_spec
 
             spec_type = "OpenAPI"
-            collection = import_openapi_spec(spec_path)
             if output_path is None:
                 output_path = (
-                    Path(default_collection_directory()) / f"{collection.name}"
+                    Path(default_collection_directory()) / Path(spec_path).stem
                 )
 
+            # The spec may not be a regular file. For example, with
+            # `posting import <(curl ...)` it is a pipe such as /dev/fd/63, and
+            # the directory containing it can't be written to. In that case,
+            # the environment files go in the output directory instead.
+            env_dir = None
+            if not Path(spec_path).resolve().is_file():
+                env_dir = output_path
+                env_dir.mkdir(parents=True, exist_ok=True)
+
+            collection = import_openapi_spec(spec_path, env_dir=env_dir)
             output_path.mkdir(parents=True, exist_ok=True)
             collection.path = output_path
             collection.save_to_disk(output_path)
