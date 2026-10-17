@@ -8,7 +8,21 @@ from click_default_group import DefaultGroup
 from rich.console import Console
 
 from posting.app import Posting
-from posting.collection import Collection
+from posting.collection import Collection, _sanitize_path_component
+
+
+def _unique_output_dir(base_dir: Path, name: str) -> Path:
+    """Return a non-existing directory under *base_dir* for the given name."""
+    safe = _sanitize_path_component(name)
+    candidate = base_dir / safe
+    if not candidate.exists():
+        return candidate
+    counter = 1
+    while True:
+        counter += 1
+        candidate = base_dir / f"{safe}_{counter}"
+        if not candidate.exists():
+            return candidate
 from posting.config import Settings
 from posting.locations import (
     config_file,
@@ -125,8 +139,8 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
             spec_type = "OpenAPI"
             collection = import_openapi_spec(spec_path)
             if output_path is None:
-                output_path = (
-                    Path(default_collection_directory()) / f"{collection.name}"
+                output_path = _unique_output_dir(
+                    Path(default_collection_directory()), collection.name
                 )
 
             output_path.mkdir(parents=True, exist_ok=True)
@@ -138,8 +152,8 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
             spec_type = "Postman"
             collection, postman_collection = import_postman_spec(spec_path, output)
             if output_path is None:
-                output_path = (
-                    Path(default_collection_directory()) / f"{collection.name}"
+                output_path = _unique_output_dir(
+                    Path(default_collection_directory()), collection.name
                 )
 
             output_path.mkdir(parents=True, exist_ok=True)
@@ -147,8 +161,9 @@ def import_spec(spec_path: str, output: str | None, type: str) -> None:
             collection.save_to_disk(output_path)
 
             # Create the environment file in the collection directory.
+            safe_env_name = _sanitize_path_component(collection.name)
             env_file = create_env_file(
-                output_path, f"{collection.name}.env", postman_collection.variable
+                output_path, f"{safe_env_name}.env", postman_collection.variable
             )
             console.print(f"Created environment file {str(env_file)!r}.")
         else:

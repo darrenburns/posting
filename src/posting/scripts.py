@@ -138,10 +138,11 @@ def execute_script(
         Exception: If there's an error during script execution.
     """
     # Ensure the script_path is relative to the collection root
-    full_script_path = (collection_root / script_path).resolve()
+    resolved_root = collection_root.resolve()
+    full_script_path = (resolved_root / script_path).resolve()
 
     # Check if the script is within the collection root
-    if not full_script_path.is_relative_to(collection_root):
+    if not full_script_path.is_relative_to(resolved_root):
         raise FileNotFoundError(
             f"Script path {script_path} is outside the collection root"
         )
@@ -154,11 +155,14 @@ def execute_script(
     module_key = str(full_script_path)
 
     try:
+        # Use a unique prefix to avoid shadowing stdlib/third-party modules
+        prefixed_name = f"_posting_script_{module_name}"
         sys.path.insert(0, str(script_dir))
-        module = _import_script_as_module(full_script_path, module_name, module_key)
+        module = _import_script_as_module(full_script_path, prefixed_name, module_key)
         return _validate_function(getattr(module, function_name, None))
     finally:
-        sys.path.remove(str(script_dir))
+        if str(script_dir) in sys.path:
+            sys.path.remove(str(script_dir))
 
 
 def _import_script_as_module(

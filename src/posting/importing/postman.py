@@ -180,8 +180,20 @@ def process_item(
 ) -> None:
     if item.item is not None:
         # This is a folder - create a subcollection
-        child_path = base_path / item.name
-        child_collection = Collection(path=child_path, name=item.name)
+        # Sanitize folder name to prevent path traversal
+        safe_name = re.sub(r"[^\w\s\-.]", "", item.name).strip(" .")
+        if not safe_name:
+            safe_name = "unnamed"
+        # Deduplicate if another sibling already claimed this name
+        candidate = safe_name
+        counter = 1
+        existing_names = {c.name for c in parent_collection.children}
+        while candidate in existing_names:
+            counter += 1
+            candidate = f"{safe_name}_{counter}"
+        safe_name = candidate
+        child_path = base_path / safe_name
+        child_collection = Collection(path=child_path, name=safe_name)
         parent_collection.children.append(child_collection)
 
         # Process items in this folder
