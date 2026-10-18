@@ -1,3 +1,4 @@
+import hashlib
 import inspect
 from contextlib import redirect_stdout, redirect_stderr
 import os
@@ -68,6 +69,7 @@ from posting.widgets.collection.browser import (
     CollectionTree,
 )
 from posting.widgets.collection.history import HistoryBrowser
+from posting.widgets.confirmation import ConfirmationModal
 from posting.widgets.datatable import PostingDataTable
 from posting.widgets.variables_modal import VariablesModal
 from posting.session_variables import SessionVariables
@@ -284,7 +286,71 @@ class MainScreen(Screen[None]):
         footer.compact = self.posting.spacing == "compact"
         yield footer
 
-    def get_and_run_script(
+    @staticmethod
+    def _script_trust_key(collection_root: Path, full_script_path: Path) -> str:
+        """Trust-on-first-use key bound to the collection root and the script's content digest.
+
+        The key changes whenever the script's bytes change, so an approved script that is
+        later modified must be re-approved before it runs again.
+        """
+        try:
+            digest = hashlib.sha256(full_script_path.read_bytes()).hexdigest()
+        except OSError:
+            digest = "unreadable"
+        return f"{collection_root.resolve()}::{full_script_path.resolve()}::{digest}"
+
+    async def _confirm_script_execution(
+        self, path_to_script: Path, full_script_path: Path
+    ) -> bool:
+        """Prompt the user before running a collection-supplied script.
+
+        Execution is denied by default: if no interactive prompt can be shown (for
+        example during a headless export) the script is not run.
+        """
+        app = cast("Posting", self.app)
+        collection_root = self.collection.path.resolve()
+        trust_key = self._script_trust_key(collection_root, full_script_path)
+
+        if trust_key in app._approved_scripts:
+            return True
+
+        try:
+            digest = hashlib.sha256(full_script_path.read_bytes()).hexdigest()
+        except OSError:
+            digest = "unreadable"
+
+        message = (
+            f"The collection at {collection_root} wants to run a Python script.\n\n"
+            f"Script: {path_to_script}\n"
+            f"SHA-256: {digest}\n\n"
+            "Collection scripts execute with your full user privileges and can read "
+            "your variables, cookies and files. Only allow scripts you trust."
+        )
+
+        try:
+            approved = await self.app.push_screen_wait(
+                ConfirmationModal(
+                    message,
+                    confirm_text="Run script \\[y]",
+                    cancel_text="Cancel \\[n]",
+                    auto_focus="cancel",
+                )
+            )
+        except Exception:
+            approved = False
+
+        if approved:
+            app._approved_scripts.add(trust_key)
+            return True
+
+        self.notify(
+            severity="warning",
+            title="Script execution blocked",
+            message=f"The script {path_to_script} was not approved and was not run.",
+        )
+        return False
+
+    async def get_and_run_script(
         self,
         path_to_script: str,
         default_function_name: str,
@@ -293,6 +359,9 @@ class MainScreen(Screen[None]):
     ) -> None:
         """
         Get and run a function from a script.
+
+        Collection-supplied scripts are untrusted: the user must explicitly approve
+        a script (keyed on its content hash) before it executes.
 
         Args:
             path_to_script: Path to the script, relative to the collection path.
@@ -307,6 +376,32 @@ class MainScreen(Screen[None]):
         else:
             script_path = Path(path_to_script)
             function_name = default_function_name
+
+        # Collection scripts are untrusted by construction. Validate the resolved
+        # path first, then require explicit, per-script (content-hash keyed)
+        # consent before executing any code.
+        full_script_path = (self.collection.path / script_path).resolve()
+        try:
+            if not full_script_path.is_relative_to(self.collection.path.resolve()):
+                raise FileNotFoundError(
+                    f"Script path {script_path} is outside the collection root"
+                )
+            if not full_script_path.is_file():
+                raise FileNotFoundError(f"Script not found: {full_script_path}")
+        except Exception as e:
+            log.error(f"Error loading script {function_name}: {e}")
+            self.notify(
+                severity="error",
+                title=f"Error loading script {function_name}",
+                message=f"The script at {script_path} could not be loaded: {e}",
+            )
+            raise
+
+        if not await self._confirm_script_execution(script_path, full_script_path):
+            # Untrusted script was not approved; do not execute it.
+            raise PermissionError(
+                f"Execution of script {script_path} was not approved"
+            )
 
         try:
             script_function = execute_script(
@@ -406,7 +501,7 @@ class MainScreen(Screen[None]):
             history_request = request_model.model_copy(deep=True)
             if setup_script := request_model.scripts.setup:
                 try:
-                    self.get_and_run_script(
+                    await self.get_and_run_script(
                         setup_script,
                         "setup",
                         True,
@@ -451,7 +546,7 @@ class MainScreen(Screen[None]):
                 # If there's an associated pre-request script, run it.
                 if on_request := request_model.scripts.on_request:
                     try:
-                        self.get_and_run_script(
+                        await self.get_and_run_script(
                             on_request,
                             "on_request",
                             True,
@@ -485,7 +580,7 @@ class MainScreen(Screen[None]):
                 script_context.response = response
                 if on_response := request_model.scripts.on_response:
                     try:
-                        self.get_and_run_script(
+                        await self.get_and_run_script(
                             on_response,
                             "on_response",
                             True,
@@ -1375,6 +1470,11 @@ class Posting(App[None], inherit_bindings=False):
         supplying a collection directory, or if they let Posting auto-discover
         it in some way (likely just using the default collection)."""
 
+        self._approved_scripts: set[str] = set()
+        """Trust-on-first-use keys for collection scripts the user approved this
+        session. A key is bound to the collection root, script path and script
+        content hash, so a modified script must be re-approved before it runs."""
+
         self.env_changed_signal = Signal[None](self, "env-changed")
         """Signal that is published when the environment has changed.
         This means one or more of the loaded environment files (in
@@ -1581,7 +1681,7 @@ class Posting(App[None], inherit_bindings=False):
 
         webbrowser.open("https://posting.sh/guide")
 
-    def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
+    async def command_export_to_curl(self, run_setup_scripts: bool = True) -> None:
         main_screen = self.main_screen
         request_model = main_screen.build_request_model(
             main_screen.request_options.to_model()
@@ -1592,7 +1692,7 @@ class Posting(App[None], inherit_bindings=False):
         # set variables etc. or they can choose to skip setup scripts entirely.
         if run_setup_scripts and (setup_script := request_model.scripts.setup):
             try:
-                main_screen.get_and_run_script(
+                await main_screen.get_and_run_script(
                     setup_script,
                     "setup",
                     False,
