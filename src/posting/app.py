@@ -48,6 +48,7 @@ from posting.config import SETTINGS, Settings
 from posting.history import HistoryStore
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
+from posting.posting3_notice import Posting3Notice, claim_posting3_notice
 from posting.scripts import execute_script, uncache_module, Posting as PostingContext
 from posting.themes import (
     BUILTIN_THEMES,
@@ -1404,6 +1405,9 @@ class Posting(App[None], inherit_bindings=False):
 
         message = f"Posting started in {(time.perf_counter_ns() - START_TIME) // 1_000_000} milliseconds."
         log.debug(message)
+
+        if claim_posting3_notice():
+            self.push_screen(Posting3Notice())
 
     def watch_spacing(self, spacing: Literal["standard", "compact"]) -> None:
         is_compact = spacing == "compact"
