@@ -112,6 +112,10 @@ Posting 2 removes the fields that hold their queries, RPC settings, or scoped va
 - Reject Python object tags when loading request YAML files, preventing code execution from crafted collections (reported in #348 and #383).
 - Load user theme files with YAML's safe loader, so Python tags in a theme file are rejected.
 
+### Fixed
+
+- Extend the visual mode selection with `ctrl+d` and `ctrl+u` in read-only text areas instead of dropping it (fixes #229).
+
 ## 2.11.0 [26th September 2026]
 
 ### Added

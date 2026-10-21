@@ -558,7 +558,7 @@ class ReadOnlyTextArea(PostingTextArea):
             half_height,
         )
         self.scroll_relative(y=half_height, animate=False)
-        self.move_cursor(target)
+        self.move_cursor(target, select=self.visual_mode)
 
     def action_cursor_half_page_up(self) -> None:
         """Move the cursor and scroll down half of a page."""
@@ -569,7 +569,7 @@ class ReadOnlyTextArea(PostingTextArea):
             -half_height,
         )
         self.scroll_relative(y=-half_height, animate=False)
-        self.move_cursor(target)
+        self.move_cursor(target, select=self.visual_mode)
 
     def on_focus(self) -> None:
         if self.select_on_focus:
