@@ -154,6 +154,7 @@ Each can also be set with the environment variable shown in brackets.
 | `url_bar.hide_secrets_in_value_preview` (`POSTING_URL_BAR__HIDE_SECRETS_IN_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Mask the value of a variable in the preview when its name looks secret. See [Environments](./environments.md#secrets). |
 | `collection_browser.position` (`POSTING_COLLECTION_BROWSER__POSITION`) | `left`, `right` (Default: `left`) | Which side of the screen the sidebar is on. |
 | `collection_browser.show_on_startup` (`POSTING_COLLECTION_BROWSER__SHOW_ON_STARTUP`) | `true`, `false` (Default: `true`) | Show the sidebar when Posting starts. Toggle it any time with ++ctrl+h++. |
+| `collection_browser.open_on_highlight` (`POSTING_COLLECTION_BROWSER__OPEN_ON_HIGHLIGHT`) | `true`, `false` (Default: `false`) | If enabled, highlighting a request in the collection browser opens it in the editor, as if enter had been pressed. The tree keeps focus, so requests can be stepped through with the arrow keys (or `j`/`k`) and sent directly. |
 | `command_palette.theme_preview` (`POSTING_COMMAND_PALETTE__THEME_PREVIEW`) | `true`, `false` (Default: `true`) | Preview themes and sidebar gradients as you move through their pickers. |
 | `text_input.blinking_cursor` (`POSTING_TEXT_INPUT__BLINKING_CURSOR`) | `true`, `false` (Default: `true`) | Pulse the cursor in all inputs and text areas. Set to `false` for a steady cursor. |
 | `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `url`, `method`, `collection` (Default: `url`) | What to focus when Posting starts. |

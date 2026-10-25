@@ -1,0 +1,16 @@
+theme: galaxy
+layout: vertical
+use_host_environment: false
+load_user_themes: false
+response:
+  show_size_and_time: false
+heading:
+  show_host: false
+  show_version: false
+text_input:
+  blinking_cursor: false
+watch_env_files: false
+watch_collection_files: false
+watch_themes: false
+collection_browser:
+  open_on_highlight: true

@@ -637,10 +637,31 @@ class CollectionBrowser(Vertical):
         else:
             self.request_preview.request = None
 
+        if (
+            isinstance(node_data, RequestModel)
+            and SETTINGS.get().collection_browser.open_on_highlight
+            and event.node is not self.collection_tree.currently_open
+        ):
+            # Open the request under the cursor so the editor always matches
+            # what is highlighted. This goes through the same reactive path
+            # as pressing enter, and the tree keeps focus for j/k stepping.
+            # Deferred with call_after_refresh because the initial highlight
+            # fires while the tree mounts, before the editor panes exist.
+            self.call_after_refresh(
+                self._open_if_still_highlighted, event.node
+            )
+
         self.set_timer(
             0.05,
             partial(self.collection_tree.scroll_to_node, event.node, animate=False),
         )
+
+    def _open_if_still_highlighted(self, node) -> None:
+        if (
+            self.collection_tree.cursor_node is node
+            and node is not self.collection_tree.currently_open
+        ):
+            self.collection_tree.currently_open = node
 
     def update_currently_open_node(self, request_model: RequestModel) -> None:
         """Update the request tree node with the new request model."""
