@@ -263,6 +263,11 @@ You don't need to restart Posting after changing an environment file. Posting ch
 environment's files every second, and reloads them when they change. To turn this off, set
 `watch_env_files: false` in your [configuration](./configuration.md).
 
+To edit the active environment's files without leaving Posting, press ++ctrl+p++ and choose
+**Edit env file**. Posting suspends and opens them in your [`editor`](./configuration.md)
+(`$POSTING_EDITOR`, or `$EDITOR` if that isn't set). When you close the editor, Posting resumes and
+reloads the variables straight away, even if `watch_env_files` is off.
+
 ## The variables screen
 
 Press ++ctrl+shift+v++, or choose **Variables** in the command palette, to see every variable
