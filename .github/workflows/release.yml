@@ -1,0 +1,52 @@
+name: Release
+
+# Posting 2 tags have no "v" prefix, so this only runs for Posting 3 tags.
+on:
+  push:
+    tags: ["v*"]
+  # Run against a release tag to verify an already-published Homebrew cask.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: goreleaser
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+
+  homebrew:
+    needs: release
+    if: ${{ !cancelled() && (needs.release.result == 'success' || github.event_name == 'workflow_dispatch') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Install and run the published Homebrew cask
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          brew install darrenburns/homebrew/posting@beta
+          posting --version
+          test "$(posting --version)" = "Posting ${RELEASE_TAG#v}"
+          posting --help

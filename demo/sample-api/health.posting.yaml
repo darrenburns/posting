@@ -1,0 +1,3 @@
+name: Health check
+description: Check that the API is up.
+url: ${BASE_URL}/health

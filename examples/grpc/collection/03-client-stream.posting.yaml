@@ -1,0 +1,12 @@
+name: 03 · Client stream
+description: Press Ctrl+J to send three messages and half-close. The server returns all names.
+kind: grpc
+url: grpc://127.0.0.1:50051
+grpc:
+  method: demo.v1.Greeter/CollectNames
+  message: |
+    [
+      {"name": "Ada"},
+      {"name": "Grace"},
+      {"name": "Linus"}
+    ]

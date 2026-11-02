@@ -1,0 +1,113 @@
+// Package client defines the boundary between Posting's UI and whatever
+// actually performs requests.
+//
+// The UI only ever talks to a Sender, and to a Describer for the methods a
+// gRPC server offers. HTTP sends HTTP-carried requests and GRPC sends gRPC
+// calls; ByKind picks between them.
+package client
+
+import (
+	"context"
+
+	"github.com/darrenburns/posting/v3/internal/model"
+)
+
+// Call is everything a Sender needs to perform one request.
+type Call struct {
+	// Request is the request exactly as edited, with variables unresolved.
+	Request model.Request
+	// Variables are the values available for substitution, already merged
+	// from environment files and session overrides.
+	Variables map[string]string
+	// ResolveBody substitutes later stream messages using the same variable
+	// definitions as the initial request. Nil uses Variables directly.
+	ResolveBody func(string) (string, error)
+	// OnTrace, when set, receives progress for each stage of the exchange.
+	// It may be called from any goroutine; the UI marshals it safely.
+	OnTrace func(model.TraceEvent)
+	// OnUpload reports bytes read for an upload attempt and its total size.
+	// Redirects and authentication retries start a new attempt at zero.
+	OnUpload func(sent, total int64)
+	// OnAuth reports OAuth progress and credential-storage warnings without
+	// credentials. Like OnTrace, it may be called from any goroutine.
+	OnAuth func(string)
+	// OnUpdate, when set, receives a streaming response so far as its
+	// messages arrive, before Send returns the whole of it. An SSE response
+	// lifts the request timeout after headers arrive when OnUpdate is set;
+	// the caller's context still cancels it. It may be called from any goroutine.
+	OnUpdate func(*model.Response)
+	// Stream, when set, keeps a gRPC call's sending side open after the
+	// request's own messages, for more sent through it, and lifts the
+	// timeout once the call starts.
+	Stream *Stream
+	// Socket keeps a WebSocket open for interactive sends. Unlike a headless
+	// call, it doesn't send the draft automatically or time out after upgrade.
+	Socket *Socket
+}
+
+// Sender performs requests. Implementations must honour ctx cancellation:
+// the UI cancels the context when the user cancels or re-sends.
+type Sender interface {
+	Send(ctx context.Context, call Call) (*model.Response, error)
+}
+
+// Describer lists the methods a gRPC schema offers. It is separate from
+// Sender because the UI asks it while a request is being edited, not sent.
+type Describer interface {
+	// Describe reads call's target, metadata and options the way Send
+	// would, and returns every method its schema source knows. A request
+	// with proto files is described without dialing.
+	Describe(ctx context.Context, call Call) (Schema, error)
+}
+
+// Schema is a gRPC schema as the UI needs it, without protobuf types.
+type Schema struct {
+	// Methods are sorted by name. The reflection service isn't listed.
+	Methods []Method
+}
+
+// Method is one method of a gRPC service.
+type Method struct {
+	Name      string // "acme.users.v1.UserService/GetUser"
+	Streaming Streaming
+	Input     string // "acme.users.v1.GetUserRequest"
+	Output    string
+	// Template is a JSON message for the method with every field at a
+	// placeholder value: an object, or for client-streaming and bidi
+	// methods an array holding one.
+	Template string
+}
+
+// Streaming is which sides of a call send a stream of messages.
+type Streaming uint8
+
+const (
+	Unary Streaming = iota
+	ServerStream
+	ClientStream
+	BidiStream
+)
+
+func (s Streaming) String() string {
+	return [...]string{"unary", "server stream", "client stream", "bidi stream"}[s]
+}
+
+// clientStreams reports whether the client sends a stream of messages.
+func (s Streaming) clientStreams() bool { return s == ClientStream || s == BidiStream }
+
+// serverStreams reports whether the server sends a stream of messages.
+func (s Streaming) serverStreams() bool { return s == ServerStream || s == BidiStream }
+
+// SenderFunc adapts a function to the Sender interface.
+type SenderFunc func(ctx context.Context, call Call) (*model.Response, error)
+
+// Send calls f.
+func (f SenderFunc) Send(ctx context.Context, call Call) (*model.Response, error) {
+	return f(ctx, call)
+}
+
+// Lookup returns a variable lookup function for model.Substitute.
+func (c Call) Lookup(name string) (string, bool) {
+	value, ok := c.Variables[name]
+	return value, ok
+}

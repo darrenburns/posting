@@ -1,0 +1,23 @@
+name: create
+description: Create a new post
+method: POST
+url: https://jsonplaceholder.typicode.com/posts
+body:
+  content: |-
+    {
+      "title": "foo",
+      "body": "bar",
+      "userId": 1
+    }
+  content_type: application/json
+headers:
+  - name: Content-Type
+    value: application/json
+  - name: Referer
+    value: https://example.com/
+  - name: Accept-Encoding
+    value: gzip
+  - name: Cache-Control
+    value: no-cache
+options:
+  timeout: 0.2

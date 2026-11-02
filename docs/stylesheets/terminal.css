@@ -1,0 +1,302 @@
+/* The terminal pieces shared by every page of the docs: the status line
+   under the header, the command palette (javascripts/commands.js) and its
+   toasts. They sit on the homepage's monospace cell grid, so each sets its
+   own font rather than inheriting the page's. */
+
+:is(.statusline, .cmdp, .toasts) {
+  font-family: var(--font-grid);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  font-variant-ligatures: none;
+}
+
+@media (max-width: 40em) {
+  :is(.statusline, .cmdp, .toasts) {
+    font-size: 0.7rem;
+  }
+}
+
+:is(.statusline, .cmdp, .toasts) *,
+:is(.statusline, .cmdp, .toasts) *::before,
+:is(.statusline, .cmdp, .toasts) *::after {
+  box-sizing: border-box;
+}
+
+/* ---- Status line ---------------------------------------------------------- */
+
+.statusline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 2ch;
+  padding-inline: max(16px, 3ch);
+  color: var(--muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.sl-badge {
+  font-weight: 700;
+  padding: 0 1ch;
+  color: var(--on-primary);
+  background: var(--primary);
+}
+
+.sl-right {
+  display: flex;
+  gap: 0 3ch;
+  margin-left: auto;
+}
+
+.sl-tip b {
+  color: var(--accent-text);
+}
+
+.sl-theme {
+  color: var(--text);
+}
+
+.sl-theme .dot {
+  color: var(--accent);
+}
+
+@media (max-width: 60em), (pointer: coarse) {
+  .sl-tip {
+    display: none;
+  }
+}
+
+@media (max-width: 30em) {
+  .sl-theme {
+    display: none;
+  }
+}
+
+/* On docs pages the status line shows where you are, and its keys are
+   buttons, so the palette is one tap away on touch screens too. */
+
+.statusline {
+  margin: 0;
+}
+
+.sl-text a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sl-text a:hover {
+  color: var(--text);
+}
+
+.sl-text .sep {
+  color: var(--dim);
+}
+
+.statusline button {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.statusline button:hover {
+  color: var(--text);
+}
+
+.statusline button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sl-key {
+  font-weight: 700;
+  color: var(--accent-text);
+}
+
+/* ---- Command palette ------------------------------------------------------ */
+
+.cmdp {
+  width: min(76ch, calc(100vw - 32px));
+  max-width: none;
+  max-height: none;
+  margin: 12vh auto auto;
+  padding: 0;
+  overflow: visible;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+}
+
+.cmdp::backdrop {
+  background: color-mix(in oklab, var(--bg) 65%, transparent);
+}
+
+.cmdp-box {
+  position: relative;
+  padding-top: 1lh;
+  background: var(--surface);
+  border: 1px solid var(--primary);
+  box-shadow: 0 1lh 3lh -1lh color-mix(in oklab, #000 60%, transparent);
+}
+
+.cmdp-title {
+  position: absolute;
+  top: calc(-0.5lh - 0.5px);
+  left: 2ch;
+  padding-inline: 1ch;
+  color: var(--text);
+  font-weight: 700;
+  background: var(--surface);
+}
+
+.cmdp-input {
+  display: flex;
+  gap: 1ch;
+  padding: 0 2ch 0.5lh;
+  color: var(--accent-text);
+  border-bottom: 1px solid var(--border);
+}
+
+.cmdp-input input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  caret-color: var(--accent);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+.cmdp-input input:focus-visible {
+  outline: none;
+}
+
+.cmdp-input:focus-within {
+  border-bottom-color: var(--accent);
+}
+
+.cmdp-input input::placeholder {
+  color: var(--dim);
+}
+
+.cmdp-list {
+  max-height: min(50vh, 16lh);
+  margin: 0;
+  padding: 0.5lh 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.cmdp-list li {
+  display: flex;
+  gap: 2ch;
+  margin: 0 !important;
+  padding: 0 2ch;
+  cursor: pointer;
+}
+
+.cmdp-list li .g {
+  flex: none;
+  width: 7ch;
+  color: var(--dim);
+}
+
+.cmdp-list li .l {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmdp-list li kbd {
+  font: inherit;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.cmdp-list li[aria-selected="true"] {
+  color: var(--on-primary);
+  background: var(--primary);
+}
+
+.cmdp-list li[aria-selected="true"] :is(.g, kbd) {
+  color: inherit;
+}
+
+.cmdp-list .empty {
+  color: var(--dim);
+  cursor: default;
+}
+
+.cmdp-foot {
+  margin: 0;
+  padding: 0.25lh 2ch;
+  color: var(--dim);
+  border-top: 1px solid var(--border);
+}
+
+.cmdp-foot b {
+  color: var(--muted);
+  margin-right: 0.5ch;
+}
+
+.cmdp-foot b:not(:first-child) {
+  margin-left: 2ch;
+}
+
+/* ---- Toasts --------------------------------------------------------------- */
+
+.toasts {
+  position: fixed;
+  right: max(16px, 3ch);
+  bottom: 1rem;
+  z-index: 11;
+  display: grid;
+  gap: 0.5lh;
+  pointer-events: none;
+}
+
+.toast {
+  max-width: min(48ch, calc(100vw - 32px));
+  overflow-wrap: anywhere;
+  padding: 0.4lh 2ch;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 1ch solid var(--success);
+  box-shadow: 0 0.5lh 2lh -0.5lh color-mix(in oklab, #000 50%, transparent);
+}
+
+.toast b {
+  display: block;
+  color: var(--success-text);
+}
+
+/* ---- Docs status line on small and touch screens --------------------------- */
+
+@media (pointer: coarse) {
+  .sl-key {
+    display: none;
+  }
+}
+
+/* Phones: the header already names the page, so drop the path and keep the
+   palette and theme buttons on one line. */
+@media (max-width: 30em) {
+  .statusline-docs .sl-text {
+    display: none;
+  }
+
+  .statusline-docs .sl-theme {
+    display: inline;
+  }
+}

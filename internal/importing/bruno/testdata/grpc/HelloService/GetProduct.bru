@@ -1,0 +1,23 @@
+meta {
+  name: GetProduct
+  type: grpc
+  seq: 4
+}
+
+grpc {
+  url: grpcs://shop.example.com
+  method: /shop.ProductService/GetProduct
+  body: grpc
+  protoPath: ../protos/services/product.proto
+  auth: none
+  methodType: unary
+}
+
+body:grpc {
+  name: message 1
+  content: '''
+    {
+      "id": 7
+    }
+  '''
+}

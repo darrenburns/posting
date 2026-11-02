@@ -1,0 +1,245 @@
+package ui
+
+import (
+	"context"
+	"errors"
+	"reflect"
+	"testing"
+	"time"
+
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/model"
+	t "github.com/darrenburns/terma"
+)
+
+func TestSessionSnapshotRoundTrip(t *testing.T) {
+	for _, folder := range model.SampleCollection().Children {
+		for _, req := range folder.Requests {
+			s := newSession(1, req)
+			got := s.Snapshot()
+			want := req.Clone()
+			if len(want.Query) > 0 {
+				// Query rows are written into the URL when a request is opened.
+				want.URL = got.URL
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("%s: snapshot differs\n got: %+v\nwant: %+v", req.Name, got, want)
+			}
+		}
+	}
+}
+
+func TestSessionURLEditUpdatesQueryAndPathParams(t *testing.T) {
+	s := newSession(1, model.NewRequest())
+	s.url.SetText("https://api.test/users/:id/posts/:post?page=2&q=a%20b")
+	s.urlEdited()
+
+	query := s.query.Values()
+	wantQuery := []model.KeyValue{{Name: "page", Value: "2", Enabled: true}, {Name: "q", Value: "a b", Enabled: true}}
+	if !reflect.DeepEqual(query, wantQuery) {
+		t.Fatalf("query = %+v, want %+v", query, wantQuery)
+	}
+	var names []string
+	for _, p := range s.pathParams.Values() {
+		names = append(names, p.Name)
+	}
+	if !reflect.DeepEqual(names, []string{"id", "post"}) {
+		t.Fatalf("path params = %v", names)
+	}
+	if !s.dirty.Peek() {
+		t.Fatal("editing the URL should mark the session dirty")
+	}
+}
+
+func TestSessionQueryEditRewritesURL(t *testing.T) {
+	s := newSession(1, model.NewRequest())
+	s.url.SetText("${BASE}/search?old=1#frag")
+	s.query.Load([]model.KeyValue{
+		{Name: "q", Value: "${TERM}", Enabled: true},
+		{Name: "off", Value: "x", Enabled: false},
+		{Name: "n", Value: "a&b", Enabled: true},
+	})
+	s.queryEdited()
+	if got, want := s.url.GetText(), "${BASE}/search?q=${TERM}&n=a%26b#frag"; got != want {
+		t.Fatalf("url = %q, want %q", got, want)
+	}
+	// Re-parsing the URL keeps the disabled row.
+	s.urlEdited()
+	if got := len(s.query.Values()); got != 3 {
+		t.Fatalf("expected 3 query rows after re-parse, got %d", got)
+	}
+}
+
+func TestKVEditorKeepsOneBlankRow(t *testing.T) {
+	e := newKVEditor("test", false, nil)
+	if n := len(e.rows.Peek()); n != 1 {
+		t.Fatalf("new editor should have one blank row, has %d", n)
+	}
+	e.rows.Peek()[0].key.SetText("Accept")
+	e.changed()
+	if n := len(e.rows.Peek()); n != 2 {
+		t.Fatalf("typing into the blank row should add another, have %d rows", n)
+	}
+	e.remove(e.rows.Peek()[0].id)
+	if n := len(e.rows.Peek()); n != 1 || len(e.Values()) != 0 {
+		t.Fatalf("after removing, want one blank row and no values; got %d rows, %v", n, e.Values())
+	}
+}
+
+func TestToggleRowShortcut(tt *testing.T) {
+	for _, tab := range []string{"headers", "query", "body"} {
+		tt.Run(tab, func(tt *testing.T) {
+			app := testApp()
+			req := model.NewRequest()
+			req.URL = "https://api.test/search"
+			rows := []model.KeyValue{
+				{Name: "first", Value: "one", Enabled: true},
+				{Name: "second", Value: "two", Enabled: true},
+			}
+			req.Headers, req.Query = rows, rows
+			req.Body = model.Body{Type: model.BodyForm, Form: rows}
+			app.openRequest(req)
+			s := app.current()
+			s.requestTab.Set(tab)
+			editor := map[string]*kvEditor{"headers": s.headers, "query": s.query, "body": s.form}[tab]
+			p := t.NewPilot(tt, app, snapW, snapH)
+			for _, column := range []string{"key", "value"} {
+				id := editor.inputID(editor.rows.Peek()[1].id, column)
+				t.RequestFocus(id)
+				p.Advance(0)
+				p.Press("ctrl+r")
+				want := append([]model.KeyValue(nil), rows...)
+				want[1].Enabled = column == "value" // Disable from the name, re-enable from the value.
+				snapshot := s.Snapshot()
+				got := map[string][]model.KeyValue{"headers": snapshot.Headers, "query": snapshot.Query, "body": snapshot.Body.Form}[tab]
+				if !reflect.DeepEqual(got, want) {
+					tt.Fatalf("toggle from %s: got %+v, want %+v", column, got, want)
+				}
+				if p.FocusedID() != id {
+					tt.Fatalf("toggle moved focus from %q to %q", id, p.FocusedID())
+				}
+			}
+		})
+	}
+}
+
+func TestSessionSendLifecycle(t *testing.T) {
+	req := model.NewRequest()
+	req.URL = "http://api.test/things"
+	s := newSession(1, req)
+	// Standalone Terma dispatches inline. Reproduce the app's UI queue so
+	// sender callbacks and test assertions run on the same goroutine.
+	// Buffer the final cancelled exchange's trace/completion callbacks too,
+	// so its worker can finish after the immediate cancellation assertion.
+	updates := make(chan func(), 2*len(model.TraceStages)+2)
+	s.dispatch = func(fn func()) { updates <- fn }
+	waitForPhase := func(want exchangePhase) {
+		t.Helper()
+		timeout := time.NewTimer(2 * time.Second)
+		defer timeout.Stop()
+		for s.phase.Peek() != want {
+			select {
+			case update := <-updates:
+				update()
+			case <-timeout.C:
+				t.Fatalf("timed out waiting for phase %v", want)
+			}
+		}
+	}
+
+	var done *model.Response
+	s.Send(client.Fake{}, client.Call{Request: s.Snapshot()}, func(_ model.Request, resp *model.Response, _ model.Status) { done = resp })
+	waitForPhase(exchangeDone)
+	if s.response.Peek() == nil || done == nil || s.response.Peek() != done {
+		t.Fatal("completed exchange should publish the response")
+	}
+
+	failing := client.SenderFunc(func(context.Context, client.Call) (*model.Response, error) {
+		return nil, errors.New("connection refused")
+	})
+	s.Send(failing, client.Call{Request: s.Snapshot()}, nil)
+	waitForPhase(exchangeFailed)
+	if err := s.err.Peek(); err == nil || err.Error() != "connection refused" {
+		t.Fatalf("err = %v", err)
+	}
+
+	s.Send(client.Fake{StageDelay: time.Hour}, client.Call{Request: s.Snapshot()}, nil)
+	s.Cancel()
+	if s.phase.Peek() != exchangeCancelled {
+		t.Fatalf("phase = %v, want cancelled", s.phase.Peek())
+	}
+}
+
+func waitFor(t *testing.T, cond func() bool) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for !cond() {
+		if time.Now().After(deadline) {
+			t.Fatal("timed out waiting for condition")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}
+
+func TestSessionLoadQueryFromURLPreservesParametersOnEdit(t *testing.T) {
+	req := model.NewRequest()
+	req.URL = "https://api.test/search?q=original#results"
+	req.Query = []model.KeyValue{{Name: "disabled", Value: "saved", Enabled: false}}
+	s := newSession(1, req)
+	rows := append(s.query.Values(), model.KeyValue{Name: "page", Value: "2", Enabled: true})
+	s.query.Load(rows)
+	s.queryEdited()
+	if got, want := s.url.GetText(), "https://api.test/search?q=original&page=2#results"; got != want {
+		t.Fatalf("editing loaded query lost parameters: got %q, want %q", got, want)
+	}
+	if got := s.query.Values(); len(got) != 3 || got[1].Enabled {
+		t.Fatalf("disabled query row was not preserved: %+v", got)
+	}
+}
+
+func TestSessionURLEditIgnoresQuestionMarkInFragment(t *testing.T) {
+	s := newSession(1, model.NewRequest())
+	s.url.SetText("https://api.test/search#results?view=compact")
+	s.urlEdited()
+	if got := s.query.Values(); len(got) != 0 {
+		t.Fatalf("fragment was parsed as query parameters: %+v", got)
+	}
+}
+
+func TestSessionLoadQueryWithQuestionMarkInFragment(t *testing.T) {
+	req := model.NewRequest()
+	req.URL = "https://api.test/search#results?view=compact"
+	req.Query = []model.KeyValue{{Name: "q", Value: "original", Enabled: true}}
+	s := newSession(1, req)
+	if got, want := s.url.GetText(), "https://api.test/search?q=original#results?view=compact"; got != want {
+		t.Fatalf("loaded query missing from URL: got %q, want %q", got, want)
+	}
+}
+
+func TestSessionLoadEmptyQueryPreservesSavedParameters(t *testing.T) {
+	for _, raw := range []string{"https://api.test/search?", "https://api.test/search?#results?view=compact"} {
+		t.Run(raw, func(t *testing.T) {
+			req := model.NewRequest()
+			req.URL = raw
+			req.Query = []model.KeyValue{
+				{Name: "q", Value: "saved", Enabled: true},
+				{Name: "off", Value: "retained", Enabled: false},
+			}
+			before, err := model.Resolve(req, model.MapLookup(nil))
+			if err != nil {
+				t.Fatal(err)
+			}
+			s := newSession(1, req)
+			after, err := model.Resolve(s.Snapshot(), model.MapLookup(nil))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if before.URL != after.URL {
+				t.Fatalf("opening request changed outgoing URL: before=%q after=%q", before.URL, after.URL)
+			}
+			if got := s.query.Values(); !reflect.DeepEqual(got, req.Query) {
+				t.Fatalf("saved query rows changed: got %+v, want %+v", got, req.Query)
+			}
+		})
+	}
+}

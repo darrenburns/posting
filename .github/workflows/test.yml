@@ -10,7 +10,44 @@ env:
     PYTEST_ADDOPTS: "--color=yes"
 
 jobs:
-  build:
+  go:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l cmd internal)
+          if [ -n "$unformatted" ]; then echo "$unformatted"; exit 1; fi
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: check
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: build --snapshot --clean
+
+  python:
     runs-on: ubuntu-latest
     permissions:
       contents: write

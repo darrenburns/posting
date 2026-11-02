@@ -1,0 +1,8 @@
+name: 04 · Bidi chat
+description: Alt+J opens the stream. Edit text and Ctrl+J to send again. Alt+J finishes; Escape cancels.
+kind: grpc
+url: grpc://127.0.0.1:50051
+grpc:
+  method: demo.v1.Greeter/Chat
+  message: |
+    {"text": "Hello from Posting!"}

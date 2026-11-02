@@ -237,6 +237,8 @@ class KeyValueEditor(Vertical):
 
         table = self.table
         cursor_row_index = table.cursor_row
+        if not 0 <= cursor_row_index < table.row_count:
+            return None
         row_key, _col_key = table.coordinate_to_cell_key(
             Coordinate(cursor_row_index, 0)
         )
@@ -262,6 +264,10 @@ class KeyValueEditor(Vertical):
             Text(val, style=Style(color=accent_color, italic=True)),
         )
         return key, val
+
+    def get_value_to_edit(self, row_key: RowKey, displayed_value: str) -> str:
+        """Return the input value when the table uses a different representation."""
+        return displayed_value
 
     def action_edit_row(self, input_to_focus: str) -> None:
         row_key = self.get_row_to_edit()
@@ -295,7 +301,7 @@ class KeyValueEditor(Vertical):
         # in edit mode).
         self.key_value_input.edit_mode = True
         self.key_value_input.key_input.value = key
-        self.key_value_input.value_input.value = val
+        self.key_value_input.value_input.value = self.get_value_to_edit(row_key, val)
         if focus_value:
             self.key_value_input.value_input.focus()
         else:

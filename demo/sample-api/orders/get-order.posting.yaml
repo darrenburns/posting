@@ -1,0 +1,5 @@
+name: Get order
+url: ${BASE_URL}/orders/:id
+path_params:
+  - name: id
+    value: '1042'

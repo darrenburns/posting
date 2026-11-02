@@ -1,0 +1,377 @@
+package ui
+
+import (
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/darrenburns/posting/v3/internal/client"
+	"github.com/darrenburns/posting/v3/internal/collection"
+	"github.com/darrenburns/posting/v3/internal/model"
+	t "github.com/darrenburns/terma"
+	uv "github.com/darrenburns/ultraviolet"
+)
+
+func uploadApp(tt *testing.T) *App {
+	tt.Helper()
+	root := tt.TempDir()
+	if err := os.Mkdir(filepath.Join(root, "fixtures"), 0700); err != nil {
+		tt.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "fixtures", "report.pdf"), []byte("%PDF-1.7\nExample report\n"), 0600); err != nil {
+		tt.Fatal(err)
+	}
+	a := testApp()
+	a.store = collection.Dir{Root: root}
+	r := model.NewRequest()
+	r.Name = "Upload report"
+	r.URL = "https://api.example.com/documents"
+	r.Method = model.MethodPost
+	r.Body = model.Body{Type: model.BodyMultipart, Multipart: []model.Part{
+		{Type: model.PartText, Name: "title", Value: "Quarterly report", Enabled: true},
+		{Type: model.PartFile, Name: "document", File: "fixtures/report.pdf", Enabled: true},
+		{Type: model.PartText, Name: "metadata", Value: "{\n  \"team\": \"finance\"\n}", ContentType: "application/json", Enabled: true},
+		{Type: model.PartFile, Name: "attachment", File: "fixtures/missing.pdf", Enabled: false},
+	}}
+	a.openRequest(r)
+	a.current().requestTab.Set("body")
+	return a
+}
+
+func TestMultipartPartButtons(tt *testing.T) {
+	for _, size := range []struct {
+		name  string
+		width int
+	}{{"wide", 150}, {"narrow", 100}} {
+		for _, activation := range []string{"click", "enter", "space"} {
+			tt.Run(size.name+"/"+activation, func(tt *testing.T) {
+				a := uploadApp(tt)
+				s := a.current()
+				before := s.Snapshot().Body.Multipart
+				p := t.NewPilot(tt, a, size.width, 46)
+				activate := func(id string) {
+					if activation == "click" {
+						p.Click(id)
+					} else {
+						t.RequestFocus(id)
+						p.Advance(0)
+						p.Press(activation)
+					}
+				}
+				activate("req-part-add")
+				if got := len(s.Snapshot().Body.Multipart); got != len(before)+1 {
+					tt.Fatalf("Add part produced %d parts, want %d", got, len(before)+1)
+				}
+				if got := p.FocusedID(); got != "req-part-name" {
+					tt.Fatalf("Add part focused %q, want req-part-name", got)
+				}
+				p.Type("extra")
+				want := append(before, model.Part{Type: model.PartText, Name: "extra", Enabled: true})
+				if got := s.Snapshot().Body.Multipart; !reflect.DeepEqual(got, want) {
+					tt.Fatalf("parts after adding and editing = %+v, want %+v", got, want)
+				}
+				// Delete a middle part, preserving both its neighbours and the new part.
+				p.Press("escape", "home", "down")
+				activate("req-part-delete")
+				want = append(want[:1], want[2:]...)
+				if got := s.Snapshot().Body.Multipart; !reflect.DeepEqual(got, want) {
+					tt.Fatalf("parts after deleting document = %+v, want %+v", got, want)
+				}
+				if got := p.FocusedID(); got != partsID {
+					tt.Fatalf("Delete focused %q, want %s", got, partsID)
+				}
+			})
+		}
+	}
+}
+
+func TestMultipartInspector(tt *testing.T) {
+	a := uploadApp(tt)
+	s := a.current()
+	p := t.NewPilot(tt, a, 150, 46)
+	focus := func(id string) { t.RequestFocus(id); p.Advance(0) }
+	focus(partsID)
+	p.Press("home", "down")
+	p.WaitUntil(func() bool {
+		return strings.Contains(p.ScreenText(), "application/pdf") && !strings.Contains(p.ScreenText(), "Checking file")
+	}, time.Second)
+	if !strings.Contains(p.ScreenText(), "Filename") {
+		tt.Fatal("selection did not show file inspector\n" + p.ScreenText())
+	}
+	p.AssertSnapshot("Multipart_file", "Selected file part, overrides, metadata and a disabled attachment")
+	// The parts/inspector divider resizes both panes without changing selection.
+	list, _ := p.Bounds(partsID)
+	path, _ := p.Bounds("req-part-path")
+	x, y := list.X+list.Width, list.Y+1
+	p.MouseDown(x, y, uv.MouseLeft, 0)
+	p.MouseMove(x+6, y)
+	p.MouseUp(x+6, y, uv.MouseLeft, 0)
+	resizedList, _ := p.Bounds(partsID)
+	resizedPath, _ := p.Bounds("req-part-path")
+	if resizedList.Width != list.Width+6 || resizedPath.X != path.X+6 || resizedPath.Width != path.Width-6 {
+		tt.Fatalf("divider did not resize the panes: list %+v → %+v, path %+v → %+v", list, resizedList, path, resizedPath)
+	}
+	p.MouseDown(x+6, y, uv.MouseLeft, 0)
+	p.MouseMove(x, y)
+	p.MouseUp(x, y, uv.MouseLeft, 0)
+	p.Press("ctrl+r")
+	if s.Snapshot().Body.Multipart[1].Enabled {
+		tt.Fatal("toggle did not disable file")
+	}
+	focus("req-part-name")
+	p.Press("ctrl+r")
+	if !s.Snapshot().Body.Multipart[1].Enabled {
+		tt.Fatal("toggle from inspector did not re-enable file")
+	}
+	focus(partsID)
+	p.Press("alt+down")
+	if got := s.Snapshot().Body.Multipart; got[2].Name != "document" || got[1].Name != "metadata" {
+		tt.Fatal("reordering changed parts", got)
+	}
+	p.Press("up")
+	p.AssertSnapshot("Multipart_text", "A JSON text part is edited beside the ordered part list")
+	// Switching type and body mode must retain the user's drafts.
+	focus("req-part-type")
+	p.Press("right", "left")
+	if got := s.Snapshot().Body.Multipart[1]; got.Value != "{\n  \"team\": \"finance\"\n}" || got.ContentType != "application/json" {
+		tt.Fatal("type switch lost text", got)
+	}
+	before := s.Snapshot().Body.Multipart
+	focus("req-body-type")
+	p.Press("right")
+	if s.Snapshot().Body.Type != model.BodyFile {
+		tt.Fatal("File mode not selected")
+	}
+	p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "Choose a file") }, time.Second)
+	p.AssertSnapshot("Upload_file_body", "A whole-file body has a path and inferred content type")
+	p.Press("left")
+	if !reflect.DeepEqual(s.Snapshot().Body.Multipart, before) {
+		tt.Fatal("body mode switch lost parts")
+	}
+	focus(partsID)
+	p.Press("end", "ctrl+r", "enter")
+	p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "File not found") }, time.Second)
+	p.AssertSnapshot("Multipart_missing", "Missing file is visible both in the list and inspector")
+	focus("req-part-path")
+	p.Press("ctrl+a")
+	p.Type("fixtures/rep")
+	p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "fixtures/report.pdf") }, time.Second)
+	p.Press("enter")
+	if got := s.Snapshot().Body.Multipart[3].File; got != "fixtures/report.pdf" {
+		tt.Fatalf("completed path = %q", got)
+	}
+	p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "24 B · application/pdf") }, time.Second)
+	// At narrower widths, Enter opens details and Escape returns to parts.
+	p.Resize(100, 40)
+	focus("req-part-name")
+	p.Press("escape")
+	focus(partsID)
+	p.Press("home", "enter")
+	if !strings.Contains(p.ScreenText(), "‹ Parts") || !strings.Contains(p.ScreenText(), "Quarterly report") {
+		tt.Fatal("narrow inspector missing\n" + p.ScreenText())
+	}
+	p.AssertSnapshot("Multipart_narrow", "The selected part opens full-width on a narrow terminal")
+	p.Press("escape")
+	if p.FocusedID() != partsID {
+		tt.Fatalf("Escape focused %q", p.FocusedID())
+	}
+	p.Press("ctrl+x")
+	if len(s.Snapshot().Body.Multipart) != 3 {
+		tt.Fatal("Delete did not remove a part")
+	}
+	p.Press("insert")
+	p.Type("extra")
+	focus("req-part-text")
+	p.Type("A new text part")
+	if got := s.Snapshot().Body.Multipart; len(got) != 4 || got[3].Name != "extra" || got[3].Value != "A new text part" || !got[3].Enabled {
+		tt.Fatal("new part was not editable", got)
+	}
+}
+
+func TestUploadPathCompletion(tt *testing.T) {
+	for _, mode := range []model.BodyType{model.BodyMultipart, model.BodyFile} {
+		tt.Run(string(mode), func(tt *testing.T) {
+			a := uploadApp(tt)
+			if err := os.WriteFile(filepath.Join(a.uploadRoot(), "fixtures", "annual report.pdf"), []byte("%PDF-1.7\nAnnual report\n"), 0600); err != nil {
+				tt.Fatal(err)
+			}
+			s := a.current()
+			s.bodyType.Set(mode)
+			p := t.NewPilot(tt, a, 150, 46)
+			id := "req-file-path"
+			path := func() string { return s.Snapshot().Body.File }
+			if mode == model.BodyMultipart {
+				t.RequestFocus(partsID)
+				p.Advance(0)
+				p.Press("home", "down")
+				id = "req-part-path"
+				path = func() string { return s.Snapshot().Body.Multipart[1].File }
+			}
+			t.RequestFocus(id)
+			p.Advance(0)
+			p.Press("ctrl+a")
+			p.Type("fi")
+			p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "fixtures/") }, time.Second)
+			p.Press("enter")
+			if got := path(); got != "fixtures/" {
+				tt.Fatalf("directory completion = %q", got)
+			}
+			p.Type("annual")
+			p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "fixtures/annual report.pdf") }, time.Second)
+			p.Press("enter")
+			if got := path(); got != "fixtures/annual report.pdf" {
+				tt.Fatalf("file completion = %q", got)
+			}
+			p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "23 B · application/pdf") }, time.Second)
+			// Completing a variable must still allow file completion beneath it.
+			a.sessionVars.Set(map[string]string{"FIXTURES": "fixtures"})
+			p.Press("ctrl+a")
+			p.Type("${FIX")
+			p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "${FIXTURES}") }, time.Second)
+			p.Press("enter")
+			if got := path(); got != "${FIXTURES}" {
+				tt.Fatalf("variable completion = %q", got)
+			}
+			p.Type("/annual")
+			p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "${FIXTURES}/annual report.pdf") }, time.Second)
+			p.Press("enter")
+			if got := path(); got != "${FIXTURES}/annual report.pdf" {
+				tt.Fatalf("variable-rooted file completion = %q", got)
+			}
+			p.WaitUntil(func() bool { return strings.Contains(p.ScreenText(), "23 B · application/pdf") }, time.Second)
+		})
+	}
+}
+
+func TestUploadPathWhileChecking(tt *testing.T) {
+	for _, mode := range []model.BodyType{model.BodyFile, model.BodyMultipart} {
+		tt.Run(string(mode), func(tt *testing.T) {
+			a := uploadApp(tt)
+			s := a.current()
+			s.bodyType.Set(mode)
+			id := "req-file-path"
+			s.upload.text.SetText("fixtures/r")
+			path := func() string { return s.Snapshot().Body.File }
+			if mode == model.BodyMultipart {
+				s.multipart.list.SelectIndex(1)
+				s.multipart.list.GetItems()[1].path.text.SetText("fixtures/r")
+				id = "req-part-path"
+				path = func() string { return s.Snapshot().Body.Multipart[1].File }
+			}
+			// Hold filesystem results so the intermediate frame is deterministic,
+			// even when the local disk responds faster than a terminal can render.
+			updates := make(chan func(), 16)
+			a.dispatch = func(fn func()) { updates <- fn }
+			p := t.NewPilot(tt, a, 150, 46)
+			next := func() func() {
+				tt.Helper()
+				select {
+				case update := <-updates:
+					return update
+				case <-time.After(time.Second):
+					tt.Fatal("file inspection did not finish")
+					return nil
+				}
+			}
+			apply := func(update func()) { t.Dispatch(update); p.Advance(0) }
+			apply(next())
+			bounds, _ := p.Bounds(id)
+			hintColor := p.Buffer().CellAt(bounds.X, bounds.Y+1).Style.Fg
+			t.RequestFocus(id)
+			p.Advance(0)
+			p.Press("end")
+			p.Type("e")
+			if !strings.Contains(p.ScreenText(), "fixtures/report.pdf") {
+				tt.Error("matching completion disappeared while checking the next character\n" + p.ScreenText())
+			}
+			p.Press("escape") // Uncover the helper text beneath the popup.
+			if !strings.Contains(p.ScreenText(), "File not found") || strings.Contains(p.ScreenText(), "Checking file") {
+				tt.Error("helper text flickered while checking the next character\n" + p.ScreenText())
+			}
+			if got := p.Buffer().CellAt(bounds.X, bounds.Y+1).Style.Fg; !reflect.DeepEqual(got, hintColor) {
+				tt.Error("helper text changed color while checking the next character")
+			}
+			apply(next())
+
+			// A retained candidate is usable immediately, and an older lookup
+			// must not overwrite the metadata for the accepted file.
+			t.RequestFocus(id)
+			p.Advance(0)
+			p.Type("p")
+			older := next()
+			p.Press("enter")
+			if got := path(); got != "fixtures/report.pdf" {
+				tt.Fatalf("completion during inspection = %q", got)
+			}
+			apply(next())
+			apply(older)
+			if !strings.Contains(p.ScreenText(), "24 B · application/pdf") {
+				tt.Fatal("outdated inspection replaced the accepted file's metadata\n" + p.ScreenText())
+			}
+
+			// Crossing a directory boundary must still invalidate old entries,
+			// even if fuzzy matching would find them in the new input.
+			p.Press("ctrl+a")
+			p.Type("r")
+			if strings.Contains(p.ScreenText(), "fixtures/report.pdf") {
+				tt.Error("completion from the old directory is still visible\n" + p.ScreenText())
+			}
+			p.Press("enter")
+			if got := path(); got != "r" {
+				tt.Fatalf("accepted a completion from the old directory: %q", got)
+			}
+			apply(next())
+		})
+	}
+}
+
+func TestUploadEscapeCancels(tt *testing.T) {
+	for _, mode := range []model.BodyType{model.BodyMultipart, model.BodyFile} {
+		tt.Run(string(mode), func(tt *testing.T) {
+			a := uploadApp(tt)
+			s := a.current()
+			s.bodyType.Set(mode)
+			s.upload.text.SetText("fixtures/report.pdf")
+			if err := os.Truncate(filepath.Join(a.uploadRoot(), "fixtures", "report.pdf"), 16<<20); err != nil {
+				tt.Fatal(err)
+			}
+			release := make(chan struct{})
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				<-release // Keep the upload in flight instead of buffering the entire body.
+				io.Copy(io.Discard, r.Body)
+			}))
+			defer server.Close()
+			defer close(release)
+			h := client.NewHTTP("", client.TLSSettings{})
+			h.Root = a.uploadRoot()
+			a.sender = h
+			s.url.SetText(server.URL)
+			p := t.NewPilot(tt, a, 150, 46)
+			focusID := "req-file-content-type"
+			if mode == model.BodyMultipart {
+				t.RequestFocus(partsID)
+				p.Advance(0)
+				p.Press("home", "down", "enter")
+				focusID = "req-part-name"
+			}
+			t.RequestFocus(focusID)
+			p.Advance(0)
+			p.Press("ctrl+j")
+			p.WaitUntil(func() bool {
+				progress := s.uploadProgress.Peek()
+				return progress.sent > 0 && progress.sent < progress.total && strings.Contains(p.ScreenText(), "Uploading")
+			}, 3*time.Second)
+			p.Press("escape")
+			p.WaitUntil(func() bool { return s.phase.Peek() == exchangeCancelled }, 3*time.Second)
+			if !strings.Contains(p.ScreenText(), "Request cancelled") {
+				tt.Fatal("Escape did not report cancellation\n" + p.ScreenText())
+			}
+		})
+	}
+}

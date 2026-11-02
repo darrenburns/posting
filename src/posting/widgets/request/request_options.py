@@ -69,6 +69,7 @@ class RequestOptions(VerticalScroll):
             "follow-redirects": "Follow redirects when the server responds with a 3xx status code.",
             "verify": "Verify SSL certificates when making requests.",
             "attach-cookies": "Attach cookies to outgoing requests to the same domain.",
+            "substitute-body-variables": "Substitute $name and ${name} in raw and form bodies. Disable to send body dollar signs literally, including $$, while keeping variables in the URL and headers.",
             "proxy-url": "Proxy URL to use for requests.\ne.g. http://user:password@localhost:8080",
             "timeout": "Timeout for the request in seconds.",
         }
@@ -88,6 +89,12 @@ class RequestOptions(VerticalScroll):
             "Attach cookies",
             value=self.options.attach_cookies,
             id="attach-cookies",
+        )
+
+        yield Checkbox(
+            "Substitute body variables",
+            value=self.options.substitute_body_variables,
+            id="substitute-body-variables",
         )
 
         with Vertical(id="proxy-option"):
@@ -117,6 +124,8 @@ class RequestOptions(VerticalScroll):
                 self.options.verify_ssl = event.value
             case "attach-cookies":
                 self.options.attach_cookies = event.value
+            case "substitute-body-variables":
+                self.options.substitute_body_variables = event.value
             case _:
                 pass
 
@@ -160,6 +169,7 @@ class RequestOptions(VerticalScroll):
         self.follow_redirects_checkbox.value = options.follow_redirects
         self.verify_ssl_checkbox.value = options.verify_ssl
         self.attach_cookies_checkbox.value = options.attach_cookies
+        self.query_one("#substitute-body-variables", Checkbox).value = options.substitute_body_variables
         self.proxy_url_input.value = options.proxy_url
         self.timeout_input.value = str(options.timeout)
 

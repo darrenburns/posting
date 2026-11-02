@@ -23,77 +23,111 @@ By opening a discussion, we can make sure:
 
 ## Development
 
-We use [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage the development dependencies.
+Posting 3 is written in Go. Development takes place on `main`. The `2.x` branch is for maintenance
+of the Python version.
 
-To setup an environment for development, run:
+Install [Go](https://go.dev/dl/) 1.25.5 or newer, as specified in `go.mod`, then run Posting from the
+repository root:
+
+```bash
+go run ./cmd/posting
+```
+
+To build a binary:
+
+```bash
+go build -o posting ./cmd/posting
+./posting
+```
+
+The repository includes a collection and environment files for manual testing:
+
+```bash
+go run ./cmd/posting --collection tests/sample-collections/ --env tests/sample-envs/sample_base.env --env tests/sample-envs/sample_extra.env
+```
+
+### Check Go changes
+
+Format changed Go files with `gofmt`. Run the same build, vet, and tests that CI runs:
+
+```bash
+go build ./...
+go vet ./...
+go test ./...
+```
+
+### Build the documentation
+
+The website uses MkDocs Material. Install its dependencies with
+[uv](https://docs.astral.sh/uv/getting-started/installation/):
+
+```bash
+uv sync --group docs
+uv run mkdocs serve
+```
+
+Before submitting documentation changes, check the build:
+
+```bash
+uv run mkdocs build --strict
+```
+
+`make docs-screens` regenerates the Posting 3 screens embedded in the website.
+
+### Maintain Posting 2
+
+For Python fixes, work from `2.x` and target pull requests at that branch.
+Use `uv` to install the development dependencies and run Posting 2:
 
 ```bash
 uv sync
+uv run posting
 ```
 
-This will create a virtual environment with the dependencies installed.
-Activate the virtual environment with:
+To connect Posting 2 to the Textual development tools, run:
 
 ```bash
-source .venv/bin/activate
-# or, with fish shell:
-source .venv/bin/activate.fish
+TEXTUAL=devtools,debug uv run posting
 ```
 
-Then you can run Posting with:
+Run Python tests through the Makefile, which separates tests that must run serially from the
+parallel tests:
 
 ```bash
-posting
+uv run make test
 ```
 
-If you wish to connect to the Textual dev tools (strongly recommended), you can run `posting` like this:
+Posting 2 UI tests compare SVG snapshots. Inspect the report for each changed snapshot before
+accepting the new output. To update snapshots after checking the differences, run:
 
 ```bash
-TEXTUAL=devtools,debug posting
+uv run make test-snapshot-update
 ```
 
-The repo includes a test collection which is used in the automated tests, but you can also load it in for manual testing.
-
-```bash 
-TEXTUAL=devtools,debug posting --collection tests/sample-collections/ --env tests/sample-envs/sample_base.env --env tests/sample-envs/sample_extra.env
-```
-
-### Running the tests
-
-To run the tests, you MUST use the `Makefile` commands.
-
-```bash
-make test
-```
-
-This will run the tests in parallel, but isolate a few tests which need to be run serially.
-If you try to run the tests using a raw `pytest` command, you're gonna have a bad time.
-
-### Snapshot testing
-
-Snapshot testing is the primary way we test the UI of Posting.
-
-It works by taking a "screenshot" of the running app at (actually an SVG!) the end of the test, and comparing it to the previous screenshot for that test.
-If it matches, the test passes. If it doesn't, the test fails and you'll be able to view a report which shows the differences.
-
-It's your job to look at this diff and consider whether the new output (on the left) is correct or not.
-
-If the results are all as expected, you can update the snapshots by running:
-
-```bash
-make test-snapshot-update
-```
-
-This will update the snapshots saved on disk for all the tests which failed.
-You should commit these changes into the repo - they're essentially the "source of truth" for what the UI of Posting should look like under different circumstances.
+Commit intentional snapshot changes with the code that caused them.
 
 ### Update the changelog
 
 A changelog is maintained in the `docs/CHANGELOG.md` file, which follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
 
-When you're making a change which should be recorded in the changelog.
-You should add your change to the `## Unreleased` section of the changelog.
-If the `## Unreleased` section doesn't exist, you should add it at the top.
+Add user-visible changes under the release heading marked `[Unreleased]`.
+If there isn't an unreleased section, add one at the top.
+
+## Releasing Posting 3
+
+Releases are built by [GoReleaser](https://goreleaser.com) when a tag starting with `v` is pushed.
+The version comes from the tag, so nothing in the code needs changing.
+
+1. Replace `[Unreleased]` in the changelog heading with the release date.
+2. Tag the release commit and push the tag, for example `git tag v3.0.0-beta.0 && git push origin v3.0.0-beta.0`.
+   Go only accepts tags in [semantic version](https://semver.org) form, so write a beta as `-beta.0`, not `b0`.
+
+The Release workflow publishes a GitHub release with archives for macOS, Linux and Windows, and updates the
+`posting@beta` cask in [darrenburns/homebrew-homebrew](https://github.com/darrenburns/homebrew-homebrew).
+It needs a `HOMEBREW_TAP_GITHUB_TOKEN` secret, with write access to that repository, in the repository's
+`goreleaser` environment.
+
+To try a release locally without publishing it, run `goreleaser release --snapshot --clean` and look in `dist/`.
 
 ## Feeling unsure?
 

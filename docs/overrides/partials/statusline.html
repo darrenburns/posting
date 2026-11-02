@@ -1,0 +1,13 @@
+{#-
+  The status line under the header on docs pages: where you are, and the
+  keys for the command palette (javascripts/commands.js). The homepage has
+  its own, in partials/home-body.html.
+-#}
+<p class="statusline statusline-docs">
+  <span class="sl-badge">POSTING 3</span>
+  <span class="sl-text">~/{{ page.url | lower }}</span>
+  <span class="sl-right">
+    <button type="button" data-cmdp=""><span class="sl-key">^P</span> commands</button>
+    <button type="button" class="sl-theme" data-cmdp="theme " aria-label="Change theme"><span class="dot" aria-hidden="true">&#9670;</span> <span data-theme-name>galaxy</span></button>
+  </span>
+</p>

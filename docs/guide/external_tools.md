@@ -1,92 +1,71 @@
 ## Overview
 
-You can quickly switch between Posting and external editors and pagers.
+Posting can hand text over to your favourite editor and pager. Edit a request body in `vim`, then
+browse the JSON response in `less` or [`fx`](https://fx.wtf), and come straight back to Posting.
 
-For example, you could edit request bodies in `vim`, and then browse the JSON response body in `less` or `fx`.
+| Key | Action |
+|-----|--------|
+| ++f4++ | Open the text in your editor |
+| ++f3++ | Open the text in your pager |
 
-You can even configure a custom pager specifically for browsing JSON.
+These keys work in the request body and the response body. Posting writes the text to a temporary
+file, with an extension for JSON, HTML, XML, CSS or YAML content (such as `.json`), so your editor can highlight
+it. The editor or pager takes over the terminal until you quit it, then you're back in Posting and
+the temporary file is deleted.
 
-## External Editors
+## Editors
 
-With a multi-line text area focused, press ++f4++ to open the file in your
-configured external editor.
+Press ++f4++ in the request body to edit it in your editor. When you save and quit, your changes
+replace the body in Posting.
 
-The configured external editor can be set as `editor` in your `config.yaml`
-file.
-For example:
+Press ++f4++ in the response body to open a copy of it in your editor. Changes you make there
+aren't brought back into Posting, since the response can't be edited.
 
-```yaml title="config.yaml"
-editor: vim
+Posting uses the `editor` setting from your [configuration](./configuration.md), which defaults to
+your `$EDITOR` environment variable:
+
+```yaml
+editor: nvim
 ```
 
-Alternatively, you can set the `POSTING_EDITOR` environment variable.
+You can also set `POSTING_EDITOR`, which takes priority over the config file.
 
-```bash
-export POSTING_EDITOR=vim
+!!! tip "Graphical editors"
+
+    The editor needs to keep running until you've finished editing. For editors that open a window
+    and return straight away, pass their "wait" option. For VS Code, use `code --wait`, or for
+    Cursor, `cursor --wait`.
+
+## Pagers
+
+Press ++f3++ to view a request or response body in your pager. Posting uses the `pager` setting,
+which defaults to your `$PAGER` environment variable:
+
+```yaml
+pager: less -R
 ```
 
-If neither is set, Posting will try to use the `EDITOR` environment variable.
+You can also set `POSTING_PAGER`.
 
-!!! tip "Using VSCode or Cursor"
+### A pager for JSON
 
-    If you want to use VSCode or Cursor, you can set the `POSTING_EDITOR` environment variable to `code -w` or `cursor -w` respectively.
+To use a different pager for JSON, such as [`fx`](https://fx.wtf) or [`jless`](https://jless.io),
+set `pager_json`. It's used instead of `pager` whenever the body is JSON:
 
-## External Pagers
-
-With a multi-line text area focused, press ++f3++ to open the file in your
-configured external pager.
-
-The configured external pager can be set as `pager` in your `config.yaml`
-file.
-For example:
-
-```yaml title="config.yaml"
-pager: less
-```
-
-Alternatively, you can set the `POSTING_PAGER` environment variable.
-
-```bash
-export POSTING_PAGER=less
-```
-
-### JSON Pager
-
-You can use a custom pager for viewing JSON using the `pager_json` setting in
-your `config.yaml` file.
-For example:
-
-```yaml title="config.yaml"
+```yaml
 pager_json: fx
 ```
 
-Alternatively, you can set the `POSTING_PAGER_JSON` environment variable.
+You can also set `POSTING_PAGER_JSON`.
 
-```bash
-export POSTING_PAGER_JSON=fx
-```
+The response body is passed to your pager as it's shown in Posting, so JSON is already formatted,
+unless you've set `response.prettify_json: false`.
 
-If neither is set, Posting will try to use the default pager lookup rules discussed earlier.
+## How commands are run
 
-## Exporting to curl
+The setting is split into words like a shell command, so it can include options (quote any
+argument that contains spaces), and the temporary file's path is added to the end. It isn't run
+through a shell, so shell features such as pipes and aliases aren't available. To use them, put
+them in a small script and set the script as your editor or pager.
 
-> *Added in Posting 2.4.0*
-
-Open the command palette and select `export: copy as curl`.
-This will transform the open request into a cURL command, and copy it to your clipboard.
-
-![Screenshot of command palette with the export: copy as curl option](../assets/curl-export.png)
-
-You can optionally supply extra arguments to pass to curl by setting the `curl_export_extra_args` setting in your `config.yaml` file.
-
-```yaml title="config.yaml"
-curl_export_extra_args: "--verbose -w %{time_total} %{http_code}"
-```
-
-This will be inserted directly into the command that gets copied to your clipboard, immediately after `curl `,
-producing a command like the following:
-
-```bash
-curl --verbose -w %{time_total} %{http_code} -X POST ...
-```
-
+If no editor or pager is set, Posting tells you so when you press the key.

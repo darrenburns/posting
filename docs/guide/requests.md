@@ -1,111 +1,755 @@
 ## Overview
 
-Requests are stored directly on your file system as simple YAML files, suffixed with `.posting.yaml` - easy to read, understand, and version control!
+A request is everything Posting needs to make an HTTP call: the method and URL, headers, query and
+path parameters, a body, authentication and a few options. You edit a request in the **Request**
+panel, send it with ++ctrl+j++, and save it into your [collection](./collections.md) with ++ctrl+s++.
 
-## Example
+## Creating a request
 
-Here's an example of what a request file looks like:
+Press ++ctrl+n++ to open a new, empty request in a tab of its own. Choose a method with ++ctrl+t++
+(or press a method's letter while the method selector has focus: ++g++ `GET`, ++p++ `POST`,
+++u++ `PUT`, ++a++ `PATCH`, ++d++ `DELETE`, ++h++ `HEAD`, ++o++ `OPTIONS`), and type a URL.
+
+You don't need to type `https://` or `http://`: a URL without a scheme is sent over `http://`.
+
+A new request isn't written to disk until you [save it](#saving-a-request).
+
+## Editing a request
+
+The **Request** panel has seven tabs. Jump to any of them with ++ctrl+o++ followed by
+++q++ ++w++ ++e++ ++r++ ++t++ ++y++ ++u++, or move along the tabs with ++left++ and ++right++ and
+press ++down++ to move into one.
+
+Type `$` in the URL bar, a header, query or form value, the auth fields, the proxy URL or the body
+to see the variables you can use.
+See [Environments](./environments.md) for how variables work.
+
+### Headers
+
+Headers are edited in a table. Type into the empty row at the bottom to add a header, and another
+empty row appears beneath it. As you type a header's name, Posting suggests common header names.
+
+| Key | Action |
+|-----|--------|
+| ++up++ / ++down++ | Move between rows |
+| ++ctrl+r++ | Enable or disable the row |
+| ++ctrl+x++ | Delete the row |
+
+You can also click the checkbox at the start of a row to enable or disable it, or the `✕` at its
+end to delete it. A disabled row stays in the request, and is saved with it, but isn't sent.
+The Query and form tables work the same way. The Path table only has values to fill in: its rows
+come from the URL (see [Path](#path)).
+
+### Body
+
+Choose the kind of body with the selector at the top of the tab (++left++ and ++right++ change it):
+
+- **None** sends no body.
+- **Raw** sends the text you type. Choose its content type beside it: **JSON**, **Text**, **XML** or
+  **HTML**. The text is syntax highlighted, and Posting sends the matching `Content-Type` header,
+  unless you've set a `Content-Type` header yourself.
+- **Form** sends URL-encoded form fields (`application/x-www-form-urlencoded`), edited in a table.
+- **Multipart** sends an ordered mixture of text and file parts (`multipart/form-data`).
+- **File** sends a file's bytes as the entire body, without multipart framing, for example for a PUT upload.
+
+Press ++f4++ in the body to edit it in your own editor, or ++f3++ to view it in your pager.
+See [External Tools](./external_tools.md).
+
+#### Multipart and file uploads
+
+In **Multipart**, select a part in the list to edit its details beside it. On a narrow pane,
+++enter++ opens the details full-width and ++escape++ returns to the list. Choose **+ Add part**
+or press ++insert++ to add one. Use ++ctrl+r++ to enable or disable the selected part,
+++ctrl+x++ to delete it, and ++alt+up++ / ++alt+down++ to reorder it. Disabled parts are saved but
+not sent. Repeated names are kept: to send several files as `attachments`, add a part for each
+file with that name.
+
+A **Text** part has a multiline value and an optional content type, for example
+`application/json` for metadata. ++f4++ and ++f3++ work in its value. A **File** part has a path,
+an optional filename override, and an optional content type. With no overrides, Posting sends
+the basename as the filename and infers the content type from the extension, falling back to
+`application/octet-stream`. Switching part types or body modes keeps drafts in the open tab;
+only the selected body mode and part type are written to YAML.
+
+Paths are relative to the **collection root**, including for unsaved requests, or absolute.
+They refer to files on the machine running Posting: over SSH, these are files on the remote
+host. Type a path to see directory and file completions, then press ++enter++ to accept one.
+Suggestions use up to 512 entries in each directory; you can always type an exact path.
+++f5++ in the path refreshes its metadata. Posting supports regular files, including empty files,
+not directories, devices, stdin or glob patterns.
+
+**Substitute body variables** applies to part names, text values, paths, filenames and content
+types. It never changes file contents. Importing and saving store references, not file bytes.
+Each send reads the current files, so re-sending a history entry is not a replay of historical
+file contents. Keep shared fixtures in the collection, or use variables for machine-specific paths.
+
+Posting checks every enabled file before connecting. It streams uploads, shows byte progress,
+then waits for the response. ++escape++ cancels the request. Redirects and Digest authentication
+can resend the body; if a file's identity, size or modification time changed, Posting stops and
+asks you to send again. The request timeout includes uploading, so increase it for large files.
+
+Posting generates the multipart boundary and its `Content-Type`. Leave that header unset, or
+use bare `multipart/form-data`; a different type or a manually supplied boundary is an error.
+
+For example:
 
 ```yaml
-name: Create user
-description: Adds a new user to the system.
-method: POST
-url: https://jsonplaceholder.typicode.com/users
-body: 
-  content: |-
-    {
-      "firstName": "John",
-      "email": "john.doe@example.com"
-    }
-headers:
-- name: Content-Type
-  value: application/json
-params:
-- name: sendWelcomeEmail
-  value: 'true'
+body:
+  multipart:
+    - name: title
+      value: ${TITLE}
+    - name: document
+      file: fixtures/report.pdf
+    - name: metadata
+      value: '{"team":"finance"}'
+      content_type: application/json
 ```
 
-## Creating a new request
+For a whole-file body, use `body: {file: fixtures/report.pdf}` with an optional `content_type`.
+Each multipart part has exactly one of `value` or `file`, plus optional `filename`, `content_type`
+and `enabled: false`. Multipart and file bodies require Posting 3; older versions cannot preserve them.
 
-Press ++ctrl+n++ to create a new request.
+### Path
 
-You'll be prompted to supply a name for the request.
-By default, this name is used to generate the filename, but you can also choose your own filename if you wish.
-
-!!! tip
-    If you already have a collection loaded, the path in the "New Request" dialog will be pre-filled based on the position of the cursor in the collection tree, so moving the cursor to the correct location *before* pressing ++ctrl+n++ will save you from needing to type out the path.
-
-Within the "Path in collection" field of this dialog, it's important to note that `.` refers to the currently loaded *collection* directory (that is, the directory that was loaded using the `--collection` option), and *not* necessarily the current working directory.
-
-### Duplicating a request
-
-With a the cursor over a request in the collection tree, press ++d++ to create a duplicate of that request. This will bring up a dialog allowing you to change the name and description of the request, or move it to another location.
-
-To skip the dialog and quickly duplicate the request, press ++shift+d++, creating it as a sibling of the original request. The file name of the new request will be generated automatically. You can always modify the name and description after it's created in the `Info` tab.
-
-## Saving a request
-
-Press ++ctrl+s++ to save the currently open request.
-
-If you haven't saved the request yet, a dialog will appear, prompting you to give the request a name, and to select a directory to save it in.
-
-!!! tip "Folders"
-
-    Requests can be saved to folders - simply include a `/` in the `Path in collection` field when you save the request, and Posting will create the required directory structure for you.
-
-If the request is already saved on disk, ++ctrl+s++ will overwrite the previous version with your new changes.
-
-## Loading requests
-
-Requests are stored on your file system as simple YAML files, suffixed with `.posting.yaml`.
-
-A directory can be loaded into Posting using the `--collection` option, and all `.posting.yaml` files in that directory will be displayed in the sidebar.
-
-## Path parameters
-
-Path parameters let you insert placeholders directly in the URL path using `:name` syntax. For example:
+Path parameters are placeholders in the URL's path, written as `:name`:
 
 ```
 https://api.example.com/users/:id/comments/:commentId
 ```
 
-When you type placeholders like this in the URL bar, Posting automatically extracts them and shows them in the Path tab. You can edit the values there, but you cannot add or remove rows manually — the rows come from the URL. Values are substituted into the URL path when the request is sent.
+Each placeholder you type in the URL gets a row in the **Path** tab, where you fill in its value.
+The rows come from the URL, so you add or remove them by editing the URL. Values are inserted into
+the URL when the request is sent. A placeholder with an empty value is sent as it is.
 
-### Useful shortcuts
+Values can contain variables, such as `$USER_ID`.
 
-- With the cursor over a `:name` token in the URL bar, press ++alt+down++ to jump to that row in the Path tab.
-- With a row highlighted in the Path tab, press ++alt+down++ to jump to the corresponding token in the URL bar.
+To send a literal `:name` in a path, double the colon: `::name` is sent as `:name`.
 
+### Query
 
-### YAML representation
+The **Query** tab lists the query string's parameters, and it's kept in step with the URL.
+Type `?page=2&per_page=50` at the end of the URL and two rows appear in the Query tab; add, change
+or remove rows and the URL updates to match.
 
-Path parameter values are saved in the request file under `path_params`:
+A disabled row is kept in the Query tab but removed from the URL, so it isn't sent.
+
+### Auth
+
+Choose how the request authenticates:
+
+- **None** sends no credentials.
+- **Basic** sends a username and password with HTTP Basic authentication.
+- **Digest** answers the server's Digest challenge with a username and password.
+- **Bearer token** sends `Authorization: Bearer <token>`.
+- **OAuth 2.0** obtains and refreshes a bearer token using authorization code with PKCE or client credentials.
+
+The `Authorization` header is created when the request is sent, and replaces any `Authorization`
+header you've added yourself (for Digest auth, once the server has sent its challenge). Credentials can use variables, for example `${API_TOKEN}`, so you can
+keep secrets out of your request files.
+
+#### OAuth 2.0
+
+Choose **OAuth 2.0** in **Auth**, then choose a grant:
+
+- **Code + PKCE** signs in through your browser. Enter the provider's **Auth URL**, **Token URL**,
+  **Client ID**, and space-separated **Scopes**. Public clients leave **Client secret** empty.
+  Register `http://127.0.0.1:8765/oauth/callback` as a redirect URI with the provider, or enter
+  another HTTP loopback IP, port and path in **Redirect URI**. Posting uses S256 PKCE and checks
+  the callback's state. Request the provider's offline-access scope, often `offline_access`, if
+  needed to receive a refresh token.
+- **Client credentials** authenticates an application without a browser. Enter the **Token URL**,
+  **Client ID**, **Client secret** and any **Scopes** the provider requires.
+
+**Client auth** chooses how Posting sends client credentials to the token endpoint: **Body**
+(`client_secret_post`, the default) or **Basic header** (`client_secret_basic`). Public PKCE
+clients use **Body** with no secret. Follow your provider's client registration settings.
+
+Press ++ctrl+j++ to authorize and send. A code grant opens the browser and waits up to three
+minutes; ++escape++ cancels it. The browser must be able to reach the callback on the machine
+running Posting. When using SSH or a container, forward the callback port if the browser is on
+another machine. Port `0` selects an available port, for providers that permit variable loopback
+ports. The API request's timeout starts after authorization finishes.
+
+Posting reuses tokens and refreshes them shortly before expiry, on the next send. It keeps a
+rotated refresh token when the provider returns one. Client credentials grants obtain a new token
+instead. A revoked or expired refresh token needs a new login: choose **Forget OAuth token** in
+the command palette, then send again. Forgetting removes the token for the current configuration
+from memory and the credential store; it doesn't revoke consent at the provider. Posting doesn't
+automatically replay API requests that return `401`.
+
+Tokens are saved in the OS credential store: macOS Keychain, Windows Credential Manager, or a
+Linux Secret Service such as GNOME Keyring. On Linux this requires an available, unlocked store
+on the session D-Bus. If the store is unavailable, Posting warns in **Auth** and keeps the token
+in memory for this session only; it never falls back to a plaintext token file. Tokens are scoped
+to the collection, API origin and resolved OAuth configuration, so changing credentials or scopes
+doesn't reuse another configuration's token.
+
+Use variables such as `${CLIENT_SECRET}` for secrets. **Literal client credentials are saved in
+request YAML**, just like Basic auth credentials. Generated access and refresh tokens aren't
+written to request files, request history configurations, or YAML exports. API responses are
+still recorded normally, so don't use an endpoint that echoes credentials if you want them kept
+out of response history. OAuth requests can't be exported as curl or grpcurl commands.
+
+OAuth endpoints and HTTP API requests require HTTPS, except HTTP on loopback for local testing.
+Token requests use the request's proxy and SSL verification settings and the configured CA/client
+certificates. Token endpoint redirects aren't followed, and API redirects to a different origin
+don't receive the OAuth token. OAuth also works with GraphQL and TLS gRPC calls. gRPC reflection
+can reuse or refresh credentials but doesn't open a browser; send once to sign in first.
+
+A saved OAuth request looks like this:
 
 ```yaml
-name: get comments
-url: https://jsonplaceholder.typicode.com/posts/:postId/comments
+url: https://api.example.com/me
+auth:
+  type: oauth2
+  oauth2:
+    grant_type: authorization_code
+    authorization_url: https://identity.example.com/authorize
+    token_url: https://identity.example.com/token
+    client_id: ${CLIENT_ID}
+    scope: openid profile offline_access
+    redirect_uri: http://127.0.0.1:8765/oauth/callback
+    client_auth: client_secret_post
+```
+
+For client credentials, use `grant_type: client_credentials`, add `client_secret: ${CLIENT_SECRET}`,
+and omit `authorization_url` and `redirect_uri`. Edit OAuth requests only in Posting 3; Posting 2
+doesn't understand this auth type.
+
+### Info
+
+The request's **Name** and **Description**, and the **File** it's saved in.
+
+The name is shown in the request tabs and the collection browser. The description is shown when you
+hover over the request in the collection browser, and supports `code` in backticks.
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| **Follow redirects** | On | Follow `3xx` responses to their destination, stopping with an error after 10 requests in a chain. When it's off, you see the redirect response itself. |
+| **Verify SSL certificates** | On | Reject servers whose certificates can't be verified. Turn it off for servers with self-signed certificates. See also [Configuring SSL](./configuration.md#configuring-ssl). |
+| **Attach cookies** | On | Send cookies set by earlier responses, and remember cookies from this one. Cookies are kept until you quit Posting, and are shared by all tabs. |
+| **Substitute body variables** | On | Replace variables in the body. Turn this off to send a body that contains literal `$` signs, such as a JSON schema or a GraphQL query. Variables in the URL, headers and auth are still replaced. |
+| **Proxy URL** | Empty | Send the request through this proxy, e.g. `http://proxy.example.com:8080`. When it's empty, the standard `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment variables apply. |
+| **Timeout** | 5 | How many seconds to wait for the whole request, including redirects and reading the response. |
+
+## GraphQL requests
+
+To make a GraphQL request, open the method selector with ++ctrl+t++ and choose **GraphQL**, or press
+++q++ while the method selector has focus. The selector shows `GraphQL`, and the collection browser,
+request tabs and history show a `GQL` badge where an HTTP request shows its method. Choose a method
+to turn it back into an HTTP request. The URL, headers, auth and options stay as they are when you
+switch, and so does the query, so you can switch back and forth without losing anything.
+
+A GraphQL request has two tabs of its own, before the usual ones:
+
+- **Query** holds the GraphQL document, with syntax highlighting. If the document defines more than
+  one operation, type the name of the one to run in **Operation**, above the document.
+- **Variables** holds the operation's variables as a JSON object, such as `{"id": "${USER_ID}"}`.
+
+The other tabs work as they do for an HTTP request. There's no **Body** tab, and the URL's query
+parameters are in the **Params** tab, because **Query** is the document. Press ++f4++ in the
+document or the variables to edit them in your own editor.
+
+Posting sends a GraphQL request as a `POST` with `Content-Type: application/json` and a JSON body
+of `query`, `variables` and `operationName`. Empty variables and an empty operation name are left
+out. Unless you've set an `Accept` header, Posting also sends
+`Accept: application/graphql-response+json, application/json`.
+
+### Variables in GraphQL requests
+
+In the **Variables** tab, Posting variables work as they do in a raw body: `$NAME` and `${NAME}` are
+both replaced, and typing `$` suggests the variables you can use.
+
+In the query, only `${NAME}` is replaced. A bare `$name` there is a GraphQL variable, so
+`query User($id: ID!)` is sent as written, even if your environment defines `id`.
+
+Turn off **Substitute body variables** in the **Options** tab to send the query and the variables
+exactly as written.
+
+### GraphQL responses
+
+GraphQL servers often answer `200 OK` when an operation fails, and put the failure in an `errors`
+list in the response body. When a `2xx` response has errors, Posting shows its status in the
+warning colour, in the URL bar, the response panel and the history, and the response panel counts
+the errors, for example `200 1 error`.
+
+### GraphQL request files
+
+A saved GraphQL request has `kind: graphql` and a `graphql` section instead of a method and a body:
+
+```yaml
+name: Get user
+kind: graphql
+url: ${BASE_URL}/graphql
+graphql:
+  query: |
+    query User($id: ID!) {
+      user(id: $id) {
+        name
+        email
+      }
+    }
+  variables: |
+    {"id": "${USER_ID}"}
+  operation_name: User
+auth:
+  type: bearer_token
+  bearer_token:
+    token: ${API_TOKEN}
+```
+
+Posting 2 doesn't know about GraphQL requests. It opens them as a `GET` of the URL with no body, and
+saving one in Posting 2 removes `kind` and the `graphql` section, which loses the query. Edit
+GraphQL requests only in Posting 3.
+
+## WebSocket requests
+
+Choose **WebSocket** in the method selector (++ctrl+t++, then ++w++). Enter a `ws://` or `wss://`
+URL and press **Connect** or ++ctrl+j++. Connecting does **not** send the draft in the **Message**
+tab. Once connected, **Send** or ++ctrl+j++ sends that draft as one message. Edit it and send again
+as often as needed, including empty messages. Enable **Binary (base64)** to send base64-decoded
+bytes instead of UTF-8 text.
+
+The **Messages** response tab shows sent and received messages with timestamps. JSON messages
+use the existing text and JSON tree inspectors; binary messages are shown as base64. New messages
+appear without keyboard or mouse activity. Select an older message to pause following while new
+messages accumulate; ++f++ resumes following. ++enter++ opens the full inspector and ++escape++
+returns to the log without disconnecting.
+
+Press ++alt+j++ or choose **Disconnect WebSocket** to disconnect. ++escape++ from the log also
+disconnects. The log, handshake headers, close code and reason remain available in history.
+Unsent queued messages are discarded on disconnect. Reconnection is explicit and never replays
+messages. The request timeout bounds connecting and each write; it does not end an established
+interactive connection. A caller's deadline still applies.
+
+Headers, query/path parameters, Basic/Bearer/OAuth authentication, cookies, proxy and TLS settings
+apply to the upgrade handshake. To offer subprotocols, add a `Sec-WebSocket-Protocol` header.
+OAuth requires `wss://` except on loopback. Ping frames receive automatic pong replies. Redirects,
+Digest authentication, per-message compression and automatic reconnect are not supported.
+Messages are limited to 1 MiB; the connection stops when the retained log reaches 10,000 entries
+or 64 MiB of payloads, preserving the log and explaining the limit.
+
+Saved requests use `kind: websocket`:
+
+```yaml
+name: Deployment updates
+kind: websocket
+url: wss://api.example.com/events
+websocket:
+  message: '{"subscribe":"deployments"}'
+  binary: false
+```
+
+Edit these files only in Posting 3. Export as YAML is supported; command export is not.
+See [headless WebSocket runs](./running.md#websocket-requests) for the different send/timeout behavior
+of `posting run`.
+
+## gRPC requests
+
+To make a gRPC request, open the method selector with ++ctrl+t++ and choose **gRPC**, or press
+++r++ while the method selector has focus. The selector shows `gRPC`, and the collection browser,
+request tabs and history show an `RPC` badge where an HTTP request shows its method. Choose a
+method to turn it back into an HTTP request. The address, metadata, auth and options stay as they
+are when you switch, and so do the gRPC method and message.
+
+### The server's address
+
+Type the server's address in the URL bar, for example `localhost:50051`. The address is a host and
+a port, with no path. The method goes in the **Method** field. The address's scheme decides whether
+Posting connects with TLS:
+
+| Address | Connection |
+|---------|------------|
+| `grpc://host:port` or `http://host:port` | Plaintext |
+| `grpcs://host:port` or `https://host:port` | TLS |
+| `localhost:50051`, `127.0.0.1:50051` or `[::1]:50051` | Plaintext, because the host is a loopback address |
+| `0.0.0.0:50051` or `[::]:50051` | Plaintext, because a server that prints this address is listening on this machine |
+| Any other address without a scheme, such as `api.example.com:8443` | TLS |
+| `unix:///run/app.sock` or `unix:app.sock` | Plaintext, over the Unix socket at that path. A relative path is relative to the directory you started Posting in |
+
+Without a port, TLS uses port 443 and plaintext uses port 80. If a TLS connection fails because the
+server only speaks plaintext, the error suggests `grpc://`. If a plaintext connection fails because
+the server wants TLS, the error suggests `grpcs://`.
+
+**Verify SSL certificates** in the **Options** tab, and the [SSL settings](./configuration.md#configuring-ssl)
+in your configuration, apply as they do to HTTP requests.
+
+The call names the address's host in its `:authority` header, and over TLS, checks that the
+server's certificate has that name. A call to a Unix socket names `localhost`. To use another name,
+type it in **Authority** on the **Options** tab. Use it when you connect through an IP address, a
+port forward or a load balancer, and the server or its certificate expects its own name.
+**Authority** takes variables.
+
+### The Message and Proto tabs
+
+A gRPC request has two tabs of its own, before the usual ones:
+
+- **Message** has the **Method** field, and the message to send below it.
+- **Proto** lists the `.proto` files that describe the server, for servers that don't offer
+  reflection. Leave it empty to ask the server.
+
+The other tabs work as they do for an HTTP request, with these differences:
+
+- There's no **Body**, **Path** or **Query** tab.
+- The **Headers** tab is called **Metadata**. Each enabled row is sent as gRPC metadata, with its
+  name in lower case. A name that ends in `-bin` takes a base64 value, which Posting decodes before
+  sending. Names that gRPC sets itself (`content-type`, `te`, and names that start with `grpc-` or
+  `:`) are errors, and so are HTTP/1 headers that HTTP/2 forbids (`connection`, `keep-alive`,
+  `proxy-connection`, `transfer-encoding`, `upgrade` and `host`). A `user-agent` row replaces
+  Posting's own user agent, and gRPC adds its version after it.
+- Basic and bearer auth are sent as `authorization` metadata. Digest auth needs an HTTP challenge,
+  so the **Auth** tab doesn't offer it, and a request file with `type: digest` doesn't load.
+- The **Options** tab has **Verify SSL certificates**, **Substitute body variables**,
+  **Authority** and **Timeout**. The timeout is the deadline for the whole call, including connecting. An
+  [open stream](#open-streams) uses it only for connecting.
+
+### Finding methods
+
+Posting contacts a server only when you ask it to. Opening a gRPC request, or showing its tabs,
+never contacts the server.
+
+When the **Proto** tab is empty, Posting asks the server's reflection service for its methods. It
+asks when:
+
+- The **Method** field takes focus. Posting asks again only if the address, the metadata or the
+  auth has changed since it last asked, or if that attempt failed.
+- You press ++ctrl+r++ in the **Method** field, or choose **Refresh gRPC methods** in the command
+  palette.
+- A send of the request gets a response.
+
+When the server has no reflection service, add its `.proto` files on the **Proto** tab instead:
+
+- **Files** lists the files, one per line, relative to the collection directory. A file ending in
+  `.protoset`, `.binpb` or `.pb` is a compiled descriptor set, such as `protoc --descriptor_set_out`
+  or `buf build -o` writes. Any other file is `.proto` source, which Posting compiles itself, so you
+  don't need `protoc`.
+- **Import paths** lists the directories that `import` statements are relative to. With none, the
+  collection directory is the only one. Each `.proto` file must be inside one of them.
+
+With proto files, Posting lists the methods without connecting to the server, so it lists them as
+soon as the request opens. It reads the files again each time the **Method** field takes focus, and
+on ++ctrl+r++ or **Refresh gRPC methods**, so an edited file is picked up.
+
+The line under the **Method** field shows how many methods Posting found, and where, for example
+`4 methods via reflection · plaintext`. Once you choose a method, it shows the method's kind and its
+message types, such as `server stream · ListBooksRequest → Book`. If Posting couldn't find the
+methods, the line says why. Before Posting has asked the server, the line says so.
+
+The **Method** field lists the methods while it has focus, and opens the list when they arrive.
+Type to filter them, and press ++enter++ to choose one. You can also type a method yourself as
+`package.Service/Method` or `package.Service.Method`.
+
+### Messages and streams
+
+Write the message as JSON, in protobuf's JSON format: field names in `lowerCamelCase` or as they're
+written in the `.proto` file, enum values by name, and well-known types such as `Timestamp` in their
+JSON form. When you choose a method and the message is empty, or still holds the previous method's
+template, Posting fills it in with a template that has every field of the method's input. Choose
+**Insert gRPC message template** in the command palette to replace the message with a template at
+any time.
+
+What you write depends on the method:
+
+- A unary or server-streaming method takes one JSON object.
+- A client-streaming or bidirectional method takes a JSON array of objects, and Posting sends each
+  one as a message, in order. A single object is sent as a stream of one message.
+- An empty message is sent as one empty message, for any method.
+
+Variables work as they do in a raw body: `$NAME` and `${NAME}` are both replaced, and typing `$`
+suggests the variables you can use. Turn off **Substitute body variables** to send the message
+exactly as written. Press ++f4++ in the message to edit it in your own editor.
+
+When you press ++ctrl+j++, Posting sends every message and closes its side of the call while it
+reads the server's replies, so a server that answers each message as it arrives works too. The
+response shows each reply as it arrives, with `RECEIVING` in the response panel's title, until the
+call ends.
+
+#### Open streams
+
+To send messages one at a time while a call runs, open a stream instead. Press ++alt+j++, or choose
+**Open gRPC stream** in the command palette. Posting calls the method, sends the message, and keeps
+its side of the call open. The response panel's title shows `Streaming`. While the stream is open:
+
+- Press ++ctrl+j++ to send the message in the editor. Edit the message between sends to send a
+  different one. For a client-streaming or bidirectional method, a JSON array sends each object as
+  a message. A message that isn't valid for the method shows an error and sends nothing, and the
+  stream stays open.
+- Press ++alt+j++ again, or choose **End gRPC stream**, to close your side of the call. The server
+  then ends the call when it's ready, as a client-streaming server does when it replies.
+- Press ++escape++ to stop the call at once.
+
+An open stream has no timeout once it has connected. It runs until you end it, you stop it, or the
+server ends the call. For a unary or server-streaming method, an open stream sends only its first
+message, and is useful to watch a server stream for longer than the timeout.
+
+### gRPC responses
+
+The response panel shows the call's status by name, such as `OK` or `NOT_FOUND`, with the server's
+status message beside it. Only `OK` is shown in the success colour.
+
+The **Body** tab shows the server's messages as JSON, with fields at their default values included:
+
+- An object for a unary or client-streaming method.
+- An array for a server-streaming or bidirectional method, even when the server sent one message or
+  none.
+- When the call fails and the server sent no messages, an object with the status's `code`,
+  `message` and `details`. Posting decodes the details whose types it knows, such as the
+  `google.rpc` error details. It shows the others as their type URL and base64 value.
+
+The **Headers** tab shows the response metadata. A gRPC response has a **Trailers** tab instead of
+**Cookies**. Trailers arrive when the server ends the call, and they start with `grpc-status` and,
+when the server sent one, `grpc-message`. A call that ends without the server's trailers, such as
+one that times out, has none.
+
+When a call runs past its timeout, the response shows the messages that arrived before the deadline,
+with the status `DEADLINE_EXCEEDED`. When you press ++escape++ after the server has answered, the
+response keeps the messages that arrived, with the status `CANCELLED`. When Posting can't reach the server, or the server sends
+nothing before the deadline, the response panel shows an error, as it does for an HTTP request.
+
+Posting keeps up to 64 MB of messages from a call, the same limit as an HTTP response body. When a
+stream sends more, Posting cancels the call. The response shows the messages that arrived before
+the limit, with the status `CANCELLED` and the message `response truncated at 64.00 MB`.
+
+Each send opens a new connection to the server. Without proto files, it also asks the server for
+the method's schema again, so a changed server is picked up straight away.
+
+### Exporting as grpcurl
+
+For a gRPC request, the command palette offers **Export as grpcurl** in place of **Export as curl**.
+The command uses `-plaintext` or `-insecure` to match the connection, `-unix` for a Unix socket,
+`-authority` for **Authority**, `-cacert`, `-cert` and `-key`
+for the files in your [SSL settings](./configuration.md#configuring-ssl) when the connection uses
+TLS, `-H` for metadata and auth, `-d` for the message, `-max-time` for the timeout, and
+`-import-path`, `-proto` and `-protoset` for the proto files, with absolute paths so the command
+runs from any directory. Basic and bearer auth replace an `authorization` metadata row, as they do
+when Posting sends the request. If the address still has a variable in it, the command keeps the
+address as written. Only a `grpc://` or `http://` scheme then makes the command `-plaintext`, so
+without a scheme grpcurl uses TLS. grpcurl reads a stream as JSON objects one after another, so an
+array message is written that way.
+
+### gRPC request files
+
+A saved gRPC request has `kind: grpc` and a `grpc` section instead of a method and a body:
+
+```yaml
+name: Get user
+kind: grpc
+url: localhost:50051
+grpc:
+  method: acme.users.v1.UserService/GetUser
+  message: |
+    {"id": "${USER_ID}"}
+  proto:
+    files:
+      - protos/acme/users/v1/users.proto
+    import_paths:
+      - protos
+auth:
+  type: bearer_token
+  bearer_token:
+    token: ${API_TOKEN}
+headers:
+  - name: x-tenant
+    value: core
+options:
+  timeout: 10
+```
+
+Leave out the `proto` section to use reflection. A gRPC request file can't have `method`, `body`,
+`params` or `path_params`, and its `options` can't have `follow_redirects`, `attach_cookies` or
+`proxy_url`. Any other key in the `grpc` or `proto` sections is an error.
+
+Posting 2 doesn't know about gRPC requests. Edit them only in Posting 3.
+
+### What gRPC requests don't do yet
+
+- gRPC-Web and Connect.
+- Compressed messages.
+- Proxies.
+- Client certificates for a single request. The client certificate in your
+  [SSL settings](./configuration.md#configuring-ssl) applies to every request.
+- Importing gRPC requests from Postman or grpcurl. [Bruno gRPC requests can be imported](./importing.md#bruno).
+- Completing proto file paths.
+- Reusing a connection from one send to the next.
+
+## Sending a request
+
+Press ++ctrl+j++ (or ++alt+enter++) from anywhere to send the request in the current tab, or press
+++enter++ in the URL bar. Press ++escape++ to cancel it while it's in flight.
+
+Posting sends a `User-Agent` header identifying itself unless you've set your own.
+If the URL's address or path, or an OAuth field, uses a variable that isn't defined, Posting tells you which one
+instead of sending the request. An undefined variable anywhere else, including the query string,
+is sent as written.
+
+See [Responses](./responses.md) for what you can do with the response.
+
+## Saving a request
+
+Press ++ctrl+s++ to save the request in the current tab.
+
+The first time you save a request, Posting asks where to save it:
+
+| Field | Description |
+|-------|-------------|
+| **Name** | The request's name. Required. |
+| **File name** | The name of the file, without `.posting.yaml`. Leave it empty to use one made from the name. |
+| **Folder** | The folder in the collection to save it in, such as `users/admin`. Leave it empty to save at the top of the collection. Missing folders are created. |
+| **Description** | An optional description. |
+
+Press ++enter++ to save. After that, ++ctrl+s++ saves changes to the same file.
+
+### Renaming a request
+
+Change the **Name** in the **Info** tab and save. The request keeps its file name; to rename or move
+the file itself, rename or move it on disk and Posting will notice the change.
+
+### Duplicating a request
+
+Press ++d++ with the cursor on a request in the collection browser, or choose **Duplicate request**
+in the command palette, to make a copy. The copy is saved beside the original, with `(copy)` added
+to its name, and opened in a new tab.
+
+To duplicate [several requests](./collections.md#selecting-several-requests) at once, select them
+first. Their copies aren't opened. They become the selection instead.
+
+### Deleting a request
+
+Press ++backspace++ with the cursor on a request in the collection browser, or choose **Delete request**
+in the command palette to delete the request in the current tab. Posting asks you to confirm,
+then deletes the file. With [several requests](./collections.md#selecting-several-requests) selected,
+Posting asks once and deletes them all.
+
+If the request is open in a tab, the tab stays open with its contents intact, as an unsaved request,
+so you can save it again if you change your mind.
+
+## Importing curl commands
+
+Paste a `curl` command into the URL bar and Posting turns it into a request, filling in the method,
+URL, headers, query parameters, body, authentication and options.
+
+<figure class="screen">
+--8<-- "curlhint.html"
+<figcaption>A curl command in the URL bar, ready to import.</figcaption>
+</figure>
+
+If your terminal doesn't paste the command in one go, type or paste it and press ++enter++.
+A command split over several lines with `\` at the end of each line is supported.
+
+You can also:
+
+- choose **Import curl command…** in the command palette, and paste the command into the dialog;
+  press ++ctrl+j++ to import it
+- choose **Import curl from clipboard** to import the command on your clipboard directly (over
+  SSH, this needs a terminal that lets applications read the clipboard)
+
+Importing replaces everything in the current tab's request except its name and description.
+The request keeps its file too, so importing into a saved request updates it once you save.
+
+Posting understands the options people most often copy from browsers and API docs, including
+`-X`, `-H`, `-d` and its variants, `--json`, `-F`, `-u`, `--digest`, `-b`, `-A`, `-e`, `-k`, `-L`,
+`-x`, `-m`, `-G`, `-I` and `--oauth2-bearer`. Options that don't affect the request, such as `-s`,
+`-v` and `-o`, are ignored. A few things to be aware of:
+
+- `-F` imports multipart fields, including `@path`, `;filename=` and `;type=`. Use separate
+  `-F` fields for multiple files. `--form-string` always imports literal text.
+- `--data-binary @path` and `--json @path` import a whole-file body. Files are read when sending,
+  so each send uses the current contents. Relative paths resolve against the collection, not
+  the shell directory the command originally ran in. `--json` supplies JSON Content-Type and
+  Accept headers unless you set them explicitly. A whole-file body cannot be combined with
+  other data fragments or files. Stdin, nested multipart, `<file` parts and custom per-part
+  headers aren't supported.
+- `$NAME` in a pasted command isn't expanded: it becomes a Posting variable.
+
+## Exporting as curl
+
+Choose **Export as curl** in the command palette to copy the request as a `curl` command.
+The command is copied to your clipboard straight away, and shown in a dialog where you can check it.
+
+<figure class="screen">
+--8<-- "curlexport.html"
+<figcaption>A request exported as a curl command.</figcaption>
+</figure>
+
+The **Values** / **Variables** switch at the top of the dialog chooses between a command with
+variables replaced by their values (the default), ready to run, or one with the variables left
+in, ready to share. Press ++y++ to copy the command again.
+
+Uploads export as `-F` / `--form-string`, or `--data-binary @path` for a whole file. Resolved file
+paths are absolute so the command can run from another directory. Paths with unresolved variables
+are kept as written. Curl generates the boundary for multipart uploads; empty multipart bodies
+export with explicit framing instead.
+
+To add your own options to every exported command, set `curl_export_extra_args` in your
+[configuration](./configuration.md):
+
+```yaml
+curl_export_extra_args: "--silent --show-error"
+```
+
+This is inserted straight after `curl`.
+
+## Exporting as YAML
+
+Choose **Export as YAML** in the command palette to copy the request in Posting's file format,
+a quick way to share a request with another Posting user.
+
+## The request file format
+
+Requests are saved as YAML files ending in `.posting.yaml`. They're designed to be easy to read,
+review and edit by hand. Here's an example:
+
+```yaml
+name: Create user
+description: Adds a new user to the system.
+method: POST
+url: https://${API_HOST}/users/:team
+body:
+  content: |-
+    {
+      "firstName": "John",
+      "email": "john.doe@example.com"
+    }
+  content_type: application/json
+auth:
+  type: bearer_token
+  bearer_token:
+    token: ${API_TOKEN}
+headers:
+- name: X-Request-ID
+  value: docs-example
+- name: X-Debug
+  value: 'true'
+  enabled: false
+params:
+- name: sendWelcomeEmail
+  value: 'true'
 path_params:
-- name: postId
-  value: '3'
+- name: team
+  value: engineering
+options:
+  timeout: 30
 ```
 
-You can also use variables from the environment in path parameter values (e.g., `$FOO`). Variables are resolved before the values are substituted into the URL.
+Only settings that differ from the defaults are written, so most files are short:
 
-### Escaping literal colons
+| Key | Description |
+|-----|-------------|
+| `name`, `description` | Shown in the collection browser and the **Info** tab. |
+| `kind` | `graphql` for a [GraphQL request](#graphql-requests), `grpc` for a [gRPC request](#grpc-requests). Left out for an HTTP request. |
+| `method` | The HTTP method. Left out for `GET`. |
+| `url` | The URL, without its query string. |
+| `headers`, `params` | Lists of `name` and `value`. `enabled: false` marks a disabled row. |
+| `path_params` | The values of the URL's `:name` placeholders. |
+| `body` | One of `content` for a raw body, `form_data` for a URL-encoded form, `multipart` for ordered parts, or `file` for a whole-file body. Raw and file bodies can also specify `content_type`. |
+| `graphql` | A GraphQL request's `query`, `variables` and `operation_name`. Any other key in it is an error. |
+| `grpc` | A gRPC request's `method`, `message` and `proto` (`files` and `import_paths`). Any other key in it is an error. |
+| `auth` | `type` is `basic`, `digest`, `bearer_token` or `oauth2`, with configuration under a key of the same name (`basic: {username, password}`, `bearer_token: {token}`). See [OAuth 2.0](#oauth-20) for `oauth2` fields. |
+| `options` | Any of `follow_redirects`, `verify_ssl`, `attach_cookies`, `substitute_body_variables`, `proxy_url` and `timeout`. |
+| `captures` | Maps session variable names to JSON response paths, e.g. `{SESSION_ID: data.id}`. See [Response captures](./environments.md#response-captures). |
+| `scripts` | Posting 2 scripts. Posting 3 keeps them but doesn't run them; see [Scripting](./scripting.md). |
 
-If you need a literal `:name` in the path, escape it by doubling the colon. For example, `::id` renders as `:id` and is not treated as a placeholder:
-
-```
-http://example.com/users/::id/:id  →  http://example.com/users/:id/123
-```
-
-## Deleting a request
-
-You can delete a request by moving the cursor over it in the tree, and pressing ++backspace++.
-
-## Sharing requests
-
-An easy way to share a request with others is to copy it as a cURL command.
-Press ++ctrl+p++ and select `export: copy as curl` to copy the request as a cURL command to your clipboard.
-
-You can also press ++ctrl+p++ and select `export: copy as YAML` to copy the request as YAML. This provides a quick way to share a request with other Posting users, e.g. via Slack.
+HTTP requests without OAuth and with none, raw or URL-encoded form bodies use Posting 2's format.
+OAuth, multipart and file bodies, generated values and response captures require Posting 3.

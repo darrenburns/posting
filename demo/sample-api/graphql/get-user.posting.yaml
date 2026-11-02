@@ -1,0 +1,16 @@
+name: Get user
+description: A GraphQL query with variables. Uses the demo server's canned GetUser response.
+kind: graphql
+url: ${BASE_URL}/graphql
+graphql:
+  query: |-
+    query GetUser($id: ID!) {
+      user(id: $id) {
+        id
+        name
+        email
+        role
+      }
+    }
+  variables: '{"id": "1"}'
+  operation_name: GetUser

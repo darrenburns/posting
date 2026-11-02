@@ -94,6 +94,14 @@ PostingDataTable {
         def control(self) -> "PostingDataTable":
             return self.data_table
 
+    @dataclass
+    class RowToggled(Message):
+        data_table: "PostingDataTable"
+
+        @property
+        def control(self) -> "PostingDataTable":
+            return self.data_table
+
     def add_row(
         self,
         *cells: str | Text,
@@ -279,6 +287,7 @@ PostingDataTable {
             # only when focus changes to another column.
             self._update_count += 1
             self.refresh()
+            self.post_message(self.RowToggled(self))
 
     def is_row_enabled_at(self, row_index: int) -> bool:
         row_key = self._row_locations.get_key(row_index)

@@ -10,8 +10,8 @@ theme:
   custom_dir: docs/overrides
   icon:
     logo: fontawesome/solid/paper-plane
-  font:
-    text: Open Sans
+  # Fonts are loaded by docs/overrides/main.html.
+  font: false
   features:
     - search.suggest
     - search.highlight
@@ -21,29 +21,46 @@ theme:
     - navigation.footer
     - toc.integrate
 extra_css:
-  - stylesheets/extra.css
+  - stylesheets/palettes.css
+  - stylesheets/theme.css
+  - stylesheets/terminal.css
+  - stylesheets/home-palettes.css
+  - stylesheets/screens.css
+extra_javascript:
+  - javascripts/palette.js
+  - javascripts/commands.js
+exclude_docs: |
+  overrides/
+  scripts/
 nav:
   - Home: "index.md"
   - Guide:
     - "Getting Started": "guide/index.md"
+    - "Coming from Posting 2": "guide/migrating.md"
     - "Navigation": "guide/navigation.md"
     - "Collections": "guide/collections.md"
     - "Requests": "guide/requests.md"
-    - "Configuration": "guide/configuration.md"
+    - "Responses": "guide/responses.md"
     - "Environments": "guide/environments.md"
     - "Command Palette": "guide/command_palette.md"
     - "Themes": "guide/themes.md"
     - "External Tools": "guide/external_tools.md"
     - "Keymaps": "guide/keymap.md"
     - "Importing": "guide/importing.md"
+    - "Headless Runs": "guide/running.md"
+    - "Remote Control": "guide/remote_control.md"
+    - "Coding Agents": "guide/agents.md"
+    - "Configuration": "guide/configuration.md"
     - "Scripting": "guide/scripting.md"
-    - "Help System": "guide/help_system.md"
+    - "Help": "guide/help_system.md"
   - Roadmap: "roadmap.md"
   - Changelog: "CHANGELOG.md"
   - FAQ: "faq.md"
 plugins:
   - search
   - tags
+hooks:
+  - docs/scripts/dev_styles.py
 markdown_extensions:
   - abbr
   - admonition
@@ -58,6 +75,10 @@ markdown_extensions:
       use_pygments: true
   - pymdownx.superfences
   - pymdownx.details
+  # Embeds the screens captured from Posting 3 (make docs-screens).
+  - pymdownx.snippets:
+      base_path: docs/overrides/partials/screens
+      check_paths: true
 extra:
   social:
     - icon: fontawesome/brands/mastodon 

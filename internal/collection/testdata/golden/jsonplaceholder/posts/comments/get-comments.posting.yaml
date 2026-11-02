@@ -1,0 +1,15 @@
+name: get comments
+description: Retrieve the comments for a post
+url: https://jsonplaceholder.typicode.com/posts/:postId/comments
+headers:
+  - name: Content-Type
+    value: application/json
+  - name: Referer
+    value: https://example.com/
+  - name: Accept-Encoding
+    value: gzip
+  - name: Cache-Control
+    value: no-cache
+path_params:
+  - name: postId
+    value: "3"

@@ -1,0 +1,14 @@
+name: List users
+description: |-
+  Fetch a page of users.
+
+  Supports `page` and `per_page` query parameters.
+url: ${BASE_URL}/users
+headers:
+  - name: Accept
+    value: application/json
+params:
+  - name: page
+    value: '1'
+  - name: per_page
+    value: '3'

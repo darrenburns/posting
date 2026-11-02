@@ -1,0 +1,101 @@
+/* Screens rendered from Posting's own output (see docs/scripts/home_screens.py),
+   shared by the homepage and the guide pages that embed them. */
+
+/* Full JetBrains Mono 2.304 faces, including terminal symbols missing from
+   Google's Latin subset. Source: github.com/JetBrains/JetBrainsMono/v2.304;
+   license: assets/fonts/OFL.txt. Keep capture metrics at 0.6em per cell. */
+@font-face {
+  font-family: "Posting Terminal";
+  src: url("../assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Posting Terminal";
+  src: url("../assets/fonts/JetBrainsMono-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Posting Terminal";
+  src: url("../assets/fonts/JetBrainsMono-Italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Posting Terminal";
+  src: url("../assets/fonts/JetBrainsMono-BoldItalic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* JetBrains Mono lacks these two glyphs. DejaVu Sans Mono, subset with
+   pyftsubset --unicodes=U+21B5,U+2611 --flavor=woff2, keeps them monospaced.
+   License: assets/fonts/DejaVu-LICENSE.txt. */
+@font-face {
+  font-family: "Posting Symbols";
+  src: url("../assets/fonts/DejaVuSansMono-Symbols.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+21B5, U+2611;
+}
+
+.tui {
+  background: var(--bg);
+}
+
+.tui svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.tui text {
+  font-family: "Posting Terminal", "Posting Symbols", monospace;
+  font-size: 18px;
+  font-variant-ligatures: none;
+  font-synthesis: none;
+  dominant-baseline: central;
+  white-space: pre;
+}
+
+.tui rect { shape-rendering: crispEdges; }
+.tui .bold { font-weight: 700; }
+.tui .italic { font-style: italic; }
+.tui .underline { text-decoration: underline; }
+.tui .strikethrough { text-decoration: line-through; }
+
+/* A screen embedded in a guide page. */
+.md-typeset figure.screen {
+  display: block;
+  width: 100%;
+  margin: 1.5em 0;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+}
+
+.md-typeset figure.screen .tui {
+  width: 100%;
+  margin: 0;
+}
+
+.md-typeset figure.screen figcaption {
+  max-width: none;
+  margin: 0;
+  padding: 0.5em 1em;
+  font-size: 0.75rem;
+  font-style: normal;
+  text-align: left;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
