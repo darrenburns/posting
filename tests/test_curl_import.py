@@ -190,10 +190,18 @@ def test_curl_with_special_characters_in_data():
     curl_command = "curl -d 'param=hello%20world&key=value%3Dtest' http://example.com"
     curl_import = CurlImport(curl_command)
     assert curl_import.data == "param=hello%20world&key=value%3Dtest"
+    # curl sends -d as is, so the form values are the decoded ones
     assert curl_import.data_pairs == [
-        ("param", "hello%20world"),
-        ("key", "value%3Dtest"),
+        ("param", "hello world"),
+        ("key", "value=test"),
     ]
+
+
+def test_curl_with_data_urlencode():
+    """--data-urlencode values are encoded by curl, so they survive as given."""
+    curl_command = "curl --data-urlencode 'q=50% off+more' http://example.com"
+    curl_import = CurlImport(curl_command)
+    assert curl_import.data_pairs == [("q", "50% off+more")]
 
 
 def test_curl_imports_max_time():
