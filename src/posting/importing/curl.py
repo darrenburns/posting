@@ -3,7 +3,7 @@ import base64
 from datetime import datetime
 import shlex
 from typing import cast
-from urllib.parse import ParseResult, parse_qsl, urlparse
+from urllib.parse import ParseResult, parse_qsl, quote, urlparse
 import itertools
 
 from posting.collection import (
@@ -148,7 +148,8 @@ class CurlImport:
                     args.data,
                     args.data_raw,
                     args.data_binary and [args.data_binary],
-                    args.data_urlencode,
+                    args.data_urlencode
+                    and [self.urlencode_data(item) for item in args.data_urlencode],
                 ],
             )
         )
@@ -166,19 +167,22 @@ class CurlImport:
         else:
             self.form = []
 
+    def urlencode_data(self, item: str) -> str:
+        """Encode a --data-urlencode item the way curl does ("name=content" encodes content)."""
+        name, sep, content = item.partition("=")
+        if not sep:
+            return quote(item, safe="")
+        return f"{name}={quote(content, safe='')}" if name else quote(content, safe="")
+
     def parse_data(self, data_str: str) -> list[tuple[str, str]]:
-        """Parse the data string into a list of tuples."""
+        """Parse the data string into a list of tuples.
+
+        The body is already url-encoded, as curl sends it. Decode it here, since the
+        form values are encoded again when the request is sent.
+        """
         if not data_str:
             return []
-        pairs = data_str.split("&")
-        data: list[tuple[str, str]] = []
-        for pair in pairs:
-            if "=" in pair:
-                key, value = pair.split("=", 1)
-                data.append((key, value))
-            else:
-                data.append((pair, ""))
-        return data
+        return parse_qsl(data_str, keep_blank_values=True)
 
     def parse_form(self, form_list: list[str]) -> list[tuple[str, str]]:
         """Parse the form data into a list of tuples."""

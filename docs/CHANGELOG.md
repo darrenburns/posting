@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Fixed
+
+- Decode url-encoded form bodies when importing a curl command, so `--data-raw 'email=jay%40example.com'` is no longer sent double-encoded.
+
 ## 2.11.2 [5th October 2026]
 
 ### Fixed
