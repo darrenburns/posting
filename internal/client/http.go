@@ -257,29 +257,41 @@ func (h *HTTP) Send(ctx context.Context, call Call) (*model.Response, error) {
 		}
 		return receiveSSE(ctx, call, resp, tracer, started, timeout), nil
 	}
-	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes))
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes+1))
 	if err != nil {
 		tracer.fail()
 		return nil, describeError(ctx, err, timeout)
 	}
-	raw = decompress(raw, resp.Header.Get("Content-Encoding"))
+	truncated := len(raw) > maxBodyBytes
+	if truncated {
+		raw = raw[:maxBodyBytes]
+	} else {
+		var decodedTruncated bool
+		raw, decodedTruncated = decompress(raw, resp.Header.Get("Content-Encoding"))
+		truncated = decodedTruncated
+	}
+	var streamError string
+	if truncated {
+		streamError = fmt.Sprintf("response exceeded %s", model.FormatBytes(maxBodyBytes))
+	}
 	tracer.complete(model.TraceReceiveBody)
 	tracer.start(model.TraceClosed)
 	resp.Body.Close()
 	tracer.complete(model.TraceClosed)
 
 	return &model.Response{
-		StatusCode: resp.StatusCode,
-		Reason:     reason(resp),
-		Proto:      resp.Proto,
-		Headers:    headers(resp.Header),
-		Cookies:    cookies(resp.Cookies()),
-		Body:       raw,
-		Elapsed:    time.Since(started),
-		ReceivedAt: time.Now(),
-		Trace:      tracer.events(),
-		URL:        resp.Request.URL.String(),
-		Method:     req.Method,
+		StatusCode:  resp.StatusCode,
+		Reason:      reason(resp),
+		Proto:       resp.Proto,
+		Headers:     headers(resp.Header),
+		Cookies:     cookies(resp.Cookies()),
+		Body:        raw,
+		StreamError: streamError,
+		Elapsed:     time.Since(started),
+		ReceivedAt:  time.Now(),
+		Trace:       tracer.events(),
+		URL:         resp.Request.URL.String(),
+		Method:      req.Method,
 	}, nil
 }
 
@@ -328,8 +340,9 @@ func encodeBody(body model.Body) ([]byte, string) {
 }
 
 // decompress undoes gzip or deflate encoding. Other encodings, and bodies
-// that fail to decode, are returned as they arrived.
-func decompress(body []byte, encoding string) []byte {
+// that fail to decode, are returned as they arrived. The bool reports that
+// the decoded body exceeded maxBodyBytes and was cut to that size.
+func decompress(body []byte, encoding string) ([]byte, bool) {
 	var reader io.ReadCloser
 	var err error
 	switch strings.ToLower(strings.TrimSpace(encoding)) {
@@ -343,17 +356,20 @@ func decompress(body []byte, encoding string) []byte {
 			err = nil
 		}
 	default:
-		return body
+		return body, false
 	}
 	if err != nil {
-		return body
+		return body, false
 	}
 	defer reader.Close()
-	decoded, err := io.ReadAll(io.LimitReader(reader, maxBodyBytes))
+	decoded, err := io.ReadAll(io.LimitReader(reader, maxBodyBytes+1))
 	if err != nil {
-		return body
+		return body, false
 	}
-	return decoded
+	if len(decoded) > maxBodyBytes {
+		return decoded[:maxBodyBytes], true
+	}
+	return decoded, false
 }
 
 func reason(resp *http.Response) string {

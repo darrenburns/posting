@@ -275,3 +275,52 @@ func TestResolveAddsSchemeAndQueryParams(t *testing.T) {
 		t.Fatalf("URL = %q", out.URL)
 	}
 }
+
+func sendCapTest(t *testing.T, h http.HandlerFunc) *model.Response {
+	t.Helper()
+	server := httptest.NewServer(h)
+	defer server.Close()
+	req := model.NewRequest()
+	req.URL = server.URL
+	resp, err := NewHTTP("test", TLSSettings{}).Send(context.Background(), Call{Request: req})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return resp
+}
+
+func TestHTTPBodyOverCapIsFlagged(t *testing.T) {
+	resp := sendCapTest(t, func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write(bytes.Repeat([]byte("x"), maxBodyBytes+1))
+	})
+	if len(resp.Body) != maxBodyBytes {
+		t.Fatalf("body = %d bytes, want %d", len(resp.Body), maxBodyBytes)
+	}
+	if !strings.Contains(resp.StreamError, "exceeded") {
+		t.Fatalf("StreamError = %q, want it to report the cap was exceeded", resp.StreamError)
+	}
+}
+
+func TestHTTPGzipBodyOverCapIsFlagged(t *testing.T) {
+	resp := sendCapTest(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Encoding", "gzip")
+		zw := gzip.NewWriter(w)
+		_, _ = zw.Write(bytes.Repeat([]byte("x"), maxBodyBytes+1))
+		_ = zw.Close()
+	})
+	if len(resp.Body) != maxBodyBytes {
+		t.Fatalf("body = %d bytes, want %d", len(resp.Body), maxBodyBytes)
+	}
+	if !strings.Contains(resp.StreamError, "exceeded") {
+		t.Fatalf("StreamError = %q, want it to report the cap was exceeded", resp.StreamError)
+	}
+}
+
+func TestHTTPBodyAtCapIsNotFlagged(t *testing.T) {
+	resp := sendCapTest(t, func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write(bytes.Repeat([]byte("x"), maxBodyBytes))
+	})
+	if len(resp.Body) != maxBodyBytes || resp.StreamError != "" {
+		t.Fatalf("body = %d bytes, StreamError = %q; want full body and no error", len(resp.Body), resp.StreamError)
+	}
+}
