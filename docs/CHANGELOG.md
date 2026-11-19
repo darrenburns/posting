@@ -1,3 +1,10 @@
+## Unreleased
+
+### Added
+
+- Expand or collapse every folder in the collection tree, nested ones included, with `e` / `E`,
+  the same keys as the response JSON tree (#417).
+
 ## 3.0.0-beta.1 [15th October 2026]
 
 ### Added

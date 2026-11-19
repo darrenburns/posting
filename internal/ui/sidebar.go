@@ -153,11 +153,33 @@ func (c collectionView) Keybinds() []t.Keybind {
 		duplicate, del = fmt.Sprintf("Duplicate %d", n), fmt.Sprintf("Delete %d", n)
 	}
 	confirmDelete := func() { a.confirmDeleteRequests(a.treeTargets()) }
-	return []t.Keybind{
+	binds := []t.Keybind{
 		{Key: "/", Name: "Search", Action: a.focusTreeSearch},
 		{Key: "d", Name: duplicate, Action: func() { a.duplicateRequests(a.treeTargets()) }},
 		{Key: "backspace", Name: del, Action: confirmDelete},
 		{Key: "delete", Name: del, Action: confirmDelete, Hidden: true},
+	}
+	// A search shows its matches whether or not their folders are collapsed,
+	// so expanding or collapsing would change nothing on screen. Like the
+	// tree's other folding keys, these are listed in help rather than taking
+	// footer space from the global hints.
+	if a.treeFilter.PeekQuery() == "" {
+		binds = append(binds,
+			t.Keybind{Key: "e", Name: "Expand all", Action: a.tree.ExpandAll, Hidden: true},
+			t.Keybind{Key: "E", Name: "Collapse all", Action: a.collapseAllFolders, Hidden: true},
+		)
+	}
+	return binds
+}
+
+// collapseAllFolders collapses every folder, nested ones too. The Tree would
+// move a cursor left on a hidden row to the very first row, so it's moved to
+// the top-level row that contains it instead, keeping the user's place.
+func (a *App) collapseAllFolders() {
+	cursor := a.tree.CursorPath.Peek()
+	a.tree.CollapseAll()
+	if len(cursor) > 1 {
+		a.tree.CursorPath.Set([]int{cursor[0]})
 	}
 }
 
