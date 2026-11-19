@@ -433,6 +433,7 @@ var helpSections = []helpSection{
 	{"Collection", [][2]string{
 		{"enter, double-click", "Open request / toggle folder"},
 		{"space", "Expand or collapse"},
+		{"e / E", "Expand / collapse all folders"},
 		{"/", "Search the collection"},
 		{"↓ / enter", "From the search box into the results"},
 		{"↑", "From the top row back to the search box"},

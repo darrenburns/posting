@@ -214,6 +214,7 @@ selects all rows. With a selection, ++y++ / ++c++ copies complete `Name: value` 
 | ++home++ / ++g++, ++end++ / ++shift+g++ | First / last row |
 | ++shift+home++ / ++shift+end++ | Extend the selection to the first / last row |
 | ++space++ | Expand or collapse a folder |
+| ++e++ / ++shift+e++ | Expand / collapse all folders, including nested ones |
 | `/` | Search the collection |
 | ++escape++ | Clear the selection, then the search |
 | ++d++ | Duplicate the request, or every selected request |
